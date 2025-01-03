@@ -1,0 +1,147 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.map {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 10%;
+    left: 0;
+    overflow: hidden;
+}
+
+.tile-container {
+    position: absolute;
+    transition: all 0.4s ease;
+    width: 150px;
+    height: 150px;
+    pointer-events: auto;
+}
+
+/* Expanded (center) tile */
+.tile-container.expanded {
+    width: 300px;
+    height: 400px;
+    z-index: 100;
+}
+
+/* Connected tiles */
+.tile-container.connected {
+    z-index: 50;
+}
+
+/* Dimmed (unconnected) tiles */
+.tile-container.dimmed {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.tile {
+    width: 100%;
+    height: 100%;
+    background: #006699;
+    border-radius: 20px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    cursor: pointer;
+}
+
+.tile-contents {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.button {
+    display: none;
+    background-color: #FFFFFF;
+    padding: 15px 30px;
+    border-radius: 10px;
+    border: none;
+    margin-top: 25px;
+    font-weight: 900;
+    font-size: xx-large;
+    transition: all 0.3s ease;
+    text-decoration: inherit;
+    cursor: pointer;
+    color: #006699;
+}
+
+.expanded .button {
+    display: block;
+}
+
+.button:hover {
+    background-color: #EEEEEE;
+    padding: 17px 33px;
+}
+
+.tile-title {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+    .tile-container {
+        width: 120px;  /* Smaller base size */
+        height: 120px;
+    }
+    
+    .tile-container.expanded {
+        width: 200px;  /* Smaller expanded size */
+        height: 300px;
+    }
+    
+    .tile-title {
+        font-size: 1rem;
+    }
+    
+    .button {
+        padding: 10px 20px;
+        font-size: x-large;
+    }
+    
+    .button:hover {
+        padding: 12px 22px;
+    }
+}
+
+/* Small mobile styles */
+@media (max-width: 480px) {
+    .tile-container {
+        width: 100px;  /* Even smaller base size */
+        height: 100px;
+    }
+    
+    .tile-container.expanded {
+        width: 160px;  /* Even smaller expanded size */
+        height: 240px;
+    }
+    
+    .tile-title {
+        font-size: 1rem;
+    }
+    
+    .button {
+        padding: 8px 16px;
+        font-size: large;
+    }
+    
+    .button:hover {
+        padding: 10px 18px;
+    }
+}

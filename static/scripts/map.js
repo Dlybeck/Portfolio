@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const GRID_UNITS = {
         mobile: 32,    // More space between tiles on mobile
         tablet: 36,    // Slightly less space on tablet
-        desktop: 40    // Original spacing for desktop
+        desktop: 36    // Original spacing for desktop
     };
 
     // Function to get current grid unit based on screen size
@@ -22,30 +22,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const tilePositions = {
         "Home": [0, 0],
         
-        // First level (slightly further apart)
         "Hobbies": [-1, -1],
         "Projects": [1, -1],
         "Jobs": [1, 1],
         "Education": [-1, 1],
         
-        // Second level from Hobbies (adjusted spacing)
         "3D Printing": [-2, -2],
         "Gaming": [0, -2],
         "Tennis": [-2, 0],
         
-        // Third level from 3D Printing (further spread)
         "Other Models": [-3, -1],
         "Puzzles": [-3, -3],
         
-        // Second level from Projects (adjusted)
         "Programs": [2, 0],
         "Websites": [2, -2],
         
-        // Third level from Websites (spread out)
         "Digital Planner": [1, -3],
         "This website": [3, -3],
         
-        // Second level from Education
         "College": [-2, 2],
         "Early Education": [0, 2]
     };
@@ -57,8 +51,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         for (const [title, [x, y]] of Object.entries(tilePositions)) {
             positions[title] = {
-                left: 50 + (x * gridUnit),
-                top: 50 + (y * gridUnit)
+                left: (x * gridUnit),
+                top: (y * gridUnit)
             };
         }
         return positions;
@@ -163,7 +157,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const centerPos = positions[title];
         const offsetX = 50 - centerPos.left;
         const offsetY = 50 - centerPos.top;
-
+    
+        // Move tiles
         const tiles = document.querySelectorAll('.tile-container');
         tiles.forEach(tile => {
             const tileTitle = tile.dataset.title;
@@ -172,9 +167,14 @@ document.addEventListener('DOMContentLoaded', function() {
             tile.style.left = `${tilePos.left + offsetX}%`;
             tile.style.top = `${tilePos.top + offsetY}%`;
         });
-
+    
+        // Move body background
+        const body = document.body;
+        body.style.backgroundPosition = `${offsetX-50}% ${-offsetY+50}%`; // Directly apply the same offset logic
+    
         updateVisibility(title);
     }
+    
 
     // Create all tiles
     Object.keys(tilesData).forEach(title => {

@@ -3,9 +3,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Grid unit sizes for different screen widths
     const GRID_UNITS = {
-        mobile: 32,    // More space between tiles on mobile
-        tablet: 36,    // Slightly less space on tablet
-        desktop: 36    // Original spacing for desktop
+        mobile: 34,
+        tablet: 35,
+        desktop: 35
     };
 
     // Function to get current grid unit based on screen size
@@ -19,46 +19,109 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Define positions using grid coordinates
-    const tilePositions = {
-        "Home": [0, 0],
+    const tileInfo = {
+        "Home": [
+            [0, 0],
+            `
+            Welcome to davidlybeck.com!
+            <br><br>
+            Check out the neighboring tiles to explore aspects of David's life.
+            <br><br>
+            Come back here if you ever get lost!
+            `
+        ],
+
+        //Home
+        "Hobbies": [
+            [-1, -1],
+            ``
+        ],
+        "Projects": [
+            [1, -1],
+            ``
+        ],
+        "Jobs": [
+            [1, 1],
+            ``
+        ],
+        "Education": [
+            [-1, 1],
+            ``
+        ],
         
-        "Hobbies": [-1, -1],
-        "Projects": [1, -1],
-        "Jobs": [1, 1],
-        "Education": [-1, 1],
+        //Hobbies
+        "3D Printing": [
+            [-2, -2],
+            ``
+        ],
+        "Gaming": [
+            [0, -2],
+            ``
+        ],
+        "Tennis": [
+            [-2, 0],
+            ``
+        ],
         
-        "3D Printing": [-2, -2],
-        "Gaming": [0, -2],
-        "Tennis": [-2, 0],
+        //3D printing
+        "Other Models": [
+            [-3, -1],
+            ``
+        ],
+        "Puzzles": [
+            [-3, -3],
+            ``
+        ],
         
-        "Other Models": [-3, -1],
-        "Puzzles": [-3, -3],
+        //Projects
+        "Programs": [
+            [2, 0],
+            ``
+        ],
+        "Websites": [
+            [2, -2],
+            ``
+        ],
         
-        "Programs": [2, 0],
-        "Websites": [2, -2],
+        //Websites
+        "Digital Planner": [
+            [1, -3],
+            ``
+        ],
+        "This website": [
+            [3, -3],
+            ``
+        ],
         
-        "Digital Planner": [1, -3],
-        "This website": [3, -3],
-        
-        "College": [-2, 2],
-        "Early Education": [0, 2]
+        //Education
+        "College": [
+            [-2, 2],
+            ``
+        ],
+        "Early Education": [
+            [0, 2],
+            ``
+        ]
     };
 
     // Convert grid positions to actual percentages
     function calculatePositions() {
         const gridUnit = getCurrentGridUnit();
         const positions = {};
+        const texts = {};
         
-        for (const [title, [x, y]] of Object.entries(tilePositions)) {
+        for (const [title, tileData] of Object.entries(tileInfo)) {
+            const [coordinates, text] = tileData;
             positions[title] = {
-                left: (x * gridUnit),
-                top: (y * gridUnit)
+                left: (coordinates[0] * gridUnit),
+                top: (coordinates[1] * gridUnit)
             };
+            texts[title] = text;
         }
-        return positions;
+        return [positions, texts];
     }
 
-    let positions = calculatePositions();
+    let [positions, texts] = calculatePositions();
 
     const tilesData = {
         "Home": ["Hobbies", "Projects", "Jobs", "Education"],
@@ -95,18 +158,29 @@ document.addEventListener('DOMContentLoaded', function() {
         tileTitle.className = 'tile-title';
         tileTitle.innerHTML = title;
 
+        const tileText = document.createElement('p');
+        tileText.className = 'tile-text';
+        tileText.innerHTML = `<br> ${texts[title]}`;
+
         const button = document.createElement('a');
         button.className = 'button';
         button.href = '';
         button.textContent = 'GO';
 
         tileContents.appendChild(tileTitle);
+        tileContents.appendChild(tileText);
         tileContents.appendChild(button);
         tile.appendChild(tileContents);
         tileWrapper.appendChild(tile);
         container.appendChild(tileWrapper);
 
         positionTile(tileWrapper, title);
+
+        //Make Pages look different
+        if (tilesData.hasOwnProperty(title) == true){
+            tile.style.borderRadius = "200px";
+            button.style.display = "none"
+        }
         return tileWrapper;
     }
 
@@ -132,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
             visibleTiles.push(parentTitle);
         }
 
-        // Update all tiles' visibility
+        // Update all tile visibilities
         const tiles = document.querySelectorAll('.tile-container');
         tiles.forEach(tile => {
             const tileTitle = tile.dataset.title;
@@ -155,6 +229,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function centerOnTile(title) {
         const centerPos = positions[title];
+        console.log(`title is ${title}`);
+        console.log(`centerPos is ${centerPos}`);
         const offsetX = 50 - centerPos.left;
         const offsetY = 50 - centerPos.top;
     
@@ -178,6 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Create all tiles
     Object.keys(tilesData).forEach(title => {
+        console.log(`Creating tile for ${title}`)
         createTile(title);
         tilesData[title].forEach(childTitle => {
             createTile(childTitle);

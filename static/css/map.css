@@ -34,7 +34,6 @@
 /* Dimmed (unconnected) tiles */
 .tile-container.dimmed {
     opacity: 0.3;
-    pointer-events: none;
 }
 
 .tile {
@@ -54,10 +53,18 @@
 
 .tile-contents {
     display: flex;
+    text-align: center;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
+    padding: 20px;
+}
+
+.tile-contents p {
+    display: none;
+    color: #EEEEEE;
+    font-weight: 400;
 }
 
 .button {
@@ -79,6 +86,10 @@
     display: block;
 }
 
+.expanded p {
+    display: block;
+}
+
 .button:hover {
     background-color: #EEEEEE;
     padding: 17px 33px;
@@ -95,13 +106,13 @@
 /* Mobile styles */
 @media (max-width: 768px) {
     .tile-container {
-        width: 120px;  /* Smaller base size */
-        height: 120px;
+        width: 135px;  /* Smaller base size */
+        height: 135px;
     }
     
     .tile-container.expanded {
-        width: 200px;  /* Smaller expanded size */
-        height: 300px;
+        width: 275px;  /* Smaller expanded size */
+        height: 375px;
     }
     
     .tile-title {
@@ -121,17 +132,17 @@
 /* Small mobile styles */
 @media (max-width: 480px) {
     .tile-container {
-        width: 100px;  /* Even smaller base size */
-        height: 100px;
+        width: 120px;  /* Even smaller base size */
+        height: 120px;
     }
     
     .tile-container.expanded {
-        width: 160px;  /* Even smaller expanded size */
-        height: 240px;
+        width: 275px;  /* Even smaller expanded size */
+        height: 375px;
     }
     
     .tile-title {
-        font-size: 1rem;
+        font-size: 1.5rem;
     }
     
     .button {

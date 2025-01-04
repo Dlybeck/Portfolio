@@ -160,7 +160,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const button = document.createElement('a');
         button.className = 'button';
-        button.href = `${routes[title]}`;
+        // button.href = `${routes[title]}`;
+        button.setAttribute("onclick", `openPage('${routes[title]}')`);
         button.textContent = 'GO';
 
         tileContents.appendChild(tileTitle);
@@ -322,7 +323,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
         // Apply new background position
         document.body.style.backgroundPosition = `${-(oldBackPosX)}% ${oldBackPosY}%`;
-        console.log(`${-(oldBackPosX)}% ${oldBackPosY}%`)
         
         window.checkHomeButton(document.body);
     

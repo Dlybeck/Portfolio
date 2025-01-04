@@ -17,79 +17,95 @@ document.addEventListener('DOMContentLoaded', function() {
             Check out the neighboring tiles to explore aspects of David's life.
             <br><br>
             Come back here if you ever get lost!
-            `
+            `,
+            ``
         ],
 
         //Home
         "Hobbies": [
             [-1, -1],
-            ``
+            ``,
+            `/`
         ],
         "Projects": [
             [1, -1],
-            ``
+            ``,
+            `/`
         ],
         "Jobs": [
             [1, 1],
-            ``
+            ``,
+            `/`
         ],
         "Education": [
             [-1, 1],
-            ``
+            ``,
+            `/`
         ],
         
         //Hobbies
         "3D Printing": [
             [-2, -2],
-            ``
+            ``,
+            `/`
         ],
         "Gaming": [
             [0, -2],
-            ``
+            ``,
+            `/`
         ],
         "Tennis": [
             [-2, 0],
-            ``
+            ``,
+            `/`
         ],
         
         //3D printing
         "Other Models": [
             [-3, -1],
-            ``
+            ``,
+            `/`
         ],
         "Puzzles": [
             [-3, -3],
-            ``
+            ``,
+            `/`
         ],
         
         //Projects
         "Programs": [
             [2, 0],
-            ``
+            ``,
+            `/`
         ],
         "Websites": [
             [2, -2],
-            ``
+            ``,
+            `/`
         ],
         
         //Websites
         "Digital Planner": [
             [1, -3],
-            ``
+            ``,
+            `/`
         ],
         "This website": [
             [3, -3],
-            ``
+            ``,
+            `/`
         ],
         
         //Education
         "College": [
             [-2, 2],
-            ``
+            ``,
+            `/education/college`
         ],
         "Early Education": [
             [0, 2],
-            ``
+            ``,
+            `/`
         ]
     };
 
@@ -97,19 +113,22 @@ document.addEventListener('DOMContentLoaded', function() {
     function calculatePositions() {
         const positions = {};
         const texts = {};
+        const routes = {}
         
         for (const [title, tileData] of Object.entries(tileInfo)) {
-            const [coordinates, text] = tileData;
+            const [coordinates, text, tileRoute] = tileData;
             positions[title] = {
                 left: (coordinates[0] * GRID_UNITS),
                 top: (coordinates[1] * GRID_UNITS)
             };
             texts[title] = text;
+            routes[title] = tileRoute;
+
         }
-        return [positions, texts];
+        return [positions, texts, routes];
     }
 
-    let [positions, texts] = calculatePositions();
+    let [positions, texts, routes] = calculatePositions();
 
     const tilesData = {
         "Home": ["Hobbies", "Projects", "Jobs", "Education"],
@@ -141,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const button = document.createElement('a');
         button.className = 'button';
-        button.href = '';
+        button.href = `${routes[title]}`;
         button.textContent = 'GO';
 
         tileContents.appendChild(tileTitle);
@@ -156,6 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
         //Make Pages look different
         if (tilesData.hasOwnProperty(title) == true){
             tile.style.borderRadius = "200px";
+            tile.style.borderStyle = "none"
             button.style.display = "none"
         }
         return tileWrapper;

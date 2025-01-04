@@ -16,7 +16,7 @@
     top: 10px; /* Adjust the top margin */
     left: 50%;
     transform: translateX(-50%);
-    background-color: #007bff; /* Blue background */
+    background-color: #006400; /* Blue background */
     color: white; /* White text */
     padding: 10px 20px; /* Padding for the button */
     border: none; /* No border */
@@ -83,6 +83,9 @@
     overflow: hidden;
     transition: all 0.4s ease;
     cursor: pointer;
+    border-color: black;
+    border-width: 3px;
+    border-style: solid;
 }
 
 .tile-contents {

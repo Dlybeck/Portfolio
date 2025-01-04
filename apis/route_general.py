@@ -3,12 +3,12 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
 
 templates = Jinja2Templates(directory="templates")
-general_pages_router = APIRouter()
+general_router = APIRouter()
 
-@general_pages_router.get("/")
+@general_router.get("/")
 async def test(request: Request):
     return templates.TemplateResponse("pages/home.html", {"request": request})
 
-@general_pages_router.get('/favicon.ico', include_in_schema=False)
+@general_router.get('/favicon.ico', include_in_schema=False)
 async def favicon():
     return FileResponse('favicon.ico')

@@ -11,12 +11,29 @@
     overflow: hidden;
 }
 
+.home-button {
+    position: absolute;
+    top: 10px; /* Adjust the top margin */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #007bff; /* Blue background */
+    color: white; /* White text */
+    padding: 10px 20px; /* Padding for the button */
+    border: none; /* No border */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    font-size: 16px; /* Font size for the button */
+    text-align: center; /* Center text */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
 .tile-container {
     position: absolute;
     transition: all 0.4s ease;
     width: 150px;
     height: 150px;
     pointer-events: auto;
+    padding:0px;
 }
 
 /* Expanded (center) tile */
@@ -24,6 +41,23 @@
     width: 300px;
     height: 400px;
     z-index: 100;
+}
+
+.tile-container:hover {
+    width: 160px;
+    height: 160px;
+}
+.tile-container.expanded:hover {
+    width: 310px;
+    height: 410px;
+}
+
+ /* So text doesnt realign on growth */
+ .tile-container:hover > .tile {
+    padding: 5px;
+}
+.tile-container.expanded:hover > .tile {
+    padding: 5px;
 }
 
 /* Connected tiles */

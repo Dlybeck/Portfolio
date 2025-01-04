@@ -2,21 +2,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const container = document.querySelector(".map");
     
     // Grid unit sizes for different screen widths
-    const GRID_UNITS = {
-        mobile: 34,
-        tablet: 35,
-        desktop: 35
-    };
+    const GRID_UNITS = 34;
 
-    // Function to get current grid unit based on screen size
-    function getCurrentGridUnit() {
-        if (window.innerWidth <= 480) {
-            return GRID_UNITS.mobile;
-        } else if (window.innerWidth <= 768) {
-            return GRID_UNITS.tablet;
-        }
-        return GRID_UNITS.desktop;
-    }
+    var oldBackPosX = 0;
+    var oldBackPosY = 0;
 
     // Define positions using grid coordinates
     const tileInfo = {
@@ -106,15 +95,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Convert grid positions to actual percentages
     function calculatePositions() {
-        const gridUnit = getCurrentGridUnit();
         const positions = {};
         const texts = {};
         
         for (const [title, tileData] of Object.entries(tileInfo)) {
             const [coordinates, text] = tileData;
             positions[title] = {
-                left: (coordinates[0] * gridUnit),
-                top: (coordinates[1] * gridUnit)
+                left: (coordinates[0] * GRID_UNITS),
+                top: (coordinates[1] * GRID_UNITS)
             };
             texts[title] = text;
         }
@@ -131,17 +119,6 @@ document.addEventListener('DOMContentLoaded', function() {
         "Websites": ["Digital Planner", "This website"],
         "Education": ["College", "Early Education"]
     };
-
-    // Update positions on window resize
-    let resizeTimer;
-    window.addEventListener('resize', function() {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function() {
-            positions = calculatePositions();
-            const currentTitle = document.querySelector('.tile-container.expanded')?.dataset.title || 'Home';
-            centerOnTile(currentTitle);
-        }, 250);
-    });
 
     function createTile(title) {
         const tileWrapper = document.createElement('div');
@@ -226,38 +203,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-
-    function centerOnTile(title) {
-        const centerPos = positions[title];
-        console.log(`title is ${title}`);
-        console.log(`centerPos is ${centerPos}`);
-        const offsetX = 50 - centerPos.left;
-        const offsetY = 50 - centerPos.top;
-    
-        // Move tiles
-        const tiles = document.querySelectorAll('.tile-container');
-        tiles.forEach(tile => {
-            const tileTitle = tile.dataset.title;
-            const tilePos = positions[tileTitle];
-            
-            tile.style.left = `${tilePos.left + offsetX}%`;
-            tile.style.top = `${tilePos.top + offsetY}%`;
-        });
-    
-        // Move body background
-        const body = document.body;
-        body.style.backgroundPosition = `${offsetX-50}% ${-offsetY+50}%`; // Directly apply the same offset logic
-    
-        updateVisibility(title);
-    }
     
 
-    // Create all tiles
+    // Create all tiles with duplicate prevention
+    const createdTiles = new Set();
+
+
     Object.keys(tilesData).forEach(title => {
-        console.log(`Creating tile for ${title}`)
-        createTile(title);
+        if (!createdTiles.has(title)) {
+            createTile(title);
+            createdTiles.add(title);
+        }
+        
         tilesData[title].forEach(childTitle => {
-            createTile(childTitle);
+            if (!createdTiles.has(childTitle)) {
+                createTile(childTitle);
+                createdTiles.add(childTitle);
+            }
         });
     });
 
@@ -268,6 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const buttonElement = container.querySelector('.button');
 
         tileElement.addEventListener('click', function(e) {
+            const title = container.dataset.title;
             handleTileClick(e, container);
         });
 
@@ -284,9 +247,113 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         e.preventDefault();
         const title = container.dataset.title;
+        
+        // Check if position exists
+        if (!positions[title]) {
+            console.error(`No position found for tile: ${title}`);
+            return;
+        }
+        
         centerOnTile(title);
     }
 
+    function centerOnTile(title) {
+        const centerPos = positions[title];
+        if (!centerPos) {
+            console.error(`No position found for tile: ${title}`);
+            return;
+        }
+        
+        // Calculate offsets for tile movement
+        const offsetX = 50 - centerPos.left;
+        const offsetY = 50 - centerPos.top;
+        
+        // Move tiles
+        const tiles = document.querySelectorAll('.tile-container');
+        tiles.forEach(tile => {
+            const tileTitle = tile.dataset.title;
+            const tilePos = positions[tileTitle];
+            
+            if (!tilePos) {
+                console.error(`No position found for tile: ${tileTitle}`);
+                return;
+            }
+            
+            tile.style.left = `${tilePos.left + offsetX}%`;
+            tile.style.top = `${tilePos.top + offsetY}%`;
+        });
+        
+        // Determine movement direction for the background
+        if (centerPos.left > oldBackPosX) {
+            moveX = GRID_UNITS; // Move background left
+        } else if (centerPos.left < oldBackPosX) {
+            moveX = -GRID_UNITS; // Move background right
+        }
+    
+        if (centerPos.top > oldBackPosY) {
+            moveY = GRID_UNITS; // Move background down
+        } else if (centerPos.top < oldBackPosY) {
+            moveY = -GRID_UNITS; // Move background up
+        }
+        
+        // Update the tracked old positions
+        oldBackPosX = centerPos.left;
+        oldBackPosY = centerPos.top;
+    
+        // Apply new background position
+        document.body.style.backgroundPosition = `${-(oldBackPosX)}% ${oldBackPosY}%`;
+        console.log(`${-(oldBackPosX)}% ${oldBackPosY}%`)
+        
+        window.checkHomeButton(document.body);
+    
+        // Update visibility of tiles
+        updateVisibility(title);
+    }
+
+    function returnHome() {
+        const homeTile = positions['Home'];
+        if (!homeTile) {
+            console.error('No position found for Home tile');
+            return;
+        }
+    
+        // Reset offsets to initial positions
+        const offsetX = 50 - homeTile.left;
+        const offsetY = 50 - homeTile.top;
+    
+        // Move all tiles back to their original positions
+        const tiles = document.querySelectorAll('.tile-container');
+        tiles.forEach(tile => {
+            const tileTitle = tile.dataset.title;
+            const tilePos = positions[tileTitle];
+            
+            if (!tilePos) {
+                console.error(`No position found for tile: ${tileTitle}`);
+                return;
+            }
+    
+            tile.style.left = `${tilePos.left + offsetX}%`;
+            tile.style.top = `${tilePos.top + offsetY}%`;
+        });
+    
+        // Reset background position
+        oldBackPosX = homeTile.left;
+        oldBackPosY = homeTile.top;
+        document.body.style.backgroundPosition = '0% 0%';
+    
+        // Update visibility to focus on "Home"
+        updateVisibility('Home');
+        window.checkHomeButton(document.body);
+    }
+
+    window.returnHome = returnHome;
+    
+    
+
     // Initially center on Home
-    centerOnTile('Home');
+    if (positions['Home']) {
+        centerOnTile('Home');
+    } else {
+        console.error('No position found for Home tile');
+    }
 });

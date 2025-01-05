@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
         "Home": [
             [0, 0],
             `
-            Welcome to davidlybeck.com!
+            Welcome!
             <br><br>
             Check out the neighboring tiles to explore aspects of David's life.
             <br><br>

@@ -13,18 +13,18 @@
 
 .home-button {
     position: absolute;
-    top: 10px; /* Adjust the top margin */
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #006400; /* Blue background */
-    color: white; /* White text */
-    padding: 10px 20px; /* Padding for the button */
-    border: none; /* No border */
-    border-radius: 5px; /* Rounded corners */
-    cursor: pointer; /* Pointer cursor on hover */
-    font-size: 16px; /* Font size for the button */
-    text-align: center; /* Center text */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    width: 2.5rem;
+    height: 2.5rem;
+    opacity: 0;
+    visibility: hidden;
+    right: 5%;
+    filter: brightness(0) invert(1);
+    transition: all 0.4s ease;
+}
+
+.home-button.visible {
+    opacity: 1;
+    visibility: visible;
 }
 
 .tile-container {

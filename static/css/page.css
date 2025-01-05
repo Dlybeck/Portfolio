@@ -145,15 +145,15 @@ img {
 }
 
 .media { 
-    width: 75%;
-    height: 75%; 
+    width: 50%;
+    height: 50%; 
     object-fit: contain;
     border-radius: 15px;
 }
 
 .small-media { 
-    width: 50%;
-    height: 50%; 
+    width: 25%;
+    height: 25%; 
     object-fit: contain;
     border-radius: 15px;
 }

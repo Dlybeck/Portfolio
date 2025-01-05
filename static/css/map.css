@@ -33,7 +33,6 @@
     width: 150px;
     height: 150px;
     pointer-events: auto;
-    padding:0px;
 }
 
 /* Expanded (center) tile */
@@ -83,9 +82,7 @@
     overflow: hidden;
     transition: all 0.4s ease;
     cursor: pointer;
-    border-color: black;
-    border-width: 3px;
-    border-style: solid;
+    box-shadow: 5px 5px 5px #111;
 }
 
 .tile-contents {
@@ -95,7 +92,6 @@
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    padding: 20px;
 }
 
 .tile-contents p {
@@ -140,6 +136,10 @@
     margin-bottom: 10px;
 }
 
+.tile-text {
+    padding: 10px;
+}
+
 /* Mobile styles */
 @media (max-width: 768px) {
     .tile-container {
@@ -157,8 +157,8 @@
     }
     
     .button {
-        padding: 10px 20px;
-        font-size: x-large;
+        padding: 15px 30px;
+        font-size: xx-large;
     }
     
     .button:hover {
@@ -183,8 +183,8 @@
     }
     
     .button {
-        padding: 8px 16px;
-        font-size: large;
+        padding: 10px 20px;
+        font-size: x-large;
     }
     
     .button:hover {

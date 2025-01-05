@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<!-- saved from url=(0067)http://cs.pugetsound.edu/~brichards/Classes/291/Asmts/09/index.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<link rel="stylesheet" type="text/css" href="./CovidTest_files/asmt.css">   
+   <title>CS 291 Assignment #9</title>
+</head>
+
+<body><h1>CS 291 Assignment #9</h1>
+<center class="ss">
+Due Wednesday, May 3rd by 2:00pm<br>
+(<i>Not accepted late!</i>)
+</center>
+
+
+<h2>Introduction</h2>
+
+For your final assignment, you'll build an application that can determine which subjects in a large group have tested positive for Covid 19, without having to test each subject individually. There's a long history of using pooled testing to detect viruses and other pathogens. For example, when you donate blood, a portion of your donation is combined with other donors' blood, and the entire "pool" is tested for things like HIV. If any subject in the group has HIV, the pool will test positive. We wouldn't know <i>which</i> subject had HIV unless we then tested each subject individually, but in situations where infections are rare this can still be an efficient way to screen subjects. 
+<p>
+As Covid started spreading in the spring of 2019, an Israeli research team reported an <a href="https://advances.sciencemag.org/content/6/37/eabc5961">approach</a> to pooled testing that uses techniques from computer science to improve the efficiency: Subjects' samples are added to <i>multiple</i> pools, but arranged carefully so that we can deduce which subjects tested positive <i>without having to test each individually</i>. In one of their examples, they were able to evaluate 384 subjects with only 48 tests!
+
+
+</p><h2>Deducing Which Subjects are Positive</h2>
+
+Let's work through a scaled-down example to show how the approach works. The diagram below shows eight subjects (0–7) and six different pools, labelled A through F. You can see that subject 2, for example, is in pools A, D, and E, meaning that 2's sample was split across those three groups and combined with samples from the other subjects in each pool.
+<center>
+<img src="./CovidTest_files/pools_start.png" width="320px"> 
+</center>
+<p>
+Assume that subject 5 is Covid positive. That would lead pools B, D, and E (shown in red below) to test positive. The algorithm can tell that only subject 5 is responsible for these positive pools: Not only is it in every pool that tested positive, but there aren't any <i>negative</i> pools containing 5. Subject 4 is in several of the positive pools as well, but is also in pool C, which tested negative. That's evidence that subject 4 isn't responsible for the positive results. (The results for pool C could have been a false negative, but we'll assume for this assignment that the tests are 100% accurate. It would be an interesting extension to think about how to handle false positives or negatives though.)
+</p><p>
+</p><center>
+<img src="./CovidTest_files/pools_good.png" width="320px">
+</center>
+<p>
+The savings in this example weren't very dramatic. We determined the status of 8 subjects with 6 tests. That's still better than having to do 8 tests, but the process gets more efficient as it scales up to larger numbers of subjects. What if several subjects are positive? Will this approach still work? Imagine that subjects 0 and 5 are both positive. The diagram below shows all of the pools containing 0 and/or 5 in red — those groups would all test positive. 
+</p><p>
+</p><center>
+<img src="./CovidTest_files/pools_false.png" width="320px">
+</center>
+<p>
+The good news is that the algorithm would still be able to determine that 0 and 5 are positive — they're in pools that tested positive, and they're <i>not</i> in any negative pools. Unfortunately, that's also true for subjects 2 and 4, so we'd mistakenly conclude that they're Covid positive as well. That can happen if the number of positive subjects is large with respect to the number of pools, so this approach works best for fairly low positivity rates.
+</p><p>
+
+<!--
+<h2>Deducing Which <i>Subjects</i> are Positive</h2>
+
+We'll start by assuming that the subjects in <i>all</i> of the positive groups are positive, then look for evidence that some of those subjects are actually negative and eliminate them. For example, in the example above where groups B, D, and E test positive, we would start by considering everyone in those groups to be positive. If we created a new pool containing all of those subjects, it would hold 4, 5, 6, 1, 7, 0, and 2 &mdash; everybody except 3! (Note that we want to avoid duplicates when merging the positive pools.)
+<p>
+Next we'd inspect the negative pools to see if any of our guilty suspects were actually innocent. When we consider pool A, for example, we find that 0, 2, 3, and 7 must actually be Covid negative &mdash; if any of them were positive, that whole group would've tested positive. We can therefore remove 0, 2, and 7 from our group of suspects. That just leaves 4, 5, 6, and 1. Considering pool C would remove 4 and 1 from our group of suspects, leaving 5 and 6. Pool F would exonerate subject 6. That only leaves 5 in our positive group when we're done with our analysis.
+-->
+
+</p><h2>Project Overview</h2>
+
+For your assignment you'll complete a Prolog program that interacts with the user to collect information about which data sample to process and which pools tested positive, then finds and displays the individual <i>subjects</i> in the data sample that the algorithm determines to be positive. Unfortunately, SWISH won't allow programs to read from actual data files for security reasons, and SWISH's fancy tools for reading from online data sources don't exist in the desktop implementation of SWI Prolog. So, as a workaround, I'll give you a <a href="http://cs.pugetsound.edu/~brichards/Classes/291/Asmts/09/covid.pl">starter file</a> that contains the data from two different "files", and you'll have to retrieve the appropriate data after interacting with the user. 
+<p>
+The data is stored in a list of <code>data</code> tuples, one for each "file". A data tuple contains two terms: An atom giving the "name" of the file, and a list of <code>in</code> tuples, each of which contains a subject ID and the name of a pool containing the subject's sample. A portion of the data in the starter file is shown below to illustrate its structure:
+</p><p>
+</p><blockquote>
+<pre class="code">[ data(small, [in(0,a), in(2,a), in(3,a), in(7,a), ...]),
+  data(large, [in(1,a), in(9,a), in(17,a), in(25,a), ...]) ]
+</pre>
+</blockquote>
+Once you've retrieved the appropriate list of <code>in</code> tuples, you can use any representation of the pool assignments you wish. You could assert each of them as facts, or example, or use list-processing techniques to work with the list of tuples directly. I suggest implementing the detection algorithm in pieces. Start by defining a <code>negative</code> predicate that takes a subject ID and a list of pools that tested positive, and succeeds if the subject does <i>not</i> have Covid. (They're in the clear if we ever find them in a non-positive pool, like subject 4 in the example above. Subject 4 is in a couple of positive pools, but they're also in pool <code>b</code> which is negative so they're clear.) Then define a <code>positive</code> predicate that succeeds if a subject <i>does</i> have Covid. (This is almost as simple as saying they're positive if they're <i>not</i> negative.) Finally, once <code>negative</code> is working, define a predicat that uses <code>findall</code> or <code>setof</code> or <code>bagof</code> to collect all possible subjects testing positive.
+
+
+<h2>Requirements:</h2>
+<ul>
+<li class="vspace">
+You must prompt the user for a "filename" and analyze the corresponding data. For full credit, your program must be general enough that it would work if we added additional datasets or changed their names.
+
+</li><li class="vspace">
+After retrieving the data, you must report the total number of pool assignments found in the dataset, as well as the number of unique subject IDs and unique pool names. (See sample output below for examples.)
+
+</li><li class="vspace">
+You must prompt the user for a list of the names of pools that tested positive. You can read the entire list as a single Prolog term if you wish.
+
+</li><li class="vspace">
+For full credit, you should report the <i>number</i> of positive subjects as well as their subject IDs, and you should use appropriate language whether zero, one, or more subjects tested positive. For example, in my output below it says "There was one positive subject: 5" when there's one, but "There were 4 positive subjects: [0,2,4,5]" when there was more than one.
+</li></ul>
+
+The sample interactions below show the user input in blue.
+<blockquote>
+<pre class="code">?- main.
+Please enter the name of the data file: <font color="blue">small.</font>
+Reading from small
+File contained 24 entries for 8 subjects and 6 pools.
+Enter a list of the groups that tested positive.
+|: <font color="blue">[].</font>
+There were no positive subjects.
+true .
+
+?- main.
+Please enter the name of the data file: <font color="blue">small.</font>
+Reading from small
+File contained 24 entries for 8 subjects and 6 pools.
+Enter a list of the groups that tested positive.
+|: <font color="blue">[b,d,e].</font>
+There was one positive subject: 5
+true .
+
+?- main.
+Please enter the name of the data file: <font color="blue">small.</font>
+Reading from small
+File contained 24 entries for 8 subjects and 6 pools.
+Enter a list of the groups that tested positive.
+|: <font color="blue">[a,c,b,d,e].</font>
+There were 4 positive subjects: [0,2,4,5]
+true .
+
+?- main.
+Please enter the name of the data file: <font color="blue">large.</font>
+Reading from large
+File contained 2304 entries for 384 subjects and 48 pools.
+Enter a list of the groups that tested positive.
+|: <font color="blue">[a,i,q,y,ag,ao].</font>
+There was one positive subject: 1
+true .
+
+?- main.
+Please enter the name of the data file: <font color="blue">large.</font>
+Reading from large
+File contained 2304 entries for 384 subjects and 48 pools.
+Enter a list of the groups that tested positive.
+|: <font color="blue">[b,j,r,z,ah,ap].</font>
+There was one positive subject: 2
+true .
+
+?- main.
+Please enter the name of the data file: <font color="blue">large.</font>
+Reading from large
+File contained 2304 entries for 384 subjects and 48 pools.
+Enter a list of the groups that tested positive.
+|: <font color="blue">[h,n,q,aa,al,av,c,p,v,y,ai,av].</font>
+There were 2 positive subjects: [99,384]
+true.
+</pre>
+</blockquote>
+
+Here's what that last test run looked like in Swish:
+<p>
+</p><blockquote>
+<img src="./CovidTest_files/swish.png" width="601px">
+</blockquote>
+
+
+<h2>Submitting</h2>
+
+To make it easier for me to test your submissions, I'm asking you to submit via Canvas this time around rather than pasting your code into Gradescope. Please submit <i>only</i> your <tt>.pl</tt> file! Please leave the data sets (small and large) in your programs so they're ready to run.
+
+<p>
+</p><hr>
+<i>Brad Richards, 2023</i>
+
+
+</body></html>

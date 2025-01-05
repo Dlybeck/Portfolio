@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<!-- saved from url=(0067)http://cs.pugetsound.edu/~brichards/Classes/291/Asmts/06/index.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<link rel="stylesheet" type="text/css" href="./Evilhangman_files/asmt.css">
+   <title>CS 291 Assignment #6</title>
+</head>
+
+
+<body><h1>CS 291 Assignment #6</h1>
+<center class="ss">
+Due Monday, March 20th (by CLASS TIME) <br>
+<i>Not accepted late</i>
+</center>
+
+
+<h2>The Assignment</h2>
+
+For your final Haskell assignment you'll implement a program with input and output, at long last, and compile it into a stand-alone application.  We'll use Keith Schwarz's <a href="http://nifty.stanford.edu/2011/schwarz-evil-hangman/Evil_Hangman.pdf">evil hangman</a> as our project.  It involves interaction with the user and some interesting data processing, and is of the right scope — challenging but not <i>too</i> challenging.  Plus it's cool.
+
+<h2>Evil Hangman</h2>
+
+In normal hangman, one player picks a secret word and the other tries to guess it, one letter at a time.  If the "guesser" picks a letter that occurs in the secret word, the opponent reveals the letter's location and play continues.  The guesser loses after some number of incorrect guesses.  In normal hangman though, the assumption is that the player picking the word plays truthfully — that they select a word and stick with it.  In evil hangman, the computer cheats.  Instead of picking a single word, it keeps track of all possible words that <i>could</i> be the answer given the play so far.  At each guess, it considers how many candidate words contain the letter and how many don't, and goes with the largest of the groups.  (Note that there might be more than one group, as the letter can appear in different places in different words.)  Keith has a nice writeup <a href="http://nifty.stanford.edu/2011/schwarz-evil-hangman/Evil_Hangman.pdf">here</a> that describes the approach in more detail.
+
+<h2>The Details</h2>
+
+<ul>
+<li>Start by downloading <a href="http://cs.pugetsound.edu/~brichards/Classes/291/Asmts/06/hangman.hs">hangman.hs</a>.  It contains a bit of initial code, including definitions for dictionaries of various sizes — one of which, <tt>trivialDict</tt>, is a list of the seven words used in Keith's writeup.  It will be helpful during debugging to have a limited dictionary!<p>
+
+</p></li><li>Your program should prompt the user for a word length, then filter out and use the words of that length from the dictionary.  Don't worry about error-checking the length — it's fine to assume that the user enters a valid word length.<p>
+
+</p></li><li>Next, prompt the user for the number of guesses to give the player.  Once again you may assume that the user enters a valid input.<p>
+
+</p></li><li>Play a game of Hangman using the Evil Hangman algorithm, as described below:<p>
+
+</p><ol>
+<li>Print out how many guesses the user has remaining, along with the letters the player has guessed and the current blanked-out version of the word.
+<p>
+</p></li><li>Prompt the user for a guess, then read in a string and use the first character of the input as the guessed letter.  Feel free to repeat the process if the user enters a letter that has previously been guessed (or if they enter something that's not a letter), but you don't need to for full credit.
+<p>
+</p></li><li>Partition the collection of possible answers into groups by word family.  See the sample output below and Keith's <a href="http://nifty.stanford.edu/2011/schwarz-evil-hangman/Evil_Hangman.pdf">writeup</a> for more details.  For full credit, print <i>all</i> of these groups after partitioning to show how the process evolves.  You wouldn't do this in practice, since it's evidence that you're cheating, but it'll help you ensure your code is working.
+<p>
+</p></li><li>Select the largest word family as the new group of "right answers" and print out its size.
+<p>  
+</p></li><li>Display an appropriate message in response to the player's guess.  There are three possible outcomes: The player just won the game, their guess was correct but didn't end the game, or the guess was incorrect.  Note that determining whether the guess was correct isn't as straightforward in evil hangman as in the basic game: A guess is correct if the blanked-out pattern for the word family selected in the previous step included the letter the user just guessed.
+<p>
+
+</p></li><li>Repeat another guessing cycle if appropriate, with the proper number of remaining guesses.  The game should end once the word is guessed or the number of incorrect guesses reaches the limit.
+</li></ol>
+</li></ul>
+
+
+<h2>Tips</h2>
+
+Think carefully about the approach you'll use and the data structures it requires before you get too far along on your implementation.  When you get a new guess, how will you determine all of the new word families?  How will you figure out which words belong in which families?  Is it possible for a word to be in more than one word family?  You don't really want to create all possible blanked-out word patterns and then go looking for matching words — there are far too many possible patterns to make that workable, and most of them won't correspond to the actual words in the group you're partitioning into families.  So what will you do instead?  It's possible to implement this assignment using lists of words as your main data structure.  I'll give full credit for list-based solutions, but it would be more efficient to use Haskell's <tt>Map</tt> class (similar to Java's HashMap).
+
+<h2>Sample Outputs</h2>
+
+The output below shows how the game should work.  The <tt>ghc --make</tt> command compiled the program into a stand-alone executable, which I then ran in the next command.  Note that the initial pattern was <tt>----</tt>, and that when I guessed an "e" I was told that there weren't any even though the majority of the words contained an "e"! The algorithm decided to stick with the word family corresponding to <tt>----</tt> since it contained the greatest number of words.  (The indented output comes from the behind-the-scenes computations as evil hangman considers the possible word families and picks the largest.)  Note also that at the end of the game, the algorithm could have been even more diabolical if it had noticed that while the final two word families were of the same size, one of them (<tt>-oo-</tt>) required more correct guesses from the player than the other (<tt>-ood</tt>).  Keith mentions this as a possible improvement to the game.  Feel free to make it even more evil, but I'll happily give full credit if you pick <i>any</i> of the possible word families in the case of a tie.  There are some longer sample outputs from games played with the <a href="http://cs.pugetsound.edu/~brichards/Classes/291/Asmts/06/output-small.txt"><tt>smallDict</tt></a> and <a href="http://cs.pugetsound.edu/~brichards/Classes/291/Asmts/06/output-medium.txt"><tt>mediumDict</tt></a>.
+
+<blockquote><pre>brichards@laptop[74] : ghc --make hangman.hs
+[1 of 1] Compiling Main             ( hangman.hs, hangman.o )
+Linking hangman ...
+brichards@laptop[75] : ./hangman
+Word length?  
+4
+Number of guesses?  
+6
+You have 6 guesses left.
+Letters guessed: ""
+Word: ----
+Guess a letter: 
+e
+    ---- matches ["ally","cool","good"]
+    -e-- matches ["beta","deal"]
+    e--e matches ["else"]
+    --e- matches ["flew","ibex"]
+    ---e matches ["hope"]
+   Using pattern ----, which matches 3 words
+Sorry, there are no e's
+
+You have 5 guesses left.
+Letters guessed: "e"
+Word: ----
+Guess a letter: 
+o
+    ---- matches ["ally"]
+    -oo- matches ["cool","good"]
+   Using pattern -oo-, which matches 2 words
+Good guess!
+
+You have 5 guesses left.
+Letters guessed: "eo"
+Word: -oo-
+Guess a letter: 
+d
+    -oo- matches ["cool"]
+    -ood matches ["good"]
+   Using pattern -ood, which matches 1 words
+Good guess!
+
+You have 5 guesses left.
+Letters guessed: "eod"
+Word: -ood
+Guess a letter: 
+g
+    good matches ["good"]
+You guessed it!  The word was "good"
+</pre></blockquote>
+
+
+
+<h2>Submitting:</h2>
+
+To make it easier for me to test your submissions, I'm asking you to submit via Canvas this time around rather than pasting your code into Gradescope. Please submit <i>only</i> your <tt>.hs</tt> file! If you want full credit, make sure your code is using the <tt>mediumDict</tt> dictionary when you submit.  I <i>will</i> take points off if it's using anything else.
+
+<p>
+</p><hr>
+<i>Brad Richards, 2023</i>
+
+</body></html>

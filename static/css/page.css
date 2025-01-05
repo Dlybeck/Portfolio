@@ -14,27 +14,11 @@ header h1 {
     cursor: pointer;
 }
 
-nav ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-}
-
-nav li {
-    margin: 0 10px;
-}
-
-nav a {
-    color: #fff;
-    text-decoration: none;
-    cursor: pointer;
-}
-
 .container {
     z-index: 1;
     position: relative;
-    padding: 20px;
+    padding: 0px;
+    margin: 0%;
     background-color: #fff;
     border-radius: 0px 0px 50px 50px;
     text-align: center;
@@ -50,6 +34,10 @@ h2 {
 h3 {
     text-align: center;
     margin-top: 10px;
+}
+
+#location {
+    margin-top: 30px;
 }
 
 p {
@@ -94,21 +82,6 @@ dt {
     border-style: solid;
     border-width: 2px;
     border-radius: 6px;
-}
-
-#home {
-    display: block;
-    margin-left: 80%;
-    margin-right: 10px;
-    z-index: 10;
-}
-
-.homeIcon{
-    transition: ease-in-out 0.25s;
-}
-
-.homeIcon:hover {
-    transform: scale(1.1);
 }
 
 #topBtn {
@@ -199,6 +172,8 @@ iframe {
 .game {
     height: 350px;
     width: auto;
+    display: inline;
+    margin: 5px;
 }
 
 
@@ -238,4 +213,41 @@ iframe {
 
 .close-button:hover {
     background: #ddd;
+}
+
+
+model-viewer{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 25px;
+    margin-bottom: 25px;
+    width: 600px;
+    height: 400px;
+    background-color: #006699;
+    border-radius: 40px;
+}
+
+.models a{
+    display: block;
+    color: #006699;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    text-decoration: none;
+    width: fit-content;
+}
+
+.models a:hover{
+    text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+    p {
+        padding-left: 5%;
+        padding-right: 5%;v 
+    }
+    .game {
+        height: 225px;
+    }
 }

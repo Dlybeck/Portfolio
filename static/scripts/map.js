@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
         "Jobs": [
             [1, 1],
             ``,
-            `/`
+            `/jobs`
         ],
         "Education": [
             [-1, 1],
@@ -52,31 +52,31 @@ document.addEventListener('DOMContentLoaded', function() {
         "Gaming": [
             [0, -2],
             ``,
-            `/`
+            `/hobbies/gaming`
         ],
         "Tennis": [
             [-2, 0],
             ``,
-            `/`
+            `/hobbies/tennis`
         ],
         
         //3D printing
         "Other Models": [
             [-3, -1],
             ``,
-            `/`
+            `/hobbies/3d_printing/other_models`
         ],
         "Puzzles": [
             [-3, -3],
             ``,
-            `/`
+            `/hobbies/3d_printing/puzzles`
         ],
         
         //Projects
         "Programs": [
             [2, 0],
             ``,
-            `/`
+            `/projects/programs`
         ],
         "Websites": [
             [2, -2],
@@ -88,12 +88,12 @@ document.addEventListener('DOMContentLoaded', function() {
         "Digital Planner": [
             [1, -3],
             ``,
-            `/`
+            `/projects/websites/digital_planner`
         ],
         "This website": [
             [3, -3],
             ``,
-            `/`
+            `/projects/websites/this_website`
         ],
         
         //Education
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
         "Early Education": [
             [0, 2],
             ``,
-            `/`
+            `/education/early_education`
         ]
     };
 
@@ -176,8 +176,14 @@ document.addEventListener('DOMContentLoaded', function() {
         //Make Pages look different
         if (tilesData.hasOwnProperty(title) == true){
             tile.style.borderRadius = "200px";
-            tile.style.borderStyle = "none"
             button.style.display = "none"
+        }
+        //Make home look identifiable
+        if (title === "Home") {
+            tile.style.borderStyle = "solid"
+            tile.style.borderWidth = "5px"
+            tile.style.borderColor = "#111111"
+
         }
         return tileWrapper;
     }

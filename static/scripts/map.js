@@ -238,10 +238,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         //Make home look identifiable
         if (title === "Home") {
-            tile.style.borderStyle = "solid"
-            tile.style.borderWidth = "5px"
-            tile.style.borderColor = "#111111"
-
+            tile.style.clipPath = "polygon(-10% 40%, 50% 0%, 110% 40%, 110% 110%, -10% 110%)";
+            tile.style.filter = "drop-shadow(0px .1px .1px #BBBBBB)"; // Adjust values as needed
+            tile.style.borderRadius = "5px";
         }
         return tileWrapper;
     }

@@ -145,8 +145,8 @@ img {
 }
 
 .media { 
-    width: 50%;
-    height: 50%; 
+    width: 70%;
+    height: 70%; 
     object-fit: contain;
     border-radius: 15px;
 }
@@ -242,12 +242,25 @@ model-viewer{
     text-decoration: underline;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
     p {
         padding-left: 5%;
-        padding-right: 5%;v 
+        padding-right: 5%;
     }
+
     .game {
         height: 225px;
+    }
+
+    model-viewer{
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 25px;
+        margin-bottom: 25px;
+        width: 300px;
+        height: 200px;
+        background-color: #006699;
+        border-radius: 40px;
     }
 }

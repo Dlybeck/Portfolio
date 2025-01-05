@@ -22,7 +22,7 @@ iframe {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #006699; /* Blue background */
+  background: linear-gradient(135deg, #882200, #771100);
   padding: 10px 20px;
   color: white;
 }

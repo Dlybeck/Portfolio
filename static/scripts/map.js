@@ -324,13 +324,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Update the tracked old positions
-        oldBackPosX = centerPos.left;
-        oldBackPosY = centerPos.top;
+        // Update the tracked old positions
+        oldBackPosX = centerPos.left/1.2;
+        oldBackPosY = centerPos.top/1.5;
     
         // Apply new background position
-        document.body.style.backgroundPosition = `${-(oldBackPosX)}% ${oldBackPosY}%`;
+        document.body.style.backgroundPosition = `${-oldBackPosX}rem ${-oldBackPosY}rem`;
         
-        window.checkHomeButton(document.body);
+        window.checkHomeButton();
     
         // Update visibility of tiles
         updateVisibility(title);
@@ -365,7 +366,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Reset background position
         oldBackPosX = homeTile.left;
         oldBackPosY = homeTile.top;
-        document.body.style.backgroundPosition = '0% 0%';
+        document.body.style.backgroundPosition = '0rem 0rem';
     
         // Update visibility to focus on "Home"
         updateVisibility('Home');

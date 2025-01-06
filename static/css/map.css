@@ -13,8 +13,6 @@
 
 .home-button {
     position: relative;
-    width: 2.5rem;
-    height: 2.5rem;
     opacity: 0;
     visibility: hidden;
     margin-right: 0;
@@ -29,8 +27,8 @@
     opacity: 1;
     visibility: visible;
     margin-right: 20px; /* Add margin only when visible */
-    max-width: 4rem; /* Restore size */
-    max-height: 4rem;
+    max-width: 6rem; /* Restore size */
+    max-height: 6rem;
 }
 
 .tile-container {

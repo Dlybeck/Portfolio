@@ -179,8 +179,8 @@
     }
     
     .tile-container.expanded {
-        width: 275px;  /* Even smaller expanded size */
-        height: 375px;
+        width: 250px;  /* Even smaller expanded size */
+        height: 350px;
     }
     
     .tile-title {

@@ -1,34 +1,8 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 .map {
     position: relative;
     width: 100%;
     height: 90%;
     overflow: hidden;
-}
-
-.home-button {
-    position: relative;
-    opacity: 0;
-    visibility: hidden;
-    margin-right: 0;
-    filter: brightness(0) invert(1);
-    transition: all 0.4s ease;
-    max-width: 0;
-    max-height: 0;
-    overflow: hidden;
-}
-
-.home-button.visible {
-    opacity: 1;
-    visibility: visible;
-    margin-right: 20px; /* Add margin only when visible */
-    max-width: 6rem; /* Restore size */
-    max-height: 6rem;
 }
 
 .tile-container {

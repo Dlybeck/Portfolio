@@ -9,6 +9,7 @@ body{
   transition: all 0.4s ease;
   background-repeat: repeat;
   background-size: auto;
+  overflow: scroll
 }
 
 iframe {
@@ -20,37 +21,54 @@ iframe {
   position: fixed;
   left: 50%;
   transform: translate(-50%, 0);
-  border-radius: 10px;
-  height: 60px;
-  width: fit-content;
-  min-width: 200px;
-  max-width: 80%;
-  justify-content: space-between;
-  align-items: center;
+  border-radius: 0px 0px 10px 10px;
   background: linear-gradient(135deg, #006699, #005588);
-  color: white;
-  box-sizing: border-box;
-  transition: width 0.4s ease;
+  width: fit-content;
+  max-width: 80%;
+}
+
+.navbar-content {
+  display: flex;
+  align-items: center;
+  height: 50px;
+  padding: 0px 12px 0px 12px;
 }
 
 .navbar-title {
   font-size: 1.5em;
   font-weight: bold;
-  white-space: nowrap;
   color: white;
   text-decoration: none;
-  padding-right: 20px;
-  display: flex;
-  align-items: center;
 }
 
 .navbar-logo {
   height: 2.5rem; 
   width: auto;
-  vertical-align: middle;
   object-fit: contain;
-  margin-left: 5%;
-  border-style: solid;
-  border-color: #FFFFFF;
-  border-width: 2px;
+  border: 2px solid #FFFFFF;
+  margin-right: 8px;
+}
+
+.home-button {
+  cursor: pointer;
+  position: relative;
+  opacity: 0;
+  visibility: hidden;
+  filter: brightness(0) invert(1);
+  transition: all 0.4s ease;
+  max-width: 0;
+  max-height: 0;
+  overflow: hidden;
+}
+
+.home-button.visible {
+  opacity: 1;
+  visibility: visible;
+  max-width: 2.5rem;
+  max-height: 2.5rem;
+  margin-left: 8px;
+}
+
+.home-button:hover {
+  transform: scale(1.1);
 }

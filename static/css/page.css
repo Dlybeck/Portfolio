@@ -146,7 +146,7 @@ img {
 
 .media { 
     width: 70%;
-    height: 70_%; 
+    height: 70%; 
     object-fit: contain;
     border-radius: 15px;
 }
@@ -163,6 +163,7 @@ iframe {
     width: 100%; 
     object-fit: contain;
     border-radius: 15px;
+    overflow: scroll;
 }
 
 .code {

@@ -17,14 +17,21 @@ iframe {
 }
 
 .navbar {
-  height: 10%;
   position: fixed;
+  left: 50%;
+  transform: translate(-50%, 0);
+  height: 60px;
+  width: fit-content;
+  min-width: 200px;
+  max-width: 80%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #882200, #771100);
-  padding: 10px 20px;
+  background: linear-gradient(135deg, #006699, #005588);
+  padding: 0 20px;
   color: white;
+  box-sizing: border-box;
+  transition: width 0.4s ease;
 }
 
 .navbar-title {
@@ -33,10 +40,9 @@ iframe {
   white-space: nowrap;
   color: white;
   text-decoration: none;
-  margin-right: 5%;
-  margin-top: 5%;
-  margin-bottom: 5%;
-  margin-left: 2%;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
 }
 
 .navbar-logo {

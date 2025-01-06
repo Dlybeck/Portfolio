@@ -12,19 +12,25 @@
 }
 
 .home-button {
-    position: absolute;
+    position: relative;
     width: 2.5rem;
     height: 2.5rem;
     opacity: 0;
     visibility: hidden;
-    right: 5%;
+    margin-right: 0;
     filter: brightness(0) invert(1);
     transition: all 0.4s ease;
+    max-width: 0;
+    max-height: 0;
+    overflow: hidden;
 }
 
 .home-button.visible {
     opacity: 1;
     visibility: visible;
+    margin-right: 20px; /* Add margin only when visible */
+    max-width: 4rem; /* Restore size */
+    max-height: 4rem;
 }
 
 .tile-container {

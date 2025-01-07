@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const tileText = document.createElement('p');
         tileText.className = 'tile-text';
-        tileText.innerHTML = `<br> ${texts[title]}`;
+        tileText.innerHTML = `${texts[title]}`;
 
         const button = document.createElement('a');
         button.className = 'button';
@@ -238,9 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         //Make home look identifiable
         if (title === "Home") {
-            tile.style.clipPath = "polygon(-10% 40%, 50% 0%, 110% 40%, 110% 110%, -10% 110%)";
-            tile.style.filter = "drop-shadow(0px .1px .1px #BBBBBB)"; // Adjust values as needed
-            tile.style.borderRadius = "5px";
+            tile.style.background = "linear-gradient(135deg, #004477, #002255)"
         }
         return tileWrapper;
     }
@@ -248,6 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function positionTile(tile, title) {
         const pos = positions[title];
         if (pos) {
+            tile.style.position = 'absolute';
             tile.style.left = `${pos.left}%`;
             tile.style.top = `${pos.top}%`;
             tile.style.transform = 'translate(-50%, -50%)';

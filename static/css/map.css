@@ -13,7 +13,7 @@
     pointer-events: auto;
 }
 
-/* Expanded (center) tile */
+/* Tile states */
 .tile-container.expanded {
     width: 300px;
     height: 400px;
@@ -24,87 +24,52 @@
     width: 160px;
     height: 160px;
 }
+
 .tile-container.expanded:hover {
     width: 310px;
     height: 410px;
 }
 
- /* So text doesnt realign on growth */
- .tile-container:hover > .tile {
-    padding: 5px;
-}
-.tile-container.expanded:hover > .tile {
-    padding: 5px;
-}
-
-/* Connected tiles */
 .tile-container.connected {
     z-index: 50;
 }
 
-/* Dimmed (unconnected) tiles */
 .tile-container.dimmed {
     opacity: 0.3;
 }
 
+/* Prevent text realignment on hover */
+.tile-container:hover > .tile,
+.tile-container.expanded:hover > .tile {
+    padding: 5px;
+}
+
+/* Basic tile styling */
 .tile {
     width: 100%;
     height: 100%;
     background: linear-gradient(135deg, #0077AA, #004477);
     border-radius: 20px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 5px 5px 5px #111;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    overflow: hidden;
+}
+
+/* Content layout */
+.tile, .tile-contents {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
-    transition: all 0.4s ease;
-    cursor: pointer;
-    box-shadow: 5px 5px 5px #111;
 }
 
 .tile-contents {
-    display: flex;
     text-align: center;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     transition: all 0.3s ease;
 }
 
-.tile-contents p {
-    display: none;
-    color: #EEEEEE;
-    font-weight: 400;
-}
-
-.button {
-    display: none;
-    background-color: #FFFFFF;
-    padding: 15px 30px;
-    border-radius: 10px;
-    border: none;
-    font-weight: 900;
-    font-size: xx-large;
-    transition: all 0.3s ease;
-    text-decoration: inherit;
-    cursor: pointer;
-    color: #006699;
-}
-
-.expanded .button {
-    display: block;
-}
-
-.expanded p {
-    display: block;
-}
-
-.button:hover {
-    background-color: #EEEEEE;
-    padding: 17px 33px;
-}
-
+/* Text elements */
 .tile-title {
     color: white;
     font-size: 1.5rem;
@@ -114,51 +79,64 @@
 }
 
 .tile-text {
-    padding: 10px;
+    color: #EEEEEE;
+    display: none;
+    margin: 10;
+    padding: 0;
 }
 
-/* Mobile styles */
-@media (max-width: 768px) {
-    .tile-container {
-        width: 135px;  /* Smaller base size */
-        height: 135px;
-    }
-    
+.expanded .tile-text {
+    display: block;
+}
+
+/* Button styling */
+.button {
+    display: none;
+    background-color: #FFFFFF;
+    color: #006699;
+    padding: 15px 30px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 900;
+    font-size: xx-large;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: inherit;
+}
+
+.expanded .button {
+    display: block;
+}
+
+.button:hover {
+    background-color: #EEEEEE;
+    padding: 17px 33px;
+}
+
+/* Responsive design */
+@media (max-width: 1000px) {
     .tile-container.expanded {
-        width: 275px;  /* Smaller expanded size */
-        height: 375px;
+        width: 50%;
+        height: 300px;
     }
-    
-    .tile-title {
-        font-size: 1rem;
-    }
-    
-    .button {
-        padding: 15px 30px;
-        font-size: xx-large;
-    }
-    
-    .button:hover {
-        padding: 12px 22px;
+
+    .tile-text {
+        margin: 0 10px 10px;
     }
 }
 
-/* Small mobile styles */
-@media (max-width: 480px) {
+@media (max-width: 700px) {
     .tile-container {
-        width: 120px;  /* Even smaller base size */
+        width: 120px;
         height: 120px;
+        font-size: small;
     }
     
     .tile-container.expanded {
-        width: 250px;  /* Even smaller expanded size */
-        height: 350px;
+        width: 75%;
+        height: 250px;
     }
-    
-    .tile-title {
-        font-size: 1.5rem;
-    }
-    
+
     .button {
         padding: 10px 20px;
         font-size: x-large;

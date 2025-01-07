@@ -362,8 +362,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
+            // Store current width/height before moving
+            const currentWidth = tile.style.width;
+            const currentHeight = tile.style.height;
+            
             tile.style.left = `${tilePos.left + offsetX}%`;
             tile.style.top = `${tilePos.top + offsetY}%`;
+            
+            // Restore width/height after moving
+            if (currentWidth && currentHeight) {
+                tile.style.width = currentWidth;
+                tile.style.height = currentHeight;
+            }
         });
         
         // Determine movement direction for the background
@@ -380,16 +390,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Update the tracked old positions
-        // Update the tracked old positions
         oldBackPosX = centerPos.left/1.2;
         oldBackPosY = centerPos.top/1.5;
-    
-        // Apply new background position
         document.body.style.backgroundPosition = `${-oldBackPosX}rem ${-oldBackPosY}rem`;
-        
         window.checkHomeButton();
-    
-        // Update visibility of tiles
         updateVisibility(title);
     }
 

@@ -113,11 +113,10 @@
     padding: 17px 33px;
 }
 
-/* Responsive design */
 @media (max-width: 1000px) {
     .tile-container.expanded {
-        width: 50%;
-        height: 300px;
+        width: 50% !important;
+        height: 300px !important;
     }
 
     .tile-text {
@@ -133,8 +132,8 @@
     }
     
     .tile-container.expanded {
-        width: 75%;
-        height: 250px;
+        width: 75% !important;
+        height: 250px !important;
     }
 
     .button {

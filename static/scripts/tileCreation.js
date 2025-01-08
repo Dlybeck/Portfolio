@@ -1,28 +1,43 @@
+/**
+ * creates a tile for the specified title
+ * @param {string} title -Title of node to be created 
+ * @returns - html object representing the wrapper for the tile
+ */
 window.createTile = function(title) {
+
+    let [ , texts, routes] = window.calculatePositions();
+
+    // Create the container for tile
     const tileWrapper = document.createElement('div');
     tileWrapper.className = 'tile-container';
     tileWrapper.dataset.title = title;
 
+    //Create the tile
     const tile = document.createElement('div');
     tile.className = 'tile';
 
+    //Create the div for tile contents
     const tileContents = document.createElement('div');
     tileContents.className = 'tile-contents';
 
+    //Title for the tile
     const tileTitle = document.createElement('h2');
     tileTitle.className = 'tile-title';
     tileTitle.innerHTML = title;
 
+    //Text contents of the tile
     const tileText = document.createElement('p');
     tileText.className = 'tile-text';
     tileText.innerHTML = `${texts[title]}`;
 
+    // Go button for the tile (will be hidden later if not applicable)
     const button = document.createElement('a');
     button.className = 'button';
-    // button.href = `${routes[title]}`;
     button.setAttribute("onclick", `openPage('${routes[title]}')`);
     button.textContent = 'GO';
 
+
+    // Append the children and create the tile
     tileContents.appendChild(tileTitle);
     tileContents.appendChild(tileText);
     tileContents.appendChild(button);
@@ -30,9 +45,10 @@ window.createTile = function(title) {
     tileWrapper.appendChild(tile);
     container.appendChild(tileWrapper);
 
+    // Properly position this tile relative to the others
     positionTile(tileWrapper, title);
 
-    //Make Pages look different
+    //If the page is just a hub (no go button) make it a circle and hide the button
     if (tilesData.hasOwnProperty(title) == true){
         tile.style.borderRadius = "200px";
         button.style.display = "none"
@@ -41,33 +57,54 @@ window.createTile = function(title) {
     if (title === "Home") {
         tile.style.background = "linear-gradient(135deg, #004477, #002255)"
     }
+
     return tileWrapper;
 }
 
+/**
+ * Move the tile to its proper posiion on the map
+ * @param {*} tile - html object for the tile
+ * @param {*} title - title of the tile
+ */
 window.positionTile = function(tile, title) {
+    //grab the position
     const pos = window.positions[title];
+
+    // If a position is found, move the tile to that position
     if (pos) {
         tile.style.position = 'absolute';
         tile.style.left = `${pos.left}%`;
         tile.style.top = `${pos.top}%`;
+        // center it
         tile.style.transform = 'translate(-50%, -50%)';
+    }
+    else{
+        console.error("No positon found")
     }
 };
 
+/**
+ * Update the tiles visibility based on the centered tile (make tiles dimmed if not connected, expand center, shrink non-center)
+ * @param {*} centerTitle 
+ */
 window.updateVisibility = function(centerTitle) {
-    // Get connected tiles
+    // Get connected tiles (if none, use [])
     const connectedTiles = tilesData[centerTitle] || [];
-    // If this tile is a child, find its parent
-    const parentTitle = Object.entries(tilesData).find(([parent, children]) => 
+
+    // Find the tiles directly conntectd to this one
+    const parentTitle = Object.entries(tilesData).find(([_, children]) => 
+        //If there is a key ([0]) for the parent title, add it.
         children.includes(centerTitle)
     )?.[0];
     
+
+    //Add the center tile, all directly connected tiles to visible tiles
     const visibleTiles = [centerTitle, ...connectedTiles];
     if (parentTitle) {
         visibleTiles.push(parentTitle);
     }
 
-    // Update all tile visibilities
+    // Update all tile visibilities based on connection
     const tiles = document.querySelectorAll('.tile-container');
     tiles.forEach(tile => {
         const tileTitle = tile.dataset.title;

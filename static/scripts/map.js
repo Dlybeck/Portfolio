@@ -1,11 +1,11 @@
+//Listen for when page is ready to load in the tiles
 document.addEventListener('DOMContentLoaded', function() {
+    // Grab the map
     window.container = document.querySelector(".map");
     
-    // Calculate initial positions
-    let [positions, texts, routes] = window.calculatePositions();
+    // Calculate initial position data
+    let [positions, , ] = window.calculatePositions();
     window.positions = positions;
-    window.texts = texts;
-    window.routes = routes;
 
     // Create initial tiles
     const createdTiles = new Set();
@@ -29,10 +29,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const tileElement = container.querySelector('.tile');
         const buttonElement = container.querySelector('.button');
 
+        //check for tile click
         tileElement.addEventListener('click', function(e) {
             window.handleTileClick(e, container);
         });
 
+        //check for go button click
         if (buttonElement) {
             buttonElement.addEventListener('click', function(e) {
                 e.stopPropagation();

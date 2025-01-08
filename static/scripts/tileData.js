@@ -1,8 +1,17 @@
 // Grid unit sizes for different screen widths
 window.GRID_UNITS = 34;
 
+// Connections for each "Hub" tile (no go button)
+window.tilesData = {
+    "Home": ["Hobbies", "Projects", "Jobs", "Education"],
+    "Hobbies": ["3D Printing", "Gaming", "Tennis"],
+    "3D Printing": ["Other Models", "Puzzles"],
+    "Projects": ["Programs", "Websites"],
+    "Websites": ["Digital Planner", "This website"],
+    "Education": ["College", "Early Education"]
+};
 
-// Define positions using grid coordinates
+// Set up all variables for each tile. Position (grid based), Text for the tile, and the URL for it's content (if applicable)
 window.tileInfo = {
     "Home": [
         [0, 0],
@@ -162,15 +171,11 @@ window.tileInfo = {
     ]
 };
 
-window.tilesData = {
-    "Home": ["Hobbies", "Projects", "Jobs", "Education"],
-    "Hobbies": ["3D Printing", "Gaming", "Tennis"],
-    "3D Printing": ["Other Models", "Puzzles"],
-    "Projects": ["Programs", "Websites"],
-    "Websites": ["Digital Planner", "This website"],
-    "Education": ["College", "Early Education"]
-};
 
+/**
+ * Creates maps to acces data for positions, text contents, and routes, by tile title
+ * @returns {positions map, pexts map, routes map}]
+ */
 window.calculatePositions = function() {
     const positions = {};
     const texts = {};

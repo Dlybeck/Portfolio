@@ -1,15 +1,13 @@
 window.checkUrlHash = function() {
+    //Grab the hashed part of the url
     const hash = decodeURIComponent(window.location.hash.slice(1));
+
+    //If a window position matched the hash
     if (hash && window.positions[hash]) {
+        //Move to the tile
         window.centerOnTile(hash);
-        if (window.routes[hash]) {
-            const miniWindow = document.querySelector('.mini-window');
-            if (miniWindow) {
-                miniWindow.src = window.routes[hash];
-                document.querySelector('.mini-window-container').style.display = 'block';
-            }
-        }
     } else {
+        //Go to home
         window.centerOnTile('Home');
     }
 };

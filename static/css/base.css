@@ -5,10 +5,11 @@ html {
 body{
   transition: none;
   height: 100%;
-  background-image: url("/static/images/WavySand.png");
+  background-image: url("/static/images/sand.png");
   transition: all 0.4s ease;
   background-repeat: repeat;
-  overflow: scroll
+  overflow: scroll;
+  background-size: 101%;
 }
 
 iframe {

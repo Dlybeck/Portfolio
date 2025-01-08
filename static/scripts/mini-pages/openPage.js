@@ -24,6 +24,12 @@ function openPage(route) {
 
     closeButton.addEventListener('click', (e) => {
         e.stopPropagation();  // Prevent triggering handleClickOutside
+
+        document.querySelector('.mini-window-container').style.display = 'none';
+        
+        // Remove the hash when closing the iframe
+        history.pushState("", document.title, window.location.pathname + window.location.search);
+
         closePage();
     });
 

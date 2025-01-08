@@ -46,21 +46,22 @@ window.centerOnTile = function(title) {
     
     // Determine movement direction for the background
     if (centerPos.left > oldBackPosX) {
-        moveX = -GRID_UNITS; // Move background right
-    } else if (centerPos.left < oldBackPosX) {
         moveX = GRID_UNITS; // Move background left
+    } else if (centerPos.left < oldBackPosX) {
+        moveX = -GRID_UNITS; // Move background right
     }
 
     if (centerPos.top > oldBackPosY) {
-        moveY = -GRID_UNITS; // Move background up
-    } else if (centerPos.top < oldBackPosY) {
         moveY = GRID_UNITS; // Move background down
+    } else if (centerPos.top < oldBackPosY) {
+        moveY = -GRID_UNITS; // Move background up
     }
     
     // Update the tracked old positions
     oldBackPosX = centerPos.left/1.2; // divisor is arbitrary value to change background speed (lower=faster)
     oldBackPosY = centerPos.top/1.5;
-    document.body.style.backgroundPosition = `${oldBackPosX}rem ${oldBackPosY}rem`;
+    //Invert since it is background movement
+    document.body.style.backgroundPosition = `${-oldBackPosX}rem ${-oldBackPosY}rem`;
 
     //Check to see if the home button should be visible or not
     window.checkHomeButton();

@@ -16,7 +16,7 @@ window.centerOnTile = function(title) {
     
     // Calculate offsets for tile movement
     const offsetX = 50 - centerPos.left;
-    const offsetY = 50 - centerPos.top;
+    const offsetY = 52 - centerPos.top;
     
     // Move tiles to proper position
     const tiles = document.querySelectorAll('.tile-container');

@@ -1,17 +1,20 @@
 html {
   height: 100%;
+  margin: 0;
 }
 
 body{
   transition: none;
   height: 100%;
+  width: 100;
   background-color: #CBBD93;
   /* Higher quality laoded in through js after dom is laoded (for better initial loading speeds) */
   background-image: url("/static/images/sand512.png");
   transition: all 0.4s ease;
   background-repeat: repeat;
   overflow: scroll;
-  background-size: 101%;
+  background-size: 100%;
+  margin: 0;
 }
 
 iframe {

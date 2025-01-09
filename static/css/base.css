@@ -9,7 +9,7 @@ body{
   width: 100;
   background-color: #CBBD93;
   /* Higher quality laoded in through js after dom is laoded (for better initial loading speeds) */
-  background-image: url("/static/images/sand512.png");
+  background-image: url("/static/images/sand2048.webp");
   transition: all 0.4s ease;
   background-repeat: repeat;
   overflow: scroll;

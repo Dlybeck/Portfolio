@@ -1,5 +1,4 @@
 function openPage(route) {
-    console.log("Here!")
     const container = document.querySelector(".mini-window-container");
     const page = document.querySelector(".mini-window");
     const closeButton = document.querySelector(".close-button");
@@ -10,9 +9,7 @@ function openPage(route) {
 
     const closePage = () => {
         container.style.opacity = "0";
-        setTimeout(() => {
-            container.style.visibility = "hidden";
-        }, 1000);
+        container.style.visibility = "hidden";
         document.removeEventListener('click', handleClickOutside);
     };
 
@@ -24,12 +21,6 @@ function openPage(route) {
 
     closeButton.addEventListener('click', (e) => {
         e.stopPropagation();  // Prevent triggering handleClickOutside
-
-        document.querySelector('.mini-window-container').style.display = 'none';
-        
-        // Remove the hash when closing the iframe
-        history.pushState("", document.title, window.location.pathname + window.location.search);
-
         closePage();
     });
 

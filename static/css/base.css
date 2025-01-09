@@ -30,6 +30,7 @@ iframe {
   background: linear-gradient(135deg, #006699, #005588);
   width: fit-content;
   max-width: 80%;
+  z-index: 9999999999; /*Should always be on top*/
 }
 
 .navbar-content {

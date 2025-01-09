@@ -51,7 +51,7 @@ window.tileInfo = {
     "Jobs": [
         [1, 1],
         `
-        Look here for my professional info:
+        Look here for information on my work history
         <br><br>
         <small>#opentowork</small>
         `,

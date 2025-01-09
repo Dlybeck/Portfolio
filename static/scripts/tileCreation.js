@@ -1,10 +1,9 @@
 /**
  * creates a tile for the specified title
- * @param {string} title -Title of node to be created 
+ * @param {string} title - Title of node to be created
  * @returns - html object representing the wrapper for the tile
  */
 window.createTile = function(title) {
-
     let [ , texts, routes] = window.calculatePositions();
 
     // Create the container for tile
@@ -12,41 +11,40 @@ window.createTile = function(title) {
     tileWrapper.className = 'tile-container';
     tileWrapper.dataset.title = title;
 
-    //Create the tile
+    // Create the tile
     const tile = document.createElement('div');
     tile.className = 'tile';
 
-    //Create the div for tile contents
+    // Create the div for tile contents
     const tileContents = document.createElement('div');
     tileContents.className = 'tile-contents';
 
-    //Title for the tile
+    // Title for the tile
     const tileTitle = document.createElement('h2');
     tileTitle.className = 'tile-title';
     tileTitle.innerHTML = title;
 
-    //Text contents of the tile
-    const tileText = document.createElement('p');
-    tileText.className = 'tile-text';
-    tileText.innerHTML = `${texts[title]}`;
-
     // Go button for the tile (will be hidden later if not applicable)
     const button = document.createElement('a');
     button.className = 'button';
-    button.href = routes[title]; // Add the href for semantic correctness
-    button.textContent = 'GO';
-    
+    button.href = routes[title];
+    button.textContent = `${title}`;
+
     // Attach event listener to handle iframe behavior
     button.addEventListener('click', (event) => {
         event.preventDefault(); // Prevent the default anchor navigation
         openPage(routes[title]); // Call your function to load the iframe
     });
 
+    // Text contents of the tile
+    const tileText = document.createElement('p');
+    tileText.className = 'tile-text';
+    tileText.innerHTML = `${texts[title]}`;
 
     // Append the children and create the tile
     tileContents.appendChild(tileTitle);
-    tileContents.appendChild(tileText);
     tileContents.appendChild(button);
+    tileContents.appendChild(tileText);
     tile.appendChild(tileContents);
     tileWrapper.appendChild(tile);
     container.appendChild(tileWrapper);
@@ -54,26 +52,28 @@ window.createTile = function(title) {
     // Properly position this tile relative to the others
     positionTile(tileWrapper, title);
 
-    //If the page is just a hub (no go button) make it a circle and hide the button
+    // If the page is just a hub (no go button) make it a circle and hide the button
     if (tilesData.hasOwnProperty(title) == true){
         tile.style.borderRadius = "200px";
-        button.style.display = "none"
+        button.style.display = "none";
     }
-    //Make home look identifiable
+
+    // Make home look identifiable
     if (title === "Home") {
-        tile.style.background = "linear-gradient(135deg, #004477, #002255)"
+        tile.style.background = "linear-gradient(135deg, #004477, #002255)";
     }
 
     return tileWrapper;
 }
 
+
 /**
- * Move the tile to its proper posiion on the map
+ * Move the tile to its proper position on the map
  * @param {*} tile - html object for the tile
  * @param {*} title - title of the tile
  */
 window.positionTile = function(tile, title) {
-    //grab the position
+    // grab the position
     const pos = window.positions[title];
 
     // If a position is found, move the tile to that position
@@ -83,9 +83,8 @@ window.positionTile = function(tile, title) {
         tile.style.top = `${pos.top}%`;
         // center it
         tile.style.transform = 'translate(-50%, -50%)';
-    }
-    else{
-        console.error("No positon found")
+    } else {
+        console.error("No position found");
     }
 };
 
@@ -97,14 +96,13 @@ window.updateVisibility = function(centerTitle) {
     // Get connected tiles (if none, use [])
     const connectedTiles = tilesData[centerTitle] || [];
 
-    // Find the tiles directly conntectd to this one
+    // Find the tiles directly connected to this one
     const parentTitle = Object.entries(tilesData).find(([_, children]) => 
-        //If there is a key ([0]) for the parent title, add it.
+        // If there is a key ([0]) for the parent title, add it.
         children.includes(centerTitle)
     )?.[0];
-    
 
-    //Add the center tile, all directly connected tiles to visible tiles
+    // Add the center tile, all directly connected tiles to visible tiles
     const visibleTiles = [centerTitle, ...connectedTiles];
     if (parentTitle) {
         visibleTiles.push(parentTitle);
@@ -127,6 +125,17 @@ window.updateVisibility = function(centerTitle) {
         } else {
             // Other tiles are dimmed
             tile.classList.add('dimmed');
+        }
+
+        // After the visibility change, recheck if the title should be hidden for expanded tile
+        const button = tile.querySelector('.button');
+        const tileTitleElem = tile.querySelector('.tile-title');
+
+        // Hide the title if the tile is expanded and the button is visible
+        if (tile.classList.contains('expanded') && button.style.display !== "none") {
+            tileTitleElem.style.visibility = 'hidden';
+        } else {
+            tileTitleElem.style.visibility = 'visible';
         }
     });
 }

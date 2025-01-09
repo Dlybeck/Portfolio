@@ -33,8 +33,14 @@ window.createTile = function(title) {
     // Go button for the tile (will be hidden later if not applicable)
     const button = document.createElement('a');
     button.className = 'button';
-    button.setAttribute("onclick", `openPage('${routes[title]}')`);
+    button.href = routes[title]; // Add the href for semantic correctness
     button.textContent = 'GO';
+    
+    // Attach event listener to handle iframe behavior
+    button.addEventListener('click', (event) => {
+        event.preventDefault(); // Prevent the default anchor navigation
+        openPage(routes[title]); // Call your function to load the iframe
+    });
 
 
     // Append the children and create the tile

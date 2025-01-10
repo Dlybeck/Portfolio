@@ -133,9 +133,9 @@ window.updateVisibility = function(centerTitle) {
 
         // Hide the title if the tile is expanded and the button is visible
         if (tile.classList.contains('expanded') && button.style.display !== "none") {
-            tileTitleElem.style.visibility = 'hidden';
+            tileTitleElem.style.display = 'none';
         } else {
-            tileTitleElem.style.visibility = 'visible';
+            tileTitleElem.style.display = 'block';
         }
     });
 }

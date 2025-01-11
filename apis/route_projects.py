@@ -16,3 +16,7 @@ async def test(request: Request):
 @project_router.get("/projects/programs")
 async def test(request: Request):
     return templates.TemplateResponse("pages/projects/programs.html", {"request": request})
+
+@project_router.get("/projects/nba_predictions")
+async def test(request: Request):
+    return templates.TemplateResponse("pages/projects/nba_predictions.html", {"request": request})

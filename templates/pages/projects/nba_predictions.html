@@ -1,0 +1,106 @@
+{% extends "shared/page.html" %}
+
+{% block title %}
+    <title>This Website | David Lybeck</title>
+{% endblock %}
+
+{% block content %}
+    <style>
+        #predictBtn {
+            z-index: 99; /* Make sure it does not overlap */
+            border: none;
+            outline: none;
+            background-color: #006699;
+            color: white;
+            cursor: pointer; /* Add a mouse pointer on hover */
+            padding: 15px; 
+            border-radius: 10px;
+            font-size: 18px;
+        }
+        
+        #predictBtn:hover {
+            background-color: #555; /* Add a dark-grey background on hover */
+        }
+
+        #result {
+            display: block;
+            border: none;
+            outline: none;
+            background-color: #006699;
+            color: white;
+            cursor: pointer; /* Add a mouse pointer on hover */
+            padding: 15px; 
+            border-radius: 10px;
+            font-size: 18px;
+            margin-top: 15px;
+            margin-bottom: 30px;
+            margin-left: 220px;
+            margin-right: 220px;
+        }
+    </style>
+
+    <div class="page">
+        <div>
+            <h3>NBA Prediction AI</h3>
+            <p>Use the menu above to continue looking at other projects</p>
+            <strong><label for="team1">Home Team:</label></strong>
+            <select id="team1">
+                <!-- Team options are automatically populated -->
+            </select>
+            <strong><label for="team2">Away Team:</label></strong>
+            <select id="team2">
+                <!-- Team options are automatically populated -->
+            </select>
+            <button onclick="getPrediction()" id="predictBtn">Predict</button>
+            <h4>(Data is only up to date through May 2024)</h4>
+            <div id="result">Select two teams above to make a prediction!</div>
+            <p>This was a partner project I worked on starting April 28th. It is a convolutional neural network, trained on a custom made data set of NBA stats.
+            This specific model was created using pytorch, however we also made a very similar version with tensorflow. From our testing it is pretty good at
+            predicting the correct win/loss outcome of a match, however as expected it has a bit of trouble with the specific point differential prediction 
+            (as expected since this is a tough problem).
+            <br><br>
+            This AI predicted the 2024 NBA Playoffs with high accuracy only making 2 mistakes, while predicting multiple upsets
+            <br><br>
+            Check out the project with full documentation here:
+            <br>
+            <a href="https://github.com/mattzou1/NBA-predictor">NBA Predictor Github</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let data = {};
+
+        // Fetch JSON data from a file
+        fetch('/static/json/results.json')
+            .then(response => response.json())
+            .then(jsonData => {
+                data = jsonData;
+                populateTeamOptions();
+            })
+            .catch(error => console.error('Error fetching JSON data:', error));
+
+        function populateTeamOptions() {
+            const team1Select = document.getElementById('team1');
+            const team2Select = document.getElementById('team2');
+            const teams = Object.keys(data);
+
+            teams.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team;
+                option.textContent = team;
+                team1Select.appendChild(option.cloneNode(true));
+                team2Select.appendChild(option);
+            });
+        }
+
+        function getPrediction() {
+            const team1 = document.getElementById("team1").value;
+            const team2 = document.getElementById("team2").value;
+            const prediction = data[team1][team2] || data[team2][team1];
+            const resultDiv = document.getElementById("result");
+            resultDiv.style.display = "block";
+            resultDiv.textContent = prediction || "I can't predict this matchup.";
+        }
+    </script>
+{% endblock %}

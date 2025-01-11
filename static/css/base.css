@@ -1,4 +1,4 @@
-/*HTML not in iframe*/
+/*HTML not in the iframe*/
 .main{
   height: 100%;
   margin: 0;
@@ -18,11 +18,6 @@ body{
   margin: 0;
 }
 
-iframe {
-  width: 100%;
-  height: 90%;
-}
-
 .navbar {
   position: fixed;
   left: 50%;
@@ -30,8 +25,10 @@ iframe {
   border-radius: 0px 0px 10px 10px;
   background: linear-gradient(135deg, #006699, #005588);
   width: fit-content;
-  max-width: 80%;
+  height: 50px;
+  max-width: 90%;
   z-index: 9999999999; /*Should always be on top*/
+  padding: 5px 0px;
 }
 
 .navbar-content {

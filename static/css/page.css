@@ -47,8 +47,7 @@ h3 {
 p {
     display: block;
     line-height: 1.5;
-    margin: 7%;
-    margin-top: 0px;
+    margin: 7%, 0%;
     text-align: center;
     padding-left: 15%;
     padding-right: 15%;
@@ -165,7 +164,6 @@ img {
 iframe { 
     aspect-ratio: 2/1;
     width: 100%; 
-    margin-top: 20px;
     object-fit: contain;
     border-radius: 15px;
     overflow: scroll;

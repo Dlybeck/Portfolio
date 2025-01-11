@@ -5,45 +5,33 @@
 {% endblock %}
 
 {% block content %}
+
     <style>
-        #predictBtn {
-            z-index: 99; /* Make sure it does not overlap */
-            border: none;
-            outline: none;
-            background-color: #006699;
-            color: white;
-            cursor: pointer; /* Add a mouse pointer on hover */
-            padding: 15px; 
-            border-radius: 10px;
-            font-size: 18px;
-        }
-        
-        #predictBtn:hover {
-            background-color: #555; /* Add a dark-grey background on hover */
+        #predictBtn, #result {
+            display: flex;
+            padding: 20px;
+            border-radius: 20px;
+            border-style: solid;
+            border-color: black;
+            border-width: 3px;
+            margin:auto;
+            width: fit-content;
+            transition: all .4s ease-in-out;
         }
 
-        #result {
-            display: block;
-            border: none;
-            outline: none;
+        #predictBtn {
             background-color: #006699;
-            color: white;
-            cursor: pointer; /* Add a mouse pointer on hover */
-            padding: 15px; 
-            border-radius: 10px;
-            font-size: 18px;
-            margin-top: 15px;
-            margin-bottom: 30px;
-            margin-left: 220px;
-            margin-right: 220px;
+            color: #FFFFFF;
+        }
+        #predictBtn:hover {
+            background-color: #004477
         }
     </style>
-
     <div class="page">
         <div>
             <h3>NBA Prediction AI</h3>
             <p>Use the menu above to continue looking at other projects</p>
-            <strong><label for="team1">Home Team:</label></strong>
+                <strong><label for="team1">Home Team:</label></strong>
             <select id="team1">
                 <!-- Team options are automatically populated -->
             </select>
@@ -51,6 +39,7 @@
             <select id="team2">
                 <!-- Team options are automatically populated -->
             </select>
+            <br><br>
             <button onclick="getPrediction()" id="predictBtn">Predict</button>
             <h4>(Data is only up to date through May 2024)</h4>
             <div id="result">Select two teams above to make a prediction!</div>

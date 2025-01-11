@@ -3,7 +3,7 @@ window.GRID_UNITS = 34;
 
 // Connections for each "Hub" tile (no go button)
 window.tilesData = {
-    "Home": ["Hobbies", "Projects", "Jobs", "Education"],
+    "Home": ["Hobbies", "Projects", "Work Experience", "Education"],
     "Hobbies": ["3D Printing", "Gaming", "Tennis"],
     "3D Printing": ["Other Models", "Puzzles"],
     "Projects": ["Programs", "Websites"],
@@ -48,7 +48,7 @@ window.tileInfo = {
         `,
         `/`
     ],
-    "Jobs": [
+    "Work Experience": [
         [1, 1],
         `
         Look here for information on my work history

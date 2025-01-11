@@ -19,7 +19,6 @@ class MiniWindow {
         this.navigationHistory = [route];
         this.page.setAttribute("src", route);
         this.show();
-        this.setupNavigationHandling();
         this.updateBackButtonState();
     }
 
@@ -38,7 +37,7 @@ class MiniWindow {
     hide() {
         this.container.style.opacity = "0";
         this.container.style.visibility = "hidden";
-        this.page.removeAttribute("src")
+        this.page.setAttribute("src", "")
         document.removeEventListener('click', this.handleClickOutside);
         this.navigationHistory = [];
     }
@@ -63,7 +62,7 @@ class MiniWindow {
      * Update back button visibility based on navigation history
      */
     updateBackButtonState() {
-        if (this.navigationHistory.length <= 2) {
+        if (this.navigationHistory.length <= 1) {
             this.backButton.style.visibility = 'hidden';
         } else {
             this.backButton.style.visibility = 'visible';
@@ -75,7 +74,7 @@ class MiniWindow {
      * @returns {Boolean}
      */
     isVisible() {
-        return this.container.style.visibility === "visible" && 
+        return this.container.style.visibility === "visible" &&
                this.container.style.opacity === "1";
     }
 
@@ -104,31 +103,20 @@ class MiniWindow {
     }
 
     /**
-     * Keeps track of routes used in current mini-window.
-     * So back functionality works properly
+     * Navigate to a new route within the same mini-window
+     * @param {String} route - the route to navigate to
      */
-    setupNavigationHandling() {
-        this.page.addEventListener('load', () => {
-            const newUrl = this.page.contentWindow.location.href;
-            if (newUrl !== this.navigationHistory[this.navigationHistory.length - 1]) {
-                this.navigationHistory.push(newUrl);
-                this.updateBackButtonState();
-            }
-        });
-
-        window.addEventListener('popstate', (event) => {
-            const url = event.state?.url || this.initialRoute;
-            if (!this.navigationHistory.includes(url)) {
-                this.navigationHistory.push(url);
-            }
-            this.page.setAttribute("src", url);
-            this.updateBackButtonState();
-        });
+    navigateTo(route) {
+        console.log("Setting src to " + route);
+        this.navigationHistory.push(route);
+        this.page.setAttribute("src", route);
+        this.updateBackButtonState();
     }
 }
 
-//Expose openPage to html can use it
+// Expose openPage and navigateToPage to HTML so it can use them
 document.addEventListener("DOMContentLoaded", () => {
     const miniWindow = new MiniWindow();
     window.openPage = (route) => miniWindow.open(route);
+    window.navigateToPage = (route) => miniWindow.navigateTo(route);
 });

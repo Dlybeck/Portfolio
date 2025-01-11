@@ -58,8 +58,8 @@ window.centerOnTile = function(title) {
     }
     
     // Update the tracked old positions
-    oldBackPosX = centerPos.left/1.2; // divisor is arbitrary value to change background speed (lower=faster)
-    oldBackPosY = centerPos.top/1.5;
+    oldBackPosX = centerPos.left/2; // divisor is arbitrary value to change background speed (lower=faster)
+    oldBackPosY = centerPos.top/2;
     //Invert since it is background movement
     document.body.style.backgroundPosition = `${-oldBackPosX}rem ${-oldBackPosY}rem`;
 

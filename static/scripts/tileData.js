@@ -185,7 +185,7 @@ window.calculatePositions = function() {
         const [coordinates, text, tileRoute] = tileData;
         positions[title] = {
             left: (coordinates[0] * window.GRID_UNITS),
-            top: (coordinates[1] * window.GRID_UNITS)
+            top: (coordinates[1] * window.GRID_UNITS*.9) //.9 for offset to give space to navbar
         };
         texts[title] = text;
         routes[title] = tileRoute;

@@ -11,7 +11,7 @@ body{
   width: 100;
   /* Higher quality laoded in through js after dom is laoded (for better initial loading speeds) */
   background-image: url("/static/images/sand2048.webp");
-  transition: all 0.4s ease;
+  transition: all 0.4s;
   background-repeat: repeat;
   overflow: scroll;
   background-size: 100%;
@@ -35,7 +35,9 @@ body{
   display: flex;
   align-items: center;
   height: 50px;
+  width: fit-content;
   padding: 0px 12px 0px 12px;
+  flex-wrap: nowrap;
 }
 
 .navbar-title {
@@ -43,10 +45,13 @@ body{
   font-weight: bold;
   color: white;
   text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .navbar-logo {
-  height: 2.5rem; 
+  height: 2rem; 
   width: auto;
   object-fit: contain;
   border: 2px solid #FFFFFF;
@@ -68,8 +73,8 @@ body{
 .home-button.visible {
   opacity: 1;
   visibility: visible;
-  max-width: 2.5rem;
-  max-height: 2.5rem;
+  max-width: 2rem;
+  max-height: 2rem;
   margin-left: 8px;
 }
 

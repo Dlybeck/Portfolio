@@ -13,10 +13,7 @@ document.addEventListener('click', function(event) {
 
         console.log('Path extracted:', path); // Debugging line
 
-        if (typeof window.navigateToPage === 'function') {
-            window.navigateToPage(path); // Call the navigateToPage function in the parent window with the path
-        } else {
-            console.error('navigateToPage function is not defined in the parent window.');
-        }
+        window.parent.navigateToPage(path); // Call the navigateToPage function in the parent window with the path
+
     }
 });

@@ -8,9 +8,7 @@
 
     <style>
         #predictBtn, #result {
-            display: flex;
             padding: 20px;
-            border-radius: 20px;
             border-style: solid;
             border-color: black;
             border-width: 3px;
@@ -19,7 +17,12 @@
             transition: all .4s ease-in-out;
         }
 
+        #result {
+            border-radius: 5px;
+        }
+
         #predictBtn {
+            border-radius: 20px;
             background-color: #006699;
             color: #FFFFFF;
         }
@@ -30,30 +33,31 @@
     <div class="page">
         <div>
             <h3>NBA Prediction AI</h3>
-            <p>Use the menu above to continue looking at other projects</p>
-                <strong><label for="team1">Home Team:</label></strong>
-            <select id="team1">
-                <!-- Team options are automatically populated -->
-            </select>
-            <strong><label for="team2">Away Team:</label></strong>
-            <select id="team2">
-                <!-- Team options are automatically populated -->
-            </select>
-            <br><br>
-            <button onclick="getPrediction()" id="predictBtn">Predict</button>
-            <h4>(Data is only up to date through May 2024)</h4>
-            <div id="result">Select two teams above to make a prediction!</div>
-            <p>This was a partner project I worked on starting April 28th. It is a convolutional neural network, trained on a custom made data set of NBA stats.
-            This specific model was created using pytorch, however we also made a very similar version with tensorflow. From our testing it is pretty good at
-            predicting the correct win/loss outcome of a match, however as expected it has a bit of trouble with the specific point differential prediction 
-            (as expected since this is a tough problem).
-            <br><br>
-            This AI predicted the 2024 NBA Playoffs with high accuracy only making 2 mistakes, while predicting multiple upsets
-            <br><br>
-            Check out the project with full documentation here:
-            <br>
-            <a  target="_parent" href="https://github.com/mattzou1/NBA-predictor">NBA Predictor Github</a>
-            </p>
+            <div class="section">
+                <p>Use the dropdowns below to select a game to predict</p>
+                    <strong><label for="team1">Home Team:</label></strong>
+                <select id="team1">
+                    <!-- Team options are automatically populated -->
+                </select>
+                <strong><label for="team2">Away Team:</label></strong>
+                <select id="team2">
+                    <!-- Team options are automatically populated -->
+                </select>
+                <br><br>
+                <button onclick="getPrediction()" id="predictBtn">Predict</button>
+                <h4>(Data is only up to date through May 2024)</h4>
+                <div id="result">Select two teams above to make a prediction!</div>
+            </div>
+
+            <div class="section">
+                <p>This was a partner project I worked on starting April 28th. It is a convolutional neural network, trained on a custom made data set of NBA stats.
+                This specific model was created using pytorch, however we also made a very similar version with tensorflow. From our testing it is pretty good at
+                predicting the correct win/loss outcome of a match, however as expected it has a bit of trouble with the specific point differential prediction 
+                (as expected since this is a tough problem).
+                <br><br>
+                This AI predicted the 2024 NBA Playoffs with high accuracy only making 2 mistakes, while predicting multiple upsets
+                </p>
+            </div>
         </div>
     </div>
 

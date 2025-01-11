@@ -5,73 +5,92 @@
 {% endblock %}
 
 {% block content %}
-<div class="container"> 
+  <style>
+    .internal-link {
+      padding: 10px;
+      background-color: #006699;
+      color: white;
+      text-decoration: none;
+      border-color: black;
+      border-style: solid;
+      border-width: 2px;
+      border-radius: 5px;
+      transition: all .2s ease-in-out;
+    }
+
+    .internal-link:hover {
+      transform: scale(1.1);
+      background-color: #004477;
+    }
+
+    .section h4 {
+      margin-bottom: 0;
+    }
+  </style>
+
+  <div class="container"> 
     <h2 id="location">Programs</h2>
-    <p>Here are some computer programs I've made sorted by language. </p>
 
-    <h3><b>Python</b></h3>
-    <p>
-     I picked up python in January 2024 for my AI class and have been using it frequently since then
-      <br>
-      <br>
-      <a class="link internal-link" href="/projects/nba_predictions">(2024) <strong>Recurrent Neural Network/Naive bayes NBA game predictor</strong></a><br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/AI/tree/main/HW_5">(2024) Representative voting history by K-Means</a><br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/AI/tree/main/HW_4">(2024) Convolutional Neural Network cat vs dog detector</a><br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/AI/blob/main/HW_3">(2024) Representative voting history by Decision Tree</a><br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/AI/tree/main/HW_2">(2024) Negamax Connect 4 bot</a><br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/AI/tree/main/HW_1">(2024) A* Sliding Puzzle Solver</a><br>
-    </p>
+    <div class="section">
+      <h3>Featured Programs</h3>
 
-    <h3><b>Java</b></h3>
-    <p>
-      Java is the language I mainly use throughout my Computer Science courses. Here are some Java programs I've written during my first 2-3 years at UPS. (More will be added as they're completed)
+      <a class="link" target="_parent" href="https://github.com/mattzou1/NBA-predictor">(2024 - Python) Recurrent Neural Network/Naive bayes NBA game predictor</a><br>
       <br>
+      <a class="link internal-link" href="/projects/nba_predictions">Test it out!</a><br>
       <br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/Algorithms/tree/main/Assignment4/src">(2023) Red Black Tree Binary Search</a><br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/Algorithms/tree/main/Assignment%206/src">(2023) Digraph and Topological Sort for Strings</a><br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/Algo2">(2023) Priority Queue</a><br>
+      <a class="link" target="_parent" href="https://github.com/Dlybeck/AI/tree/main/HW_2">(2024 - Python) Negamax Connect 4 bot</a><br>
+      <a class="link" target="_parent" href="https://github.com/Dlybeck/Algorithms/tree/main/Assignment4/src">(2023 - Java) Red Black Tree Binary Search</a><br>
+      <a class="link" target="_parent" href="https://github.com/Dlybeck/AI/tree/main/HW_1">(2024 - Python) A* Sliding Puzzle Solver</a><br>
+      <a class="link" target="_parent" href="https://github.com/Dlybeck/cs475-hwk2-heapsort">(2024 - C) Heap Sort</a><br>  
+    </div>
+
+    <div class="section">
+      <h3>2024</h3>
+
+      <h4>Python</h4>
+      <a class="link" target="_parent" href="https://github.com/Dlybeck/AI/tree/main/HW_5">Representative voting history by K-Means</a><br>
+      <a class="link" target="_parent" href="https://github.com/Dlybeck/AI/tree/main/HW_4">onvolutional Neural Network cat vs dog detector</a><br>
+      <a class="link" target="_parent" href="https://github.com/Dlybeck/AI/blob/main/HW_3">Representative voting history by Decision Tree</a><br>
+  
+      <h4>C</h4>
+      <a class="link" target="_parent" href="https://github.com/Dlybeck/cs475-hwk5-mmm">Parallel Matrix Multiplication</a><br>
+      <a class="link" target="_parent" href="https://github.com/Dlybeck/cs475-hwk4-os-dsh">Mini Shell</a><br>
+      <a class="link" target="_parent" href="https://github.com/Dlybeck/cs475-hwk3-ls2">ls Command Recreation</a><br>
+      <a class="link" target="_parent" href="https://github.com/Dlybeck/cs475-hwk6-ts-hashmap">Hash Map</a><br>  
+    </div>
+    
+    <div class="section">
+      <h3>2023</h3>
+
+      <h4>Java</h4>
+      <a class="link" target="_parent" href="https://github.com/Dlybeck/Algorithms/tree/main/Assignment%206/src">Digraph and Topological Sort for Strings</a><br>
+      <a class="link" target="_parent" href="https://github.com/Dlybeck/Algo2">Priority Queue</a><br>
+  
+      <h4>Haskell</h4>
+      <a class="link" href="/static/programs/Haskell/EvilHangman.hs">Evil Hangman File</a><br>
+      <a class="link" target="_parent" href="http://tpcg.io/29H42X">Run Evil Hangman Demo</a><br>
+  
+      <h4>Prolog</h4>
+      <a class="link" target="_parent" href="https://swish.swi-prolog.org/p/Covid-Test.pl">Mass Covid Test Process</a>
+    </div>
+
+    <div class="section">
+      <h3>2022</h3>
+
+      <h4>Java</h4>
       <a class="link" href="/static/programs/Java/SelectionSort.zip">(2022) Selection Sort</a><br>
       <a class="link" href="/static/programs/Java/QuickSort.zip">(2022) Quick Sort</a><br>
       <a class="link" href="/static/programs/Java/InsertionSort.zip"> (2022) Insertion Sort</a><br>
       <a class="link" href="/static/programs/Java/HeapSort.zip">(2022) Heap Sort</a><br>
+    </div>
+
+    <div class="section">
+      <h3>2021</h3>
       <a class="link" href="/static/programs/Java/BubbleSort.zip">(2021) Bubble Sort</a><br>
       <a class="link" href="/static/programs/Java/BitwiseHash.zip">(2021)Bitwise to Hash</a><br>
-    </p>
+    </div>
 
-    <h3><b>C</b></h3>
-    <p>
-      I started using C in my Operating Systems Class January 2024
-      <br>
-      <br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/cs475-hwk5-mmm">(2024) Parallel Matrix Multiplication</a><br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/cs475-hwk4-os-dsh">(2024) Mini Shell</a><br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/cs475-hwk2-heapsort">(2024) Heap Sort</a><br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/cs475-hwk3-ls2">(2024) ls command recreation</a><br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/cs475-hwk6-ts-hashmap">(2024) Hash Map</a><br>
-    </p>
-
-    <h3><b>Haskell</b></h3>
-    <p>
-      The other language I learned in my paradigms class was haskell. This project was the final project for haskell. This program is a game called "Evil Hangman". It is essentially the normal hangman game, but the program changes the word as you play to make the game take as long as possible. The full version of this file is too large to run online and can be downloaded <a>here</a>.
-      More details about the project can be seen here:
-      <br>
-      <iframe src="/static/programs/Assignments/Evilhangman.html"></iframe>
-      
-      <br>
-      <a class="link" href="/static/programs/Haskell/EvilHangman.hs">Evil Hangman File</a><br>
-      <a class="link" target="_parent" href="http://tpcg.io/29H42X">Run Evil Hangman Demo</a><br>
-    </p>
-
-    <h3><b>Prolog</b></h3>
-    <p>
-      In my computer paradigms class we learned two languages, prolog was one of them. This is my final project for prolog. It's a program that is meant to mimic the pool testing they do for covid. Using a list of what subjects are in which pools, and which pools are positive it figures out which individual subjects tested positive.
-      More details about the project can be seen here:
-      <br>
-      <iframe src="/static/programs/Assignments/CovidTest.html"></iframe>
-      
-      <br>
-      <iframe class="code" target="_parent" src="https://swish.swi-prolog.org/p/Covid-Test.pl"></iframe>
-    </p>
   </div>
+
 
 {% endblock %}

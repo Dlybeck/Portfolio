@@ -163,10 +163,14 @@
     font-size: xx-large;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     z-index: 1001;
+    padding: 10px;
+    transform: scale(.75);
+    transition: all .4s ease;
 }
 
 .close-button:hover {
     background: #ddd;
+    transform: scale(.85);
 }
 
 @media (max-width: 1000px) {

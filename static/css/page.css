@@ -12,7 +12,7 @@ html {
     border-color: black;
     border-radius: 40px;
     background-color: #EEE;
-    max-width: 75%;
+    max-width: 70%;
     padding: 20px;
 }
 
@@ -36,7 +36,7 @@ header h1 {
     display:inline-block;
     z-index: 1;
     position: relative;
-    width: fit-content;
+    width: 100%;
     margin: auto;
     background-color: #fff;
 }

@@ -5,79 +5,101 @@
 {% endblock %}
 
 {% block content %}
-    <link rel="stylesheet" href="/static/css/page.css">
+  <link rel="stylesheet" href="/static/css/page.css">
 
-    <div class="page">
-        <h2 id="location">College</h2>
-        <br>
-        <img src="/static/images/education/UPS.webp" class="small-media">
-        <br>
-        <img src="/static/images/education/UPSCampus.webp" class="media">
-        <br>
+  <div class="page">
+  <style>
+    h4 {
+      margin: 5px 0px;
+    }
+  </style>
 
-        <br>
-        <h3>Majors and Minors</h3>
-        <p>Right now I am earning a Computer Science major with a Math minor.</p>
-        
-        <h3>Classes Taken</h3>
-        <dl>
-          <dt><b>Computer Science</b></dt>
-          <dd>- Intro to Computer Science | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/csci-161-introduction-computer-science">CSCI 161</a></dd>
-          <dd>- Computer Science II | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/csci-261-computer-science-ii">CSCI 261</a></dd>
-          <dd>- Software Engineering | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/csci-240-software-engineering">CSCI 240</a></dd>
-          <dd>- Assembly Language and Computer Architecture | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/csci-281-assembly-language-and-computer-architecture">CSCI 281</a></dd>
-          <dd>- Programming Language Paradigms | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/csci-291-programming-language-paradigms">CSCI 291</a></dd>
-          <dd>- Network Programming | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/csci-325-network-programming">CSCI 325</a></dd>
-          <dd>- Algorithms and Data Structures | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/csci-361-algorithms-and-data-structures">CSCI 361</a></dd>
-          <dd>- Introduction to Artificial Intelligence | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/csci-431-introduction-artificial-intelligence">CSCI 431</a></dd>
-          <dd>- Operating Systems | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/csci-475-operating-systems">CSCI 475</a></dd>
-          <dd>- Principles of Database Systems (current) | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/csci-455-principles-database-systems">CSCI 455</a></dd>
-          <br>
+    <h2 id="location">College</h2>
 
-          <dt><b>Math</b></dt>
-          <dd>- Calculus 1 | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/math-180-calculus-and-analytic-geometry-i">MATH 180</a></dd>
-          <dd>- Calculus 2 | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/math-181-calculus-and-analytic-geometry-ii">MATH 181</a></dd>
-          <dd>- Introduction to Statistics | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/math-160-introduction-applied-statistics">MATH 160</a></dd>
-          <dd>- Math for Computer Science or Discrete Math | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/math-210-introduction-mathematics-computer-science">MATH 210</a></dd>
-          <dd>- Linear Algebra | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/math-290-linear-algebra">MATH 290</a></dd>
-          <br>
-
-          <dt><b>Business</b></dt>
-          <dd>- Principles of Management | <a class="link" target="_parent" href = "https://library.pugetsound.edu/BUS305">BUS 305</a></dd>
-          <dd>- Law and Ethics in Business (current) | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/bus-340-law-and-ethics-business-environment">BUS 340</a></dd>
-          <dd>- Special Topics (current) | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/bus-493-special-topics">BUS 493</a></dd>
-
-          <dt><b>Others</b></dt>
-          <dd>- Intermediate Spanish | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/span-201-spanish-3">SPAN 201</a></dd>
-          <dd>- Scientific Controversies | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/ssi2-153-scientific-controversies">SSI 153</a></dd>
-          <dd>- Medical Naratives | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/ssi2-148-medical-narratives">SSI 148</a></dd>
-          <dd>- Markets and Macroeconomics | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/econ-101-introduction-markets-and-macroeconomics">ECON 101</a></dd>
-          <dd>- Astronomy | <a class="link" target="_parent" href = "https://www.pugetsound.edu/academics/physics/courses">PHYS 109</a></dd>
-          <dd>- Introduction to Anthropology | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/soan-102-introduction-anthropology">SOAN 102</a></dd>
-          <dd>- Modeling Earth's Climate | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/conn-350-modeling-earths-climate">CONN 350</a></dd>
-          <dd>- Survey of Western Music | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/mus-100-survey-western-music">MUS 100</a></dd>
-          <dd>- Ancient Greek Philosophy (current) | <a class="link" target="_parent" href = "https://www.pugetsound.edu/courses/phil-210-ancient-greek-philosophy">PHIL 210</a></dd>
-        </dl>
-        <br>
-
-        <h3>Clubs and Activities</h3>
-        <p>
-          <img src="/static/images/education/UPSTennis.webp" height="100px" width="auto">
-          <br>
-          <b>Tennis</b>
-          <br>
-          I have been playing for the 
-          <a class="link" target="_parent" href="https://loggerathletics.com/sports/mens-tennis/roster/2023">UPS tennis team</a>
-           since I have been enrolled in UPS
-        </p>
-        <br>
-
-        <p>
-          <img src="/static/images/education/MaroonSociety.webp" height="100px" width="auto">
-          <br>
-          <b>Maroon Society</b> (<a class="link" target="_parent" href="https://www.facebook.com/PugetSoundMaroonSociety/">Link</a>)
-          <br>
-          The Maroon Society is a university organization that focuses on interaction between students and alumni. They mostly put on events around campus that both students and alumni can enjoy, many focusing on the connections that are made while at these events. I have also been a part of this since my first semester at UPS.
-        </p>
+    <div class="section">
+      <img src="/static/images/education/UPS.webp" class="small-media">
+      <br>
+      <img src="/static/images/education/UPSCampus.webp" class="media">
     </div>
+
+    <div class="section" style="text-align: center;">
+      <h3>Majors and Minors</h3>
+      <p>Right now I am earning a Computer Science major with a Math minor.</p>
+    </div>
+    
+    <div class="section" style="text-align: center;">
+      <h4>Computer Science Classes Taken</h4>
+      <ul style="list-style-position: inside; text-align: left; display: inline-block;">
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/csci-161-introduction-computer-science">Intro to Computer Science (CSCI 161)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/csci-261-computer-science-ii">Computer Science II (CSCI 261)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/csci-240-software-engineering">Software Engineering (CSCI 240)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/csci-281-assembly-language-and-computer-architecture">Assembly Language and Computer Architecture (CSCI 281)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/csci-291-programming-language-paradigms">Programming Language Paradigms (CSCI 291)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/csci-325-network-programming">Network Programming (CSCI 325)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/csci-361-algorithms-and-data-structures">Algorithms and Data Structures (CSCI 361)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/csci-431-introduction-artificial-intelligence">Introduction to Artificial Intelligence (CSCI 431)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/csci-475-operating-systems">Operating Systems (CSCI 475)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/csci-455-principles-database-systems">Principles of Database Systems (current) (CSCI 455)</a></li>
+      </ul>
+    </div>
+    
+    <div class="section" style="text-align: center;">
+      <h4>Math Classes Taken</h4>
+      <ul style="list-style-position: inside; text-align: left; display: inline-block;">
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/math-180-calculus-and-analytic-geometry-i">Calculus 1 (MATH 180)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/math-181-calculus-and-analytic-geometry-ii">Calculus 2 (MATH 181)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/math-160-introduction-applied-statistics">Introduction to Statistics (MATH 160)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/math-210-introduction-mathematics-computer-science">Math for Computer Science or Discrete Math (MATH 210)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/math-290-linear-algebra">Linear Algebra (MATH 290)</a></li>
+      </ul>
+    </div>
+    
+    <div class="section" style="text-align: center;">
+      <h4>Business Classes Taken</h4>
+      <ul style="list-style-position: inside; text-align: left; display: inline-block;">
+        <li><a class="link" target="_parent" href="https://library.pugetsound.edu/BUS305">Principles of Management (BUS 305)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/bus-340-law-and-ethics-business-environment">Law and Ethics in Business (current) (BUS 340)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/bus-493-special-topics">Special Topics (current) (BUS 493)</a></li>
+      </ul>
+    </div>
+    
+    <div class="section" style="text-align: center;">
+      <h4>Other Classes Taken</h4>
+      <ul style="list-style-position: inside; text-align: left; display: inline-block;">
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/span-201-spanish-3">Intermediate Spanish (SPAN 201)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/ssi2-153-scientific-controversies">Scientific Controversies (SSI 153)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/ssi2-148-medical-narratives">Medical Narratives (SSI 148)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/econ-101-introduction-markets-and-macroeconomics">Markets and Macroeconomics (ECON 101)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/academics/physics/courses">Astronomy (PHYS 109)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/soan-102-introduction-anthropology">Introduction to Anthropology (SOAN 102)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/conn-350-modeling-earths-climate">Modeling Earth's Climate (CONN 350)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/mus-100-survey-western-music">Survey of Western Music (MUS 100)</a></li>
+        <li><a class="link" target="_parent" href="https://www.pugetsound.edu/courses/phil-210-ancient-greek-philosophy">Ancient Greek Philosophy (current) (PHIL 210)</a></li>
+      </ul>
+    </div>
+    
+    
+
+    <div class="section">
+      <h3>Clubs and Activities</h3>
+      <p>
+        <img src="/static/images/education/UPSTennis.webp" height="100px" width="auto">
+        <br>
+        <b>Tennis</b>
+        <br>
+        I have been playing for the 
+        <a class="link" target="_parent" href="https://loggerathletics.com/sports/mens-tennis/roster/2023">UPS tennis team</a>
+          since I have been enrolled in UPS
+      </p>
+      <br>
+
+      <p>
+        <img src="/static/images/education/MaroonSociety.webp" height="100px" width="auto">
+        <br>
+        <b>Maroon Society</b> (<a class="link" target="_parent" href="https://www.facebook.com/PugetSoundMaroonSociety/">Link</a>)
+        <br>
+        The Maroon Society is a university organization that focuses on interaction between students and alumni. They mostly put on events around campus that both students and alumni can enjoy, many focusing on the connections that are made while at these events. I have also been a part of this since my first semester at UPS.
+      </p>
+    </div>
+  </div>
 {% endblock %}

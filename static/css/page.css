@@ -66,15 +66,27 @@ p.caption {
     text-align: center;
 }
 
-dl {
-    margin-left: 5%;
-    margin-right: 5%;
-    text-align: center;
+ul {
+    padding-left: 0;
+    list-style: none;
+    text-align: left;
+    display: inline-block;
 }
 
-dt {
-    text-align: center;
+ul li {
+    display: list-item;
+    text-align: left;
+    margin-left: 20px;
 }
+
+ul li::before {
+    content: "• ";
+    color: black;
+    font-weight: bold;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em;
+  }
 
 .link {
     text-decoration-color: blue;
@@ -131,7 +143,7 @@ img {
 }
 
 .small-media { 
-    width: 25%;
+    width: 40%;
     height: 25%; 
     object-fit: contain;
     border-radius: 15px;
@@ -227,6 +239,14 @@ model-viewer{
 
     .game {
         height: 180px;
+    }
+
+    .media { 
+        width: 90%;
+    }
+
+    .small-media { 
+        width: 80%;
     }
 
     model-viewer{

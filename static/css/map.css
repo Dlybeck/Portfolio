@@ -190,6 +190,10 @@
         height: 300px !important;
     }
 
+    .tile-title {
+        font-size: 1.3rem;
+    }
+
     .tile-text {
         margin: 0 10px 10px;
     }
@@ -205,6 +209,10 @@
     .tile-container.expanded {
         width: 75% !important;
         height: 250px !important;
+    }
+
+    .tile-title {
+        font-size: 1.1rem;
     }
 
     .button {

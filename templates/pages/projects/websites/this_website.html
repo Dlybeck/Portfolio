@@ -5,34 +5,28 @@
 {% endblock %}
 
 {% block content %}
+<style>
+    .versionBtn{
+        display: block;
+        font-size: xx-large;
+        padding: 30px;
+    }
+
+    .versionBtn:hover{
+        transform: scale(1.02);
+    }
+</style>
+
 <div class="container"> 
     <h2 id="location">This Website</h2>
-    <p>Text and photos documenting the development of this website.</p>
 
-    <h3>December 23rd 2022</h3>
-    <img class="media" src="/static/images/projects/this_website/1.webp">
-    <p>This is what i considered to be the first base model of my website. None of the buttons worked. I was just rying to test out the rough idea and color scheme for how it should look.</p>
-    <h3>January 5th 2023</h3>
-    <img class="media" src="/static/images/projects/this_website/2.webp">
-    <p>At this point I had added working buttons and transitions between pages, aswell as a new background image to see the scrolling from the transition effect. Plus some minor changes on the look of the pages</p>
-    <h3>January 6th 2023</h3>
-    <img class="media" src="/static/images/projects/this_website/3.webp">
-    <p>For this change I had simply settled on a new background image to use throughout the website</p>
-    <h3>January 10th 2023</h3>
-    <img class="media" src="/static/images/projects/this_website/4.webp">
-    <p>This is when I was expirimenting with a new type of menu system. I wanted my website to have something unique that stood out from other websites. So I decided to mess with the standard of menus and try this "radial" navigation menu that changes page to page. </p>
-    <h3>January 12th 2023</h3>
-    <img class="media" src="/static/images/projects/this_website/5.webp">
-    <p>Here I had finalized the placement of the menu and menu button (currently a checkbox).</p>
-    <h3>January 13th 2023</h3>
-    <img class="media" src="/static/images/projects/this_website/6.webp">
-    <p>This is when I added the animated menu button along with the old home button. I had also moved the page links into the new menu and made it functional</p>
-    <h3>June 13th 2023</h3>
-    <img class="media" src="/static/images/projects/this_website/7.webp">
-    <p>This is my first (functional) version of my map idea. When testing this website with friends and family, the new menu system proved to be a bit confusing. With the rough map, people now understood that the menu was "taking them somewhere" and made it much easier to comprehend the new meny style. The map also subtly encouraged the user to explore the entire website. In this version I had also lowered the number of links on the menu to make it less overwhelming, both on the map and the menu.</p>
-    <h3>June 18th 2023</h3>
-    <img class="media" src="/static/images/projects/this_website/8.webp">
-    <p>Here is the close to final version of the map and menu. I moved the map to the center of the menu to save space and moved the home button to the top so it's always visible. I also added a "current location" marker and names for every discovered location.</p>
+    <h4>Check out the processes behind developing this website:</h4>
+    <br>
+    <div class="section">
+        <a class="link internal-link versionBtn" href="/projects/websites/this_website/v1">Version 1</a>
+        <br>
+        <a class="link internal-link versionBtn" href="/projects/websites/this_website/v2">Version 2</a>
+    </div>
 </div>
 
 {% endblock %}

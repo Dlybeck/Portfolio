@@ -212,20 +212,6 @@ model-viewer{
     text-decoration: underline;
 }
 
-.pdf {
-    display: flex;
-    aspect-ratio: 1.036;
-    width: 100%;
-    padding: 0% 15%;
-    box-sizing: border-box;
-}
-
-.pdf embed {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
 
 @media (max-width: 600px) {
     .section {

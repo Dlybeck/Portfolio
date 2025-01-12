@@ -11,8 +11,6 @@ document.addEventListener('click', function(event) {
         const url = new URL(href, window.location.origin);
         const path = url.pathname;
 
-        console.log('Path extracted:', path); // Debugging line
-
         window.parent.navigateToPage(path); // Call the navigateToPage function in the parent window with the path
 
     }

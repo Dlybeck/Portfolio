@@ -107,7 +107,6 @@ class MiniWindow {
      * @param {String} route - the route to navigate to
      */
     navigateTo(route) {
-        console.log("Setting src to " + route);
         this.navigationHistory.push(route);
         this.page.setAttribute("src", route);
         this.updateBackButtonState();

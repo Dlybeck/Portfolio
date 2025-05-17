@@ -81,6 +81,9 @@ window.returnHome = function() {
         return;
     }
 
+    // Update URL hash to Home
+    window.location.hash = encodeURIComponent('Home');
+
     // Reset offsets to initial positions
     const offsetX = 50 - homeTile.left;
     const offsetY = 50 - homeTile.top;

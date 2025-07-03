@@ -1,0 +1,151 @@
+{% extends "shared/page.html" %}
+
+{% block title %}
+    <title>ScribbleScan | David Lybeck</title>
+{% endblock %}
+
+{% block content %}
+    <style>
+            .container {
+                width: 100%;
+                /* override global max-width to fill mini-window */
+                max-width: none;
+                margin: 0 auto;
+            }
+
+            .pdf-container {
+                /* narrower PDF display */
+                width: 70%;
+                height: 70%;
+                max-width: 800px;
+                margin: 0 auto;
+                position: relative;
+                padding-top: 137%; /* Based on A4 aspect ratio. Adjust this value based on your PDF's aspect ratio */
+            }
+
+            .pdf-viewer {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                border: none;
+                border-radius: 10px;
+                margin: 0;
+            }
+
+            .external-btn {
+                padding: 10px;
+                background-color: #006699;
+                color: white;
+                text-decoration: none;
+                border-color: black;
+                border-style: solid;
+                border-width: 2px;
+                border-radius: 5px;
+                transition: all .2s ease-in-out;
+            }
+            .external-btn:hover {
+                transform: scale(1.1);
+                background-color: #004477;
+            }
+
+            @media (max-width: 768px) {
+                .container {
+                    padding: 10px;
+                }
+            }
+    </style>
+
+    <div class="container"> 
+        <h2 id="location">ScribbleScan</h2>
+        <div class="section">
+            <a class="link versionBtn external-btn" href="https://scribblescan.app" target="_blank" rel="noopener">Check it out!</a>
+            <br><br>
+            <p>ScribbleScan is a fully online OCR service I solo-developed as my capstone project and have since spun off into ScribbleScan LLC. It is a web application that utilizes
+                AI to provide highly accurate handwriting digitization on just about any handwritten text, even preserving images or non-textual content in a document. It outperforms leading OCR and
+                AI-based OCR competitors by an average of ~11-20% (depending on the service) in character accuracy on particularly complicated handwriting. Here are some details of the development
+                of this service:
+            </p>
+        </div>
+
+        <div class="section">
+            <h3>ScribbleScan VS Alternatives | Character Accuracy</h3>
+            <img class="media" src="/static/images/projects/ScribbleScan/ScribbleScan_Stats.webp">
+        </div>
+
+        <div class="section">
+            <h3> Initial Proposal (January 2025)</h3>
+            <p>
+                This is the initial proposal I submitted for my capstone project. This document shows my initial goals and plans for the project. Looking back, it's interesting to see what I
+                stuck with (things like the UI export options...) and what I ended up changing in the process (target audience, some features...)
+            </p>
+            <div class="pdf-container">
+                <iframe 
+                    class="pdf-viewer"
+                    src="/static/PDF/ScribbleScan_Proposal.pdf#view=FitH"
+                    type="application/pdf"
+                ></iframe>
+            </div>
+        </div> <!-- end Initial Proposal section -->
+
+        <!-- Timeline images -->
+        <div class="section">
+            <h3>February 7th 2025</h3>
+            <img class="media" src="/static/images/projects/ScribbleScan/Feb7.webp">
+            <p>
+                This was the first working version of ScribbleScan. As you can tell, the digitization results looked completely different, splitting each line into a section
+                 and showing the result line-by-line. The results are also noticeably worse than today. But despite the rough look, you can tell this matched the original
+                  design I had in mind in the proposal. I would say this is the first working "proof of concept" and I was very happy with it at the time.
+            </p>
+        </div>
+        <div class="section">
+            <h3>February 8th 2025</h3>
+            <img class="media" src="/static/images/projects/ScribbleScan/Feb 8.webp">
+            <p>
+                Despite only being a day later, I decided to include this milestone since it highlights some large improvements to the UI. Here you can see the size of the "tiles"
+                 is much larger, and the digitize button is hidden after it has been clicked. This change allows a much easier viewing experience, and can still be seen on scribblescan.app
+                  today.
+            </p>
+        </div>
+        <div class="section">
+            <h3>March 12th 2025</h3>
+            <img class="media" src="/static/images/projects/ScribbleScan/Mar12.webp">
+            <p>
+                One month after the "proof of concept," a lot of work had gone into adding smaller important features. This included exporting any results as a PDF or copying them to
+                 clipboard—both for all pages digitized or just 1 page. Along with that, support for corrections and accuracy calculations were added. Here the focus shifted from being
+                  a proof-of-concept to more of a usable tool. I wanted to ensure users would be able to use the tool, not just see what it did.
+            </p>
+        </div>
+        <div class="section">
+            <h3>April 28th 2025</h3>
+            <img class="media" src="/static/images/projects/ScribbleScan/Apr 28.webp">
+            <p>
+                This is the version I submitted and presented in front of everyone for my capstone project. Compared to the previous snapshot, here you can see even more tweaks and 
+                additions, including a batch page limit, Google sign-in and a toned down UI. While this is not a full product, I would consider this a fully finished tool. It 
+                does everything it NEEDS to do, takes input and properly outputs. While there are no extras, it is definitely complete.
+            </p>
+        </div>
+        <div class="section">
+            <h3>June 25th 2025</h3>
+            <img class="media" src="/static/images/projects/ScribbleScan/Jun25.webp">
+            <p>
+                While this snapshot is nearly two months after the previous one, it has by far the most improvements. All of the work added from here on out is after I graduated—this is 
+                me starting ScribbleScan LLC and working on it full time. Most of the additions aren't noticeable from this screenshot, but can all be seen at 
+                <a href="https://scribblescan.app" target="_blank" rel="noopener">scribblescan.app</a> today. In this version there are full profiles and support, a full cloud-hosted 
+                database, paid tiers and respective app functionalities and many more unlisted features. I would call this a complete product.
+            </p>
+        </div>
+        <div class="section">
+            <h3>July 1st 2025</h3>
+            <img class="media" src="/static/images/projects/ScribbleScan/Jul1.webp">
+            <p>
+                Finally, about 1 week after the last snapshot, I would say <a href="https://scribblescan.app" target="_blank" rel="noopener">scribblescan.app</a> is finished :)
+                <br><br>
+                The biggest and most important change visible here is the addition of a demo mode! Since anonymous users can be expensive and can't ACTUALLY test the service, 
+                I added a demo mode that allows users to "digitize" (pre-calculated) select pages of tough handwriting examples. This allows users to experience the service in action 
+                and see first-hand what this service is capable of, without posing a financial burden on the service.
+            </p>
+        </div>
+    </div>
+{% endblock %}

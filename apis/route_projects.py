@@ -9,6 +9,10 @@ project_router = APIRouter()
 async def test(request: Request):
     return templates.TemplateResponse("pages/projects/websites/digital_planner.html", {"request": request})
 
+@project_router.get("/projects/websites/scribblescan")
+async def test(request: Request):
+    return templates.TemplateResponse("pages/projects/websites/scribblescan.html", {"request": request})
+
 @project_router.get("/projects/websites/this_website")
 async def test(request: Request):
     return templates.TemplateResponse("pages/projects/websites/this_website.html", {"request": request})

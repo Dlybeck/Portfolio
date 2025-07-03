@@ -7,7 +7,7 @@ window.tilesData = {
     "Hobbies": ["3D Printing", "Gaming", "Tennis"],
     "3D Printing": ["Other Models", "Puzzles"],
     "Projects": ["Programs", "Websites"],
-    "Websites": ["Digital Planner", "This website"],
+    "Websites": ["Digital Planner", "This website", "ScribbleScan"],
     "Education": ["College", "Early Education"]
 };
 
@@ -116,7 +116,7 @@ window.tileInfo = {
         `
         Programs I've made both for fun and for class
         <br><br>
-        (Some of them are pretty old lol)
+        (Some of them are pretty old)
         `,
         `/projects/programs`
     ],
@@ -149,14 +149,23 @@ window.tileInfo = {
         `,
         `/projects/websites/this_website`
     ],
-    
+    "ScribbleScan": [
+        [3, -1],
+        `
+        AI-powered OCR with industry leading accuracy on handwritten text.
+        <br><br>
+        Also my capstone project!
+        `,
+        `/projects/websites/scribblescan`
+    ],
+
     //Education
     "College": [
         [-2, 2],
         `
-        "Once a logger always a logger"
+        Don't come looking for me here
         <br><br>
-        "Hack Hack, Chop Chop"
+        (I graduated)
         `,
         `/education/college`
     ],

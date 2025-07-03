@@ -13,6 +13,36 @@
     br {
       margin: 10px;
     }
+
+    .external-btn {
+      padding: 10px;
+      background-color: #006699;
+      color: white;
+      text-decoration: none;
+      border-color: black;
+      border-style: solid;
+      border-width: 2px;
+      border-radius: 5px;
+      transition: all .2s ease-in-out;
+    }
+    .external-btn:hover {
+      transform: scale(1.1);
+      background-color: #004477;
+    }
+    
+    .plain-internal-link {
+      padding: 0 !important;
+      background-color: transparent !important;
+      color: #006699 !important;
+      border: none !important;
+      border-radius: 0 !important;
+      transition: none !important;
+    }
+    .plain-internal-link:hover {
+      transform: none !important;
+      background-color: transparent !important;
+      text-decoration: underline !important;
+    }
   </style>
 
   <div class="container"> 
@@ -20,10 +50,13 @@
 
     <div class="section">
       <h3>Featured Programs</h3>
-
+      <a class="link plain-internal-link" href="/projects/websites/scribblescan" onclick="window.parent.navigateToPage('/projects/websites/scribblescan'); return false;">ScribbleScan</a><br>
+      <br>
+      <a class="link versionBtn external-btn" href="https://scribblescan.app" target="_blank" rel="noopener">^^^Test it out!</a>
+      <br><br>
       <a class="link" target="_parent" href="https://github.com/mattzou1/NBA-predictor">(2024 - Python) Recurrent Neural Network/Naive bayes NBA game predictor</a><br>
       <br>
-      <a class="link internal-link" href="/projects/nba_predictions">Test it out!</a><br>
+      <a class="link internal-link" href="/projects/nba_predictions">^^^Test it out!</a><br>
       <br>
       <a class="link" target="_parent" href="https://github.com/Dlybeck/AI/tree/main/HW_2">(2024 - Python) Negamax Connect 4 bot</a><br>
       <a class="link" target="_parent" href="https://github.com/Dlybeck/Algorithms/tree/main/Assignment4/src">(2023 - Java) Red Black Tree Binary Search</a><br>

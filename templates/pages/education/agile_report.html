@@ -1,0 +1,65 @@
+{% extends "shared/page.html" %}
+
+{% block title %}
+    <title>Agile Management Report | David Lybeck</title>
+{% endblock %}
+
+{% block content %}
+<style>
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .pdf-container {
+            width: 100%;
+            position: relative;
+            padding-top: 137%; /* Based on A4 aspect ratio. Adjust this value based on your PDF's aspect ratio */
+        }
+
+        .pdf-viewer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 10px;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+        }
+</style>
+
+<div class="container"> 
+    <h2 id="location">Agile Management Report</h2>
+
+    <div class="section">
+        <p>This is a report I made in my management class in 2024. It goes over some details about agile management stratagies, why it works, why it might not work, and more.</p>
+        
+        <div class="pdf-container">
+            <iframe 
+                class="pdf-viewer"
+                src="/static/PDF/AgileManagement_Report_David.pdf#view=FitH"
+                type="application/pdf"
+            ></iframe>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        const iframe = document.querySelector('.pdf-viewer');
+        
+        iframe.onerror = function() {
+            iframe.src = `https://docs.google.com/viewer?url=${encodeURIComponent(window.location.origin + iframe.src)}&embedded=true`;
+        };
+    </script>
+{% endblock %}

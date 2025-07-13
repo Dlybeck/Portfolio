@@ -8,7 +8,7 @@ window.tilesData = {
     "3D Printing": ["Other Models", "Puzzles"],
     "Projects": ["Programs", "Websites"],
     "Websites": ["Digital Planner", "This website", "ScribbleScan"],
-    "Education": ["College", "Early Education"]
+    "Education": ["College", "Early Education", "Agile Report"],
 };
 
 // Set up all variables for each tile. Position (grid based), Text for the tile, and the URL for it's content (if applicable)
@@ -177,6 +177,17 @@ window.tileInfo = {
         (I graduated)
         `,
         `/education/early_education`
+    ],
+
+    //Hidden standalone tiles
+    "Agile Report": [
+        [6, -6],
+        `
+        My report on Agile Management
+        <br><br>
+        Made in 2024
+        `,
+        `/education/agile_report`
     ]
 };
 

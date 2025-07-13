@@ -12,3 +12,7 @@ async def test(request: Request):
 @education_router.get("/education/early_education")
 async def test(request: Request):
     return templates.TemplateResponse("pages/education/early_education.html", {"request": request})
+
+@education_router.get("/education/agile_report")
+async def agile_report(request: Request):
+    return templates.TemplateResponse("pages/education/agile_report.html", {"request": request})

@@ -53,34 +53,45 @@ class DirectoryRequest(BaseModel):
 @dev_router.get("/debug/connectivity")
 async def debug_connectivity():
     """Debug endpoint to test Mac connectivity"""
-    import subprocess
+    import socket
+
+    results = {
+        "mac_ip": MAC_SERVER_IP,
+        "mac_port": MAC_SERVER_PORT,
+        "mac_url": MAC_SERVER_URL
+    }
+
+    # Test socket connection
     try:
-        # Try to ping Mac via Tailscale
-        result = subprocess.run(
-            ["ping", "-c", "2", MAC_SERVER_IP],
-            capture_output=True,
-            text=True,
-            timeout=10
-        )
-
-        # Try HTTP request
-        http_result = "Not tested"
-        try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.get(f"{MAC_SERVER_URL}/")
-                http_result = f"HTTP {response.status_code}"
-        except Exception as e:
-            http_result = f"HTTP Error: {str(e)}"
-
-        return {
-            "mac_ip": MAC_SERVER_IP,
-            "ping_result": result.stdout + result.stderr,
-            "ping_returncode": result.returncode,
-            "http_test": http_result,
-            "tailscale_connected": is_mac_server_available()
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(5)
+        result = sock.connect_ex((MAC_SERVER_IP, MAC_SERVER_PORT))
+        sock.close()
+        results["socket_test"] = {
+            "success": result == 0,
+            "error_code": result
         }
     except Exception as e:
-        return {"error": str(e)}
+        results["socket_test"] = {"error": str(e)}
+
+    # Test HTTP request
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(f"{MAC_SERVER_URL}/")
+            results["http_test"] = {
+                "status": response.status_code,
+                "success": True
+            }
+    except Exception as e:
+        results["http_test"] = {
+            "error": str(e),
+            "success": False
+        }
+
+    # Test is_mac_server_available function
+    results["is_available"] = is_mac_server_available()
+
+    return results
 
 
 @dev_router.get("/login", response_class=HTMLResponse)

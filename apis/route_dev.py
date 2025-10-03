@@ -15,6 +15,20 @@ import asyncio
 import os
 from pathlib import Path
 
+# Check if services are available (Mac is reachable)
+def is_mac_server_available():
+    """Check if the Mac development server is reachable"""
+    import socket
+    try:
+        # Try to connect to local services
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(2)
+        result = sock.connect_ex(('127.0.0.1', 8080))
+        sock.close()
+        return result == 0
+    except:
+        return False
+
 dev_router = APIRouter(prefix="/dev", tags=["Dev Dashboard"])
 
 templates = Jinja2Templates(directory="templates")
@@ -40,6 +54,10 @@ async def project_selector(request: Request):
     """
     Project selector page - choose working directory
     """
+    if not is_mac_server_available():
+        return templates.TemplateResponse("dev/server_offline.html", {
+            "request": request
+        })
     return templates.TemplateResponse("dev/project_selector.html", {
         "request": request
     })
@@ -51,6 +69,10 @@ async def terminal_dashboard(request: Request):
     Terminal dashboard page
     Authentication is checked client-side via JavaScript
     """
+    if not is_mac_server_available():
+        return templates.TemplateResponse("dev/server_offline.html", {
+            "request": request
+        })
     return templates.TemplateResponse("dev/dashboard.html", {
         "request": request,
         "user": {"username": "admin"}

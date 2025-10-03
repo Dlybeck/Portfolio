@@ -43,20 +43,29 @@ app = start_application()
 if __name__ == "__main__":
     import uvicorn
     import subprocess
+    import os
 
-    # Get Tailscale IP
-    try:
-        result = subprocess.run(["tailscale", "ip", "-4"], capture_output=True, text=True)
-        tailscale_ip = result.stdout.strip()
-        if tailscale_ip:
-            print(f"✅ Binding to Tailscale interface: {tailscale_ip}:8080")
-            print(f"🌐 Access via Cloud Run proxy only")
-            host = tailscale_ip
-        else:
-            print("⚠️  Tailscale not detected, binding to localhost only")
+    # Determine if running in Cloud Run
+    is_cloud_run = os.environ.get("K_SERVICE") is not None
+
+    if is_cloud_run:
+        # In Cloud Run, bind to all interfaces
+        print("🌐 Running in Cloud Run - binding to 0.0.0.0:8080")
+        host = "0.0.0.0"
+    else:
+        # Local development - get Tailscale IP
+        try:
+            result = subprocess.run(["tailscale", "ip", "-4"], capture_output=True, text=True)
+            tailscale_ip = result.stdout.strip()
+            if tailscale_ip:
+                print(f"✅ Binding to Tailscale interface: {tailscale_ip}:8080")
+                print(f"🌐 Access via Cloud Run proxy only")
+                host = tailscale_ip
+            else:
+                print("⚠️  Tailscale not detected, binding to localhost only")
+                host = "127.0.0.1"
+        except Exception as e:
+            print(f"⚠️  Could not detect Tailscale ({e}), binding to localhost only")
             host = "127.0.0.1"
-    except Exception as e:
-        print(f"⚠️  Could not detect Tailscale ({e}), binding to localhost only")
-        host = "127.0.0.1"
 
     uvicorn.run(app, host=host, port=8080)

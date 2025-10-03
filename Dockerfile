@@ -30,13 +30,17 @@ TOKEN_RESPONSE=$(curl -s -X POST https://api.tailscale.com/api/v2/oauth/token \\
   -u "${TAILSCALE_OAUTH_CLIENT_ID}:${TAILSCALE_OAUTH_CLIENT_SECRET}" \\\n\
   -d "grant_type=client_credentials")\n\
 \n\
-ACCESS_TOKEN=$(echo $TOKEN_RESPONSE | python3 -c "import sys, json; print(json.load(sys.stdin)[\"access_token\"])")\n\
+echo "OAuth response: $TOKEN_RESPONSE"\n\
+\n\
+ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | python3 -c "import sys, json; data = json.load(sys.stdin); print(data.get(\"access_token\", \"\"))" 2>&1)\n\
 \n\
 if [ -z "$ACCESS_TOKEN" ]; then\n\
   echo "❌ Failed to get OAuth token"\n\
   echo "Response: $TOKEN_RESPONSE"\n\
   exit 1\n\
 fi\n\
+\n\
+echo "✅ Got OAuth access token"\n\
 \n\
 # Generate auth key using OAuth token\n\
 AUTH_KEY_RESPONSE=$(curl -s -X POST https://api.tailscale.com/api/v2/tailnet/-/keys \\\n\

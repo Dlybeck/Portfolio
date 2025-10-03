@@ -201,7 +201,10 @@
         function displayDirectories(dirs, files) {
             const listDiv = document.getElementById('directoryList');
 
-            if (dirs.length === 0 && files.length === 0) {
+            console.log(`[DEBUG] displayDirectories called with ${dirs.length} dirs, ${files ? files.length : 0} files`);
+            console.log('[DEBUG] Files:', files);
+
+            if (dirs.length === 0 && (!files || files.length === 0)) {
                 listDiv.innerHTML = '<div class="loading">Empty directory</div>';
                 return;
             }
@@ -217,12 +220,14 @@
             `).join('');
 
             // Then show files (not clickable, just for display)
-            html += files.map(file => `
-                <div class="directory-item" style="opacity: 0.7; cursor: default;">
-                    <span class="icon">📄</span>
-                    <span>${file.name}</span>
-                </div>
-            `).join('');
+            if (files && files.length > 0) {
+                html += files.map(file => `
+                    <div class="directory-item" style="opacity: 0.7; cursor: default;">
+                        <span class="icon">📄</span>
+                        <span>${file.name}</span>
+                    </div>
+                `).join('');
+            }
 
             listDiv.innerHTML = html;
         }

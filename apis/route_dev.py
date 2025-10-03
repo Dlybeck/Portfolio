@@ -225,12 +225,14 @@ async def list_directory(
                         "type": "file"
                     })
 
-            return JSONResponse(content={
+            response_data = {
                 "directories": directories,
                 "files": files,
                 "current": str(path_obj),
                 "is_root": path_obj == path_obj.parent
-            })
+            }
+            print(f"[DEBUG] Returning {len(directories)} dirs, {len(files)} files for {path_obj}")
+            return JSONResponse(content=response_data)
         except Exception as e:
             return JSONResponse(content={"error": str(e)}, status_code=500)
 

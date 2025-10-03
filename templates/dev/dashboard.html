@@ -424,6 +424,19 @@
         ws.onopen = () => {
             console.log('Terminal connected');
             updateConnectionStatus('connected');
+
+            // Auto-start Claude after a brief delay to let terminal initialize
+            setTimeout(() => {
+                console.log('Attempting to auto-start Claude...');
+                console.log('WebSocket state:', ws.readyState);
+                if (ws.readyState === WebSocket.OPEN) {
+                    console.log('Sending claude command...');
+                    ws.send(JSON.stringify({type: 'input', data: 'claude\n'}));
+                    console.log('Claude command sent');
+                } else {
+                    console.error('WebSocket not open, state:', ws.readyState);
+                }
+            }, 1000);
         };
 
         ws.onmessage = (event) => {
@@ -613,26 +626,37 @@
                 });
 
                 const data = await response.json();
-                displayFiles(data.directories || [], path);
+                console.log('Directory data:', data);
+                console.log('Directories:', data.directories?.length || 0);
+                console.log('Files:', data.files?.length || 0);
+                // Combine directories and files for display
+                const allItems = [...(data.directories || []), ...(data.files || [])];
+                console.log('Total items to display:', allItems.length);
+                displayFiles(allItems, path);
             } catch (error) {
                 document.getElementById('fileList').innerHTML = '<div style="color: #f88; padding: 20px;">Error loading files</div>';
             }
         }
 
         function displayFiles(files, path) {
+            console.log('displayFiles called with', files.length, 'items');
             const fileList = document.getElementById('fileList');
             if (files.length === 0) {
                 fileList.innerHTML = '<div style="color: #888; padding: 20px;">No files or folders</div>';
                 return;
             }
 
-            fileList.innerHTML = files.map(file => `
-                <div onclick="openFile('${file.path}')" style="padding: 8px 12px; margin: 4px 0; background: #383838; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.2s;"
-                     onmouseover="this.style.background='#444'" onmouseout="this.style.background='#383838'">
-                    <span style="font-size: 16px;">📁</span>
-                    <span style="color: #f8f8f8; font-size: 14px;">${file.name}</span>
-                </div>
-            `).join('');
+            fileList.innerHTML = files.map(file => {
+                const icon = file.type === 'directory' ? '📁' : '📄';
+                console.log('Item:', file.name, 'Type:', file.type, 'Icon:', icon);
+                return `
+                    <div onclick="openFile('${file.path}')" style="padding: 8px 12px; margin: 4px 0; background: #383838; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.2s;"
+                         onmouseover="this.style.background='#444'" onmouseout="this.style.background='#383838'">
+                        <span style="font-size: 16px;">${icon}</span>
+                        <span style="color: #f8f8f8; font-size: 14px;">${file.name}</span>
+                    </div>
+                `;
+            }).join('');
         }
 
         async function openFile(path) {
@@ -654,7 +678,9 @@
                     currentFilePath = path;
                     document.getElementById('currentPath').textContent = path;
                     const data = await response.json();
-                    displayFiles(data.directories || [], path);
+                    // Combine directories and files for display
+                    const allItems = [...(data.directories || []), ...(data.files || [])];
+                    displayFiles(allItems, path);
                 } else {
                     // It's a file - view it
                     viewFile(path);

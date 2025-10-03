@@ -30,6 +30,12 @@ IS_CLOUD_RUN = os.environ.get("K_SERVICE") is not None
 # Check if services are available (Mac is reachable via Tailscale SOCKS5)
 def is_mac_server_available():
     """Check if the Mac development server is reachable via Tailscale SOCKS5 proxy"""
+    # If running locally on Mac, always return True
+    if not IS_CLOUD_RUN:
+        print(f"[DEBUG] Running on Mac locally - server available")
+        return True
+
+    # If in Cloud Run, check via SOCKS5 proxy
     try:
         print(f"[DEBUG] Checking Mac server at {MAC_SERVER_IP}:{MAC_SERVER_PORT} via SOCKS5")
 

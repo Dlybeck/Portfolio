@@ -9,10 +9,12 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from core.security import get_current_user
+from services.terminal_service import get_or_create_session, close_session
 import json
 import asyncio
 import os
 import httpx
+from pathlib import Path
 
 # Mac server Tailscale IP (from your Tailscale network)
 MAC_SERVER_IP = "100.84.184.84"
@@ -186,9 +188,6 @@ async def list_directory(
             return JSONResponse(content={"error": str(e)}, status_code=500)
     else:
         # Mac: Execute locally
-        from pathlib import Path
-        from pydantic import BaseModel
-
         class DirectoryRequest(BaseModel):
             path: str
 
@@ -251,9 +250,6 @@ async def parent_directory(
             return JSONResponse(content={"error": str(e)}, status_code=500)
     else:
         # Mac: Execute locally
-        from pathlib import Path
-        from pydantic import BaseModel
-
         class DirectoryRequest(BaseModel):
             path: str
 
@@ -332,8 +328,6 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~"):
     working_dir = os.path.expanduser(cwd)
 
     try:
-        from services.terminal_service import get_or_create_session, close_session
-
         # Create terminal session in the specified directory
         terminal = get_or_create_session(session_id, command="bash")
 

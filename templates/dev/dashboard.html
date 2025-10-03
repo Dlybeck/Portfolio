@@ -697,58 +697,79 @@
 
             const tabContent = document.getElementById('tabContent');
             const fileExt = path.split('.').pop().toLowerCase();
+            const token = localStorage.getItem('access_token');
 
-            // Handle different file types
-            if (['png', 'jpg', 'jpeg', 'gif', 'bmp', 'svg', 'webp'].includes(fileExt)) {
-                // Image files - display in preview
-                tabContent.innerHTML = `
-                    <div style="padding: 16px; height: 100%; overflow: auto; display: flex; flex-direction: column; align-items: center; background: #1a1a1a;">
-                        <div style="margin-bottom: 12px; width: 100%; display: flex; justify-content: space-between; align-items: center;">
-                            <span style="color: #888; font-size: 13px; font-family: monospace;">${path}</span>
-                            <button onclick="window.open('file://${path}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Open in New Tab</button>
+            // Show loading state
+            tabContent.innerHTML = '<div style="padding: 16px; color: #888;">Loading file...</div>';
+
+            try {
+                // Fetch file from API endpoint
+                const response = await fetch(`/dev/api/read-file?path=${encodeURIComponent(path)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load file');
+                }
+
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+
+                // Handle different file types
+                if (['png', 'jpg', 'jpeg', 'gif', 'bmp', 'svg', 'webp'].includes(fileExt)) {
+                    // Image files
+                    tabContent.innerHTML = `
+                        <div style="padding: 16px; height: 100%; overflow: auto; display: flex; flex-direction: column; align-items: center; background: #1a1a1a;">
+                            <div style="margin-bottom: 12px; width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: #888; font-size: 13px; font-family: monospace;">${path}</span>
+                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Open in New Tab</button>
+                            </div>
+                            <img src="${blobUrl}" style="max-width: 100%; max-height: 80vh; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);" />
                         </div>
-                        <img src="file://${path}" style="max-width: 100%; max-height: 80vh; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);" />
-                    </div>
-                `;
-            } else if (['pdf'].includes(fileExt)) {
-                // PDF files
-                tabContent.innerHTML = `
-                    <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
-                        <div style="margin-bottom: 12px;">
-                            <button onclick="window.open('file://${path}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Open in New Tab</button>
-                            <span style="color: #888; font-size: 13px; font-family: monospace; margin-left: 12px;">${path}</span>
+                    `;
+                } else if (['pdf'].includes(fileExt)) {
+                    // PDF files
+                    tabContent.innerHTML = `
+                        <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
+                            <div style="margin-bottom: 12px;">
+                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Open in New Tab</button>
+                                <span style="color: #888; font-size: 13px; font-family: monospace; margin-left: 12px;">${path}</span>
+                            </div>
+                            <iframe src="${blobUrl}" style="flex: 1; border: none; border-radius: 4px;"></iframe>
                         </div>
-                        <iframe src="file://${path}" style="flex: 1; border: none; border-radius: 4px;"></iframe>
-                    </div>
-                `;
-            } else if (['mp4', 'webm', 'ogg', 'mov'].includes(fileExt)) {
-                // Video files
-                tabContent.innerHTML = `
-                    <div style="padding: 16px; height: 100%; display: flex; flex-direction: column; align-items: center; background: #1a1a1a;">
-                        <div style="margin-bottom: 12px; width: 100%;">
-                            <button onclick="window.open('file://${path}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Open in New Tab</button>
-                            <span style="color: #888; font-size: 13px; font-family: monospace; margin-left: 12px;">${path}</span>
+                    `;
+                } else if (['mp4', 'webm', 'ogg', 'mov'].includes(fileExt)) {
+                    // Video files
+                    tabContent.innerHTML = `
+                        <div style="padding: 16px; height: 100%; display: flex; flex-direction: column; align-items: center; background: #1a1a1a;">
+                            <div style="margin-bottom: 12px; width: 100%;">
+                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Open in New Tab</button>
+                                <span style="color: #888; font-size: 13px; font-family: monospace; margin-left: 12px;">${path}</span>
+                            </div>
+                            <video controls style="max-width: 100%; max-height: 80vh; border-radius: 8px;">
+                                <source src="${blobUrl}" type="video/${fileExt}">
+                                Your browser does not support the video tag.
+                            </video>
                         </div>
-                        <video controls style="max-width: 100%; max-height: 80vh; border-radius: 8px;">
-                            <source src="file://${path}" type="video/${fileExt}">
-                            Your browser does not support the video tag.
-                        </video>
-                    </div>
-                `;
-            } else if (['html', 'htm'].includes(fileExt)) {
-                // HTML files
-                tabContent.innerHTML = `
-                    <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
-                        <div style="margin-bottom: 12px;">
-                            <button onclick="window.open('file://${path}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Open in New Tab</button>
-                            <span style="color: #888; font-size: 13px; font-family: monospace; margin-left: 12px;">${path}</span>
+                    `;
+                } else if (['html', 'htm'].includes(fileExt)) {
+                    // HTML files
+                    tabContent.innerHTML = `
+                        <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
+                            <div style="margin-bottom: 12px;">
+                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Open in New Tab</button>
+                                <span style="color: #888; font-size: 13px; font-family: monospace; margin-left: 12px;">${path}</span>
+                            </div>
+                            <iframe src="${blobUrl}" style="flex: 1; border: none; background: white; border-radius: 4px;"></iframe>
                         </div>
-                        <iframe src="file://${path}" style="flex: 1; border: none; background: white; border-radius: 4px;"></iframe>
-                    </div>
-                `;
-            } else {
-                // Text-based files - ask Claude to read them
-                sendClaudeCommand(`read the file at ${path} and show me its contents`);
+                    `;
+                } else {
+                    // Text-based files - ask Claude to read them
+                    URL.revokeObjectURL(blobUrl);
+                    sendClaudeCommand(`read the file at ${path} and show me its contents`);
+                }
+            } catch (error) {
+                tabContent.innerHTML = `<div style="padding: 16px; color: #f88;">Failed to load file: ${error.message}</div>`;
             }
         }
 

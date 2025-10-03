@@ -5,7 +5,7 @@ Proxies requests to Mac development server via Tailscale
 """
 
 from fastapi import APIRouter, Depends, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from core.security import get_current_user
@@ -15,6 +15,7 @@ import asyncio
 import os
 import httpx
 from pathlib import Path
+import mimetypes
 
 # Mac server Tailscale IP (from your Tailscale network)
 MAC_SERVER_IP = "100.84.184.84"
@@ -281,6 +282,56 @@ async def parent_directory(
             parent = path_obj.parent
 
             return JSONResponse(content={"parent": str(parent)})
+        except Exception as e:
+            return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+@dev_router.get("/api/read-file")
+async def read_file(
+    path: str,
+    user: dict = Depends(get_current_user)
+):
+    """Read file and return its content - proxy if Cloud Run, execute locally if Mac"""
+    if IS_CLOUD_RUN:
+        # Cloud Run: Proxy to Mac
+        try:
+            auth_header = f"Bearer {user.get('token', '')}"
+            headers = {"Authorization": auth_header}
+            async with httpx.AsyncClient(timeout=30.0, proxy=SOCKS5_PROXY) as client:
+                response = await client.get(
+                    f"{MAC_SERVER_URL}/dev/api/read-file",
+                    params={"path": path},
+                    headers=headers
+                )
+                # Return file content with appropriate content type
+                content_type = response.headers.get("content-type", "application/octet-stream")
+                return StreamingResponse(
+                    iter([response.content]),
+                    media_type=content_type,
+                    headers={"Content-Disposition": f'inline; filename="{Path(path).name}"'}
+                )
+        except Exception as e:
+            return JSONResponse(content={"error": str(e)}, status_code=500)
+    else:
+        # Mac: Execute locally
+        try:
+            file_path = os.path.expanduser(path)
+            path_obj = Path(file_path)
+
+            # Security: ensure file exists and is a file
+            if not path_obj.exists() or not path_obj.is_file():
+                return JSONResponse(content={"error": "File not found"}, status_code=404)
+
+            # Guess content type
+            content_type, _ = mimetypes.guess_type(file_path)
+            if not content_type:
+                content_type = "application/octet-stream"
+
+            return FileResponse(
+                file_path,
+                media_type=content_type,
+                headers={"Content-Disposition": f'inline; filename="{path_obj.name}"'}
+            )
         except Exception as e:
             return JSONResponse(content={"error": str(e)}, status_code=500)
 

@@ -22,18 +22,29 @@ MAC_SERVER_URL = f"http://{MAC_SERVER_IP}:{MAC_SERVER_PORT}"
 # Tailscale SOCKS5 proxy (for userspace networking mode)
 SOCKS5_PROXY = "socks5://localhost:1055"
 
-# Check if services are available (Mac is reachable via Tailscale)
+# Check if services are available (Mac is reachable via Tailscale SOCKS5)
 def is_mac_server_available():
-    """Check if the Mac development server is reachable via Tailscale"""
-    import socket
+    """Check if the Mac development server is reachable via Tailscale SOCKS5 proxy"""
+    import asyncio
     try:
-        print(f"[DEBUG] Checking Mac server at {MAC_SERVER_IP}:{MAC_SERVER_PORT}")
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(3)
-        result = sock.connect_ex((MAC_SERVER_IP, MAC_SERVER_PORT))
-        sock.close()
-        is_available = result == 0
-        print(f"[DEBUG] Mac server available: {is_available} (connect result: {result})")
+        print(f"[DEBUG] Checking Mac server at {MAC_SERVER_IP}:{MAC_SERVER_PORT} via SOCKS5")
+
+        # Use httpx with SOCKS5 proxy to test connection
+        async def check():
+            try:
+                async with httpx.AsyncClient(timeout=3.0, proxy=SOCKS5_PROXY) as client:
+                    response = await client.get(f"{MAC_SERVER_URL}/")
+                    return response.status_code < 500
+            except:
+                return False
+
+        # Run async check in sync context
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        is_available = loop.run_until_complete(check())
+        loop.close()
+
+        print(f"[DEBUG] Mac server available: {is_available}")
         return is_available
     except Exception as e:
         print(f"[DEBUG] Mac server check failed: {e}")

@@ -1,29 +1,32 @@
 """
 Dev Dashboard routes
 Serves the dashboard interface and login page
+Proxies requests to Mac development server via Tailscale
 """
 
 from fastapi import APIRouter, Depends, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from core.security import get_current_user
-from services.claude_service import execute_claude_command
-from services.terminal_service import get_or_create_session, close_session
 import json
 import asyncio
 import os
-from pathlib import Path
+import httpx
 
-# Check if services are available (Mac is reachable)
+# Mac server Tailscale IP (from your Tailscale network)
+MAC_SERVER_IP = "100.84.184.84"
+MAC_SERVER_PORT = 8080
+MAC_SERVER_URL = f"http://{MAC_SERVER_IP}:{MAC_SERVER_PORT}"
+
+# Check if services are available (Mac is reachable via Tailscale)
 def is_mac_server_available():
-    """Check if the Mac development server is reachable"""
+    """Check if the Mac development server is reachable via Tailscale"""
     import socket
     try:
-        # Try to connect to local services
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(2)
-        result = sock.connect_ex(('127.0.0.1', 8080))
+        result = sock.connect_ex((MAC_SERVER_IP, MAC_SERVER_PORT))
         sock.close()
         return result == 0
     except:
@@ -81,72 +84,59 @@ async def terminal_dashboard(request: Request):
 
 @dev_router.post("/api/chat")
 async def chat_with_claude(
-    request: ChatRequest,
+    req: Request,
     user: dict = Depends(get_current_user)
 ):
-    """
-    Chat endpoint that executes claude commands
-    Requires authentication
-    """
-    result = await execute_claude_command(
-        message=request.message,
-        working_dir=request.working_dir
-    )
-
-    return result
+    """Proxy chat requests to Mac server"""
+    try:
+        body = await req.body()
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                f"{MAC_SERVER_URL}/dev/api/chat",
+                content=body,
+                headers={"Content-Type": "application/json"}
+            )
+            return JSONResponse(content=response.json(), status_code=response.status_code)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
 @dev_router.post("/api/list-directory")
 async def list_directory(
-    request: DirectoryRequest,
+    req: Request,
     user: dict = Depends(get_current_user)
 ):
-    """List directories in a given path"""
+    """Proxy directory listing to Mac server"""
     try:
-        # Expand ~ to home directory
-        path = os.path.expanduser(request.path)
-        path_obj = Path(path)
-
-        # Security: ensure path is absolute and exists
-        if not path_obj.is_absolute():
-            path_obj = Path.home() / path
-
-        if not path_obj.exists() or not path_obj.is_dir():
-            return {"error": "Directory not found"}
-
-        # List only directories (not hidden)
-        directories = []
-        for item in sorted(path_obj.iterdir()):
-            if item.is_dir() and not item.name.startswith('.'):
-                directories.append({
-                    "name": item.name,
-                    "path": str(item)
-                })
-
-        return {
-            "directories": directories,
-            "current": str(path_obj),
-            "is_root": path_obj == path_obj.parent
-        }
-
+        body = await req.body()
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                f"{MAC_SERVER_URL}/dev/api/list-directory",
+                content=body,
+                headers={"Content-Type": "application/json"}
+            )
+            return JSONResponse(content=response.json(), status_code=response.status_code)
     except Exception as e:
-        return {"error": str(e)}
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
 @dev_router.post("/api/parent-directory")
 async def parent_directory(
-    request: DirectoryRequest,
+    req: Request,
     user: dict = Depends(get_current_user)
 ):
-    """Get parent directory of current path"""
+    """Proxy parent directory request to Mac server"""
     try:
-        path = os.path.expanduser(request.path)
-        path_obj = Path(path)
-        parent = path_obj.parent
-
-        return {"parent": str(parent)}
+        body = await req.body()
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                f"{MAC_SERVER_URL}/dev/api/parent-directory",
+                content=body,
+                headers={"Content-Type": "application/json"}
+            )
+            return JSONResponse(content=response.json(), status_code=response.status_code)
     except Exception as e:
-        return {"error": str(e)}
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
 @dev_router.websocket("/ws/terminal")

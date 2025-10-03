@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 jinja2
+httpx
 
 # Authentication & Security
 python-jose[cryptography]

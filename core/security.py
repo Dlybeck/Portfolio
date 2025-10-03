@@ -6,7 +6,7 @@ Handles authentication, JWT tokens, 2FA, and rate limiting
 from datetime import datetime, timedelta
 from typing import Optional
 import os
-from passlib.context import CryptContext
+import bcrypt
 from jose import JWTError, jwt
 import pyotp
 from fastapi import HTTPException, status, Depends
@@ -30,9 +30,6 @@ TOTP_SECRET = os.getenv("TOTP_SECRET", "")
 
 MAX_LOGIN_ATTEMPTS = int(os.getenv("MAX_LOGIN_ATTEMPTS", "3"))
 LOCKOUT_DURATION_MINUTES = int(os.getenv("LOCKOUT_DURATION_MINUTES", "15"))
-
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # HTTP Bearer token authentication
 security = HTTPBearer()
@@ -90,17 +87,25 @@ def reset_login_attempts(username: str):
 # ================================
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify password against hash"""
-    return pwd_context.verify(plain_password, hashed_password)
+    """Verify password against hash using bcrypt directly"""
+    try:
+        password_bytes = plain_password.encode('utf-8')
+        hash_bytes = hashed_password.encode('utf-8')
+        return bcrypt.checkpw(password_bytes, hash_bytes)
+    except Exception as e:
+        print(f"Password verification error: {e}")
+        return False
 
 
 def get_password_hash(password: str) -> str:
-    """Hash password using bcrypt, handling the 72-byte limit."""
+    """Hash password using bcrypt directly"""
     password_bytes = password.encode('utf-8')
     if len(password_bytes) > 72:
         # Truncate to 72 bytes as required by bcrypt
-        password = password_bytes[:72].decode('utf-8', 'ignore')
-    return pwd_context.hash(password)
+        password_bytes = password_bytes[:72]
+    salt = bcrypt.gensalt()
+    hash_bytes = bcrypt.hashpw(password_bytes, salt)
+    return hash_bytes.decode('utf-8')
 
 
 def validate_password_strength(password: str) -> tuple[bool, str]:

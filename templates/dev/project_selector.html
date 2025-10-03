@@ -149,7 +149,7 @@
             <p>Choose a directory to start your Claude Code session</p>
         </div>
 
-        <div class="current-path" id="currentPath">~</div>
+        <div class="current-path" id="currentPath">/Users/dlybeck</div>
 
         <div class="directory-list" id="directoryList">
             <div class="loading">Loading directories...</div>
@@ -167,7 +167,7 @@
             window.location.href = '/dev/login';
         }
 
-        let currentDir = '~';
+        let currentDir = '/Users/dlybeck';
 
         async function loadDirectory(path) {
             currentDir = path;
@@ -238,7 +238,7 @@
         }
 
         // Load home directory on start
-        loadDirectory('~');
+        loadDirectory('/Users/dlybeck');
     </script>
 </body>
 </html>

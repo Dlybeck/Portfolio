@@ -2,6 +2,8 @@ fastapi
 uvicorn
 jinja2
 httpx[socks]
+aiohttp
+aiohttp-socks
 
 # Authentication & Security
 python-jose[cryptography]

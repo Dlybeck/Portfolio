@@ -273,10 +273,58 @@ async def parent_directory(
 @dev_router.websocket("/ws/terminal")
 async def terminal_websocket(websocket: WebSocket, cwd: str = "~"):
     """
-    WebSocket endpoint for terminal access
+    WebSocket endpoint for terminal access - proxy if Cloud Run, execute if Mac
     """
     await websocket.accept()
 
+    if IS_CLOUD_RUN:
+        # Cloud Run: Proxy WebSocket to Mac via SOCKS5
+        import websockets
+        import aiohttp
+        from aiohttp_socks import ProxyConnector
+
+        try:
+            # Create SOCKS5 connector
+            connector = ProxyConnector.from_url(SOCKS5_PROXY)
+
+            # Connect to Mac's WebSocket through SOCKS5
+            async with aiohttp.ClientSession(connector=connector) as session:
+                async with session.ws_connect(
+                    f"ws://{MAC_SERVER_IP}:{MAC_SERVER_PORT}/dev/ws/terminal?cwd={cwd}",
+                    timeout=aiohttp.ClientTimeout(total=3600)
+                ) as ws:
+                    # Bidirectional proxy
+                    async def forward_to_mac():
+                        """Forward messages from browser to Mac"""
+                        try:
+                            while True:
+                                data = await websocket.receive_text()
+                                await ws.send_str(data)
+                        except Exception as e:
+                            print(f"Forward to Mac error: {e}")
+
+                    async def forward_to_browser():
+                        """Forward messages from Mac to browser"""
+                        try:
+                            async for msg in ws:
+                                if msg.type == aiohttp.WSMsgType.TEXT:
+                                    await websocket.send_text(msg.data)
+                                elif msg.type == aiohttp.WSMsgType.ERROR:
+                                    break
+                        except Exception as e:
+                            print(f"Forward to browser error: {e}")
+
+                    # Run both directions concurrently
+                    await asyncio.gather(
+                        forward_to_mac(),
+                        forward_to_browser()
+                    )
+        except Exception as e:
+            print(f"WebSocket proxy error: {e}")
+            await websocket.close()
+        return
+
+    # Mac: Execute terminal locally
     # Generate session ID from connection
     session_id = f"session_{id(websocket)}"
 
@@ -284,6 +332,8 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~"):
     working_dir = os.path.expanduser(cwd)
 
     try:
+        from services.terminal_service import get_or_create_session, close_session
+
         # Create terminal session in the specified directory
         terminal = get_or_create_session(session_id, command="bash")
 

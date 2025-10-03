@@ -19,6 +19,9 @@ MAC_SERVER_IP = "100.84.184.84"
 MAC_SERVER_PORT = 8080
 MAC_SERVER_URL = f"http://{MAC_SERVER_IP}:{MAC_SERVER_PORT}"
 
+# Tailscale SOCKS5 proxy (for userspace networking mode)
+SOCKS5_PROXY = "socks5://localhost:1055"
+
 # Check if services are available (Mac is reachable via Tailscale)
 def is_mac_server_available():
     """Check if the Mac development server is reachable via Tailscale"""
@@ -74,9 +77,9 @@ async def debug_connectivity():
     except Exception as e:
         results["socket_test"] = {"error": str(e)}
 
-    # Test HTTP request
+    # Test HTTP request through SOCKS5 proxy
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
+        async with httpx.AsyncClient(timeout=5.0, proxy=SOCKS5_PROXY) as client:
             response = await client.get(f"{MAC_SERVER_URL}/")
             results["http_test"] = {
                 "status": response.status_code,
@@ -135,10 +138,10 @@ async def chat_with_claude(
     req: Request,
     user: dict = Depends(get_current_user)
 ):
-    """Proxy chat requests to Mac server"""
+    """Proxy chat requests to Mac server via Tailscale SOCKS5"""
     try:
         body = await req.body()
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with httpx.AsyncClient(timeout=60.0, proxy=SOCKS5_PROXY) as client:
             response = await client.post(
                 f"{MAC_SERVER_URL}/dev/api/chat",
                 content=body,
@@ -154,10 +157,10 @@ async def list_directory(
     req: Request,
     user: dict = Depends(get_current_user)
 ):
-    """Proxy directory listing to Mac server"""
+    """Proxy directory listing to Mac server via Tailscale SOCKS5"""
     try:
         body = await req.body()
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=10.0, proxy=SOCKS5_PROXY) as client:
             response = await client.post(
                 f"{MAC_SERVER_URL}/dev/api/list-directory",
                 content=body,
@@ -173,10 +176,10 @@ async def parent_directory(
     req: Request,
     user: dict = Depends(get_current_user)
 ):
-    """Proxy parent directory request to Mac server"""
+    """Proxy parent directory request to Mac server via Tailscale SOCKS5"""
     try:
         body = await req.body()
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=10.0, proxy=SOCKS5_PROXY) as client:
             response = await client.post(
                 f"{MAC_SERVER_URL}/dev/api/parent-directory",
                 content=body,

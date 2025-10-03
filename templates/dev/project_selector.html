@@ -186,7 +186,7 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    displayDirectories(data.directories);
+                    displayDirectories(data.directories, data.files || []);
                     document.getElementById('upBtn').disabled = data.is_root;
                 } else {
                     document.getElementById('directoryList').innerHTML =
@@ -198,20 +198,33 @@
             }
         }
 
-        function displayDirectories(dirs) {
+        function displayDirectories(dirs, files) {
             const listDiv = document.getElementById('directoryList');
 
-            if (dirs.length === 0) {
-                listDiv.innerHTML = '<div class="loading">No subdirectories</div>';
+            if (dirs.length === 0 && files.length === 0) {
+                listDiv.innerHTML = '<div class="loading">Empty directory</div>';
                 return;
             }
 
-            listDiv.innerHTML = dirs.map(dir => `
+            let html = '';
+
+            // Show directories first
+            html += dirs.map(dir => `
                 <div class="directory-item" onclick="loadDirectory('${dir.path}')">
                     <span class="icon">📁</span>
                     <span>${dir.name}</span>
                 </div>
             `).join('');
+
+            // Then show files (not clickable, just for display)
+            html += files.map(file => `
+                <div class="directory-item" style="opacity: 0.7; cursor: default;">
+                    <span class="icon">📄</span>
+                    <span>${file.name}</span>
+                </div>
+            `).join('');
+
+            listDiv.innerHTML = html;
         }
 
         function goUp() {

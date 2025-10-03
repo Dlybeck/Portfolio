@@ -206,17 +206,28 @@ async def list_directory(
             if not path_obj.exists() or not path_obj.is_dir():
                 return JSONResponse(content={"error": "Directory not found"}, status_code=404)
 
-            # List only directories (not hidden)
+            # List both directories and files (not hidden)
             directories = []
+            files = []
             for item in sorted(path_obj.iterdir()):
-                if item.is_dir() and not item.name.startswith('.'):
+                if item.name.startswith('.'):
+                    continue
+                if item.is_dir():
                     directories.append({
                         "name": item.name,
-                        "path": str(item)
+                        "path": str(item),
+                        "type": "directory"
+                    })
+                elif item.is_file():
+                    files.append({
+                        "name": item.name,
+                        "path": str(item),
+                        "type": "file"
                     })
 
             return JSONResponse(content={
                 "directories": directories,
+                "files": files,
                 "current": str(path_obj),
                 "is_root": path_obj == path_obj.parent
             })
@@ -340,13 +351,6 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~"):
         initial_output = terminal.read(timeout=0.1)
         if initial_output:
             await websocket.send_text(json.dumps({"type": "output", "data": initial_output}))
-
-        # Auto-launch claude
-        terminal.write("claude\n")
-        await asyncio.sleep(0.5)
-        claude_output = terminal.read(timeout=0.5)
-        if claude_output:
-            await websocket.send_text(json.dumps({"type": "output", "data": claude_output}))
 
         # Main loop - handle messages concurrently
         async def read_from_terminal():

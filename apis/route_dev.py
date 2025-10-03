@@ -289,13 +289,15 @@ async def parent_directory(
 @dev_router.get("/api/read-file")
 async def read_file(
     path: str,
+    req: Request,
     user: dict = Depends(get_current_user)
 ):
     """Read file and return its content - proxy if Cloud Run, execute locally if Mac"""
     if IS_CLOUD_RUN:
         # Cloud Run: Proxy to Mac
         try:
-            auth_header = f"Bearer {user.get('token', '')}"
+            # Get the original Authorization header from the request
+            auth_header = req.headers.get("Authorization", "")
             headers = {"Authorization": auth_header}
             async with httpx.AsyncClient(timeout=30.0, proxy=SOCKS5_PROXY) as client:
                 response = await client.get(
@@ -333,6 +335,9 @@ async def read_file(
                 headers={"Content-Disposition": f'inline; filename="{path_obj.name}"'}
             )
         except Exception as e:
+            print(f"[ERROR] Failed to read file {path}: {e}")
+            import traceback
+            traceback.print_exc()
             return JSONResponse(content={"error": str(e)}, status_code=500)
 
 

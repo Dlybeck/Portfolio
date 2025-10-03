@@ -22,6 +22,9 @@ MAC_SERVER_URL = f"http://{MAC_SERVER_IP}:{MAC_SERVER_PORT}"
 # Tailscale SOCKS5 proxy (for userspace networking mode)
 SOCKS5_PROXY = "socks5://localhost:1055"
 
+# Detect if running in Cloud Run (proxy mode) or locally (direct mode)
+IS_CLOUD_RUN = os.environ.get("K_SERVICE") is not None
+
 # Check if services are available (Mac is reachable via Tailscale SOCKS5)
 def is_mac_server_available():
     """Check if the Mac development server is reachable via Tailscale SOCKS5 proxy"""
@@ -162,24 +165,64 @@ async def list_directory(
     req: Request,
     user: dict = Depends(get_current_user)
 ):
-    """Proxy directory listing to Mac server via Tailscale SOCKS5"""
-    try:
-        body = await req.body()
-        # Forward the Authorization header from the original request
-        auth_header = req.headers.get("Authorization", "")
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": auth_header
-        }
-        async with httpx.AsyncClient(timeout=10.0, proxy=SOCKS5_PROXY) as client:
-            response = await client.post(
-                f"{MAC_SERVER_URL}/dev/api/list-directory",
-                content=body,
-                headers=headers
-            )
-            return JSONResponse(content=response.json(), status_code=response.status_code)
-    except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+    """List directories - proxy if Cloud Run, execute locally if Mac"""
+    if IS_CLOUD_RUN:
+        # Cloud Run: Proxy to Mac via Tailscale SOCKS5
+        try:
+            body = await req.body()
+            auth_header = req.headers.get("Authorization", "")
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": auth_header
+            }
+            async with httpx.AsyncClient(timeout=10.0, proxy=SOCKS5_PROXY) as client:
+                response = await client.post(
+                    f"{MAC_SERVER_URL}/dev/api/list-directory",
+                    content=body,
+                    headers=headers
+                )
+                return JSONResponse(content=response.json(), status_code=response.status_code)
+        except Exception as e:
+            return JSONResponse(content={"error": str(e)}, status_code=500)
+    else:
+        # Mac: Execute locally
+        from pathlib import Path
+        from pydantic import BaseModel
+
+        class DirectoryRequest(BaseModel):
+            path: str
+
+        try:
+            body = await req.json()
+            dir_req = DirectoryRequest(**body)
+
+            # Expand ~ to home directory
+            path = os.path.expanduser(dir_req.path)
+            path_obj = Path(path)
+
+            # Security: ensure path is absolute and exists
+            if not path_obj.is_absolute():
+                path_obj = Path.home() / path
+
+            if not path_obj.exists() or not path_obj.is_dir():
+                return JSONResponse(content={"error": "Directory not found"}, status_code=404)
+
+            # List only directories (not hidden)
+            directories = []
+            for item in sorted(path_obj.iterdir()):
+                if item.is_dir() and not item.name.startswith('.'):
+                    directories.append({
+                        "name": item.name,
+                        "path": str(item)
+                    })
+
+            return JSONResponse(content={
+                "directories": directories,
+                "current": str(path_obj),
+                "is_root": path_obj == path_obj.parent
+            })
+        except Exception as e:
+            return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
 @dev_router.post("/api/parent-directory")
@@ -187,24 +230,44 @@ async def parent_directory(
     req: Request,
     user: dict = Depends(get_current_user)
 ):
-    """Proxy parent directory request to Mac server via Tailscale SOCKS5"""
-    try:
-        body = await req.body()
-        # Forward the Authorization header from the original request
-        auth_header = req.headers.get("Authorization", "")
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": auth_header
-        }
-        async with httpx.AsyncClient(timeout=10.0, proxy=SOCKS5_PROXY) as client:
-            response = await client.post(
-                f"{MAC_SERVER_URL}/dev/api/parent-directory",
-                content=body,
-                headers=headers
-            )
-            return JSONResponse(content=response.json(), status_code=response.status_code)
-    except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+    """Get parent directory - proxy if Cloud Run, execute locally if Mac"""
+    if IS_CLOUD_RUN:
+        # Cloud Run: Proxy to Mac
+        try:
+            body = await req.body()
+            auth_header = req.headers.get("Authorization", "")
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": auth_header
+            }
+            async with httpx.AsyncClient(timeout=10.0, proxy=SOCKS5_PROXY) as client:
+                response = await client.post(
+                    f"{MAC_SERVER_URL}/dev/api/parent-directory",
+                    content=body,
+                    headers=headers
+                )
+                return JSONResponse(content=response.json(), status_code=response.status_code)
+        except Exception as e:
+            return JSONResponse(content={"error": str(e)}, status_code=500)
+    else:
+        # Mac: Execute locally
+        from pathlib import Path
+        from pydantic import BaseModel
+
+        class DirectoryRequest(BaseModel):
+            path: str
+
+        try:
+            body = await req.json()
+            dir_req = DirectoryRequest(**body)
+
+            path = os.path.expanduser(dir_req.path)
+            path_obj = Path(path)
+            parent = path_obj.parent
+
+            return JSONResponse(content={"parent": str(parent)})
+        except Exception as e:
+            return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
 @dev_router.websocket("/ws/terminal")

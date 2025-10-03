@@ -720,9 +720,9 @@
                     // Image files
                     tabContent.innerHTML = `
                         <div style="padding: 16px; height: 100%; overflow: auto; display: flex; flex-direction: column; align-items: center; background: #1a1a1a;">
-                            <div style="margin-bottom: 12px; width: 100%; display: flex; justify-content: space-between; align-items: center;">
-                                <span style="color: #888; font-size: 13px; font-family: monospace;">${path}</span>
-                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Open in New Tab</button>
+                            <div style="margin-bottom: 12px; width: 100%; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                                <span style="color: #888; font-size: 13px; font-family: monospace; flex: 1; min-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${path}</span>
+                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">Open in New Tab</button>
                             </div>
                             <img src="${blobUrl}" style="max-width: 100%; max-height: 80vh; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);" />
                         </div>
@@ -731,9 +731,9 @@
                     // PDF files
                     tabContent.innerHTML = `
                         <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
-                            <div style="margin-bottom: 12px;">
-                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Open in New Tab</button>
-                                <span style="color: #888; font-size: 13px; font-family: monospace; margin-left: 12px;">${path}</span>
+                            <div style="margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">Open in New Tab</button>
+                                <span style="color: #888; font-size: 13px; font-family: monospace; flex: 1; min-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${path}</span>
                             </div>
                             <iframe src="${blobUrl}" style="flex: 1; border: none; border-radius: 4px;"></iframe>
                         </div>
@@ -742,9 +742,9 @@
                     // Video files
                     tabContent.innerHTML = `
                         <div style="padding: 16px; height: 100%; display: flex; flex-direction: column; align-items: center; background: #1a1a1a;">
-                            <div style="margin-bottom: 12px; width: 100%;">
-                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Open in New Tab</button>
-                                <span style="color: #888; font-size: 13px; font-family: monospace; margin-left: 12px;">${path}</span>
+                            <div style="margin-bottom: 12px; width: 100%; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">Open in New Tab</button>
+                                <span style="color: #888; font-size: 13px; font-family: monospace; flex: 1; min-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${path}</span>
                             </div>
                             <video controls style="max-width: 100%; max-height: 80vh; border-radius: 8px;">
                                 <source src="${blobUrl}" type="video/${fileExt}">
@@ -756,9 +756,9 @@
                     // HTML files
                     tabContent.innerHTML = `
                         <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
-                            <div style="margin-bottom: 12px;">
-                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Open in New Tab</button>
-                                <span style="color: #888; font-size: 13px; font-family: monospace; margin-left: 12px;">${path}</span>
+                            <div style="margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">Open in New Tab</button>
+                                <span style="color: #888; font-size: 13px; font-family: monospace; flex: 1; min-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${path}</span>
                             </div>
                             <iframe src="${blobUrl}" style="flex: 1; border: none; background: white; border-radius: 4px;"></iframe>
                         </div>

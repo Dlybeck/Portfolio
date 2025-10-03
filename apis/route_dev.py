@@ -24,12 +24,16 @@ def is_mac_server_available():
     """Check if the Mac development server is reachable via Tailscale"""
     import socket
     try:
+        print(f"[DEBUG] Checking Mac server at {MAC_SERVER_IP}:{MAC_SERVER_PORT}")
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(2)
+        sock.settimeout(3)
         result = sock.connect_ex((MAC_SERVER_IP, MAC_SERVER_PORT))
         sock.close()
-        return result == 0
-    except:
+        is_available = result == 0
+        print(f"[DEBUG] Mac server available: {is_available} (connect result: {result})")
+        return is_available
+    except Exception as e:
+        print(f"[DEBUG] Mac server check failed: {e}")
         return False
 
 dev_router = APIRouter(prefix="/dev", tags=["Dev Dashboard"])

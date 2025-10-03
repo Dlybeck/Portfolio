@@ -17,12 +17,12 @@ steps:
       - '--image'
       - 'gcr.io/$PROJECT_ID/dev-proxy:$BUILD_ID'
       - '--region'
-      - 'us-central1'
+      - 'us-west1'
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
-      - '--set-env-vars'
-      - 'TAILSCALE_OAUTH_CLIENT_ID=${_TAILSCALE_OAUTH_CLIENT_ID},TAILSCALE_OAUTH_CLIENT_SECRET=${_TAILSCALE_OAUTH_CLIENT_SECRET}'
+      - '--update-secrets'
+      - 'TAILSCALE_OAUTH_CLIENT_ID=TAILSCALE_OAUTH_CLIENT_ID:latest,TAILSCALE_OAUTH_CLIENT_SECRET=TAILSCALE_OAUTH_CLIENT_SECRET:latest'
       - '--memory'
       - '512Mi'
       - '--cpu'
@@ -34,14 +34,3 @@ steps:
 
 images:
   - 'gcr.io/$PROJECT_ID/dev-proxy:$BUILD_ID'
-
-availableSecrets:
-  secretManager:
-  - versionName: projects/$PROJECT_ID/secrets/TAILSCALE_OAUTH_CLIENT_ID/versions/latest
-    env: 'TAILSCALE_OAUTH_CLIENT_ID'
-  - versionName: projects/$PROJECT_ID/secrets/TAILSCALE_OAUTH_CLIENT_SECRET/versions/latest
-    env: 'TAILSCALE_OAUTH_CLIENT_SECRET'
-
-substitutions:
-  _TAILSCALE_OAUTH_CLIENT_ID: '${TAILSCALE_OAUTH_CLIENT_ID}'
-  _TAILSCALE_OAUTH_CLIENT_SECRET: '${TAILSCALE_OAUTH_CLIENT_SECRET}'

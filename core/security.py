@@ -95,7 +95,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def get_password_hash(password: str) -> str:
-    """Hash password using bcrypt"""
+    """Hash password using bcrypt, handling the 72-byte limit."""
+    password_bytes = password.encode('utf-8')
+    if len(password_bytes) > 72:
+        # Truncate to 72 bytes as required by bcrypt
+        password = password_bytes[:72].decode('utf-8', 'ignore')
     return pwd_context.hash(password)
 
 
@@ -198,10 +202,13 @@ def authenticate_user(username: str, password: str, totp_token: str) -> bool:
     Authenticate user with username, password, and 2FA token
     Returns True if all credentials are valid
     """
+    print(f"Attempting to authenticate user: {username}")
+
     # Check if account is locked
     if is_account_locked(username):
         remaining_time = login_attempts[username]["locked_until"] - datetime.now()
         remaining_minutes = int(remaining_time.total_seconds() / 60)
+        print(f"Authentication failed for {username}: Account is locked.")
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=f"Account locked. Try again in {remaining_minutes} minutes."
@@ -209,35 +216,43 @@ def authenticate_user(username: str, password: str, totp_token: str) -> bool:
 
     # Validate username
     if username != DASHBOARD_USERNAME:
+        print(f"Authentication failed for {username}: Incorrect username.")
         record_failed_login(username)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username, password, or 2FA code"
         )
+    print(f"Username validation passed for {username}.")
 
     # Validate password
     if not DASHBOARD_PASSWORD_HASH:
+        print(f"Authentication failed for {username}: Password hash not configured.")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Dashboard password not configured. Set DASHBOARD_PASSWORD_HASH in .env"
         )
 
     if not verify_password(password, DASHBOARD_PASSWORD_HASH):
+        print(f"Authentication failed for {username}: Incorrect password.")
         record_failed_login(username)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username, password, or 2FA code"
         )
+    print(f"Password validation passed for {username}.")
 
     # Validate TOTP 2FA token
     if not verify_totp(totp_token):
+        print(f"Authentication failed for {username}: Incorrect TOTP code.")
         record_failed_login(username)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username, password, or 2FA code"
         )
+    print(f"TOTP validation passed for {username}.")
 
     # All credentials valid
+    print(f"Authentication successful for user: {username}")
     reset_login_attempts(username)
     return True
 

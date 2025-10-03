@@ -140,11 +140,17 @@ async def chat_with_claude(
     """Proxy chat requests to Mac server via Tailscale SOCKS5"""
     try:
         body = await req.body()
+        # Forward the Authorization header from the original request
+        auth_header = req.headers.get("Authorization", "")
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": auth_header
+        }
         async with httpx.AsyncClient(timeout=60.0, proxy=SOCKS5_PROXY) as client:
             response = await client.post(
                 f"{MAC_SERVER_URL}/dev/api/chat",
                 content=body,
-                headers={"Content-Type": "application/json"}
+                headers=headers
             )
             return JSONResponse(content=response.json(), status_code=response.status_code)
     except Exception as e:
@@ -159,11 +165,17 @@ async def list_directory(
     """Proxy directory listing to Mac server via Tailscale SOCKS5"""
     try:
         body = await req.body()
+        # Forward the Authorization header from the original request
+        auth_header = req.headers.get("Authorization", "")
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": auth_header
+        }
         async with httpx.AsyncClient(timeout=10.0, proxy=SOCKS5_PROXY) as client:
             response = await client.post(
                 f"{MAC_SERVER_URL}/dev/api/list-directory",
                 content=body,
-                headers={"Content-Type": "application/json"}
+                headers=headers
             )
             return JSONResponse(content=response.json(), status_code=response.status_code)
     except Exception as e:
@@ -178,11 +190,17 @@ async def parent_directory(
     """Proxy parent directory request to Mac server via Tailscale SOCKS5"""
     try:
         body = await req.body()
+        # Forward the Authorization header from the original request
+        auth_header = req.headers.get("Authorization", "")
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": auth_header
+        }
         async with httpx.AsyncClient(timeout=10.0, proxy=SOCKS5_PROXY) as client:
             response = await client.post(
                 f"{MAC_SERVER_URL}/dev/api/parent-directory",
                 content=body,
-                headers={"Content-Type": "application/json"}
+                headers=headers
             )
             return JSONResponse(content=response.json(), status_code=response.status_code)
     except Exception as e:

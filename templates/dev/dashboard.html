@@ -739,12 +739,12 @@
                 });
 
                 const data = await response.json();
-                console.log('Directory data:', data);
-                console.log('Directories:', data.directories?.length || 0);
-                console.log('Files:', data.files?.length || 0);
+                console.log('[DEBUG] Directory data:', data);
+                console.log('[DEBUG] Directories:', data.directories?.length || 0, data.directories);
+                console.log('[DEBUG] Files:', data.files?.length || 0, data.files);
                 // Combine directories and files for display
                 const allItems = [...(data.directories || []), ...(data.files || [])];
-                console.log('Total items to display:', allItems.length);
+                console.log('[DEBUG] Total items to display:', allItems.length, allItems);
                 displayFiles(allItems, path);
             } catch (error) {
                 document.getElementById('fileList').innerHTML = '<div style="color: #f88; padding: 20px;">Error loading files</div>';
@@ -754,11 +754,18 @@
         function displayFiles(files, path) {
             console.log('displayFiles called with', files.length, 'items');
             const fileList = document.getElementById('fileList');
+
+            if (!fileList) {
+                console.error('[ERROR] fileList element not found!');
+                return;
+            }
+
             if (files.length === 0) {
                 fileList.innerHTML = '<div style="color: #888; padding: 20px;">No files or folders</div>';
                 return;
             }
 
+            console.log('[DEBUG] About to render', files.length, 'files');
             fileList.innerHTML = files.map(file => {
                 const icon = file.type === 'directory' ? '📁' : '📄';
                 console.log('Item:', file.name, 'Type:', file.type, 'Icon:', icon);

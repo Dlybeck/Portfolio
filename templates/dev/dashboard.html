@@ -812,11 +812,19 @@
             const fileExt = path.split('.').pop().toLowerCase();
             const token = localStorage.getItem('access_token');
 
-            // Show loading state
-            tabContent.innerHTML = '<div style="padding: 16px; color: #888;">Loading file...</div>';
+            // Show progress bar
+            tabContent.innerHTML = `
+                <div style="padding: 32px; text-align: center;">
+                    <div style="color: #888; margin-bottom: 16px;">Loading file...</div>
+                    <div style="background: #2d2d2d; border-radius: 8px; overflow: hidden; height: 24px; width: 100%; max-width: 400px; margin: 0 auto;">
+                        <div id="progressBar" style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                    <div id="progressText" style="color: #888; margin-top: 8px; font-size: 13px;">0%</div>
+                </div>
+            `;
 
             try {
-                // Fetch file from API endpoint
+                // Fetch file from API endpoint with progress tracking
                 const response = await fetch(`/dev/api/read-file?path=${encodeURIComponent(path)}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -825,7 +833,36 @@
                     throw new Error('Failed to load file');
                 }
 
-                const blob = await response.blob();
+                // Get total file size
+                const contentLength = response.headers.get('content-length');
+                const total = parseInt(contentLength, 10);
+
+                let loaded = 0;
+                const reader = response.body.getReader();
+                const chunks = [];
+
+                // Read stream with progress
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    chunks.push(value);
+                    loaded += value.length;
+
+                    // Update progress
+                    if (total) {
+                        const percent = Math.round((loaded / total) * 100);
+                        const progressBar = document.getElementById('progressBar');
+                        const progressText = document.getElementById('progressText');
+                        if (progressBar && progressText) {
+                            progressBar.style.width = percent + '%';
+                            progressText.textContent = `${percent}% (${(loaded / 1024 / 1024).toFixed(1)} MB / ${(total / 1024 / 1024).toFixed(1)} MB)`;
+                        }
+                    }
+                }
+
+                // Reconstruct blob from chunks
+                const blob = new Blob(chunks);
                 const blobUrl = URL.createObjectURL(blob);
 
                 // Handle different file types

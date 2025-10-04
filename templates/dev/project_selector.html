@@ -167,6 +167,13 @@
             window.location.href = '/dev/login';
         }
 
+        // Check if working directory is already set - skip to dashboard
+        const savedWorkingDir = localStorage.getItem('working_directory');
+        if (savedWorkingDir) {
+            console.log('[DEBUG] Working directory already set, going to dashboard:', savedWorkingDir);
+            window.location.href = '/dev/terminal';
+        }
+
         let currentDir = '/Users/dlybeck';
 
         async function loadDirectory(path) {
@@ -189,12 +196,24 @@
                     displayDirectories(data.directories, data.files || []);
                     document.getElementById('upBtn').disabled = data.is_root;
                 } else {
+                    console.error('[ERROR] API error:', response.status, data);
+
+                    // Handle 401 - token expired
+                    if (response.status === 401) {
+                        localStorage.removeItem('access_token');
+                        localStorage.removeItem('working_directory');
+                        window.location.href = '/dev/login';
+                        return;
+                    }
+
                     document.getElementById('directoryList').innerHTML =
-                        '<div class="loading">Error loading directory</div>';
+                        `<div class="loading">Error: ${data.error || data.detail || 'Failed to load directory'}</div>`;
                 }
             } catch (error) {
+                console.error('[ERROR] Network error:', error);
                 document.getElementById('directoryList').innerHTML =
-                    '<div class="loading">Connection error</div>';
+                    `<div class="loading">Connection error: ${error.message}<br><br>
+                    <button class="btn btn-primary" onclick="loadDirectory('${path}')">Retry</button></div>`;
             }
         }
 

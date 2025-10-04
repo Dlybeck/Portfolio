@@ -326,6 +326,7 @@
                 <span id="statusText">Connecting...</span>
             </span>
             <span>👤 {{ user.username }}</span>
+            <button class="btn-logout" onclick="changeDirectory()" style="background: #667eea; margin-right: 8px;">📁 Change Dir</button>
             <button class="btn-logout" onclick="logout()">Logout</button>
         </div>
     </div>
@@ -908,6 +909,12 @@
             document.getElementById('fileList').style.display = 'block';
         }
 
+        function changeDirectory() {
+            // Clear working directory and go back to selector
+            localStorage.removeItem('working_directory');
+            window.location.href = '/dev';
+        }
+
         function logout() {
             const token = localStorage.getItem('access_token');
 
@@ -920,6 +927,7 @@
 
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
+            localStorage.removeItem('working_directory');
             window.location.href = '/dev/login';
         }
 

@@ -332,12 +332,18 @@ async def read_file(
                     params={"path": path},
                     headers=headers
                 )
-                # Return file content with appropriate content type
+                # Return file content with appropriate content type and length
                 content_type = response.headers.get("content-type", "application/octet-stream")
+                content_length = response.headers.get("content-length")
+
+                response_headers = {"Content-Disposition": f'inline; filename="{Path(path).name}"'}
+                if content_length:
+                    response_headers["Content-Length"] = content_length
+
                 return StreamingResponse(
                     iter([response.content]),
                     media_type=content_type,
-                    headers={"Content-Disposition": f'inline; filename="{Path(path).name}"'}
+                    headers=response_headers
                 )
         except Exception as e:
             return JSONResponse(content={"error": str(e)}, status_code=500)

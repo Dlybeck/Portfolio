@@ -455,7 +455,8 @@
                 }
 
                 // Throttled tab update using requestAnimationFrame
-                if ((currentTab === 'terminal' || currentTab === 'logs') && !tabUpdatePending) {
+                // Note: Don't update 'terminal' tab - it has its own separate instance
+                if (currentTab === 'logs' && !tabUpdatePending) {
                     tabUpdatePending = true;
                     requestAnimationFrame(() => {
                         updateTabContent();
@@ -610,6 +611,7 @@
                 const container = document.getElementById('separateTerminalContainer');
                 separateTerminal.open(container);
                 separateFitAddon.fit();
+                separateTerminal.focus(); // Auto-focus for typing
                 return;
             }
 
@@ -657,6 +659,7 @@
             separateTerminal.loadAddon(separateFitAddon);
             separateTerminal.open(container);
             separateFitAddon.fit();
+            separateTerminal.focus(); // Auto-focus for typing
 
             // Create WebSocket connection with unique session ID
             const workingDir = localStorage.getItem('working_directory') || '~';

@@ -439,6 +439,9 @@
             }, 1000);
         };
 
+        // Throttle tab updates to prevent jitter
+        let tabUpdatePending = false;
+
         ws.onmessage = (event) => {
             const message = JSON.parse(event.data);
             if (message.type === 'output') {
@@ -450,9 +453,13 @@
                     terminalOutput = terminalOutput.slice(-50000);
                 }
 
-                // Auto-update current tab if it's terminal or logs
-                if (currentTab === 'terminal' || currentTab === 'logs') {
-                    updateTabContent();
+                // Throttled tab update using requestAnimationFrame
+                if ((currentTab === 'terminal' || currentTab === 'logs') && !tabUpdatePending) {
+                    tabUpdatePending = true;
+                    requestAnimationFrame(() => {
+                        updateTabContent();
+                        tabUpdatePending = false;
+                    });
                 }
             }
         };

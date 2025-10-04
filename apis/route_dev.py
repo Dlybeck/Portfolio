@@ -445,12 +445,23 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~"):
 
         # Main loop - handle messages concurrently
         async def read_from_terminal():
-            """Read from terminal and send to websocket"""
+            """Read from terminal and send to websocket with buffering to reduce jitter"""
+            buffer = ""
+            last_send = asyncio.get_event_loop().time()
+
             while True:
-                output = terminal.read(timeout=0.02)
+                output = terminal.read(timeout=0.01)
                 if output:
-                    await websocket.send_text(json.dumps({"type": "output", "data": output}))
-                await asyncio.sleep(0.02)  # 20ms polling interval for responsive but smooth updates
+                    buffer += output
+
+                current_time = asyncio.get_event_loop().time()
+                # Send buffer if: we have data AND (buffer is large OR 50ms elapsed)
+                if buffer and (len(buffer) > 100 or (current_time - last_send) >= 0.05):
+                    await websocket.send_text(json.dumps({"type": "output", "data": buffer}))
+                    buffer = ""
+                    last_send = current_time
+
+                await asyncio.sleep(0.01)  # 10ms polling for responsiveness
 
         async def handle_client_messages():
             """Handle messages from client"""

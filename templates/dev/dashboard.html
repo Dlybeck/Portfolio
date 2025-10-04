@@ -604,6 +604,15 @@
         function initSeparateTerminal() {
             const tabContent = document.getElementById('tabContent');
 
+            // If terminal already exists, just show it
+            if (separateTerminal && separateWs && separateWs.readyState === WebSocket.OPEN) {
+                tabContent.innerHTML = '<div id="separateTerminalContainer" style="width: 100%; height: 100%;"></div>';
+                const container = document.getElementById('separateTerminalContainer');
+                separateTerminal.open(container);
+                separateFitAddon.fit();
+                return;
+            }
+
             // Create terminal container
             tabContent.innerHTML = '<div id="separateTerminalContainer" style="width: 100%; height: 100%;"></div>';
             const container = document.getElementById('separateTerminalContainer');

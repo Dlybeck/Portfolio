@@ -358,8 +358,8 @@
         <!-- Preview Section (Right/Bottom 50%) -->
         <div class="preview-section">
             <div class="preview-tabs">
-                <div class="tab active" onclick="switchTab(event, 'terminal')">Terminal</div>
-                <div class="tab" onclick="switchTab(event, 'files')">Files</div>
+                <div class="tab active" onclick="switchTab(event, 'files')">Files</div>
+                <div class="tab" onclick="switchTab(event, 'terminal')">Terminal</div>
                 <div class="tab" onclick="switchTab(event, 'preview')">Preview</div>
                 <div class="tab" onclick="switchTab(event, 'logs')">Logs</div>
             </div>
@@ -534,7 +534,7 @@
 
         // State for tabs
         let terminalOutput = '';
-        let currentTab = 'terminal';
+        let currentTab = 'files';
         let currentFilePath = localStorage.getItem('working_directory') || '~';
 
         // Tab switching
@@ -553,21 +553,14 @@
             const workingDir = localStorage.getItem('working_directory') || '~';
 
             switch(currentTab) {
-                case 'terminal':
-                    // Show clean terminal view (removes ANSI codes)
-                    const cleanOutput = terminalOutput.replace(/\x1b\[[0-9;]*m/g, '');
-                    tabContent.innerHTML = '<pre style="padding: 16px; overflow: auto; background: #1a1a1a; color: #f8f8f8; font-size: 13px; height: 100%; font-family: monospace; line-height: 1.4;">' +
-                        (cleanOutput || 'Terminal output will appear here...') + '</pre>';
-                    // Auto-scroll to bottom
-                    setTimeout(() => {
-                        const pre = tabContent.querySelector('pre');
-                        if (pre) pre.scrollTop = pre.scrollHeight;
-                    }, 50);
-                    break;
-
                 case 'files':
                     // Interactive file browser
                     loadFileBrowser(currentFilePath);
+                    break;
+
+                case 'terminal':
+                    // Separate terminal instance (not Claude)
+                    initSeparateTerminal();
                     break;
 
                 case 'preview':
@@ -593,6 +586,108 @@
                         (cleanLogs || 'No output yet...') + '</pre>';
                     break;
             }
+        }
+
+        // Separate terminal instance management
+        let separateTerminal = null;
+        let separateWs = null;
+        let separateFitAddon = null;
+
+        function initSeparateTerminal() {
+            const tabContent = document.getElementById('tabContent');
+
+            // Create terminal container
+            tabContent.innerHTML = '<div id="separateTerminalContainer" style="width: 100%; height: 100%;"></div>';
+            const container = document.getElementById('separateTerminalContainer');
+
+            // Clean up existing terminal if it exists
+            if (separateTerminal) {
+                separateTerminal.dispose();
+            }
+            if (separateWs && separateWs.readyState === WebSocket.OPEN) {
+                separateWs.close();
+            }
+
+            // Create new terminal instance
+            separateFitAddon = new FitAddon.FitAddon();
+            separateTerminal = new Terminal({
+                cursorBlink: true,
+                fontSize: 14,
+                fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+                theme: {
+                    background: '#1a1a1a',
+                    foreground: '#f8f8f8',
+                    cursor: '#f8f8f8',
+                    black: '#000000',
+                    red: '#cd0000',
+                    green: '#00cd00',
+                    yellow: '#cdcd00',
+                    blue: '#0000ee',
+                    magenta: '#cd00cd',
+                    cyan: '#00cdcd',
+                    white: '#e5e5e5',
+                    brightBlack: '#7f7f7f',
+                    brightRed: '#ff0000',
+                    brightGreen: '#00ff00',
+                    brightYellow: '#ffff00',
+                    brightBlue: '#5c5cff',
+                    brightMagenta: '#ff00ff',
+                    brightCyan: '#00ffff',
+                    brightWhite: '#ffffff'
+                }
+            });
+
+            separateTerminal.loadAddon(separateFitAddon);
+            separateTerminal.open(container);
+            separateFitAddon.fit();
+
+            // Create WebSocket connection
+            const workingDir = localStorage.getItem('working_directory') || '~';
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/dev/ws/terminal?cwd=${encodeURIComponent(workingDir)}`;
+            separateWs = new WebSocket(wsUrl);
+
+            separateWs.onopen = () => {
+                console.log('Separate terminal connected');
+                // Don't auto-start Claude - just leave as bash
+            };
+
+            separateWs.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'output') {
+                    separateTerminal.write(data.data);
+                }
+            };
+
+            separateWs.onerror = (error) => {
+                console.error('Separate terminal WebSocket error:', error);
+            };
+
+            separateWs.onclose = () => {
+                console.log('Separate terminal disconnected');
+            };
+
+            // Send input to terminal
+            separateTerminal.onData((data) => {
+                if (separateWs.readyState === WebSocket.OPEN) {
+                    separateWs.send(JSON.stringify({type: 'input', data}));
+                }
+            });
+
+            // Handle resize
+            const resizeObserver = new ResizeObserver(() => {
+                if (separateFitAddon && currentTab === 'terminal') {
+                    separateFitAddon.fit();
+                    if (separateWs && separateWs.readyState === WebSocket.OPEN) {
+                        separateWs.send(JSON.stringify({
+                            type: 'resize',
+                            rows: separateTerminal.rows,
+                            cols: separateTerminal.cols
+                        }));
+                    }
+                }
+            });
+            resizeObserver.observe(container);
         }
 
         async function loadFileBrowser(path) {
@@ -764,9 +859,18 @@
                         </div>
                     `;
                 } else {
-                    // Text-based files - ask Claude to read them
-                    URL.revokeObjectURL(blobUrl);
-                    sendClaudeCommand(`read the file at ${path} and show me its contents`);
+                    // Text-based files - display as text
+                    const text = await blob.text();
+                    const fileName = path.split('/').pop();
+                    tabContent.innerHTML = `
+                        <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
+                            <div style="margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">Open in New Tab</button>
+                                <span style="color: #888; font-size: 13px; font-family: monospace; flex: 1; min-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${path}</span>
+                            </div>
+                            <pre style="flex: 1; overflow: auto; background: #1a1a1a; color: #f8f8f8; padding: 16px; border-radius: 4px; margin: 0; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.5;">${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                        </div>
+                    `;
                 }
             } catch (error) {
                 tabContent.innerHTML = `<div style="padding: 16px; color: #f88;">Failed to load file: ${error.message}</div>`;

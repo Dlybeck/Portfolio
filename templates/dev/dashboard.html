@@ -649,10 +649,11 @@
             separateTerminal.open(container);
             separateFitAddon.fit();
 
-            // Create WebSocket connection
+            // Create WebSocket connection with unique session ID
             const workingDir = localStorage.getItem('working_directory') || '~';
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = `${protocol}//${window.location.host}/dev/ws/terminal?cwd=${encodeURIComponent(workingDir)}`;
+            const sessionId = 'terminal_tab_' + Date.now();
+            const wsUrl = `${protocol}//${window.location.host}/dev/ws/terminal?cwd=${encodeURIComponent(workingDir)}&session=${sessionId}`;
             separateWs = new WebSocket(wsUrl);
 
             separateWs.onopen = () => {

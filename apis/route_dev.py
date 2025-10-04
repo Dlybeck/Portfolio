@@ -369,7 +369,7 @@ async def read_file(
 
 
 @dev_router.websocket("/ws/terminal")
-async def terminal_websocket(websocket: WebSocket, cwd: str = "~"):
+async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str = None):
     """
     WebSocket endpoint for terminal access - proxy if Cloud Run, execute if Mac
     """
@@ -386,9 +386,13 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~"):
             connector = ProxyConnector.from_url(SOCKS5_PROXY)
 
             # Connect to Mac's WebSocket through SOCKS5
-            async with aiohttp.ClientSession(connector=connector) as session:
-                async with session.ws_connect(
-                    f"ws://{MAC_SERVER_IP}:{MAC_SERVER_PORT}/dev/ws/terminal?cwd={cwd}",
+            ws_url = f"ws://{MAC_SERVER_IP}:{MAC_SERVER_PORT}/dev/ws/terminal?cwd={cwd}"
+            if session:
+                ws_url += f"&session={session}"
+
+            async with aiohttp.ClientSession(connector=connector) as aio_session:
+                async with aio_session.ws_connect(
+                    ws_url,
                     timeout=aiohttp.ClientTimeout(total=3600)
                 ) as ws:
                     # Bidirectional proxy
@@ -423,8 +427,8 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~"):
         return
 
     # Mac: Execute terminal locally
-    # Generate session ID from connection
-    session_id = f"session_{id(websocket)}"
+    # Generate session ID from parameter or connection
+    session_id = session if session else f"session_{id(websocket)}"
 
     # Expand working directory
     working_dir = os.path.expanduser(cwd)

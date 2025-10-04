@@ -28,27 +28,54 @@ SOCKS5_PROXY = "socks5://localhost:1055"
 # Detect if running in Cloud Run (proxy mode) or locally (direct mode)
 IS_CLOUD_RUN = os.environ.get("K_SERVICE") is not None
 
+# Cache for Mac server availability check
+_mac_availability_cache = {
+    "available": True,
+    "last_check": 0,
+    "cache_duration": 30  # Cache for 30 seconds
+}
+
 # Check if services are available (Mac is reachable via Tailscale SOCKS5)
-def is_mac_server_available():
+async def is_mac_server_available():
     """Check if the Mac development server is reachable via Tailscale SOCKS5 proxy"""
     # If running locally on Mac, always return True
     if not IS_CLOUD_RUN:
         print(f"[DEBUG] Running on Mac locally - server available")
         return True
 
-    # If in Cloud Run, check via SOCKS5 proxy
-    try:
-        print(f"[DEBUG] Checking Mac server at {MAC_SERVER_IP}:{MAC_SERVER_PORT} via SOCKS5")
+    # Check cache first
+    import time
+    current_time = time.time()
+    if current_time - _mac_availability_cache["last_check"] < _mac_availability_cache["cache_duration"]:
+        print(f"[DEBUG] Using cached Mac server availability: {_mac_availability_cache['available']}")
+        return _mac_availability_cache["available"]
 
-        # Use synchronous httpx client with SOCKS5 proxy
-        with httpx.Client(timeout=3.0, proxy=SOCKS5_PROXY) as client:
-            response = client.get(f"{MAC_SERVER_URL}/")
-            is_available = response.status_code < 500
-            print(f"[DEBUG] Mac server available: {is_available} (status: {response.status_code})")
-            return is_available
-    except Exception as e:
-        print(f"[DEBUG] Mac server check failed: {e}")
-        return False
+    # If in Cloud Run, check via SOCKS5 proxy with retry logic
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            print(f"[DEBUG] Checking Mac server (attempt {attempt + 1}/{max_retries}) at {MAC_SERVER_IP}:{MAC_SERVER_PORT} via SOCKS5")
+
+            # Use async httpx client with SOCKS5 proxy and longer timeout
+            async with httpx.AsyncClient(timeout=10.0, proxy=SOCKS5_PROXY) as client:
+                response = await client.get(f"{MAC_SERVER_URL}/")
+                is_available = response.status_code < 500
+                print(f"[DEBUG] Mac server available: {is_available} (status: {response.status_code})")
+
+                # Update cache
+                _mac_availability_cache["available"] = is_available
+                _mac_availability_cache["last_check"] = current_time
+                return is_available
+        except Exception as e:
+            print(f"[DEBUG] Mac server check attempt {attempt + 1} failed: {e}")
+            if attempt < max_retries - 1:
+                # Wait a bit before retry (exponential backoff)
+                await asyncio.sleep(0.5 * (2 ** attempt))
+            else:
+                # All retries failed, update cache to unavailable
+                _mac_availability_cache["available"] = False
+                _mac_availability_cache["last_check"] = current_time
+                return False
 
 dev_router = APIRouter(prefix="/dev", tags=["Dev Dashboard"])
 
@@ -119,7 +146,7 @@ async def project_selector(request: Request):
     """
     Project selector page - choose working directory
     """
-    if not is_mac_server_available():
+    if not await is_mac_server_available():
         return templates.TemplateResponse("dev/server_offline.html", {
             "request": request
         })
@@ -134,7 +161,7 @@ async def terminal_dashboard(request: Request):
     Terminal dashboard page
     Authentication is checked client-side via JavaScript
     """
-    if not is_mac_server_available():
+    if not await is_mac_server_available():
         return templates.TemplateResponse("dev/server_offline.html", {
             "request": request
         })

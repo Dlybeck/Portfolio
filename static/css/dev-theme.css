@@ -1,0 +1,391 @@
+/*
+Dev Portal Theme
+Matches main website design with blue color scheme (#006699)
+Supports both light and dark modes
+*/
+
+/* ================================
+   LIGHT MODE (Default)
+   ================================ */
+:root {
+  /* Backgrounds */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #e0c8ab; /* Beige/tan from main site */
+  --bg-card: #FFFFFF;
+
+  /* Text */
+  --text-primary: #000000;
+  --text-secondary: #333333;
+  --text-muted: #666666;
+
+  /* Borders */
+  --border-color: #d0d0d0;
+  --border-color-light: #e0e0e0;
+
+  /* Blue Theme (from main site) */
+  --accent-primary: #006699;
+  --accent-secondary: #005588;
+  --accent-hover: #004477;
+  --accent-gradient: linear-gradient(135deg, #006699, #005588);
+
+  /* Status Colors */
+  --success-color: #00aa00;
+  --danger-color: #dc3545;
+  --warning-color: #ff8800;
+
+  /* Terminal (light mode) */
+  --terminal-bg: #FFFFFF;
+  --terminal-fg: #000000;
+  --terminal-border: #d0d0d0;
+  --terminal-selection: rgba(0, 102, 153, 0.3);
+
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.4s ease;
+
+  /* Border Radius (matching main site) */
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 15px;
+  --radius-xl: 40px;
+}
+
+/* ================================
+   DARK MODE
+   ================================ */
+body.dark-theme {
+  /* Backgrounds */
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #383838;
+  --bg-card: #252525;
+
+  /* Text */
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --text-muted: #888888;
+
+  /* Borders */
+  --border-color: #404040;
+  --border-color-light: #505050;
+
+  /* Blue Theme (adjusted for dark mode) */
+  --accent-primary: #4d9fcc;
+  --accent-secondary: #3d8fbc;
+  --accent-hover: #5dafdc;
+  --accent-gradient: linear-gradient(135deg, #4d9fcc, #3d8fbc);
+
+  /* Status Colors */
+  --success-color: #00ff00;
+  --danger-color: #ff5555;
+  --warning-color: #ffa500;
+
+  /* Terminal (dark mode) */
+  --terminal-bg: #1a1a1a;
+  --terminal-fg: #f8f8f8;
+  --terminal-border: #404040;
+  --terminal-selection: rgba(77, 159, 204, 0.3);
+
+  /* Shadows (more prominent in dark mode) */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* ================================
+   GLOBAL STYLES
+   ================================ */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background var(--transition-normal), color var(--transition-normal);
+}
+
+/* ================================
+   BUTTONS (matching main site)
+   ================================ */
+.btn-primary {
+  background: var(--accent-gradient);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 102, 153, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-tertiary);
+}
+
+/* Small buttons (for toolbars) */
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 14px;
+  border-radius: 6px;
+}
+
+/* ================================
+   CARDS & CONTAINERS
+   ================================ */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ================================
+   NAVBAR (matching main site)
+   ================================ */
+.navbar {
+  background: var(--accent-gradient);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar-title {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: white;
+  text-decoration: none;
+}
+
+/* ================================
+   INPUTS & FORMS
+   ================================ */
+input, textarea, select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast);
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+label {
+  display: block;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+/* ================================
+   LINKS
+   ================================ */
+a {
+  color: var(--accent-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+.internal-link {
+  padding: 10px 16px;
+  background: var(--accent-primary);
+  color: white;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  transition: all var(--transition-fast);
+}
+
+.internal-link:hover {
+  transform: scale(1.05);
+  background: var(--accent-hover);
+  text-decoration: none;
+}
+
+/* ================================
+   STATUS INDICATORS
+   ================================ */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.status-dot.connected {
+  background: var(--success-color);
+  box-shadow: 0 0 8px var(--success-color);
+}
+
+.status-dot.disconnected {
+  background: var(--danger-color);
+  box-shadow: 0 0 8px var(--danger-color);
+}
+
+.status-dot.reconnecting {
+  background: var(--warning-color);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ================================
+   TERMINAL STYLING
+   ================================ */
+.terminal-container {
+  background: var(--terminal-bg);
+  border: 1px solid var(--terminal-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.xterm {
+  background: var(--terminal-bg) !important;
+  color: var(--terminal-fg) !important;
+}
+
+.xterm-selection {
+  background: var(--terminal-selection) !important;
+}
+
+/* ================================
+   TABS
+   ================================ */
+.tab {
+  padding: 10px 16px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.tab.active {
+  color: var(--accent-primary);
+  border-bottom-color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.tab:hover:not(.active) {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+/* ================================
+   UTILITIES
+   ================================ */
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-primary {
+  color: var(--accent-primary);
+}
+
+.bg-primary {
+  background: var(--bg-primary);
+}
+
+.bg-secondary {
+  background: var(--bg-secondary);
+}
+
+.shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+
+.shadow-md {
+  box-shadow: var(--shadow-md);
+}
+
+.shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+.rounded-sm {
+  border-radius: var(--radius-sm);
+}
+
+.rounded-md {
+  border-radius: var(--radius-md);
+}
+
+.rounded-lg {
+  border-radius: var(--radius-lg);
+}
+
+/* ================================
+   RESPONSIVE
+   ================================ */
+@media (max-width: 768px) {
+  .navbar-title {
+    font-size: 1.2em;
+  }
+
+  .btn-primary, .btn-secondary {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  input, textarea, select {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+}

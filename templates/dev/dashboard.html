@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dev Dashboard - Claude Code</title>
+    <link rel="stylesheet" href="/static/css/dev-theme.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
@@ -17,8 +18,8 @@
             --text-primary: #ffffff;
             --text-secondary: #cccccc;
             --text-muted: #888888;
-            --accent-color: #667eea;
-            --accent-hover: #5568d3;
+            --accent-color: #4d9fcc; /* Blue instead of purple */
+            --accent-hover: #5dafdc;
             --success-color: #00ff00;
             --danger-color: #dc3545;
             --warning-color: #ffa500;
@@ -28,13 +29,13 @@
             /* Light theme */
             --bg-primary: #ffffff;
             --bg-secondary: #f5f5f5;
-            --bg-tertiary: #e0e0e0;
+            --bg-tertiary: #e0c8ab; /* Beige/tan like main site */
             --border-color: #d0d0d0;
             --text-primary: #000000;
             --text-secondary: #333333;
             --text-muted: #666666;
-            --accent-color: #5568d3;
-            --accent-hover: #667eea;
+            --accent-color: #006699; /* Blue from main site */
+            --accent-hover: #004477;
             --success-color: #00aa00;
             --danger-color: #dc3545;
             --warning-color: #ff8800;
@@ -417,65 +418,101 @@
         // Get selected working directory
         const workingDir = localStorage.getItem('working_directory') || '~';
 
-        // WebSocket connection
+        // WebSocket connection with auto-reconnect
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/dev/ws/terminal?cwd=${encodeURIComponent(workingDir)}`;
-        let ws = new WebSocket(wsUrl);
+        let ws;
+        let reconnectAttempts = 0;
+        const maxReconnectDelay = 30000; // 30 seconds max
+        let shouldReconnect = true;
 
-        ws.onopen = () => {
-            console.log('Terminal connected');
-            updateConnectionStatus('connected');
+        function connectWebSocket() {
+            ws = new WebSocket(wsUrl);
 
-            // Auto-start Claude after a brief delay to let terminal initialize
-            setTimeout(() => {
-                console.log('Attempting to auto-start Claude...');
-                console.log('WebSocket state:', ws.readyState);
-                if (ws.readyState === WebSocket.OPEN) {
-                    console.log('Sending claude command...');
-                    ws.send(JSON.stringify({type: 'input', data: 'claude\n'}));
-                    console.log('Claude command sent');
-                } else {
-                    console.error('WebSocket not open, state:', ws.readyState);
+            ws.onopen = () => {
+                console.log('Terminal connected');
+                updateConnectionStatus('connected');
+                reconnectAttempts = 0;
+
+                // Note: Backend now auto-starts Claude for first client
+                // No need to send claude command here anymore
+            };
+
+            // Throttle tab updates to prevent jitter
+            let tabUpdatePending = false;
+
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                if (message.type === 'output') {
+                    term.write(message.data);
+
+                    // Capture output for tabs (keep last 50KB)
+                    terminalOutput += message.data;
+                    if (terminalOutput.length > 50000) {
+                        terminalOutput = terminalOutput.slice(-50000);
+                    }
+
+                    // Throttled tab update using requestAnimationFrame
+                    if (currentTab === 'logs' && !tabUpdatePending) {
+                        tabUpdatePending = true;
+                        requestAnimationFrame(() => {
+                            updateTabContent();
+                            tabUpdatePending = false;
+                        });
+                    }
                 }
-            }, 1000);
-        };
+            };
 
-        // Throttle tab updates to prevent jitter
-        let tabUpdatePending = false;
+            ws.onclose = () => {
+                console.log('Terminal disconnected');
+                updateConnectionStatus('disconnected');
+                term.write('\r\n\x1b[33mConnection lost. Reconnecting...\x1b[0m\r\n');
 
-        ws.onmessage = (event) => {
-            const message = JSON.parse(event.data);
-            if (message.type === 'output') {
-                term.write(message.data);
-
-                // Capture output for tabs (keep last 50KB)
-                terminalOutput += message.data;
-                if (terminalOutput.length > 50000) {
-                    terminalOutput = terminalOutput.slice(-50000);
+                // Auto-reconnect with exponential backoff
+                if (shouldReconnect) {
+                    attemptReconnect();
                 }
+            };
 
-                // Throttled tab update using requestAnimationFrame
-                // Note: Don't update 'terminal' tab - it has its own separate instance
-                if (currentTab === 'logs' && !tabUpdatePending) {
-                    tabUpdatePending = true;
-                    requestAnimationFrame(() => {
-                        updateTabContent();
-                        tabUpdatePending = false;
-                    });
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        // Initial connection
+        connectWebSocket();
+
+        // Visibility API - keep connection alive when tab is hidden
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                console.log('[Visibility] Tab hidden - connection stays alive');
+                // Keep WebSocket connection alive even when tab is hidden
+            } else {
+                console.log('[Visibility] Tab visible');
+                // If connection lost while hidden, reconnect now
+                if (!ws || ws.readyState !== WebSocket.OPEN) {
+                    console.log('[Visibility] Reconnecting on tab visible...');
+                    connectWebSocket();
                 }
             }
-        };
+        });
 
-        ws.onclose = () => {
-            console.log('Terminal disconnected');
-            updateConnectionStatus('disconnected');
-            term.write('\r\n\x1b[31mConnection closed.\x1b[0m\r\n');
-            attemptReconnect();
-        };
+        // Prevent disconnection on mobile when swiping away
+        window.addEventListener('pagehide', (event) => {
+            if (event.persisted) {
+                console.log('[PageHide] Page hidden but persisted - keeping connection');
+                // Page is being cached (mobile), keep connection alive
+            }
+        });
 
-        ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
+        // Only truly disconnect when page is being unloaded
+        window.addEventListener('beforeunload', () => {
+            console.log('[BeforeUnload] Page closing - allowing disconnect');
+            shouldReconnect = false;
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+        });
 
         // Send input to terminal
         term.onData((data) => {
@@ -506,40 +543,9 @@
             }
         }
 
-        // Mobile swipe support for switching panes
-        let touchStartX = 0;
-        let touchEndX = 0;
-        const mainContainer = document.querySelector('.main-container');
-
-        mainContainer.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-        });
-
-        mainContainer.addEventListener('touchend', (e) => {
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        });
-
-        function handleSwipe() {
-            const swipeThreshold = 50;
-            const terminalSection = document.querySelector('.terminal-section');
-            const previewSection = document.querySelector('.preview-section');
-            const quickActions = document.querySelector('.quick-actions');
-
-            if (window.innerWidth <= 768) { // Only on mobile
-                if (touchStartX - touchEndX > swipeThreshold) {
-                    // Swipe left - show preview, hide terminal and quick actions
-                    terminalSection.style.display = 'none';
-                    previewSection.style.display = 'flex';
-                    quickActions.style.display = 'none';
-                } else if (touchEndX - touchStartX > swipeThreshold) {
-                    // Swipe right - show terminal and quick actions, hide preview
-                    terminalSection.style.display = 'flex';
-                    previewSection.style.display = 'none';
-                    quickActions.style.display = 'flex';
-                }
-            }
-        }
+        // Mobile view switching removed - use tab buttons instead
+        // Swipe gestures were causing connection issues on mobile
+        // Users should use the tab buttons to switch between views
 
         // State for tabs
         let terminalOutput = '';
@@ -1200,10 +1206,14 @@
             reconnectAttempts++;
             const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), maxReconnectDelay);
 
+            console.log(`[Reconnect] Attempt ${reconnectAttempts} in ${delay}ms...`);
             updateConnectionStatus('reconnecting');
 
             setTimeout(() => {
-                location.reload();
+                if (shouldReconnect) {
+                    console.log('[Reconnect] Attempting to reconnect...');
+                    connectWebSocket();
+                }
             }, delay);
         }
 

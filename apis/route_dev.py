@@ -455,40 +455,17 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
         if history:
             await websocket.send_text(json.dumps({"type": "output", "data": history}))
 
-        # Auto-start Claude if not already running
-        await asyncio.sleep(0.5)
-        initial_output = persistent_session.read(timeout=0.1)
-        if initial_output:
-            await persistent_session.broadcast(initial_output)
+        # Start broadcast loop if not already running (only runs once per session)
+        await persistent_session.start_broadcast_loop()
 
-        # If this is the first connection, start Claude
-        if len(persistent_session.connected_clients) == 1:
-            print("[DEBUG] First client connected - auto-starting Claude...")
+        # Auto-start Claude ONCE per session (not once per client)
+        if not persistent_session.claude_started:
+            print("[DEBUG] Auto-starting Claude for this session...")
+            await asyncio.sleep(0.5)
             persistent_session.write("claude\n")
+            persistent_session.claude_started = True
 
-        # Main loop - handle messages and broadcast output
-        async def read_and_broadcast():
-            """Read from terminal and broadcast to ALL connected clients"""
-            while True:
-                # Collect all available output
-                chunks = []
-                deadline = asyncio.get_event_loop().time() + 0.016  # 16ms = ~60fps
-
-                while asyncio.get_event_loop().time() < deadline:
-                    output = persistent_session.read(timeout=0.001)
-                    if output:
-                        chunks.append(output)
-                    else:
-                        break
-
-                # Broadcast accumulated data to all clients
-                if chunks:
-                    combined_output = "".join(chunks)
-                    await persistent_session.broadcast(combined_output)
-
-                # Wait for next frame
-                await asyncio.sleep(0.016)
-
+        # Handle messages from this specific client
         async def handle_client_messages():
             """Handle messages from this client"""
             while True:
@@ -502,11 +479,8 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
                     # Resize terminal (affects all clients)
                     persistent_session.resize(data["rows"], data["cols"])
 
-        # Run both tasks concurrently
-        await asyncio.gather(
-            read_and_broadcast(),
-            handle_client_messages()
-        )
+        # Only run the client message handler (broadcast loop runs separately)
+        await handle_client_messages()
 
     except WebSocketDisconnect:
         # Client disconnected - remove from session but KEEP terminal alive

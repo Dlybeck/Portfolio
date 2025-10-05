@@ -25,6 +25,8 @@ class PersistentSession:
         self.working_dir = working_dir or os.path.expanduser("~")
         self.command = command
         self.state = SessionState(session_id)
+        self.broadcast_task: Optional[asyncio.Task] = None  # Single broadcast loop
+        self.claude_started: bool = False  # Track if Claude has been auto-started
 
         # Start terminal session
         self._start_terminal()
@@ -100,8 +102,50 @@ class PersistentSession:
             return self.terminal.read(timeout)
         return None
 
+    async def start_broadcast_loop(self):
+        """Start the broadcast loop (only runs once per session)"""
+        if self.broadcast_task is not None:
+            return  # Already running
+
+        async def broadcast_loop():
+            """Read from terminal and broadcast to all clients"""
+            print(f"[SessionManager] Starting broadcast loop for '{self.session_id}'")
+            while True:
+                try:
+                    # Collect all available output
+                    chunks = []
+                    deadline = asyncio.get_event_loop().time() + 0.016  # 16ms = ~60fps
+
+                    while asyncio.get_event_loop().time() < deadline:
+                        output = self.read(timeout=0.001)
+                        if output:
+                            chunks.append(output)
+                        else:
+                            break
+
+                    # Broadcast accumulated data to all clients
+                    if chunks:
+                        combined_output = "".join(chunks)
+                        await self.broadcast(combined_output)
+
+                    # Wait for next frame
+                    await asyncio.sleep(0.016)
+                except Exception as e:
+                    print(f"[SessionManager] Broadcast loop error: {e}")
+                    await asyncio.sleep(0.1)
+
+        self.broadcast_task = asyncio.create_task(broadcast_loop())
+
+    def is_broadcast_running(self) -> bool:
+        """Check if broadcast loop is running"""
+        return self.broadcast_task is not None and not self.broadcast_task.done()
+
     def close(self):
         """Explicitly close terminal session (only when requested)"""
+        # Cancel broadcast task
+        if self.broadcast_task:
+            self.broadcast_task.cancel()
+
         if self.terminal:
             self.terminal.close()
             print(f"[SessionManager] Closed persistent session '{self.session_id}'")

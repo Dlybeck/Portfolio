@@ -52,6 +52,7 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             height: 100vh;
+            height: 100dvh; /* Dynamic viewport height for mobile */
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -436,6 +437,44 @@
             .swipe-toolbar {
                 display: none !important;
             }
+
+            .mobile-footer {
+                display: none !important;
+            }
+        }
+
+        /* Mobile Footer */
+        .mobile-footer {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 8px 12px;
+            font-size: 11px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .footer-item {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .footer-label {
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .footer-value {
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 768px) {
+            .mobile-footer {
+                display: flex;
+            }
         }
     </style>
 </head>
@@ -539,6 +578,22 @@
         </div>
     </div>
 
+    <!-- Mobile Footer (non-essential info, hidden when keyboard shows) -->
+    <div class="mobile-footer">
+        <div class="footer-item">
+            <span class="footer-label">Session:</span>
+            <span class="footer-value" id="footerSession">Active</span>
+        </div>
+        <div class="footer-item">
+            <span class="footer-label">CWD:</span>
+            <span class="footer-value" id="footerCwd">~</span>
+        </div>
+        <div class="footer-item">
+            <span class="footer-label">Status:</span>
+            <span class="footer-value" id="footerStatus">Connected</span>
+        </div>
+    </div>
+
     <script>
         // Auth check
         const token = localStorage.getItem('access_token');
@@ -582,6 +637,15 @@
 
         // Get selected working directory
         const workingDir = localStorage.getItem('working_directory') || '~';
+
+        // Update footer with working directory
+        const footerCwd = document.getElementById('footerCwd');
+        if (footerCwd) {
+            // Shorten path for mobile display
+            const shortPath = workingDir.length > 20 ? '...' + workingDir.slice(-17) : workingDir;
+            footerCwd.textContent = shortPath;
+            footerCwd.title = workingDir; // Full path on hover
+        }
 
         // WebSocket connection with auto-reconnect
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -1369,29 +1433,92 @@
 
         // ========== MAIN CONTAINER SWIPE (Terminal ↔ Preview) ==========
         let mainTouchStartX = 0;
-        let mainTouchEndX = 0;
+        let mainTouchStartY = 0;
+        let mainTouchCurrentX = 0;
+        let mainTouchCurrentY = 0;
         let currentView = 'terminal'; // 'terminal' or 'preview'
+        let isSwiping = false;
+        let swipeDirection = null; // 'horizontal' or 'vertical'
 
         // Initialize main container swipe
-        document.addEventListener('DOMContentLoaded', () => {
+        (function initMainSwipe() {
             const mainContainer = document.querySelector('.main-container');
-            if (mainContainer && window.innerWidth <= 768) {
-                // Set initial state
+
+            // Initialize state immediately
+            if (window.innerWidth <= 768) {
                 mainContainer.classList.add('show-terminal');
-
-                mainContainer.addEventListener('touchstart', (e) => {
-                    mainTouchStartX = e.changedTouches[0].screenX;
-                }, { passive: true });
-
-                mainContainer.addEventListener('touchend', (e) => {
-                    mainTouchEndX = e.changedTouches[0].screenX;
-                    handleMainSwipe();
-                }, { passive: true });
             }
+
+            mainContainer.addEventListener('touchstart', (e) => {
+                // Only handle on mobile
+                if (window.innerWidth > 768) return;
+
+                const touch = e.touches[0];
+                mainTouchStartX = touch.clientX;
+                mainTouchStartY = touch.clientY;
+                mainTouchCurrentX = touch.clientX;
+                mainTouchCurrentY = touch.clientY;
+                isSwiping = false;
+                swipeDirection = null;
+            }, { passive: true });
+
+            mainContainer.addEventListener('touchmove', (e) => {
+                if (window.innerWidth > 768) return;
+
+                const touch = e.touches[0];
+                mainTouchCurrentX = touch.clientX;
+                mainTouchCurrentY = touch.clientY;
+
+                const deltaX = Math.abs(mainTouchCurrentX - mainTouchStartX);
+                const deltaY = Math.abs(mainTouchCurrentY - mainTouchStartY);
+
+                // Determine swipe direction on first significant move
+                if (!swipeDirection && (deltaX > 10 || deltaY > 10)) {
+                    swipeDirection = deltaX > deltaY ? 'horizontal' : 'vertical';
+                }
+
+                // Only handle horizontal swipes
+                if (swipeDirection === 'horizontal' && deltaX > 20) {
+                    isSwiping = true;
+                }
+            }, { passive: true });
+
+            mainContainer.addEventListener('touchend', (e) => {
+                if (window.innerWidth > 768 || !isSwiping) {
+                    isSwiping = false;
+                    swipeDirection = null;
+                    return;
+                }
+
+                const swipeDistance = mainTouchCurrentX - mainTouchStartX;
+                const minSwipeDistance = 80; // Minimum swipe distance in pixels
+
+                if (Math.abs(swipeDistance) >= minSwipeDistance) {
+                    if (swipeDistance < 0) {
+                        // Swipe left - show preview
+                        if (currentView === 'terminal') {
+                            currentView = 'preview';
+                            mainContainer.classList.remove('show-terminal');
+                            mainContainer.classList.add('show-preview');
+                            vibrate(10);
+                        }
+                    } else {
+                        // Swipe right - show terminal
+                        if (currentView === 'preview') {
+                            currentView = 'terminal';
+                            mainContainer.classList.remove('show-preview');
+                            mainContainer.classList.add('show-terminal');
+                            vibrate(10);
+                        }
+                    }
+                }
+
+                isSwiping = false;
+                swipeDirection = null;
+            }, { passive: true });
 
             // Handle window resize to update swipe state
             window.addEventListener('resize', () => {
-                const mainContainer = document.querySelector('.main-container');
                 if (window.innerWidth <= 768) {
                     // Mobile - ensure correct class is set
                     if (currentView === 'terminal') {
@@ -1406,36 +1533,7 @@
                     mainContainer.classList.remove('show-terminal', 'show-preview');
                 }
             });
-        });
-
-        function handleMainSwipe() {
-            const swipeDistance = mainTouchEndX - mainTouchStartX;
-            const minSwipeDistance = 75; // Minimum swipe distance in pixels
-
-            if (Math.abs(swipeDistance) < minSwipeDistance) {
-                return; // Not a significant swipe
-            }
-
-            const mainContainer = document.querySelector('.main-container');
-
-            if (swipeDistance < 0) {
-                // Swipe left - show preview
-                if (currentView === 'terminal') {
-                    currentView = 'preview';
-                    mainContainer.classList.remove('show-terminal');
-                    mainContainer.classList.add('show-preview');
-                    vibrate(10);
-                }
-            } else {
-                // Swipe right - show terminal
-                if (currentView === 'preview') {
-                    currentView = 'terminal';
-                    mainContainer.classList.remove('show-preview');
-                    mainContainer.classList.add('show-terminal');
-                    vibrate(10);
-                }
-            }
-        }
+        })();
 
         // ========== HAPTIC FEEDBACK ==========
         function vibrate(duration) {
@@ -1449,6 +1547,7 @@
             const statusDot = document.getElementById('statusDot');
             const statusText = document.getElementById('statusText');
             const banner = document.getElementById('connectionBanner');
+            const footerStatus = document.getElementById('footerStatus');
 
             statusDot.className = 'status-dot ' + status;
 
@@ -1458,6 +1557,7 @@
                     banner.style.display = 'none';
                     reconnectAttempts = 0;
                     vibrate(20);
+                    if (footerStatus) footerStatus.textContent = '✓ Connected';
                     break;
                 case 'disconnected':
                     statusText.textContent = 'Disconnected';
@@ -1466,11 +1566,13 @@
                     banner.onclick = () => location.reload();
                     vibrate(50);
                     playNotificationSound();
+                    if (footerStatus) footerStatus.textContent = '✗ Offline';
                     break;
                 case 'reconnecting':
                     statusText.textContent = 'Reconnecting...';
                     banner.style.display = 'block';
                     document.getElementById('bannerText').textContent = `Reconnecting... (attempt ${reconnectAttempts + 1})`;
+                    if (footerStatus) footerStatus.textContent = '⟳ Reconnecting';
                     break;
             }
         }

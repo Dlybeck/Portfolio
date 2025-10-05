@@ -463,8 +463,9 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
             print("[DEBUG] Auto-starting Claude for this session...")
             # Wait for terminal to fully initialize
             await asyncio.sleep(1.5)
-            # Use full path to ensure claude is found
-            persistent_session.write("/opt/homebrew/bin/claude\n")
+            # Source profile to load PATH, then start claude
+            # Using -c flag to run as command (won't show in terminal)
+            persistent_session.write("exec claude\n")
             persistent_session.claude_started = True
             print("[DEBUG] Claude command sent")
 

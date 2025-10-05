@@ -1169,9 +1169,6 @@
         }
 
         // ========== CONNECTION STATUS & AUTO-RECONNECT ==========
-        let reconnectAttempts = 0;
-        const maxReconnectDelay = 30000;
-
         function updateConnectionStatus(status) {
             const statusDot = document.getElementById('statusDot');
             const statusText = document.getElementById('statusText');

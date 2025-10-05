@@ -281,7 +281,7 @@
         .swipe-toolbar {
             background: var(--bg-secondary);
             border-bottom: 1px solid var(--border-color);
-            padding: 12px 0 8px 0;
+            padding: 8px 0 6px 0;
             overflow: hidden;
             display: none; /* Hidden by default, shown on mobile */
             flex-shrink: 0;
@@ -396,32 +396,36 @@
             transform: scale(1.3);
         }
 
-        /* Selection mode styling */
-        #selectModeBtn.active {
-            background: #ff8800; /* Orange when active */
-            animation: pulse-select 1.5s infinite;
-        }
-
-        @keyframes pulse-select {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .selection-mode-banner {
-            background: #ff8800;
-            color: white;
-            text-align: center;
-            padding: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            flex-shrink: 0;
-            animation: slideDown 0.3s;
-        }
-
         /* Mobile - Show toolbar */
         @media (max-width: 768px) {
             .swipe-toolbar {
                 display: block;
+            }
+
+            .hide-mobile {
+                display: none !important;
+            }
+
+            .header {
+                padding: 8px 12px;
+            }
+
+            .header-right {
+                gap: 6px;
+            }
+
+            .icon-btn {
+                padding: 4px 8px;
+                font-size: 13px;
+            }
+
+            .btn-logout {
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+
+            .connection-status {
+                padding: 4px 6px;
             }
         }
 
@@ -435,18 +439,18 @@
 </head>
 <body>
     <div class="header">
-        <h1>🤖 Claude Code Terminal</h1>
+        <h1 class="hide-mobile">🤖 Claude Code Terminal</h1>
         <div class="header-right">
-            <button class="icon-btn" onclick="decreaseFontSize()" title="Decrease font size">A-</button>
-            <button class="icon-btn" onclick="increaseFontSize()" title="Increase font size">A+</button>
+            <button class="icon-btn hide-mobile" onclick="decreaseFontSize()" title="Decrease font size">A-</button>
+            <button class="icon-btn hide-mobile" onclick="increaseFontSize()" title="Increase font size">A+</button>
             <button class="icon-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
             <button class="icon-btn" id="soundToggle" onclick="toggleSound()" title="Toggle notification sound">🔔</button>
             <span class="connection-status" id="connectionStatus">
                 <span class="status-dot" id="statusDot"></span>
-                <span id="statusText">Connecting...</span>
+                <span id="statusText" class="hide-mobile">Connecting...</span>
             </span>
-            <span>👤 {{ user.username }}</span>
-            <button class="btn-logout" onclick="changeDirectory()" style="background: #667eea; margin-right: 8px;">📁 Change Dir</button>
+            <span class="hide-mobile">👤 {{ user.username }}</span>
+            <button class="btn-logout" onclick="changeDirectory()" style="background: #667eea; margin-right: 8px;">📁</button>
             <button class="btn-logout" onclick="logout()">Logout</button>
         </div>
     </div>
@@ -461,37 +465,37 @@
         <div class="swipe-container" id="swipeContainer">
             <!-- Page 1: Claude & Control Keys -->
             <div class="swipe-page active">
-                <button class="shortcut-btn" onclick="sendKey('\\t')" title="Tab - Auto-complete">
+                <button class="shortcut-btn" onclick="sendKey('\t')" title="Tab - Auto-complete">
                     <span class="btn-icon">⇥</span>
                     <span class="btn-label">Tab</span>
                 </button>
-                <button class="shortcut-btn" onclick="sendKey('\\x1b\\t')" title="Shift+Tab - Toggle Claude mode">
+                <button class="shortcut-btn" onclick="sendKey('\x1b\t')" title="Shift+Tab - Toggle Claude mode">
                     <span class="btn-icon">🔄</span>
                     <span class="btn-label">S+Tab</span>
                 </button>
-                <button class="shortcut-btn" onclick="sendKey('\\x03')" title="Ctrl+C - Cancel">
+                <button class="shortcut-btn" onclick="sendKey('\x03')" title="Ctrl+C - Cancel">
                     <span class="btn-icon">⛔</span>
                     <span class="btn-label">^C</span>
                 </button>
-                <button class="shortcut-btn" id="selectModeBtn" onclick="toggleSelectionMode()" title="Toggle selection mode">
-                    <span class="btn-icon">✏️</span>
-                    <span class="btn-label">Select</span>
+                <button class="shortcut-btn" onclick="copyTerminal()" title="Copy selected text">
+                    <span class="btn-icon">📋</span>
+                    <span class="btn-label">Copy</span>
                 </button>
             </div>
 
             <!-- Page 2: Arrow Keys -->
             <div class="swipe-page">
                 <div class="arrow-grid">
-                    <button class="shortcut-btn arrow-up" onclick="sendKey('\\x1b[A')" title="Up Arrow">
+                    <button class="shortcut-btn arrow-up" onclick="sendKey('\x1b[A')" title="Up Arrow">
                         <span class="btn-icon">↑</span>
                     </button>
-                    <button class="shortcut-btn arrow-left" onclick="sendKey('\\x1b[D')" title="Left Arrow">
+                    <button class="shortcut-btn arrow-left" onclick="sendKey('\x1b[D')" title="Left Arrow">
                         <span class="btn-icon">←</span>
                     </button>
-                    <button class="shortcut-btn arrow-down" onclick="sendKey('\\x1b[B')" title="Down Arrow">
+                    <button class="shortcut-btn arrow-down" onclick="sendKey('\x1b[B')" title="Down Arrow">
                         <span class="btn-icon">↓</span>
                     </button>
-                    <button class="shortcut-btn arrow-right" onclick="sendKey('\\x1b[C')" title="Right Arrow">
+                    <button class="shortcut-btn arrow-right" onclick="sendKey('\x1b[C')" title="Right Arrow">
                         <span class="btn-icon">→</span>
                     </button>
                 </div>
@@ -503,11 +507,6 @@
             <span class="page-dot active" onclick="switchToolbarPage(0)"></span>
             <span class="page-dot" onclick="switchToolbarPage(1)"></span>
         </div>
-    </div>
-
-    <!-- Selection Mode Active Indicator -->
-    <div class="selection-mode-banner" id="selectionModeBanner" style="display: none;">
-        ✏️ Selection Mode Active - Long press to select text
     </div>
 
     <div class="main-container">
@@ -1319,7 +1318,6 @@
 
         // ========== SWIPEABLE TOOLBAR FUNCTIONS ==========
         let currentToolbarPage = 0;
-        let selectionModeActive = false;
 
         function switchToolbarPage(pageIndex) {
             currentToolbarPage = pageIndex;
@@ -1332,31 +1330,6 @@
             });
 
             vibrate(10);
-        }
-
-        function toggleSelectionMode() {
-            selectionModeActive = !selectionModeActive;
-            const helpers = document.getElementsByClassName("xterm-helper-textarea");
-            const btn = document.getElementById('selectModeBtn');
-            const banner = document.getElementById('selectionModeBanner');
-
-            if (selectionModeActive) {
-                // Enable selection mode
-                for(let helper of helpers) {
-                    helper.setAttribute("disabled", "true");
-                }
-                btn.classList.add('active');
-                banner.style.display = 'block';
-            } else {
-                // Disable selection mode
-                for(let helper of helpers) {
-                    helper.removeAttribute("disabled");
-                }
-                btn.classList.remove('active');
-                banner.style.display = 'none';
-            }
-
-            vibrate(20);
         }
 
         // Touch swipe detection for toolbar

@@ -1362,10 +1362,16 @@
         let currentSectionIndex = 0;
         const sections = ['terminal', 'preview'];
 
-        // Initialize on load
-        if (window.innerWidth <= 768) {
-            document.querySelector('.terminal-section').classList.add('active');
-        }
+        // Initialize terminal as active on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.innerWidth <= 768) {
+                const terminalSection = document.querySelector('.terminal-section');
+                if (terminalSection) {
+                    terminalSection.classList.add('active');
+                    console.log('[DEBUG] Terminal section activated on load');
+                }
+            }
+        });
 
         // Simple swipe handler
         document.addEventListener('touchstart', (e) => {

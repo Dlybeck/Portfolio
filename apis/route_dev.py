@@ -461,9 +461,12 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
         # Auto-start Claude ONCE per session (not once per client)
         if not persistent_session.claude_started:
             print("[DEBUG] Auto-starting Claude for this session...")
-            await asyncio.sleep(0.5)
-            persistent_session.write("claude\n")
+            # Wait for terminal to fully initialize
+            await asyncio.sleep(1.5)
+            # Use full path to ensure claude is found
+            persistent_session.write("/opt/homebrew/bin/claude\n")
             persistent_session.claude_started = True
+            print("[DEBUG] Claude command sent")
 
         # Handle messages from this specific client
         async def handle_client_messages():

@@ -189,6 +189,18 @@
             height: 100%;
         }
 
+        /* Enable text selection on mobile */
+        @media (max-width: 768px) {
+            .terminal-container,
+            #terminal,
+            .xterm,
+            .xterm-screen {
+                user-select: text !important;
+                -webkit-user-select: text !important;
+                -moz-user-select: text !important;
+            }
+        }
+
         .preview-section {
             flex: 1;
             display: flex;
@@ -229,23 +241,35 @@
         /* Mobile */
         @media (max-width: 768px) {
             .main-container {
-                flex-direction: column;
+                flex-direction: row;
                 position: relative;
+                overflow: hidden;
+                transition: transform 0.3s ease-out;
             }
 
             .terminal-section,
             .preview-section {
                 width: 100%;
-                flex: 1;
+                flex-shrink: 0;
                 border: none;
+                display: flex;
             }
 
             .terminal-section {
-                display: flex; /* Show terminal by default on mobile */
+                order: 1;
             }
 
             .preview-section {
-                display: none; /* Hide preview by default on mobile */
+                order: 2;
+            }
+
+            /* Swipe states */
+            .main-container.show-terminal {
+                transform: translateX(0);
+            }
+
+            .main-container.show-preview {
+                transform: translateX(-100%);
             }
 
             /* Swipe indicator */
@@ -306,16 +330,16 @@
             background: var(--accent-color);
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
+            padding: 4px 12px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
-            min-width: 70px;
+            gap: 2px;
+            min-width: 60px;
             transition: transform 0.1s, background 0.2s;
         }
 
@@ -328,50 +352,28 @@
         }
 
         .btn-icon {
-            font-size: 18px;
+            font-size: 16px;
         }
 
         .btn-label {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 500;
         }
 
-        /* Arrow key grid layout */
-        .arrow-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 70px);
-            grid-template-rows: repeat(2, 44px);
-            gap: 8px;
+        /* Arrow keys in single row */
+        .arrow-row {
+            display: flex;
+            gap: 6px;
             justify-content: center;
         }
 
-        .arrow-up {
-            grid-column: 2;
-            grid-row: 1;
+        .arrow-row .shortcut-btn {
+            min-width: 50px;
+            padding: 6px 10px;
         }
 
-        .arrow-left {
-            grid-column: 1;
-            grid-row: 2;
-        }
-
-        .arrow-down {
-            grid-column: 2;
-            grid-row: 2;
-        }
-
-        .arrow-right {
-            grid-column: 3;
-            grid-row: 2;
-        }
-
-        .arrow-grid .shortcut-btn {
-            min-width: unset;
-            width: 100%;
-        }
-
-        .arrow-grid .btn-icon {
-            font-size: 22px;
+        .arrow-row .btn-icon {
+            font-size: 18px;
         }
 
         /* Page indicators */
@@ -485,17 +487,17 @@
 
             <!-- Page 2: Arrow Keys -->
             <div class="swipe-page">
-                <div class="arrow-grid">
-                    <button class="shortcut-btn arrow-up" onclick="sendKey('\x1b[A')" title="Up Arrow">
-                        <span class="btn-icon">↑</span>
-                    </button>
-                    <button class="shortcut-btn arrow-left" onclick="sendKey('\x1b[D')" title="Left Arrow">
+                <div class="arrow-row">
+                    <button class="shortcut-btn" onclick="sendKey('\x1b[D')" title="Left Arrow">
                         <span class="btn-icon">←</span>
                     </button>
-                    <button class="shortcut-btn arrow-down" onclick="sendKey('\x1b[B')" title="Down Arrow">
+                    <button class="shortcut-btn" onclick="sendKey('\x1b[A')" title="Up Arrow">
+                        <span class="btn-icon">↑</span>
+                    </button>
+                    <button class="shortcut-btn" onclick="sendKey('\x1b[B')" title="Down Arrow">
                         <span class="btn-icon">↓</span>
                     </button>
-                    <button class="shortcut-btn arrow-right" onclick="sendKey('\x1b[C')" title="Right Arrow">
+                    <button class="shortcut-btn" onclick="sendKey('\x1b[C')" title="Right Arrow">
                         <span class="btn-icon">→</span>
                     </button>
                 </div>
@@ -1361,6 +1363,76 @@
                 // Swipe right - previous page
                 if (currentToolbarPage > 0) {
                     switchToolbarPage(currentToolbarPage - 1);
+                }
+            }
+        }
+
+        // ========== MAIN CONTAINER SWIPE (Terminal ↔ Preview) ==========
+        let mainTouchStartX = 0;
+        let mainTouchEndX = 0;
+        let currentView = 'terminal'; // 'terminal' or 'preview'
+
+        // Initialize main container swipe
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainContainer = document.querySelector('.main-container');
+            if (mainContainer && window.innerWidth <= 768) {
+                // Set initial state
+                mainContainer.classList.add('show-terminal');
+
+                mainContainer.addEventListener('touchstart', (e) => {
+                    mainTouchStartX = e.changedTouches[0].screenX;
+                }, { passive: true });
+
+                mainContainer.addEventListener('touchend', (e) => {
+                    mainTouchEndX = e.changedTouches[0].screenX;
+                    handleMainSwipe();
+                }, { passive: true });
+            }
+
+            // Handle window resize to update swipe state
+            window.addEventListener('resize', () => {
+                const mainContainer = document.querySelector('.main-container');
+                if (window.innerWidth <= 768) {
+                    // Mobile - ensure correct class is set
+                    if (currentView === 'terminal') {
+                        mainContainer.classList.add('show-terminal');
+                        mainContainer.classList.remove('show-preview');
+                    } else {
+                        mainContainer.classList.add('show-preview');
+                        mainContainer.classList.remove('show-terminal');
+                    }
+                } else {
+                    // Desktop - remove mobile-specific classes
+                    mainContainer.classList.remove('show-terminal', 'show-preview');
+                }
+            });
+        });
+
+        function handleMainSwipe() {
+            const swipeDistance = mainTouchEndX - mainTouchStartX;
+            const minSwipeDistance = 75; // Minimum swipe distance in pixels
+
+            if (Math.abs(swipeDistance) < minSwipeDistance) {
+                return; // Not a significant swipe
+            }
+
+            const mainContainer = document.querySelector('.main-container');
+
+            if (swipeDistance < 0) {
+                // Swipe left - show preview
+                if (currentView === 'terminal') {
+                    currentView = 'preview';
+                    mainContainer.classList.remove('show-terminal');
+                    mainContainer.classList.add('show-preview');
+                    vibrate(10);
+                }
+            } else {
+                // Swipe right - show terminal
+                if (currentView === 'preview') {
+                    currentView = 'terminal';
+                    mainContainer.classList.remove('show-preview');
+                    mainContainer.classList.add('show-terminal');
+                    vibrate(10);
                 }
             }
         }

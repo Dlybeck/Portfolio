@@ -239,51 +239,42 @@
             font-size: 14px;
         }
 
-        /* Mobile - Show terminal by default, hide preview */
+        /* Mobile */
         @media (max-width: 768px) {
             .main-container {
                 flex-direction: column;
+                position: relative;
             }
 
             .terminal-section,
             .preview-section {
                 width: 100%;
+                flex: 1;
                 border: none;
+                display: none;
             }
 
-            /* Default: Show terminal, hide preview */
-            .terminal-section {
-                display: flex !important;
-                flex-direction: column !important;
-            }
-
-            .preview-section {
-                display: none !important;
-            }
-
-            /* Swipe states */
-            .terminal-section.hidden {
-                display: none !important;
+            .terminal-section.active {
+                display: flex;
             }
 
             .preview-section.active {
-                display: block !important;
+                display: flex;
             }
 
-            /* Make sure terminal and container have height */
-            .terminal-container {
-                height: calc(100vh - 120px);
+            /* Swipe indicator */
+            .main-container::before {
+                content: '← Swipe →';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                color: #666;
+                font-size: 12px;
+                pointer-events: none;
+                opacity: 0.5;
+                z-index: 1;
             }
-
-            #terminal {
-                height: 100%;
-            }
-        }
-
-        /* Swipe indicator animation */
-        @keyframes fadeOut {
-            0% { opacity: 1; }
-            100% { opacity: 0; }
         }
 
         /* Connection status */
@@ -539,23 +530,6 @@
     </div>
 
     <script>
-        // Global error handler - catch all JavaScript errors
-        window.addEventListener('error', (event) => {
-            console.error('[Global Error]', event.error);
-            // Show user-friendly error in terminal if available
-            if (typeof term !== 'undefined') {
-                term.write(`\r\n\x1b[31m[Error] ${event.error?.message || 'Unknown error occurred'}\x1b[0m\r\n`);
-            }
-        });
-
-        // Catch unhandled promise rejections
-        window.addEventListener('unhandledrejection', (event) => {
-            console.error('[Unhandled Promise Rejection]', event.reason);
-            if (typeof term !== 'undefined') {
-                term.write(`\r\n\x1b[31m[Promise Error] ${event.reason?.message || 'Promise rejected'}\x1b[0m\r\n`);
-            }
-        });
-
         // Auth check
         const token = localStorage.getItem('access_token');
         if (!token) {
@@ -599,14 +573,6 @@
         // Get selected working directory
         const workingDir = localStorage.getItem('working_directory') || '~';
 
-        // Get JWT token for WebSocket authentication
-        const token = localStorage.getItem('access_token');
-        if (!token) {
-            console.error('[WebSocket] No access token found');
-            window.location.href = '/dev/login';
-            return;
-        }
-
         // WebSocket connection with auto-reconnect
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/dev/ws/terminal?cwd=${encodeURIComponent(workingDir)}&token=${encodeURIComponent(token)}`;
@@ -616,15 +582,7 @@
         let shouldReconnect = true;
 
         function connectWebSocket() {
-            // Always use latest token for reconnection
-            const currentToken = localStorage.getItem('access_token');
-            if (!currentToken) {
-                console.error('[WebSocket] No access token found during reconnect');
-                window.location.href = '/dev/login';
-                return;
-            }
-            const reconnectUrl = `${protocol}//${window.location.host}/dev/ws/terminal?cwd=${encodeURIComponent(workingDir)}&token=${encodeURIComponent(currentToken)}`;
-            ws = new WebSocket(reconnectUrl);
+            ws = new WebSocket(wsUrl);
 
             ws.onopen = () => {
                 console.log('Terminal connected');
@@ -860,7 +818,8 @@
             const workingDir = localStorage.getItem('working_directory') || '~';
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const sessionId = 'terminal_tab_' + Date.now();
-            const wsUrl = `${protocol}//${window.location.host}/dev/ws/terminal?cwd=${encodeURIComponent(workingDir)}&session=${sessionId}`;
+            const token = localStorage.getItem('access_token');
+            const wsUrl = `${protocol}//${window.location.host}/dev/ws/terminal?cwd=${encodeURIComponent(workingDir)}&session=${sessionId}&token=${encodeURIComponent(token)}`;
             separateWs = new WebSocket(wsUrl);
 
             separateWs.onopen = () => {
@@ -1367,31 +1326,31 @@
         }
 
         // Touch swipe detection for toolbar
-        let toolbarTouchStartX = 0;
-        let toolbarTouchEndX = 0;
+        let touchStartX = 0;
+        let touchEndX = 0;
 
         document.addEventListener('DOMContentLoaded', () => {
             const toolbar = document.getElementById('swipeToolbar');
             if (toolbar) {
                 toolbar.addEventListener('touchstart', (e) => {
-                    toolbarTouchStartX = e.changedTouches[0].screenX;
+                    touchStartX = e.changedTouches[0].screenX;
                 });
 
                 toolbar.addEventListener('touchend', (e) => {
-                    toolbarTouchEndX = e.changedTouches[0].screenX;
+                    touchEndX = e.changedTouches[0].screenX;
                     handleToolbarSwipe();
                 });
             }
         });
 
         function handleToolbarSwipe() {
-            if (toolbarTouchEndX < toolbarTouchStartX - 50) {
+            if (touchEndX < touchStartX - 50) {
                 // Swipe left - next page
                 if (currentToolbarPage < 1) {
                     switchToolbarPage(currentToolbarPage + 1);
                 }
             }
-            if (toolbarTouchEndX > toolbarTouchStartX + 50) {
+            if (touchEndX > touchStartX + 50) {
                 // Swipe right - previous page
                 if (currentToolbarPage > 0) {
                     switchToolbarPage(currentToolbarPage - 1);
@@ -1399,88 +1358,59 @@
             }
         }
 
-        // ========== SIMPLE SWIPE (Terminal ↔ Preview) ==========
-        let swipeTouchStartX = 0;
-        let swipeTouchStartY = 0;
-        let isShowingTerminal = true; // Terminal shows by default in CSS
+        // ========== SIMPLE SWIPE LOOP (Terminal ↔ Preview) ==========
+        let touchStartX = 0;
+        let currentSectionIndex = 0;
+        const sections = ['terminal', 'preview'];
 
+        // Initialize terminal as active on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.innerWidth <= 768) {
+                const terminalSection = document.querySelector('.terminal-section');
+                if (terminalSection) {
+                    terminalSection.classList.add('active');
+                    console.log('[DEBUG] Terminal section activated on load');
+                }
+            }
+        });
+
+        // Simple swipe handler
         document.addEventListener('touchstart', (e) => {
             if (window.innerWidth > 768) return;
-            swipeTouchStartX = e.touches[0].clientX;
-            swipeTouchStartY = e.touches[0].clientY;
-            console.log('[Swipe Debug] Touch start:', swipeTouchStartX, swipeTouchStartY);
+            touchStartX = e.touches[0].clientX;
         }, { passive: true });
 
         document.addEventListener('touchend', (e) => {
             if (window.innerWidth > 768) return;
 
             const touchEndX = e.changedTouches[0].clientX;
-            const touchEndY = e.changedTouches[0].clientY;
-            const swipeDistanceX = touchEndX - swipeTouchStartX;
-            const swipeDistanceY = touchEndY - swipeTouchStartY;
+            const swipeDistance = touchEndX - touchStartX;
 
-            console.log('[Swipe Debug] Touch end:', touchEndX, touchEndY);
-            console.log('[Swipe Debug] Distance X:', swipeDistanceX, 'Y:', swipeDistanceY);
-            console.log('[Swipe Debug] Currently showing:', isShowingTerminal ? 'terminal' : 'preview');
-
-            // Only swipe if horizontal movement > vertical movement
-            if (Math.abs(swipeDistanceY) > Math.abs(swipeDistanceX)) {
-                console.log('[Swipe Debug] Cancelled: vertical swipe detected');
-                return;
-            }
-
-            // Require minimum swipe distance (increased for better UX)
-            if (Math.abs(swipeDistanceX) < 100) {
-                console.log('[Swipe Debug] Cancelled: distance too small (<100px)');
-                return;
-            }
+            // Require minimum swipe distance
+            if (Math.abs(swipeDistance) < 50) return;
 
             const terminalSection = document.querySelector('.terminal-section');
             const previewSection = document.querySelector('.preview-section');
 
-            if (swipeDistanceX < 0 && isShowingTerminal) {
-                // Swipe left - show preview (only if currently showing terminal)
-                console.log('[Swipe] ← Left swipe detected - switching to PREVIEW');
-                isShowingTerminal = false;
-                terminalSection.classList.add('hidden');
-                previewSection.classList.add('active');
-                showSwipeIndicator('Preview');
-                vibrate(10);
-            } else if (swipeDistanceX > 0 && !isShowingTerminal) {
-                // Swipe right - show terminal (only if currently showing preview)
-                console.log('[Swipe] → Right swipe detected - switching to TERMINAL');
-                isShowingTerminal = true;
-                terminalSection.classList.remove('hidden');
-                previewSection.classList.remove('active');
-                showSwipeIndicator('Terminal');
-                vibrate(10);
+            if (swipeDistance < 0) {
+                // Swipe left - next section (loop)
+                currentSectionIndex = (currentSectionIndex + 1) % sections.length;
             } else {
-                console.log('[Swipe Debug] No action taken (wrong direction for current state)');
+                // Swipe right - previous section (loop)
+                currentSectionIndex = (currentSectionIndex - 1 + sections.length) % sections.length;
             }
-        }, { passive: true });
 
-        // Show visual indicator when switching views
-        function showSwipeIndicator(text) {
-            const indicator = document.createElement('div');
-            indicator.textContent = text;
-            indicator.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(0, 0, 0, 0.8);
-                color: white;
-                padding: 20px 40px;
-                border-radius: 10px;
-                font-size: 24px;
-                font-weight: bold;
-                z-index: 10000;
-                pointer-events: none;
-                animation: fadeOut 0.5s ease-in-out;
-            `;
-            document.body.appendChild(indicator);
-            setTimeout(() => indicator.remove(), 500);
-        }
+            // Update active section
+            if (sections[currentSectionIndex] === 'terminal') {
+                terminalSection.classList.add('active');
+                previewSection.classList.remove('active');
+            } else {
+                previewSection.classList.add('active');
+                terminalSection.classList.remove('active');
+            }
+
+            vibrate(10);
+        }, { passive: true });
 
         // ========== HAPTIC FEEDBACK ==========
         function vibrate(duration) {

@@ -92,8 +92,8 @@ class DirectoryRequest(BaseModel):
 
 
 @dev_router.get("/debug/connectivity")
-async def debug_connectivity():
-    """Debug endpoint to test Mac connectivity"""
+async def debug_connectivity(user: dict = Depends(get_current_user)):
+    """🔒 Debug endpoint to test Mac connectivity - requires authentication"""
     import socket
 
     results = {
@@ -129,8 +129,8 @@ async def debug_connectivity():
             "success": False
         }
 
-    # Test is_mac_server_available function
-    results["is_available"] = is_mac_server_available()
+    # Test is_mac_server_available function (FIXED: added await)
+    results["is_available"] = await is_mac_server_available()
 
     return results
 
@@ -375,10 +375,28 @@ async def read_file(
 
 
 @dev_router.websocket("/ws/terminal")
-async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str = None):
+async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str = None, token: str = None):
     """
-    WebSocket endpoint for terminal access - proxy if Cloud Run, execute if Mac
+    🔒 WebSocket endpoint for terminal access - requires JWT token
+    Proxy if Cloud Run, execute if Mac
     """
+    # Validate JWT token before accepting WebSocket connection
+    if not token:
+        await websocket.close(code=1008, reason="Missing authentication token")
+        return
+
+    try:
+        from core.security import verify_token
+        payload = verify_token(token)
+        if payload.get("type") != "access":
+            await websocket.close(code=1008, reason="Invalid token type")
+            return
+        print(f"[DEBUG] WebSocket authenticated for user: {payload.get('sub')}")
+    except Exception as e:
+        print(f"[DEBUG] WebSocket authentication failed: {e}")
+        await websocket.close(code=1008, reason="Invalid authentication token")
+        return
+
     await websocket.accept()
 
     if IS_CLOUD_RUN:
@@ -391,8 +409,8 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
             # Create SOCKS5 connector
             connector = ProxyConnector.from_url(SOCKS5_PROXY)
 
-            # Connect to Mac's WebSocket through SOCKS5
-            ws_url = f"ws://{MAC_SERVER_IP}:{MAC_SERVER_PORT}/dev/ws/terminal?cwd={cwd}"
+            # Connect to Mac's WebSocket through SOCKS5 (forward auth token)
+            ws_url = f"ws://{MAC_SERVER_IP}:{MAC_SERVER_PORT}/dev/ws/terminal?cwd={cwd}&token={token}"
             if session:
                 ws_url += f"&session={session}"
 
@@ -459,15 +477,17 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
         await persistent_session.start_broadcast_loop()
 
         # Auto-start Claude ONCE per session (not once per client)
-        if not persistent_session.claude_started:
-            print("[DEBUG] Auto-starting Claude for this session...")
-            # Wait for terminal to fully initialize
-            await asyncio.sleep(1.5)
-            # Source profile to load PATH, then start claude
-            # Using -c flag to run as command (won't show in terminal)
-            persistent_session.write("exec claude\n")
-            persistent_session.claude_started = True
-            print("[DEBUG] Claude command sent")
+        # Use lock to prevent race conditions when multiple clients connect simultaneously
+        async with persistent_session.claude_start_lock:
+            if not persistent_session.claude_started:
+                print("[DEBUG] Auto-starting Claude for this session...")
+                # Wait for terminal to fully initialize
+                await asyncio.sleep(1.5)
+                # Source shell profile to load PATH, then start claude
+                # Try .zshrc first (macOS default), fallback to .bashrc
+                persistent_session.write("source ~/.zshrc 2>/dev/null || source ~/.bashrc 2>/dev/null; exec claude\n")
+                persistent_session.claude_started = True
+                print("[DEBUG] Claude command sent with shell profile loaded")
 
         # Handle messages from this specific client
         async def handle_client_messages():
@@ -487,13 +507,30 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
         await handle_client_messages()
 
     except WebSocketDisconnect:
-        # Client disconnected - remove from session but KEEP terminal alive
+        # Client disconnected - remove from session
         persistent_session.remove_client(websocket)
         print(f"[DEBUG] Client disconnected, {len(persistent_session.connected_clients)} clients remaining")
+
+        # CRITICAL: Close session if no clients left to prevent PTY leak
+        if len(persistent_session.connected_clients) == 0:
+            print(f"[DEBUG] No clients left, closing session '{session_id}' to prevent PTY leak")
+            persistent_session.close()
+            # Remove from global dict
+            if session_id in _persistent_sessions:
+                del _persistent_sessions[session_id]
+
     except Exception as e:
         print(f"Terminal error: {e}")
-        # Remove client but keep session alive
+        # Remove client
         persistent_session.remove_client(websocket)
+
+        # CRITICAL: Close session if no clients left to prevent PTY leak
+        if len(persistent_session.connected_clients) == 0:
+            print(f"[DEBUG] No clients left after error, closing session '{session_id}' to prevent PTY leak")
+            persistent_session.close()
+            if session_id in _persistent_sessions:
+                del _persistent_sessions[session_id]
+
         try:
             await websocket.close()
         except:

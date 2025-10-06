@@ -135,11 +135,11 @@ async def logout(user: dict = Depends(get_current_user)):
 
 
 @auth_router.get("/setup", response_model=SetupInfoResponse)
-async def get_setup_info():
+async def get_setup_info(user: dict = Depends(get_current_user)):
     """
     Get 2FA setup information (TOTP QR code URI)
-    ⚠️ WARNING: This should be disabled in production or protected
-    Only use during initial setup
+    🔒 PROTECTED: Requires authentication
+    Use this to reconfigure 2FA for authenticated users
     """
     try:
         setup_info = generate_setup_info()

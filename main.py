@@ -31,6 +31,9 @@ def start_application():
 	except ValueError as e:
 		print(f"❌ Security configuration error: {e}")
 		print("Run setup_security.py to configure authentication")
+		print("🛑 Server startup aborted due to security configuration errors")
+		import sys
+		sys.exit(1)
 
 	app = FastAPI(title=settings.PROJECT_NAME,version=settings.PROJECT_VERSION)
 	include_router(app)

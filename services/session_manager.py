@@ -27,6 +27,7 @@ class PersistentSession:
         self.state = SessionState(session_id)
         self.broadcast_task: Optional[asyncio.Task] = None  # Single broadcast loop
         self.claude_started: bool = False  # Track if Claude has been auto-started
+        self.claude_start_lock: asyncio.Lock = asyncio.Lock()  # Prevent race conditions
 
         # Start terminal session
         self._start_terminal()

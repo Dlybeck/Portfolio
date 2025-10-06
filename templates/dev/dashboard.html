@@ -243,42 +243,47 @@
         @media (max-width: 768px) {
             .main-container {
                 flex-direction: column;
-                position: relative;
-                height: calc(100dvh - 60px - 60px); /* viewport - header - toolbar */
-                min-height: 0; /* Allow flex shrinking */
             }
 
             .terminal-section,
             .preview-section {
                 width: 100%;
-                height: 100%; /* Explicit height for mobile */
+                height: auto;
                 flex: 1;
                 border: none;
-                min-height: 0; /* Allow flex shrinking */
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
             }
 
             /* Default: Show terminal, hide preview */
             .terminal-section {
-                display: flex !important; /* Force show by default */
+                display: flex !important;
+                z-index: 1;
+                background: var(--bg-primary); /* Ensure visible background */
             }
 
             .preview-section {
-                display: none !important; /* Force hide by default */
+                display: none !important;
+                z-index: 1;
+                background: var(--bg-primary);
             }
 
-            /* Hidden state for swipe */
+            /* DEBUG: Make terminal visible even if content fails */
+            .terminal-container {
+                background: #1a1a1a;
+                min-height: 400px;
+            }
+
+            /* Swipe states */
             .terminal-section.hidden {
                 display: none !important;
             }
 
             .preview-section.active {
                 display: flex !important;
-            }
-
-            /* Ensure terminal container has proper height */
-            .terminal-container {
-                height: 100%;
-                min-height: 300px; /* Minimum usable height */
             }
         }
 

@@ -248,33 +248,17 @@
             .terminal-section,
             .preview-section {
                 width: 100%;
-                height: auto;
-                flex: 1;
                 border: none;
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
             }
 
             /* Default: Show terminal, hide preview */
             .terminal-section {
                 display: flex !important;
-                z-index: 1;
-                background: var(--bg-primary); /* Ensure visible background */
+                flex-direction: column !important;
             }
 
             .preview-section {
                 display: none !important;
-                z-index: 1;
-                background: var(--bg-primary);
-            }
-
-            /* DEBUG: Make terminal visible even if content fails */
-            .terminal-container {
-                background: #1a1a1a;
-                min-height: 400px;
             }
 
             /* Swipe states */
@@ -283,7 +267,16 @@
             }
 
             .preview-section.active {
-                display: flex !important;
+                display: block !important;
+            }
+
+            /* Make sure terminal and container have height */
+            .terminal-container {
+                height: calc(100vh - 120px);
+            }
+
+            #terminal {
+                height: 100%;
             }
         }
 

@@ -21,8 +21,6 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
-      - '--update-secrets'
-      - 'TAILSCALE_OAUTH_CLIENT_ID=TAILSCALE_OAUTH_CLIENT_ID:latest,TAILSCALE_OAUTH_CLIENT_SECRET=TAILSCALE_OAUTH_CLIENT_SECRET:latest'
       - '--memory'
       - '512Mi'
       - '--cpu'

@@ -374,6 +374,32 @@ async def read_file(
             return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
+@dev_router.post("/api/kill-session")
+async def kill_session(
+    req: Request,
+    user: dict = Depends(get_current_user)
+):
+    """🔒 Force kill a terminal session - requires authentication"""
+    # Only works on Mac (local execution)
+    if IS_CLOUD_RUN:
+        return JSONResponse(
+            content={"error": "Kill session only works on local Mac"},
+            status_code=400
+        )
+
+    try:
+        body = await req.json()
+        session_id = body.get("session_id", "user_main_session")
+
+        print(f"[DEBUG] Force killing session '{session_id}'")
+        close_persistent_session(session_id)
+
+        return JSONResponse(content={"success": True, "session_id": session_id})
+    except Exception as e:
+        print(f"[ERROR] Failed to kill session: {e}")
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
 @dev_router.websocket("/ws/terminal")
 async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str = None, token: str = None):
     """
@@ -526,10 +552,7 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
         # CRITICAL: Close session if no clients left to prevent PTY leak
         if len(persistent_session.connected_clients) == 0:
             print(f"[DEBUG] No clients left, closing session '{session_id}' to prevent PTY leak")
-            persistent_session.close()
-            # Remove from global dict
-            if session_id in _persistent_sessions:
-                del _persistent_sessions[session_id]
+            close_persistent_session(session_id)
 
     except Exception as e:
         print(f"Terminal error: {e}")
@@ -539,9 +562,7 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
         # CRITICAL: Close session if no clients left to prevent PTY leak
         if len(persistent_session.connected_clients) == 0:
             print(f"[DEBUG] No clients left after error, closing session '{session_id}' to prevent PTY leak")
-            persistent_session.close()
-            if session_id in _persistent_sessions:
-                del _persistent_sessions[session_id]
+            close_persistent_session(session_id)
 
         try:
             await websocket.close()

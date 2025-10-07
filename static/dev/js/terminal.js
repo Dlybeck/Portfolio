@@ -92,22 +92,42 @@ function changeDirectory() {
 }
 
 // Kill session function - force restart when Claude is stuck
-function killSession() {
-    if (confirm('Kill current session and restart? This will terminate any running processes.')) {
-        // Close WebSocket
-        shouldReconnect = false;
-        if (window.ws) {
-            window.ws.close();
-        }
-
-        // Clear terminal
-        if (window.term) {
-            window.term.clear();
-        }
-
-        // Force NEW session by adding timestamp to URL
-        setTimeout(() => {
-            window.location.href = window.location.pathname + '?new_session=' + Date.now();
-        }, 100);
+async function killSession() {
+    if (!confirm('Kill current session and restart? This will terminate any running processes.')) {
+        return;
     }
+
+    const token = localStorage.getItem('access_token');
+
+    // First, explicitly kill the session on the backend
+    try {
+        console.log('[Kill] Killing session user_main_session on backend...');
+        await fetch('/dev/api/kill-session', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ session_id: 'user_main_session' })
+        });
+        console.log('[Kill] Backend session killed successfully');
+    } catch (err) {
+        console.error('[Kill] Failed to kill backend session:', err);
+    }
+
+    // Close WebSocket
+    shouldReconnect = false;
+    if (window.ws) {
+        window.ws.close();
+    }
+
+    // Clear terminal
+    if (window.term) {
+        window.term.clear();
+    }
+
+    // Force NEW session by adding timestamp to URL
+    setTimeout(() => {
+        window.location.href = window.location.pathname + '?new_session=' + Date.now();
+    }, 300);
 }

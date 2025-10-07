@@ -56,6 +56,14 @@ function connectWebSocket() {
 
     ws.onerror = (error) => {
         console.error('WebSocket error:', error);
+        // Force reconnect on error
+        if (ws) {
+            ws.close();
+        }
+    };
+
+    ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
     };
 
     // Expose globally

@@ -95,7 +95,8 @@ function initSeparateTerminal() {
     separateWs = new WebSocket(wsUrl);
 
     separateWs.onopen = () => {
-        console.log('Separate terminal connected');
+        console.log('Separate terminal connected (plain bash)');
+        // Don't auto-start Claude - this is just a bash terminal
     };
 
     separateWs.onmessage = (event) => {
@@ -196,16 +197,128 @@ async function openFile(path) {
         });
 
         if (response.ok) {
+            // It's a directory
             currentFilePath = path;
             document.getElementById('currentPath').textContent = path;
             const data = await response.json();
             const allItems = [...(data.directories || []), ...(data.files || [])];
             displayFiles(allItems, path);
         } else {
-            console.log('Not a directory, would view file:', path);
+            // It's a file - view it
+            viewFile(path);
         }
     } catch (error) {
         console.error('Error opening file:', error);
+    }
+}
+
+async function viewFile(path) {
+    // Switch to preview tab
+    currentTab = 'preview';
+    Alpine.store('dashboard').switchTab('preview');
+
+    // Update active tab UI
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('.tab:nth-child(3)').classList.add('active');
+
+    const tabContent = document.getElementById('tabContent');
+    const fileExt = path.split('.').pop().toLowerCase();
+    const token = localStorage.getItem('access_token');
+
+    // Show progress bar
+    tabContent.innerHTML = `
+        <div style="padding: 32px; text-align: center;">
+            <div style="color: #888; margin-bottom: 16px;">Loading file...</div>
+            <div style="background: #2d2d2d; border-radius: 8px; overflow: hidden; height: 24px; width: 100%; max-width: 400px; margin: 0 auto;">
+                <div id="progressBar" style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <div id="progressText" style="color: #888; margin-top: 8px; font-size: 13px;">0%</div>
+        </div>
+    `;
+
+    try {
+        const response = await fetch(`/dev/api/read-file?path=${encodeURIComponent(path)}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to load file');
+        }
+
+        const contentLength = response.headers.get('content-length');
+        const total = parseInt(contentLength, 10);
+        let loaded = 0;
+        const reader = response.body.getReader();
+        const chunks = [];
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            chunks.push(value);
+            loaded += value.length;
+
+            if (total) {
+                const percent = Math.round((loaded / total) * 100);
+                const progressBar = document.getElementById('progressBar');
+                const progressText = document.getElementById('progressText');
+                if (progressBar && progressText) {
+                    progressBar.style.width = percent + '%';
+                    progressText.textContent = `${percent}%`;
+                }
+            }
+        }
+
+        const blob = new Blob(chunks);
+        const blobUrl = URL.createObjectURL(blob);
+
+        // Handle different file types
+        if (['png', 'jpg', 'jpeg', 'gif', 'bmp', 'svg', 'webp'].includes(fileExt)) {
+            tabContent.innerHTML = `
+                <div style="padding: 16px; height: 100%; overflow: auto; display: flex; flex-direction: column; align-items: center; background: #1a1a1a;">
+                    <div style="margin-bottom: 12px; width: 100%; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                        <span style="color: #888; font-size: 13px; font-family: monospace; flex: 1; min-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${path}</span>
+                        <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Open in New Tab</button>
+                    </div>
+                    <img src="${blobUrl}" style="max-width: 100%; max-height: 80vh; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);" />
+                </div>
+            `;
+        } else if (['pdf'].includes(fileExt)) {
+            tabContent.innerHTML = `
+                <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
+                    <div style="margin-bottom: 12px;">
+                        <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Open in New Tab</button>
+                    </div>
+                    <iframe src="${blobUrl}" style="flex: 1; border: none; border-radius: 4px;"></iframe>
+                </div>
+            `;
+        } else if (['mp4', 'webm', 'ogg', 'mov'].includes(fileExt)) {
+            tabContent.innerHTML = `
+                <div style="padding: 16px; height: 100%; display: flex; flex-direction: column; align-items: center; background: #1a1a1a;">
+                    <video controls style="max-width: 100%; max-height: 80vh; border-radius: 8px;">
+                        <source src="${blobUrl}" type="video/${fileExt}">
+                    </video>
+                </div>
+            `;
+        } else if (['html', 'htm'].includes(fileExt)) {
+            tabContent.innerHTML = `
+                <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
+                    <iframe src="${blobUrl}" style="flex: 1; border: none; background: white; border-radius: 4px;"></iframe>
+                </div>
+            `;
+        } else {
+            const text = await blob.text();
+            tabContent.innerHTML = `
+                <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
+                    <div style="margin-bottom: 12px;">
+                        <span style="color: #888; font-size: 13px;">${path}</span>
+                    </div>
+                    <pre style="flex: 1; overflow: auto; background: #1a1a1a; color: #f8f8f8; padding: 16px; border-radius: 4px; margin: 0; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.5;">${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                </div>
+            `;
+        }
+    } catch (error) {
+        tabContent.innerHTML = `<div style="padding: 16px; color: #f88;">Failed to load file: ${error.message}</div>`;
     }
 }
 

@@ -477,17 +477,22 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
         await persistent_session.start_broadcast_loop()
 
         # Auto-start Claude ONCE per session (not once per client)
+        # Skip auto-start for terminal tab sessions (they should be plain bash)
         # Use lock to prevent race conditions when multiple clients connect simultaneously
-        async with persistent_session.claude_start_lock:
-            if not persistent_session.claude_started:
-                print("[DEBUG] Auto-starting Claude for this session...")
-                # Wait for terminal to fully initialize
-                await asyncio.sleep(1.5)
-                # Source shell profile to load PATH, then start claude
-                # Try .zshrc first (macOS default), fallback to .bashrc
-                persistent_session.write("source ~/.zshrc 2>/dev/null || source ~/.bashrc 2>/dev/null; exec claude\n")
-                persistent_session.claude_started = True
-                print("[DEBUG] Claude command sent with shell profile loaded")
+        is_terminal_tab = session_id.startswith('terminal_tab_')
+        if not is_terminal_tab:
+            async with persistent_session.claude_start_lock:
+                if not persistent_session.claude_started:
+                    print("[DEBUG] Auto-starting Claude for this session...")
+                    # Wait for terminal to fully initialize
+                    await asyncio.sleep(1.5)
+                    # Source shell profile to load PATH, then start claude
+                    # Try .zshrc first (macOS default), fallback to .bashrc
+                    persistent_session.write("source ~/.zshrc 2>/dev/null || source ~/.bashrc 2>/dev/null; exec claude\n")
+                    persistent_session.claude_started = True
+                    print("[DEBUG] Claude command sent with shell profile loaded")
+        else:
+            print("[DEBUG] Terminal tab session - skipping Claude auto-start")
 
         # Handle messages from this specific client
         async def handle_client_messages():

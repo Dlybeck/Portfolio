@@ -90,3 +90,24 @@ function changeDirectory() {
     localStorage.removeItem('working_directory');
     window.location.href = '/dev';
 }
+
+// Kill session function - force restart when Claude is stuck
+function killSession() {
+    if (confirm('Kill current session and restart? This will terminate any running processes.')) {
+        // Close WebSocket
+        shouldReconnect = false;
+        if (window.ws) {
+            window.ws.close();
+        }
+
+        // Clear terminal
+        if (window.term) {
+            window.term.clear();
+        }
+
+        // Force reload page to create new session
+        setTimeout(() => {
+            location.reload();
+        }, 100);
+    }
+}

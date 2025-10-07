@@ -284,12 +284,14 @@ async function viewFile(path) {
                 </div>
             `;
         } else if (['pdf'].includes(fileExt)) {
+            // PDF - use embed instead of iframe for better compatibility
             tabContent.innerHTML = `
                 <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
                     <div style="margin-bottom: 12px;">
                         <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Open in New Tab</button>
+                        <span style="color: #888; margin-left: 12px; font-size: 13px;">${path}</span>
                     </div>
-                    <iframe src="${blobUrl}" style="flex: 1; border: none; border-radius: 4px;"></iframe>
+                    <embed src="${blobUrl}#toolbar=1&navpanes=0" type="application/pdf" style="flex: 1; border: none; border-radius: 4px; background: white;" />
                 </div>
             `;
         } else if (['mp4', 'webm', 'ogg', 'mov'].includes(fileExt)) {

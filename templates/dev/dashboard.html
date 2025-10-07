@@ -62,6 +62,7 @@
             </span>
 
             <span class="hide-mobile">👤 {{ user.username }}</span>
+            <button class="btn-logout" @click="killSession()" style="background: #dc3545; margin-right: 8px;" title="Kill stuck session & restart">💀</button>
             <button class="btn-logout" @click="changeDirectory()" style="background: #667eea; margin-right: 8px;">📁</button>
             <button class="btn-logout" @click="logout()">Logout</button>
         </div>

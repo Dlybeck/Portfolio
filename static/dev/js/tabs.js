@@ -284,14 +284,17 @@ async function viewFile(path) {
                 </div>
             `;
         } else if (['pdf'].includes(fileExt)) {
-            // PDF - use embed instead of iframe for better compatibility
+            // PDF - browsers don't support blob URLs in embed/iframe, must open in new tab
             tabContent.innerHTML = `
-                <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
-                    <div style="margin-bottom: 12px;">
-                        <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Open in New Tab</button>
-                        <span style="color: #888; margin-left: 12px; font-size: 13px;">${path}</span>
+                <div style="padding: 32px; text-align: center;">
+                    <div style="color: #888; margin-bottom: 24px; font-size: 18px;">📄 PDF File</div>
+                    <div style="color: #ccc; margin-bottom: 24px; font-size: 14px;">${path}</div>
+                    <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600;">
+                        Open PDF in New Tab
+                    </button>
+                    <div style="color: #666; margin-top: 16px; font-size: 12px;">
+                        Note: PDFs must be opened in a new tab due to browser security restrictions
                     </div>
-                    <embed src="${blobUrl}#toolbar=1&navpanes=0" type="application/pdf" style="flex: 1; border: none; border-radius: 4px; background: white;" />
                 </div>
             `;
         } else if (['mp4', 'webm', 'ogg', 'mov'].includes(fileExt)) {

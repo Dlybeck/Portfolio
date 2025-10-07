@@ -105,9 +105,9 @@ function killSession() {
             window.term.clear();
         }
 
-        // Force reload page to create new session
+        // Force NEW session by adding timestamp to URL
         setTimeout(() => {
-            location.reload();
+            window.location.href = window.location.pathname + '?new_session=' + Date.now();
         }, 100);
     }
 }

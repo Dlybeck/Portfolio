@@ -15,8 +15,13 @@ function connectWebSocket() {
         return;
     }
 
+    // Force new session if requested via URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const newSessionParam = urlParams.get('new_session');
+    const sessionParam = newSessionParam ? `&session=session_${newSessionParam}` : '';
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/dev/ws/terminal?cwd=${encodeURIComponent(workingDir)}&token=${encodeURIComponent(token)}`;
+    const wsUrl = `${protocol}//${window.location.host}/dev/ws/terminal?cwd=${encodeURIComponent(workingDir)}&token=${encodeURIComponent(token)}${sessionParam}`;
 
     ws = new WebSocket(wsUrl);
 

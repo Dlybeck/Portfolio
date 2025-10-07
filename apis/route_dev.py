@@ -451,14 +451,21 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
         return
 
     # Mac: Execute terminal locally with persistent session
-    # Use fixed session ID for persistent session across devices
-    session_id = "user_main_session"
+    # Check if client requested a new session (e.g., after kill button)
+    session_param = request.query_params.get('session', None)
+
+    if session_param:
+        # Use custom session ID from client (for forced new sessions)
+        session_id = session_param
+    else:
+        # Default: One main session for the user
+        session_id = "user_main_session"
 
     # Expand working directory
     working_dir = os.path.expanduser(cwd)
 
     try:
-        # Get or create THE persistent session (shared across all devices)
+        # Get or create persistent session
         persistent_session = get_or_create_persistent_session(
             session_id=session_id,
             working_dir=working_dir,

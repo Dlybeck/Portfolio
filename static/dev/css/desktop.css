@@ -1,0 +1,22 @@
+/* Desktop Enhancements */
+
+@media (min-width: 769px) {
+    .main-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Side-by-side */
+    }
+
+    .terminal-section,
+    .preview-section {
+        position: static !important;
+        display: flex !important; /* Both visible on desktop */
+    }
+
+    .swipe-hint {
+        display: none; /* No swipe on desktop */
+    }
+
+    body[data-view="preview"] .terminal-section {
+        display: flex !important; /* Override mobile hiding */
+    }
+}

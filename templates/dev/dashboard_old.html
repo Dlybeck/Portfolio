@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dev Dashboard - Claude Code</title>
+    <link rel="stylesheet" href="/static/css/dev-theme.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+    <style>
+        :root {
+            /* Dark theme (default) */
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #383838;
+            --border-color: #404040;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-muted: #888888;
+            --accent-color: #4d9fcc; /* Blue instead of purple */
+            --accent-hover: #5dafdc;
+            --success-color: #00ff00;
+            --danger-color: #dc3545;
+            --warning-color: #ffa500;
+        }
+
+        body.light-theme {
+            /* Light theme */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --bg-tertiary: #e0c8ab; /* Beige/tan like main site */
+            --border-color: #d0d0d0;
+            --text-primary: #000000;
+            --text-secondary: #333333;
+            --text-muted: #666666;
+            --accent-color: #006699; /* Blue from main site */
+            --accent-hover: #004477;
+            --success-color: #00aa00;
+            --danger-color: #dc3545;
+            --warning-color: #ff8800;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            height: 100dvh; /* Dynamic viewport height for mobile */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .icon-btn {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: var(--border-color);
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            transition: background 0.3s;
+        }
+
+        .status-dot.connected {
+            background: var(--success-color);
+        }
+
+        .status-dot.disconnected {
+            background: var(--danger-color);
+        }
+
+        .status-dot.reconnecting {
+            background: var(--warning-color);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .connection-banner {
+            background: var(--warning-color);
+            color: #000;
+            padding: 8px 16px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+
+        .btn-logout {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .terminal-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #404040;
+        }
+
+        .terminal-header {
+            background: #2d2d2d;
+            padding: 8px 12px;
+            border-bottom: 1px solid #404040;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .terminal-container {
+            flex: 1;
+            padding: 8px;
+            overflow: hidden;
+        }
+
+        #terminal {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Enable text selection on mobile */
+        @media (max-width: 768px) {
+            .terminal-container,
+            #terminal,
+            .xterm,
+            .xterm-screen {
+                user-select: text !important;
+                -webkit-user-select: text !important;
+                -moz-user-select: text !important;
+            }
+        }
+
+        .preview-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-tabs {
+            display: flex;
+            background: #2d2d2d;
+            border-bottom: 1px solid #404040;
+        }
+
+        .tab {
+            padding: 10px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-size: 13px;
+        }
+
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow: auto;
+            padding: 16px;
+        }
+
+        .placeholder {
+            text-align: center;
+            color: #666;
+            padding: 40px 20px;
+            font-size: 14px;
+        }
+
+        /* Mobile - Data-driven visibility (failsafe design) */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                position: relative;
+            }
+
+            .terminal-section,
+            .preview-section {
+                width: 100%;
+                flex: 1;
+                border: none;
+            }
+
+            /* DEFAULT: Terminal visible, preview hidden */
+            .terminal-section {
+                display: flex;
+            }
+
+            .preview-section {
+                display: none;
+            }
+
+            /* PREVIEW MODE: Show preview, hide terminal */
+            body[data-view="preview"] .terminal-section {
+                display: none;
+            }
+
+            body[data-view="preview"] .preview-section {
+                display: flex;
+            }
+
+            /* View indicator */
+            .main-container::after {
+                content: attr(data-hint);
+                position: absolute;
+                bottom: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                color: #666;
+                font-size: 11px;
+                pointer-events: none;
+                opacity: 0.4;
+                z-index: 1;
+                padding: 4px 12px;
+                background: rgba(0,0,0,0.3);
+                border-radius: 12px;
+            }
+        }
+
+        /* Connection status */
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .status-indicator.connected {
+            background: #0f0;
+        }
+
+        /* ========== SWIPEABLE MOBILE TOOLBAR ========== */
+        .swipe-toolbar {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 0 6px 0;
+            overflow: hidden;
+            display: none; /* Hidden by default, shown on mobile */
+            flex-shrink: 0;
+        }
+
+        .swipe-container {
+            display: flex;
+            transition: transform 0.3s ease;
+            width: 200%; /* 2 pages */
+        }
+
+        .swipe-page {
+            width: 50%; /* Each page takes half of container */
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 16px;
+            flex-shrink: 0;
+        }
+
+        .shortcut-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            min-width: 60px;
+            transition: transform 0.1s, background 0.2s;
+        }
+
+        .shortcut-btn:active {
+            transform: scale(0.95);
+        }
+
+        .shortcut-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-icon {
+            font-size: 16px;
+        }
+
+        .btn-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* Arrow keys in single row */
+        .arrow-row {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .arrow-row .shortcut-btn {
+            min-width: 50px;
+            padding: 6px 10px;
+        }
+
+        .arrow-row .btn-icon {
+            font-size: 18px;
+        }
+
+        /* Page indicators */
+        .page-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .page-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border-color);
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .page-dot.active {
+            background: var(--accent-color);
+            transform: scale(1.3);
+        }
+
+        /* Mobile - Show toolbar */
+        @media (max-width: 768px) {
+            .swipe-toolbar {
+                display: block;
+            }
+
+            .hide-mobile {
+                display: none !important;
+            }
+
+            .header {
+                padding: 8px 12px;
+            }
+
+            .header-right {
+                gap: 6px;
+            }
+
+            .icon-btn {
+                padding: 4px 8px;
+                font-size: 13px;
+            }
+
+            .btn-logout {
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+
+            .connection-status {
+                padding: 4px 6px;
+            }
+        }
+
+        /* Desktop - Hide toolbar */
+        @media (min-width: 769px) {
+            .swipe-toolbar {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body data-view="terminal">
+    <div class="header">
+        <h1 class="hide-mobile">🤖 Claude Code Terminal</h1>
+        <div class="header-right">
+            <button class="icon-btn hide-mobile" onclick="decreaseFontSize()" title="Decrease font size">A-</button>
+            <button class="icon-btn hide-mobile" onclick="increaseFontSize()" title="Increase font size">A+</button>
+            <button class="icon-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+            <button class="icon-btn" id="soundToggle" onclick="toggleSound()" title="Toggle notification sound">🔔</button>
+            <span class="connection-status" id="connectionStatus">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText" class="hide-mobile">Connecting...</span>
+            </span>
+            <span class="hide-mobile">👤 {{ user.username }}</span>
+            <button class="btn-logout" onclick="changeDirectory()" style="background: #667eea; margin-right: 8px;">📁</button>
+            <button class="btn-logout" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- Connection Banner (shown when disconnected) -->
+    <div class="connection-banner" id="connectionBanner" style="display: none;">
+        <span id="bannerText">Disconnected - Attempting to reconnect...</span>
+    </div>
+
+    <!-- Mobile Swipeable Keyboard Shortcuts Toolbar -->
+    <div class="swipe-toolbar" id="swipeToolbar">
+        <div class="swipe-container" id="swipeContainer">
+            <!-- Page 1: Claude & Control Keys -->
+            <div class="swipe-page active">
+                <button class="shortcut-btn" onclick="sendKey('\t')" title="Tab - Auto-complete">
+                    <span class="btn-icon">⇥</span>
+                    <span class="btn-label">Tab</span>
+                </button>
+                <button class="shortcut-btn" onclick="sendKey('\x1b\t')" title="Shift+Tab - Toggle Claude mode">
+                    <span class="btn-icon">🔄</span>
+                    <span class="btn-label">S+Tab</span>
+                </button>
+                <button class="shortcut-btn" onclick="sendKey('\x03')" title="Ctrl+C - Cancel">
+                    <span class="btn-icon">⛔</span>
+                    <span class="btn-label">^C</span>
+                </button>
+                <button class="shortcut-btn" onclick="copyTerminal()" title="Copy selected text">
+                    <span class="btn-icon">📋</span>
+                    <span class="btn-label">Copy</span>
+                </button>
+            </div>
+
+            <!-- Page 2: Arrow Keys -->
+            <div class="swipe-page">
+                <div class="arrow-row">
+                    <button class="shortcut-btn" onclick="sendKey('\x1b[D')" title="Left Arrow">
+                        <span class="btn-icon">←</span>
+                    </button>
+                    <button class="shortcut-btn" onclick="sendKey('\x1b[A')" title="Up Arrow">
+                        <span class="btn-icon">↑</span>
+                    </button>
+                    <button class="shortcut-btn" onclick="sendKey('\x1b[B')" title="Down Arrow">
+                        <span class="btn-icon">↓</span>
+                    </button>
+                    <button class="shortcut-btn" onclick="sendKey('\x1b[C')" title="Right Arrow">
+                        <span class="btn-icon">→</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Indicators -->
+        <div class="page-indicators">
+            <span class="page-dot active" onclick="switchToolbarPage(0)"></span>
+            <span class="page-dot" onclick="switchToolbarPage(1)"></span>
+        </div>
+    </div>
+
+    <div class="main-container" data-hint="← Swipe →">
+        <!-- Terminal Section (Left/Top 50%) -->
+        <div class="terminal-section">
+            <div class="terminal-header">
+                Claude Code Session
+            </div>
+            <div class="terminal-container">
+                <div id="terminal"></div>
+            </div>
+        </div>
+
+        <!-- Preview Section (Right/Bottom 50%) -->
+        <div class="preview-section">
+            <div class="preview-tabs">
+                <div class="tab active" onclick="switchTab(event, 'files')">Files</div>
+                <div class="tab" onclick="switchTab(event, 'terminal')">Terminal</div>
+                <div class="tab" onclick="switchTab(event, 'preview')">Preview</div>
+                <div class="tab" onclick="switchTab(event, 'logs')">Logs</div>
+            </div>
+
+            <div class="tab-content" id="tabContent">
+                <div class="placeholder">
+                    Preview will appear here when Claude generates HTML, images, or other viewable content...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auth check
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            window.location.href = '/dev/login';
+        }
+
+        // Initialize xterm.js
+        const term = new Terminal({
+            cursorBlink: true,
+            fontSize: 14,
+            fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+            theme: {
+                background: '#1a1a1a',
+                foreground: '#f8f8f8',
+                cursor: '#f8f8f8',
+                black: '#000000',
+                red: '#cd0000',
+                green: '#00cd00',
+                yellow: '#cdcd00',
+                blue: '#0000ee',
+                magenta: '#cd00cd',
+                cyan: '#00cdcd',
+                white: '#e5e5e5',
+                brightBlack: '#7f7f7f',
+                brightRed: '#ff0000',
+                brightGreen: '#00ff00',
+                brightYellow: '#ffff00',
+                brightBlue: '#5c5cff',
+                brightMagenta: '#ff00ff',
+                brightCyan: '#00ffff',
+                brightWhite: '#ffffff'
+            }
+        });
+
+        const fitAddon = new FitAddon.FitAddon();
+        term.loadAddon(fitAddon);
+
+        term.open(document.getElementById('terminal'));
+        fitAddon.fit();
+
+        // Get selected working directory
+        const workingDir = localStorage.getItem('working_directory') || '~';
+
+        // WebSocket connection with auto-reconnect
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/dev/ws/terminal?cwd=${encodeURIComponent(workingDir)}&token=${encodeURIComponent(token)}`;
+        let ws;
+        let reconnectAttempts = 0;
+        const maxReconnectDelay = 30000; // 30 seconds max
+        let shouldReconnect = true;
+
+        function connectWebSocket() {
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('Terminal connected');
+                updateConnectionStatus('connected');
+                reconnectAttempts = 0;
+
+                // Note: Backend now auto-starts Claude for first client
+                // No need to send claude command here anymore
+            };
+
+            // Throttle tab updates to prevent jitter
+            let tabUpdatePending = false;
+
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                if (message.type === 'output') {
+                    term.write(message.data);
+
+                    // Capture output for tabs (keep last 50KB)
+                    terminalOutput += message.data;
+                    if (terminalOutput.length > 50000) {
+                        terminalOutput = terminalOutput.slice(-50000);
+                    }
+
+                    // Throttled tab update using requestAnimationFrame
+                    if (currentTab === 'logs' && !tabUpdatePending) {
+                        tabUpdatePending = true;
+                        requestAnimationFrame(() => {
+                            updateTabContent();
+                            tabUpdatePending = false;
+                        });
+                    }
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('Terminal disconnected');
+                updateConnectionStatus('disconnected');
+                term.write('\r\n\x1b[33mConnection lost. Reconnecting...\x1b[0m\r\n');
+
+                // Auto-reconnect with exponential backoff
+                if (shouldReconnect) {
+                    attemptReconnect();
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        // Initial connection
+        connectWebSocket();
+
+        // Visibility API - keep connection alive when tab is hidden
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                console.log('[Visibility] Tab hidden - connection stays alive');
+                // Keep WebSocket connection alive even when tab is hidden
+            } else {
+                console.log('[Visibility] Tab visible');
+                // If connection lost while hidden, reconnect now
+                if (!ws || ws.readyState !== WebSocket.OPEN) {
+                    console.log('[Visibility] Reconnecting on tab visible...');
+                    connectWebSocket();
+                }
+            }
+        });
+
+        // Prevent disconnection on mobile when swiping away
+        window.addEventListener('pagehide', (event) => {
+            if (event.persisted) {
+                console.log('[PageHide] Page hidden but persisted - keeping connection');
+                // Page is being cached (mobile), keep connection alive
+            }
+        });
+
+        // Only truly disconnect when page is being unloaded
+        window.addEventListener('beforeunload', () => {
+            console.log('[BeforeUnload] Page closing - allowing disconnect');
+            shouldReconnect = false;
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+        });
+
+        // Send input to terminal
+        term.onData((data) => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({type: 'input', data}));
+            }
+        });
+
+        // Handle terminal resize
+        function resizeTerminal() {
+            fitAddon.fit();
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'resize',
+                    rows: term.rows,
+                    cols: term.cols
+                }));
+            }
+        }
+
+        window.addEventListener('resize', resizeTerminal);
+
+        // Mobile view switching removed - use tab buttons instead
+        // Swipe gestures were causing connection issues on mobile
+        // Users should use the tab buttons to switch between views
+
+        // State for tabs
+        let terminalOutput = '';
+        let currentTab = 'files';
+        let currentFilePath = localStorage.getItem('working_directory') || '~';
+
+        // Tab switching
+        function switchTab(event, tabName) {
+            currentTab = tabName;
+
+            // Update active tab
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            updateTabContent();
+        }
+
+        function updateTabContent() {
+            const tabContent = document.getElementById('tabContent');
+            const workingDir = localStorage.getItem('working_directory') || '~';
+
+            switch(currentTab) {
+                case 'files':
+                    // Interactive file browser
+                    loadFileBrowser(currentFilePath);
+                    break;
+
+                case 'terminal':
+                    // Separate terminal instance (not Claude)
+                    initSeparateTerminal();
+                    break;
+
+                case 'preview':
+                    // Look for HTML or image content in terminal output
+                    const htmlMatch = terminalOutput.match(/<html[\s\S]*<\/html>/i);
+                    if (htmlMatch) {
+                        const iframe = document.createElement('iframe');
+                        iframe.style.width = '100%';
+                        iframe.style.height = '100%';
+                        iframe.style.border = 'none';
+                        tabContent.innerHTML = '';
+                        tabContent.appendChild(iframe);
+                        iframe.contentDocument.write(htmlMatch[0]);
+                    } else {
+                        tabContent.innerHTML = '<div class="placeholder">Preview will appear here when Claude generates HTML or images...</div>';
+                    }
+                    break;
+
+                case 'logs':
+                    // Show terminal output log with ANSI codes removed
+                    const cleanLogs = terminalOutput.replace(/\x1b\[[0-9;]*m/g, '');
+                    tabContent.innerHTML = '<pre style="padding: 16px; overflow: auto; background: #1a1a1a; color: #f8f8f8; font-size: 12px; height: 100%;">' +
+                        (cleanLogs || 'No output yet...') + '</pre>';
+                    break;
+            }
+        }
+
+        // Separate terminal instance management
+        let separateTerminal = null;
+        let separateWs = null;
+        let separateFitAddon = null;
+
+        function initSeparateTerminal() {
+            const tabContent = document.getElementById('tabContent');
+
+            // If terminal already exists, just show it
+            if (separateTerminal && separateWs && separateWs.readyState === WebSocket.OPEN) {
+                tabContent.innerHTML = '<div id="separateTerminalContainer" style="width: 100%; height: 100%;"></div>';
+                const container = document.getElementById('separateTerminalContainer');
+                separateTerminal.open(container);
+                separateFitAddon.fit();
+                separateTerminal.focus(); // Auto-focus for typing
+                return;
+            }
+
+            // Create terminal container
+            tabContent.innerHTML = '<div id="separateTerminalContainer" style="width: 100%; height: 100%;"></div>';
+            const container = document.getElementById('separateTerminalContainer');
+
+            // Clean up existing terminal if it exists
+            if (separateTerminal) {
+                separateTerminal.dispose();
+            }
+            if (separateWs && separateWs.readyState === WebSocket.OPEN) {
+                separateWs.close();
+            }
+
+            // Create new terminal instance
+            separateFitAddon = new FitAddon.FitAddon();
+            separateTerminal = new Terminal({
+                cursorBlink: true,
+                fontSize: 14,
+                fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+                theme: {
+                    background: '#1a1a1a',
+                    foreground: '#f8f8f8',
+                    cursor: '#f8f8f8',
+                    black: '#000000',
+                    red: '#cd0000',
+                    green: '#00cd00',
+                    yellow: '#cdcd00',
+                    blue: '#0000ee',
+                    magenta: '#cd00cd',
+                    cyan: '#00cdcd',
+                    white: '#e5e5e5',
+                    brightBlack: '#7f7f7f',
+                    brightRed: '#ff0000',
+                    brightGreen: '#00ff00',
+                    brightYellow: '#ffff00',
+                    brightBlue: '#5c5cff',
+                    brightMagenta: '#ff00ff',
+                    brightCyan: '#00ffff',
+                    brightWhite: '#ffffff'
+                }
+            });
+
+            separateTerminal.loadAddon(separateFitAddon);
+            separateTerminal.open(container);
+            separateFitAddon.fit();
+            separateTerminal.focus(); // Auto-focus for typing
+
+            // Create WebSocket connection with unique session ID
+            const workingDir = localStorage.getItem('working_directory') || '~';
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const sessionId = 'terminal_tab_' + Date.now();
+            const token = localStorage.getItem('access_token');
+            const wsUrl = `${protocol}//${window.location.host}/dev/ws/terminal?cwd=${encodeURIComponent(workingDir)}&session=${sessionId}&token=${encodeURIComponent(token)}`;
+            separateWs = new WebSocket(wsUrl);
+
+            separateWs.onopen = () => {
+                console.log('Separate terminal connected');
+                // Don't auto-start Claude - just leave as bash
+            };
+
+            separateWs.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'output') {
+                    separateTerminal.write(data.data);
+                }
+            };
+
+            separateWs.onerror = (error) => {
+                console.error('Separate terminal WebSocket error:', error);
+            };
+
+            separateWs.onclose = () => {
+                console.log('Separate terminal disconnected');
+            };
+
+            // Send input to terminal
+            separateTerminal.onData((data) => {
+                if (separateWs.readyState === WebSocket.OPEN) {
+                    separateWs.send(JSON.stringify({type: 'input', data}));
+                }
+            });
+
+            // Handle resize
+            const resizeObserver = new ResizeObserver(() => {
+                if (separateFitAddon && currentTab === 'terminal') {
+                    separateFitAddon.fit();
+                    if (separateWs && separateWs.readyState === WebSocket.OPEN) {
+                        separateWs.send(JSON.stringify({
+                            type: 'resize',
+                            rows: separateTerminal.rows,
+                            cols: separateTerminal.cols
+                        }));
+                    }
+                }
+            });
+            resizeObserver.observe(container);
+        }
+
+        async function loadFileBrowser(path) {
+            const tabContent = document.getElementById('tabContent');
+            const token = localStorage.getItem('access_token');
+
+            tabContent.innerHTML = `
+                <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
+                    <div style="margin-bottom: 12px;">
+                        <button onclick="navigateUp()" style="background: #444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-right: 8px;">⬆️ Up</button>
+                        <span style="color: #888; font-family: monospace; font-size: 13px;" id="currentPath">${path}</span>
+                    </div>
+                    <div id="fileList" style="flex: 1; overflow-y: auto; background: #2d2d2d; border-radius: 4px; padding: 8px;">
+                        <div style="color: #888; text-align: center; padding: 20px;">Loading...</div>
+                    </div>
+                    <div id="fileViewer" style="display: none; flex: 1; overflow-y: auto; background: #1a1a1a; border-radius: 4px; padding: 12px; margin-top: 8px;">
+                        <button onclick="closeFileViewer()" style="background: #444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-bottom: 8px;">← Back</button>
+                        <pre id="fileContent" style="color: #f8f8f8; font-size: 12px; white-space: pre-wrap; word-wrap: break-word;"></pre>
+                    </div>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/dev/api/list-directory', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ path })
+                });
+
+                const data = await response.json();
+                console.log('[DEBUG] Directory data:', data);
+                console.log('[DEBUG] Directories:', data.directories?.length || 0, data.directories);
+                console.log('[DEBUG] Files:', data.files?.length || 0, data.files);
+                // Combine directories and files for display
+                const allItems = [...(data.directories || []), ...(data.files || [])];
+                console.log('[DEBUG] Total items to display:', allItems.length, allItems);
+                displayFiles(allItems, path);
+            } catch (error) {
+                document.getElementById('fileList').innerHTML = '<div style="color: #f88; padding: 20px;">Error loading files</div>';
+            }
+        }
+
+        function displayFiles(files, path) {
+            console.log('displayFiles called with', files.length, 'items');
+            const fileList = document.getElementById('fileList');
+
+            if (!fileList) {
+                console.error('[ERROR] fileList element not found!');
+                return;
+            }
+
+            if (files.length === 0) {
+                fileList.innerHTML = '<div style="color: #888; padding: 20px;">No files or folders</div>';
+                return;
+            }
+
+            console.log('[DEBUG] About to render', files.length, 'files');
+            fileList.innerHTML = files.map(file => {
+                const icon = file.type === 'directory' ? '📁' : '📄';
+                console.log('Item:', file.name, 'Type:', file.type, 'Icon:', icon);
+                return `
+                    <div onclick="openFile('${file.path}')" style="padding: 8px 12px; margin: 4px 0; background: #383838; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.2s;"
+                         onmouseover="this.style.background='#444'" onmouseout="this.style.background='#383838'">
+                        <span style="font-size: 16px;">${icon}</span>
+                        <span style="color: #f8f8f8; font-size: 14px;">${file.name}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function openFile(path) {
+            // Check if it's a directory or file by trying to list it
+            const token = localStorage.getItem('access_token');
+
+            try {
+                const response = await fetch('/dev/api/list-directory', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ path })
+                });
+
+                if (response.ok) {
+                    // It's a directory
+                    currentFilePath = path;
+                    document.getElementById('currentPath').textContent = path;
+                    const data = await response.json();
+                    // Combine directories and files for display
+                    const allItems = [...(data.directories || []), ...(data.files || [])];
+                    displayFiles(allItems, path);
+                } else {
+                    // It's a file - view it
+                    viewFile(path);
+                }
+            } catch (error) {
+                console.error('Error opening file:', error);
+            }
+        }
+
+        async function viewFile(path) {
+            // Switch to preview tab
+            const previewTab = document.querySelector('.tab:nth-child(3)'); // Preview tab
+            previewTab.click();
+
+            const tabContent = document.getElementById('tabContent');
+            const fileExt = path.split('.').pop().toLowerCase();
+            const token = localStorage.getItem('access_token');
+
+            // Show progress bar
+            tabContent.innerHTML = `
+                <div style="padding: 32px; text-align: center;">
+                    <div style="color: #888; margin-bottom: 16px;">Loading file...</div>
+                    <div style="background: #2d2d2d; border-radius: 8px; overflow: hidden; height: 24px; width: 100%; max-width: 400px; margin: 0 auto;">
+                        <div id="progressBar" style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                    <div id="progressText" style="color: #888; margin-top: 8px; font-size: 13px;">0%</div>
+                </div>
+            `;
+
+            try {
+                // Fetch file from API endpoint with progress tracking
+                const response = await fetch(`/dev/api/read-file?path=${encodeURIComponent(path)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load file');
+                }
+
+                // Get total file size
+                const contentLength = response.headers.get('content-length');
+                const total = parseInt(contentLength, 10);
+
+                let loaded = 0;
+                const reader = response.body.getReader();
+                const chunks = [];
+
+                // Read stream with progress
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    chunks.push(value);
+                    loaded += value.length;
+
+                    // Update progress
+                    if (total) {
+                        const percent = Math.round((loaded / total) * 100);
+                        const progressBar = document.getElementById('progressBar');
+                        const progressText = document.getElementById('progressText');
+                        if (progressBar && progressText) {
+                            progressBar.style.width = percent + '%';
+                            progressText.textContent = `${percent}% (${(loaded / 1024 / 1024).toFixed(1)} MB / ${(total / 1024 / 1024).toFixed(1)} MB)`;
+                        }
+                    }
+                }
+
+                // Reconstruct blob from chunks
+                const blob = new Blob(chunks);
+                const blobUrl = URL.createObjectURL(blob);
+
+                // Handle different file types
+                if (['png', 'jpg', 'jpeg', 'gif', 'bmp', 'svg', 'webp'].includes(fileExt)) {
+                    // Image files
+                    tabContent.innerHTML = `
+                        <div style="padding: 16px; height: 100%; overflow: auto; display: flex; flex-direction: column; align-items: center; background: #1a1a1a;">
+                            <div style="margin-bottom: 12px; width: 100%; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                                <span style="color: #888; font-size: 13px; font-family: monospace; flex: 1; min-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${path}</span>
+                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">Open in New Tab</button>
+                            </div>
+                            <img src="${blobUrl}" style="max-width: 100%; max-height: 80vh; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);" />
+                        </div>
+                    `;
+                } else if (['pdf'].includes(fileExt)) {
+                    // PDF files
+                    tabContent.innerHTML = `
+                        <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
+                            <div style="margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">Open in New Tab</button>
+                                <span style="color: #888; font-size: 13px; font-family: monospace; flex: 1; min-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${path}</span>
+                            </div>
+                            <iframe src="${blobUrl}" style="flex: 1; border: none; border-radius: 4px;"></iframe>
+                        </div>
+                    `;
+                } else if (['mp4', 'webm', 'ogg', 'mov'].includes(fileExt)) {
+                    // Video files
+                    tabContent.innerHTML = `
+                        <div style="padding: 16px; height: 100%; display: flex; flex-direction: column; align-items: center; background: #1a1a1a;">
+                            <div style="margin-bottom: 12px; width: 100%; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">Open in New Tab</button>
+                                <span style="color: #888; font-size: 13px; font-family: monospace; flex: 1; min-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${path}</span>
+                            </div>
+                            <video controls style="max-width: 100%; max-height: 80vh; border-radius: 8px;">
+                                <source src="${blobUrl}" type="video/${fileExt}">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    `;
+                } else if (['html', 'htm'].includes(fileExt)) {
+                    // HTML files
+                    tabContent.innerHTML = `
+                        <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
+                            <div style="margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">Open in New Tab</button>
+                                <span style="color: #888; font-size: 13px; font-family: monospace; flex: 1; min-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${path}</span>
+                            </div>
+                            <iframe src="${blobUrl}" style="flex: 1; border: none; background: white; border-radius: 4px;"></iframe>
+                        </div>
+                    `;
+                } else {
+                    // Text-based files - display as text
+                    const text = await blob.text();
+                    const fileName = path.split('/').pop();
+                    tabContent.innerHTML = `
+                        <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
+                            <div style="margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                                <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">Open in New Tab</button>
+                                <span style="color: #888; font-size: 13px; font-family: monospace; flex: 1; min-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${path}</span>
+                            </div>
+                            <pre style="flex: 1; overflow: auto; background: #1a1a1a; color: #f8f8f8; padding: 16px; border-radius: 4px; margin: 0; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.5;">${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                tabContent.innerHTML = `<div style="padding: 16px; color: #f88;">Failed to load file: ${error.message}</div>`;
+            }
+        }
+
+        function navigateUp() {
+            const token = localStorage.getItem('access_token');
+            fetch('/dev/api/parent-directory', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ path: currentFilePath })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.parent) {
+                    currentFilePath = data.parent;
+                    loadFileBrowser(data.parent);
+                }
+            });
+        }
+
+        function closeFileViewer() {
+            document.getElementById('fileViewer').style.display = 'none';
+            document.getElementById('fileList').style.display = 'block';
+        }
+
+        function changeDirectory() {
+            // Clear working directory and go back to selector
+            localStorage.removeItem('working_directory');
+            window.location.href = '/dev';
+        }
+
+        function logout() {
+            const token = localStorage.getItem('access_token');
+
+            fetch('/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            }).catch(err => console.error('Logout error:', err));
+
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('working_directory');
+            window.location.href = '/dev/login';
+        }
+
+        // Auto-refresh token
+        setInterval(async () => {
+            const refreshToken = localStorage.getItem('refresh_token');
+            if (refreshToken) {
+                try {
+                    const response = await fetch('/auth/refresh', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ refresh_token: refreshToken })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        localStorage.setItem('access_token', data.access_token);
+                        localStorage.setItem('refresh_token', data.refresh_token);
+                    }
+                } catch (error) {
+                    console.error('Token refresh failed:', error);
+                }
+            }
+        }, 25 * 60 * 1000);
+
+        // ========== THEME TOGGLE ==========
+        function loadTheme() {
+            const theme = localStorage.getItem('theme') || 'dark';
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+                document.getElementById('themeToggle').textContent = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-theme');
+            const isLight = document.body.classList.contains('light-theme');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            document.getElementById('themeToggle').textContent = isLight ? '☀️' : '🌙';
+            vibrate(10);
+        }
+
+        // ========== FONT SIZE ==========
+        let currentFontSize = parseInt(localStorage.getItem('fontSize')) || 14;
+
+        function updateFontSize() {
+            term.options.fontSize = currentFontSize;
+            fitAddon.fit();
+            localStorage.setItem('fontSize', currentFontSize);
+        }
+
+        function increaseFontSize() {
+            if (currentFontSize < 20) {
+                currentFontSize++;
+                updateFontSize();
+                vibrate(10);
+            }
+        }
+
+        function decreaseFontSize() {
+            if (currentFontSize > 10) {
+                currentFontSize--;
+                updateFontSize();
+                vibrate(10);
+            }
+        }
+
+        // ========== SESSION PERSISTENCE ==========
+        function saveSession() {
+            const sessionData = {
+                terminalOutput: terminalOutput,
+                currentTab: currentTab,
+                fontSize: currentFontSize,
+                theme: localStorage.getItem('theme'),
+                workingDir: localStorage.getItem('working_directory'),
+                filePath: currentFilePath,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('session', JSON.stringify(sessionData));
+        }
+
+        function loadSession() {
+            try {
+                const session = JSON.parse(localStorage.getItem('session'));
+                if (session && (Date.now() - session.timestamp) < 24 * 60 * 60 * 1000) { // 24 hours
+                    terminalOutput = session.terminalOutput || '';
+                    currentTab = session.currentTab || 'files';
+                    currentFontSize = session.fontSize || 14;
+
+                    // Restore UI
+                    if (terminalOutput) {
+                        updateTabContent();
+                        showNotification('Session Restored', 'success');
+                    }
+                }
+            } catch (e) {
+                console.error('Session load failed:', e);
+            }
+        }
+
+        // Save session every 30 seconds
+        setInterval(saveSession, 30000);
+
+        // ========== NOTIFICATION SOUND ==========
+        let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('soundEnabled', soundEnabled);
+            document.getElementById('soundToggle').textContent = soundEnabled ? '🔔' : '🔕';
+            vibrate(10);
+        }
+
+        function playNotificationSound() {
+            if (!soundEnabled) return;
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+        }
+
+        // ========== MOBILE TOOLBAR FUNCTIONS ==========
+        function sendKey(key) {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({type: 'input', data: key}));
+                vibrate(10);
+            }
+        }
+
+        function copyTerminal() {
+            const selection = term.getSelection();
+            if (selection) {
+                navigator.clipboard.writeText(selection).then(() => {
+                    showNotification('Copied!', 'success');
+                    vibrate(20);
+                });
+            }
+        }
+
+        async function pasteTerminal() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({type: 'input', data: text}));
+                    vibrate(10);
+                }
+            } catch (e) {
+                showNotification('Paste failed', 'error');
+            }
+        }
+
+        function clearTerminal() {
+            term.clear();
+            vibrate(20);
+        }
+
+        // ========== SWIPEABLE TOOLBAR FUNCTIONS ==========
+        let currentToolbarPage = 0;
+
+        function switchToolbarPage(pageIndex) {
+            currentToolbarPage = pageIndex;
+            const container = document.getElementById('swipeContainer');
+            container.style.transform = `translateX(-${pageIndex * 50}%)`;
+
+            // Update page indicators
+            document.querySelectorAll('.page-dot').forEach((dot, index) => {
+                dot.classList.toggle('active', index === pageIndex);
+            });
+
+            vibrate(10);
+        }
+
+        // Touch swipe detection for toolbar
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const toolbar = document.getElementById('swipeToolbar');
+            if (toolbar) {
+                toolbar.addEventListener('touchstart', (e) => {
+                    touchStartX = e.changedTouches[0].screenX;
+                });
+
+                toolbar.addEventListener('touchend', (e) => {
+                    touchEndX = e.changedTouches[0].screenX;
+                    handleToolbarSwipe();
+                });
+            }
+        });
+
+        function handleToolbarSwipe() {
+            if (touchEndX < touchStartX - 50) {
+                // Swipe left - next page
+                if (currentToolbarPage < 1) {
+                    switchToolbarPage(currentToolbarPage + 1);
+                }
+            }
+            if (touchEndX > touchStartX + 50) {
+                // Swipe right - previous page
+                if (currentToolbarPage > 0) {
+                    switchToolbarPage(currentToolbarPage - 1);
+                }
+            }
+        }
+
+        // ========== BULLETPROOF SWIPE (Single Source of Truth) ==========
+        let swipeStartX = 0;
+        let swipeStartY = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            if (window.innerWidth > 768) return; // Desktop - no swipe
+            swipeStartX = e.touches[0].clientX;
+            swipeStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            if (window.innerWidth > 768) return; // Desktop - no swipe
+
+            const swipeEndX = e.changedTouches[0].clientX;
+            const swipeEndY = e.changedTouches[0].clientY;
+            const deltaX = swipeEndX - swipeStartX;
+            const deltaY = swipeEndY - swipeStartY;
+
+            // Ignore if mostly vertical (scrolling)
+            if (Math.abs(deltaY) > Math.abs(deltaX)) return;
+
+            // Require minimum swipe distance
+            if (Math.abs(deltaX) < 80) return;
+
+            const currentView = document.body.dataset.view;
+
+            if (deltaX < 0) {
+                // Swipe LEFT → Show preview
+                if (currentView === 'terminal') {
+                    document.body.dataset.view = 'preview';
+                    console.log('[Swipe] ← Preview');
+                    vibrate(10);
+                }
+            } else {
+                // Swipe RIGHT → Show terminal
+                if (currentView === 'preview') {
+                    document.body.dataset.view = 'terminal';
+                    console.log('[Swipe] Terminal →');
+                    vibrate(10);
+                }
+            }
+        }, { passive: true });
+
+        // ========== HAPTIC FEEDBACK ==========
+        function vibrate(duration) {
+            if ('vibrate' in navigator) {
+                navigator.vibrate(duration);
+            }
+        }
+
+        // ========== CONNECTION STATUS & AUTO-RECONNECT ==========
+        function updateConnectionStatus(status) {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            const banner = document.getElementById('connectionBanner');
+
+            statusDot.className = 'status-dot ' + status;
+
+            switch(status) {
+                case 'connected':
+                    statusText.textContent = 'Connected';
+                    banner.style.display = 'none';
+                    reconnectAttempts = 0;
+                    vibrate(20);
+                    break;
+                case 'disconnected':
+                    statusText.textContent = 'Disconnected';
+                    banner.style.display = 'block';
+                    document.getElementById('bannerText').textContent = 'Disconnected - Click to reconnect';
+                    banner.onclick = () => location.reload();
+                    vibrate(50);
+                    playNotificationSound();
+                    break;
+                case 'reconnecting':
+                    statusText.textContent = 'Reconnecting...';
+                    banner.style.display = 'block';
+                    document.getElementById('bannerText').textContent = `Reconnecting... (attempt ${reconnectAttempts + 1})`;
+                    break;
+            }
+        }
+
+        function attemptReconnect() {
+            reconnectAttempts++;
+            const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), maxReconnectDelay);
+
+            console.log(`[Reconnect] Attempt ${reconnectAttempts} in ${delay}ms...`);
+            updateConnectionStatus('reconnecting');
+
+            setTimeout(() => {
+                if (shouldReconnect) {
+                    console.log('[Reconnect] Attempting to reconnect...');
+                    connectWebSocket();
+                }
+            }, delay);
+        }
+
+        // ========== NOTIFICATIONS ==========
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                background: var(--accent-color);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 10000;
+                animation: slideIn 0.3s;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s';
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+
+        // ========== DETECT MOBILE & SHOW TOOLBAR ==========
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+                || window.innerWidth <= 768;
+        }
+
+        if (isMobileDevice()) {
+            document.getElementById('mobileToolbar').style.display = 'flex';
+            document.querySelector('.main-container').style.paddingBottom = '60px';
+        }
+
+        // ========== INITIALIZATION ==========
+        loadTheme();
+        loadSession();
+        updateFontSize();
+        updateTabContent(); // Load files tab by default
+
+        // Update sound button
+        document.getElementById('soundToggle').textContent = soundEnabled ? '🔔' : '🔕';
+    </script>
+
+    <!-- Mobile Keyboard Toolbar -->
+    <div class="mobile-toolbar" id="mobileToolbar" style="display: none;">
+        <button class="toolbar-btn" onclick="sendKey('\\t')">Tab</button>
+        <button class="toolbar-btn" onclick="sendKey('\\x03')">Ctrl+C</button>
+        <button class="toolbar-btn" onclick="sendKey('\\x1b')">Esc</button>
+        <button class="toolbar-btn" onclick="sendKey('\\x1b[A')">↑</button>
+        <button class="toolbar-btn" onclick="sendKey('\\x1b[B')">↓</button>
+        <button class="toolbar-btn" onclick="copyTerminal()">Copy</button>
+        <button class="toolbar-btn" onclick="pasteTerminal()">Paste</button>
+        <button class="toolbar-btn" onclick="clearTerminal()">Clear</button>
+    </div>
+
+    <style>
+        .mobile-toolbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 2px solid var(--accent-color);
+            padding: 8px;
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            z-index: 1000;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.3);
+        }
+
+        .toolbar-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            white-space: nowrap;
+            font-weight: 500;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .toolbar-btn:active {
+            transform: scale(0.95);
+        }
+
+        @media (min-width: 769px) {
+            .mobile-toolbar {
+                display: none !important;
+            }
+        }
+    </style>
+</body>
+</html>

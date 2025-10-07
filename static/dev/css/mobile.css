@@ -1,0 +1,92 @@
+/* Mobile-Specific Styles (Mobile-First Approach) */
+
+@media (max-width: 768px) {
+    /* Main container - stack views vertically */
+    .main-container {
+        flex-direction: column;
+    }
+
+    .terminal-section,
+    .preview-section {
+        width: 100%;
+        flex: 1;
+        border: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    /* DEFAULT: Terminal visible, preview hidden */
+    .terminal-section {
+        display: flex;
+    }
+
+    .preview-section {
+        display: none;
+    }
+
+    /* PREVIEW MODE: Show preview, hide terminal */
+    body[data-view="preview"] .terminal-section {
+        display: none;
+    }
+
+    body[data-view="preview"] .preview-section {
+        display: flex;
+    }
+
+    /* Swipe hint (shows briefly on load) */
+    .swipe-hint {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: var(--text-muted);
+        font-size: 12px;
+        pointer-events: none;
+        opacity: 0.5;
+        z-index: 10;
+        padding: 6px 16px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+    }
+
+    /* Enable text selection on mobile */
+    .terminal-container,
+    #terminal,
+    .xterm,
+    .xterm-screen {
+        user-select: text !important;
+        -webkit-user-select: text !important;
+        -moz-user-select: text !important;
+    }
+
+    /* Header adjustments */
+    .header {
+        padding: 8px 12px;
+    }
+
+    .header-right {
+        gap: 6px;
+    }
+
+    .icon-btn {
+        padding: 4px 8px;
+        font-size: 13px;
+    }
+
+    .btn-logout {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+
+    .connection-status {
+        padding: 4px 6px;
+    }
+
+    .hide-mobile {
+        display: none !important;
+    }
+}

@@ -1,0 +1,33 @@
+/* CSS Custom Properties - Theme Variables */
+
+:root {
+    /* Dark theme (default) */
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --bg-tertiary: #383838;
+    --border-color: #404040;
+    --text-primary: #ffffff;
+    --text-secondary: #cccccc;
+    --text-muted: #888888;
+    --accent-color: #4d9fcc; /* Blue instead of purple */
+    --accent-hover: #5dafdc;
+    --success-color: #00ff00;
+    --danger-color: #dc3545;
+    --warning-color: #ffa500;
+}
+
+body.light-theme {
+    /* Light theme */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f5;
+    --bg-tertiary: #e0c8ab; /* Beige/tan like main site */
+    --border-color: #d0d0d0;
+    --text-primary: #000000;
+    --text-secondary: #333333;
+    --text-muted: #666666;
+    --accent-color: #006699; /* Blue from main site */
+    --accent-hover: #004477;
+    --success-color: #00aa00;
+    --danger-color: #dc3545;
+    --warning-color: #ff8800;
+}

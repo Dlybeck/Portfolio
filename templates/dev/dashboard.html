@@ -239,7 +239,7 @@
             font-size: 14px;
         }
 
-        /* Mobile */
+        /* Mobile - Data-driven visibility (failsafe design) */
         @media (max-width: 768px) {
             .main-container {
                 flex-direction: column;
@@ -251,29 +251,41 @@
                 width: 100%;
                 flex: 1;
                 border: none;
+            }
+
+            /* DEFAULT: Terminal visible, preview hidden */
+            .terminal-section {
+                display: flex;
+            }
+
+            .preview-section {
                 display: none;
             }
 
-            .terminal-section.active {
+            /* PREVIEW MODE: Show preview, hide terminal */
+            body[data-view="preview"] .terminal-section {
+                display: none;
+            }
+
+            body[data-view="preview"] .preview-section {
                 display: flex;
             }
 
-            .preview-section.active {
-                display: flex;
-            }
-
-            /* Swipe indicator */
-            .main-container::before {
-                content: '← Swipe →';
+            /* View indicator */
+            .main-container::after {
+                content: attr(data-hint);
                 position: absolute;
-                top: 50%;
+                bottom: 10px;
                 left: 50%;
-                transform: translate(-50%, -50%);
+                transform: translateX(-50%);
                 color: #666;
-                font-size: 12px;
+                font-size: 11px;
                 pointer-events: none;
-                opacity: 0.5;
+                opacity: 0.4;
                 z-index: 1;
+                padding: 4px 12px;
+                background: rgba(0,0,0,0.3);
+                border-radius: 12px;
             }
         }
 
@@ -429,7 +441,7 @@
         }
     </style>
 </head>
-<body>
+<body data-view="terminal">
     <div class="header">
         <h1 class="hide-mobile">🤖 Claude Code Terminal</h1>
         <div class="header-right">
@@ -501,7 +513,7 @@
         </div>
     </div>
 
-    <div class="main-container">
+    <div class="main-container" data-hint="← Swipe →">
         <!-- Terminal Section (Left/Top 50%) -->
         <div class="terminal-section">
             <div class="terminal-header">
@@ -1358,58 +1370,47 @@
             }
         }
 
-        // ========== SIMPLE SWIPE LOOP (Terminal ↔ Preview) ==========
-        let touchStartX = 0;
-        let currentSectionIndex = 0;
-        const sections = ['terminal', 'preview'];
+        // ========== BULLETPROOF SWIPE (Single Source of Truth) ==========
+        let swipeStartX = 0;
+        let swipeStartY = 0;
 
-        // Initialize terminal as active on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            if (window.innerWidth <= 768) {
-                const terminalSection = document.querySelector('.terminal-section');
-                if (terminalSection) {
-                    terminalSection.classList.add('active');
-                    console.log('[DEBUG] Terminal section activated on load');
-                }
-            }
-        });
-
-        // Simple swipe handler
         document.addEventListener('touchstart', (e) => {
-            if (window.innerWidth > 768) return;
-            touchStartX = e.touches[0].clientX;
+            if (window.innerWidth > 768) return; // Desktop - no swipe
+            swipeStartX = e.touches[0].clientX;
+            swipeStartY = e.touches[0].clientY;
         }, { passive: true });
 
         document.addEventListener('touchend', (e) => {
-            if (window.innerWidth > 768) return;
+            if (window.innerWidth > 768) return; // Desktop - no swipe
 
-            const touchEndX = e.changedTouches[0].clientX;
-            const swipeDistance = touchEndX - touchStartX;
+            const swipeEndX = e.changedTouches[0].clientX;
+            const swipeEndY = e.changedTouches[0].clientY;
+            const deltaX = swipeEndX - swipeStartX;
+            const deltaY = swipeEndY - swipeStartY;
+
+            // Ignore if mostly vertical (scrolling)
+            if (Math.abs(deltaY) > Math.abs(deltaX)) return;
 
             // Require minimum swipe distance
-            if (Math.abs(swipeDistance) < 50) return;
+            if (Math.abs(deltaX) < 80) return;
 
-            const terminalSection = document.querySelector('.terminal-section');
-            const previewSection = document.querySelector('.preview-section');
+            const currentView = document.body.dataset.view;
 
-            if (swipeDistance < 0) {
-                // Swipe left - next section (loop)
-                currentSectionIndex = (currentSectionIndex + 1) % sections.length;
+            if (deltaX < 0) {
+                // Swipe LEFT → Show preview
+                if (currentView === 'terminal') {
+                    document.body.dataset.view = 'preview';
+                    console.log('[Swipe] ← Preview');
+                    vibrate(10);
+                }
             } else {
-                // Swipe right - previous section (loop)
-                currentSectionIndex = (currentSectionIndex - 1 + sections.length) % sections.length;
+                // Swipe RIGHT → Show terminal
+                if (currentView === 'preview') {
+                    document.body.dataset.view = 'terminal';
+                    console.log('[Swipe] Terminal →');
+                    vibrate(10);
+                }
             }
-
-            // Update active section
-            if (sections[currentSectionIndex] === 'terminal') {
-                terminalSection.classList.add('active');
-                previewSection.classList.remove('active');
-            } else {
-                previewSection.classList.add('active');
-                terminalSection.classList.remove('active');
-            }
-
-            vibrate(10);
         }, { passive: true });
 
         // ========== HAPTIC FEEDBACK ==========

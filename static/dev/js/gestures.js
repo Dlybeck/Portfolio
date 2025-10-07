@@ -15,6 +15,7 @@ function swipeHandler() {
             this.touchStartX = e.touches[0].clientX;
             this.touchStartY = e.touches[0].clientY;
             this.isSwiping = false;
+            console.log('[Swipe] Touch start:', this.touchStartX, this.touchStartY);
         },
 
         onTouchMove(e) {
@@ -34,25 +35,39 @@ function swipeHandler() {
         },
 
         onTouchEnd(e) {
-            if (window.innerWidth > 768) return;
-            if (!this.isSwiping) return;
+            if (window.innerWidth > 768) {
+                console.log('[Swipe] Desktop - ignoring swipe');
+                return;
+            }
 
             const deltaX = this.touchCurrentX - this.touchStartX;
             const deltaY = Math.abs(this.touchCurrentY - this.touchStartY);
 
+            console.log('[Swipe] Touch end - deltaX:', deltaX, 'deltaY:', deltaY, 'isSwiping:', this.isSwiping);
+
             // Ignore if too vertical or too short
-            if (deltaY > Math.abs(deltaX) || Math.abs(deltaX) < 80) {
+            if (deltaY > Math.abs(deltaX)) {
+                console.log('[Swipe] Vertical swipe - ignoring');
+                this.isSwiping = false;
+                return;
+            }
+
+            if (Math.abs(deltaX) < 80) {
+                console.log('[Swipe] Too short - ignoring');
                 this.isSwiping = false;
                 return;
             }
 
             const store = Alpine.store('dashboard');
+            console.log('[Swipe] Current view:', store.currentView);
 
             if (deltaX < 0 && store.currentView === 'terminal') {
                 // Swipe left - show preview
+                console.log('[Swipe] Switching to preview');
                 store.switchView('preview');
             } else if (deltaX > 0 && store.currentView === 'preview') {
                 // Swipe right - show terminal
+                console.log('[Swipe] Switching to terminal');
                 store.switchView('terminal');
             }
 

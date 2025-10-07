@@ -169,22 +169,22 @@
                 <div
                     class="tab"
                     :class="activeTab === 'files' ? 'active' : ''"
-                    @click="activeTab = 'files'; $store.dashboard.switchTab('files')"
+                    @click="activeTab = 'files'; switchTab('files')"
                 >Files</div>
                 <div
                     class="tab"
                     :class="activeTab === 'terminal' ? 'active' : ''"
-                    @click="activeTab = 'terminal'; $store.dashboard.switchTab('terminal')"
+                    @click="activeTab = 'terminal'; switchTab('terminal')"
                 >Terminal</div>
                 <div
                     class="tab"
                     :class="activeTab === 'preview' ? 'active' : ''"
-                    @click="activeTab = 'preview'; $store.dashboard.switchTab('preview')"
+                    @click="activeTab = 'preview'; switchTab('preview')"
                 >Preview</div>
                 <div
                     class="tab"
                     :class="activeTab === 'logs' ? 'active' : ''"
-                    @click="activeTab = 'logs'; $store.dashboard.switchTab('logs')"
+                    @click="activeTab = 'logs'; switchTab('logs')"
                 >Logs</div>
             </div>
 
@@ -203,6 +203,7 @@
     <script src="/static/dev/js/terminal.js"></script>
     <script src="/static/dev/js/websocket.js"></script>
     <script src="/static/dev/js/gestures.js"></script>
+    <script src="/static/dev/js/tabs.js"></script>
 
     <!-- Initialization -->
     <script>
@@ -210,6 +211,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             initTerminal();
             connectWebSocket();
+            // Load files tab by default
+            switchTab('files');
         });
     </script>
 </body>

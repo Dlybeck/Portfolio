@@ -284,16 +284,19 @@ async function viewFile(path) {
                 </div>
             `;
         } else if (['pdf'].includes(fileExt)) {
-            // PDF - browsers don't support blob URLs in embed/iframe, must open in new tab
+            // PDF - open directly via API endpoint (blob URLs don't work)
+            const token = localStorage.getItem('access_token');
+            const apiUrl = `/dev/api/read-file?path=${encodeURIComponent(path)}&token=${encodeURIComponent(token)}`;
+
             tabContent.innerHTML = `
                 <div style="padding: 32px; text-align: center;">
                     <div style="color: #888; margin-bottom: 24px; font-size: 18px;">📄 PDF File</div>
-                    <div style="color: #ccc; margin-bottom: 24px; font-size: 14px;">${path}</div>
-                    <button onclick="window.open('${blobUrl}')" style="background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600;">
+                    <div style="color: #ccc; margin-bottom: 24px; font-size: 14px; word-break: break-all;">${path}</div>
+                    <button onclick="window.open('${apiUrl}')" style="background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600;">
                         Open PDF in New Tab
                     </button>
                     <div style="color: #666; margin-top: 16px; font-size: 12px;">
-                        Note: PDFs must be opened in a new tab due to browser security restrictions
+                        Opens PDF directly from server
                     </div>
                 </div>
             `;

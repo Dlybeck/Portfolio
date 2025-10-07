@@ -12,6 +12,18 @@ function swipeHandler() {
         onTouchStart(e) {
             if (window.innerWidth > 768) return;
 
+            // Don't swipe if starting on interactive elements
+            const target = e.target;
+            const isInteractive = target.closest('.swipe-toolbar') ||
+                                 target.closest('button') ||
+                                 target.closest('input') ||
+                                 target.closest('.preview-section');
+
+            if (isInteractive) {
+                console.log('[Swipe] Starting on interactive element - ignoring');
+                return;
+            }
+
             this.touchStartX = e.touches[0].clientX;
             this.touchStartY = e.touches[0].clientY;
             this.isSwiping = false;
@@ -52,8 +64,9 @@ function swipeHandler() {
                 return;
             }
 
-            if (Math.abs(deltaX) < 80) {
-                console.log('[Swipe] Too short - ignoring');
+            // Require longer swipe distance (150px instead of 80px)
+            if (Math.abs(deltaX) < 150) {
+                console.log('[Swipe] Too short - ignoring (need 150px)');
                 this.isSwiping = false;
                 return;
             }

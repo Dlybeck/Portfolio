@@ -317,9 +317,43 @@ async def parent_directory(
 async def read_file(
     path: str,
     req: Request,
-    user: dict = Depends(get_current_user)
+    token: str = None
 ):
-    """Read file and return its content - proxy if Cloud Run, execute locally if Mac"""
+    """
+    Read file and return its content - proxy if Cloud Run, execute locally if Mac
+    Supports both header-based auth and query parameter token (for window.open)
+    """
+    # Authenticate either via query token or Authorization header
+    authenticated = False
+
+    if token:
+        # Query parameter token (for window.open)
+        try:
+            from core.security import verify_token
+            payload = verify_token(token)
+            if payload.get("type") == "access":
+                authenticated = True
+                print(f"[DEBUG] Query token authenticated for user: {payload.get('sub')}")
+        except Exception as e:
+            print(f"[DEBUG] Query token authentication failed: {e}")
+
+    if not authenticated:
+        # Try Authorization header
+        auth_header = req.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            header_token = auth_header.replace("Bearer ", "")
+            try:
+                from core.security import verify_token
+                payload = verify_token(header_token)
+                if payload.get("type") == "access":
+                    authenticated = True
+                    print(f"[DEBUG] Header token authenticated for user: {payload.get('sub')}")
+            except Exception as e:
+                print(f"[DEBUG] Header token authentication failed: {e}")
+
+        if not authenticated:
+            return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
+
     if IS_CLOUD_RUN:
         # Cloud Run: Proxy to Mac
         try:

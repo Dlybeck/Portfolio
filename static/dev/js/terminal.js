@@ -99,16 +99,21 @@ async function killSession() {
 
     const token = localStorage.getItem('access_token');
 
-    // First, explicitly kill the session on the backend
+    // Determine which session ID we're currently using
+    const urlParams = new URLSearchParams(window.location.search);
+    const newSessionParam = urlParams.get('new_session');
+    const currentSessionId = newSessionParam ? `session_${newSessionParam}` : 'user_main_session';
+
+    // First, explicitly kill the current session on the backend
     try {
-        console.log('[Kill] Killing session user_main_session on backend...');
+        console.log(`[Kill] Killing session ${currentSessionId} on backend...`);
         await fetch('/dev/api/kill-session', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ session_id: 'user_main_session' })
+            body: JSON.stringify({ session_id: currentSessionId })
         });
         console.log('[Kill] Backend session killed successfully');
     } catch (err) {
@@ -126,8 +131,8 @@ async function killSession() {
         window.term.clear();
     }
 
-    // Force NEW session by adding timestamp to URL
+    // Reload without parameters to start fresh with default session
     setTimeout(() => {
-        window.location.href = window.location.pathname + '?new_session=' + Date.now();
+        window.location.href = window.location.pathname;
     }, 300);
 }

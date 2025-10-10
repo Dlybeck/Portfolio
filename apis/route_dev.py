@@ -408,6 +408,20 @@ async def read_file(
             return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
+@dev_router.get("/debug/sessions")
+async def debug_sessions(user: dict = Depends(get_current_user)):
+    """🔒 Debug endpoint to inspect active sessions - requires authentication"""
+    from services.session_manager import get_all_sessions
+
+    sessions = get_all_sessions()
+
+    return JSONResponse(content={
+        "total_sessions": len(sessions),
+        "sessions": sessions,
+        "timestamp": __import__('datetime').datetime.now().isoformat()
+    })
+
+
 @dev_router.post("/api/kill-session")
 async def kill_session(
     req: Request,

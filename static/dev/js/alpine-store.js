@@ -30,6 +30,27 @@ document.addEventListener('alpine:init', () => {
             this.log(`📶 WS: ${dashboard.wsConnected ? 'Connected' : 'Disconnected'}`);
         },
 
+        async fetchSessions() {
+            try {
+                const token = localStorage.getItem('access_token');
+                const response = await fetch('/dev/debug/sessions', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    this.log(`🗂️ Total sessions: ${data.total_sessions}`);
+                    for (const [id, info] of Object.entries(data.sessions)) {
+                        this.log(`  📦 ${id}: ${info.clients} clients, buffer=${info.buffer_size}`);
+                    }
+                } else {
+                    this.log(`❌ Failed to fetch sessions: ${response.status}`);
+                }
+            } catch (err) {
+                this.log(`❌ Error fetching sessions: ${err.message}`);
+            }
+        },
+
         clear() {
             this.logs = [];
             this.log('🧹 Logs cleared');

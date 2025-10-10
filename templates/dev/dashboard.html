@@ -212,6 +212,7 @@
             <div class="debug-panel-header">
                 <h3>🐛 Debug Panel</h3>
                 <div>
+                    <button @click="$store.debugPanel.fetchSessions()" class="debug-btn">🗂️ Sessions</button>
                     <button @click="$store.debugPanel.clear()" class="debug-btn">🧹 Clear</button>
                     <button @click="$store.debugPanel.visible = false" class="debug-btn">✖️ Close</button>
                 </div>

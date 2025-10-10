@@ -1,6 +1,42 @@
 /* Alpine.js Data Store - Single Source of Truth */
 
 document.addEventListener('alpine:init', () => {
+    // Debug panel store
+    Alpine.store('debugPanel', {
+        visible: false,
+        logs: [],
+        maxLogs: 30,
+
+        toggle() {
+            this.visible = !this.visible;
+            if (this.visible) {
+                this.log('🐛 Debug panel opened');
+                this.logState();
+            }
+        },
+
+        log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            this.logs.unshift(`[${timestamp}] ${message}`);
+            if (this.logs.length > this.maxLogs) {
+                this.logs.pop();
+            }
+        },
+
+        logState() {
+            const dashboard = Alpine.store('dashboard');
+            this.log(`📱 View: ${dashboard.currentView}`);
+            this.log(`🖱️ Width: ${window.innerWidth}px`);
+            this.log(`📶 WS: ${dashboard.wsConnected ? 'Connected' : 'Disconnected'}`);
+        },
+
+        clear() {
+            this.logs = [];
+            this.log('🧹 Logs cleared');
+        }
+    });
+
+    // Main dashboard store
     Alpine.store('dashboard', {
         // View state
         currentView: 'terminal',  // 'terminal' | 'preview'

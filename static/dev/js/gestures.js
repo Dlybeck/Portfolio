@@ -10,7 +10,10 @@ function swipeHandler() {
         isSwiping: false,
 
         onTouchStart(e) {
-            if (window.innerWidth > 768) return;
+            if (window.innerWidth > 768) {
+                Alpine.store('debugPanel')?.log('🖥️ Desktop detected - swipe disabled');
+                return;
+            }
 
             // Don't swipe if starting on interactive elements
             const target = e.target;
@@ -20,14 +23,14 @@ function swipeHandler() {
                                  target.closest('.preview-section');
 
             if (isInteractive) {
-                console.log('[Swipe] Starting on interactive element - ignoring');
+                Alpine.store('debugPanel')?.log('🚫 Touch on interactive element - ignoring');
                 return;
             }
 
             this.touchStartX = e.touches[0].clientX;
             this.touchStartY = e.touches[0].clientY;
             this.isSwiping = false;
-            console.log('[Swipe] Touch start:', this.touchStartX, this.touchStartY);
+            Alpine.store('debugPanel')?.log(`👇 Touch start: X=${Math.round(this.touchStartX)}, Y=${Math.round(this.touchStartY)}`);
         },
 
         onTouchMove(e) {
@@ -48,40 +51,42 @@ function swipeHandler() {
 
         onTouchEnd(e) {
             if (window.innerWidth > 768) {
-                console.log('[Swipe] Desktop - ignoring swipe');
                 return;
             }
 
             const deltaX = this.touchCurrentX - this.touchStartX;
             const deltaY = Math.abs(this.touchCurrentY - this.touchStartY);
+            const debug = Alpine.store('debugPanel');
 
-            console.log('[Swipe] Touch end - deltaX:', deltaX, 'deltaY:', deltaY, 'isSwiping:', this.isSwiping);
+            debug?.log(`👆 Touch end: ΔX=${Math.round(deltaX)}, ΔY=${Math.round(deltaY)}`);
 
             // Ignore if too vertical or too short
             if (deltaY > Math.abs(deltaX)) {
-                console.log('[Swipe] Vertical swipe - ignoring');
+                debug?.log('❌ Too vertical - ignoring');
                 this.isSwiping = false;
                 return;
             }
 
-            // Require longer swipe distance (150px instead of 80px)
+            // Require longer swipe distance (150px)
             if (Math.abs(deltaX) < 150) {
-                console.log('[Swipe] Too short - ignoring (need 150px)');
+                debug?.log(`❌ Too short: ${Math.round(Math.abs(deltaX))}px < 150px`);
                 this.isSwiping = false;
                 return;
             }
 
             const store = Alpine.store('dashboard');
-            console.log('[Swipe] Current view:', store.currentView);
+            debug?.log(`📍 Current view: ${store.currentView}`);
 
             if (deltaX < 0 && store.currentView === 'terminal') {
                 // Swipe left - show preview
-                console.log('[Swipe] Switching to preview');
+                debug?.log('✅ Swipe LEFT → Switching to preview');
                 store.switchView('preview');
             } else if (deltaX > 0 && store.currentView === 'preview') {
                 // Swipe right - show terminal
-                console.log('[Swipe] Switching to terminal');
+                debug?.log('✅ Swipe RIGHT → Switching to terminal');
                 store.switchView('terminal');
+            } else {
+                debug?.log(`⚠️ No action: deltaX=${Math.round(deltaX)}, view=${store.currentView}`);
             }
 
             this.isSwiping = false;

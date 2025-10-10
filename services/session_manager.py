@@ -6,6 +6,7 @@ Allows multiple devices to connect to the same terminal session
 
 import asyncio
 import json
+import time
 from typing import Set, Optional
 from collections import deque
 from fastapi import WebSocket
@@ -28,6 +29,7 @@ class PersistentSession:
         self.broadcast_task: Optional[asyncio.Task] = None  # Single broadcast loop
         self.claude_started: bool = False  # Track if Claude has been auto-started
         self.claude_start_lock: asyncio.Lock = asyncio.Lock()  # Prevent race conditions
+        self.last_activity: float = time.time()  # Track last activity for cleanup
 
         # Start terminal session
         self._start_terminal()
@@ -48,6 +50,7 @@ class PersistentSession:
     def add_client(self, websocket: WebSocket):
         """Add a client to this session"""
         self.connected_clients.add(websocket)
+        self.last_activity = time.time()  # Update activity
         print(f"[SessionManager] Client connected to '{self.session_id}'. Total clients: {len(self.connected_clients)}")
 
     def remove_client(self, websocket: WebSocket):
@@ -84,6 +87,7 @@ class PersistentSession:
         """Write data to terminal"""
         if self.terminal:
             self.terminal.write(data)
+            self.last_activity = time.time()  # Update activity on write
 
     def resize(self, rows: int, cols: int):
         """Resize terminal"""
@@ -199,7 +203,38 @@ def get_all_sessions():
         sid: {
             "clients": len(session.connected_clients),
             "working_dir": session.working_dir,
-            "buffer_size": len(session.output_buffer)
+            "buffer_size": len(session.output_buffer),
+            "idle_seconds": int(time.time() - session.last_activity)
         }
         for sid, session in _persistent_sessions.items()
     }
+
+
+async def cleanup_idle_sessions(idle_timeout: int = 3600):
+    """
+    Background task to cleanup idle sessions
+    Args:
+        idle_timeout: Seconds of inactivity before closing session (default: 1 hour)
+    """
+    while True:
+        try:
+            current_time = time.time()
+            to_close = []
+
+            for session_id, session in _persistent_sessions.items():
+                # Only cleanup sessions with no connected clients
+                if len(session.connected_clients) == 0:
+                    idle_time = current_time - session.last_activity
+                    if idle_time > idle_timeout:
+                        to_close.append(session_id)
+                        print(f"[SessionManager] Closing idle session '{session_id}' (idle for {int(idle_time)}s)")
+
+            # Close idle sessions
+            for session_id in to_close:
+                close_persistent_session(session_id)
+
+            # Check every 5 minutes
+            await asyncio.sleep(300)
+        except Exception as e:
+            print(f"[SessionManager] Cleanup error: {e}")
+            await asyncio.sleep(60)

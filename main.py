@@ -9,6 +9,7 @@ from apis.route_projects import project_router
 from apis.route_auth import auth_router
 from apis.route_dev import dev_router
 from core.security import validate_security_config
+import asyncio
 
 
 def include_router(app):
@@ -38,6 +39,14 @@ def start_application():
 	app = FastAPI(title=settings.PROJECT_NAME,version=settings.PROJECT_VERSION)
 	include_router(app)
 	configure_static(app)
+
+	# Start session cleanup task
+	@app.on_event("startup")
+	async def startup_event():
+		from services.session_manager import cleanup_idle_sessions
+		asyncio.create_task(cleanup_idle_sessions(idle_timeout=3600))
+		print("✅ Session cleanup task started (1 hour idle timeout)")
+
 	return app 
 
 

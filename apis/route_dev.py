@@ -526,11 +526,10 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
 
     # Mac: Execute terminal locally with persistent session
     # Check if client requested a new session (e.g., after kill button)
-    session_param = request.query_params.get('session', None)
-
-    if session_param:
+    # FastAPI already injects the 'session' query parameter
+    if session:
         # Use custom session ID from client (for forced new sessions)
-        session_id = session_param
+        session_id = session
     else:
         # Default: One main session for the user
         session_id = "user_main_session"

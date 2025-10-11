@@ -11,11 +11,6 @@
         width: 100%;
         flex: 1;
         border: none;
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
     }
 
     /* DEFAULT: Terminal visible, preview hidden */
@@ -102,10 +97,6 @@
     }
 
     /* Keyboard visible state - hide header, keep toolbar visible */
-    body.keyboard-visible {
-        overflow: hidden !important; /* Prevent body scroll */
-    }
-
     body.keyboard-visible .header {
         display: none !important;
     }

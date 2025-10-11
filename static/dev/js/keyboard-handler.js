@@ -20,8 +20,12 @@
         console.log(`[KeyboardHandler] Initial viewport height: ${initialHeight}px`);
     });
 
-    function checkKeyboard() {
+    function updateViewport() {
         const currentHeight = viewport.height;
+
+        // Set CSS custom property with actual viewport height
+        document.documentElement.style.setProperty('--viewport-height', `${currentHeight}px`);
+
         const heightDifference = initialHeight - currentHeight;
 
         // Consider keyboard visible if viewport shrunk by more than 150px
@@ -43,20 +47,23 @@
     }
 
     // Listen for viewport changes
-    viewport.addEventListener('resize', checkKeyboard);
-    viewport.addEventListener('scroll', checkKeyboard);
+    viewport.addEventListener('resize', updateViewport);
+    viewport.addEventListener('scroll', updateViewport);
+
+    // Set initial viewport height
+    updateViewport();
 
     // Also check on focus/blur events of inputs (backup detection)
     document.addEventListener('focusin', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
             // Small delay to allow keyboard to appear
-            setTimeout(checkKeyboard, 300);
+            setTimeout(updateViewport, 300);
         }
     });
 
     document.addEventListener('focusout', () => {
         // Small delay to allow keyboard to disappear
-        setTimeout(checkKeyboard, 300);
+        setTimeout(updateViewport, 300);
     });
 
     console.log('[KeyboardHandler] Initialized');

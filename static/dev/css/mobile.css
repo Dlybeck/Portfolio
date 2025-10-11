@@ -96,17 +96,17 @@
     }
 
     /* Keyboard visible state - hide header, keep toolbar visible */
+    body.keyboard-visible {
+        /* Use actual viewport height to prevent content overflow */
+        height: var(--viewport-height, 100vh) !important;
+    }
+
     body.keyboard-visible .header {
         display: none !important;
     }
 
     body.keyboard-visible .swipe-hint {
         display: none !important;
-    }
-
-    /* Adjust main container to fill space when header is hidden */
-    body.keyboard-visible .main-container {
-        height: 100%;
     }
 }
 

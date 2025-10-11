@@ -102,7 +102,7 @@ function toolbarHandler() {
             // Send key to terminal
             const keyMap = {
                 'Tab': '\t',
-                'S+Tab': '\x1b\t', // Shift+Tab
+                'S+Tab': '\x1b[Z', // Shift+Tab (back-tab)
                 '^C': '\x03',      // Ctrl+C
                 'Esc': '\x1b',
                 '↑': '\x1b[A',

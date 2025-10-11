@@ -193,11 +193,6 @@
                     :class="activeTab === 'preview' ? 'active' : ''"
                     @click="activeTab = 'preview'; switchTab('preview')"
                 >Preview</div>
-                <div
-                    class="tab"
-                    :class="activeTab === 'logs' ? 'active' : ''"
-                    @click="activeTab = 'logs'; switchTab('logs')"
-                >Logs</div>
             </div>
 
             <div class="tab-content" id="tabContent">
@@ -208,36 +203,6 @@
         </section>
     </main>
 
-    <!-- Debug Panel (Mobile Only) -->
-    <div x-show="window.innerWidth <= 768" class="debug-toggle-btn" @click="$store.debugPanel.toggle()">
-        🐛
-    </div>
-
-    <!-- Debug Panel Overlay -->
-    <div x-show="$store.debugPanel.visible"
-         x-transition
-         class="debug-panel-overlay"
-         @click.self="$store.debugPanel.visible = false">
-        <div class="debug-panel">
-            <div class="debug-panel-header">
-                <h3>🐛 Debug Panel</h3>
-                <div>
-                    <button @click="$store.debugPanel.fetchSessions()" class="debug-btn">🗂️ Sessions</button>
-                    <button @click="$store.debugPanel.clear()" class="debug-btn">🧹 Clear</button>
-                    <button @click="$store.debugPanel.visible = false" class="debug-btn">✖️ Close</button>
-                </div>
-            </div>
-            <div class="debug-panel-content">
-                <template x-for="log in $store.debugPanel.logs" :key="log">
-                    <div class="debug-log-entry" x-text="log"></div>
-                </template>
-                <div x-show="$store.debugPanel.logs.length === 0" class="debug-empty">
-                    No logs yet. Interact with the page to see debug output.
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Alpine Store (Load First!) -->
     <script src="/static/dev/js/alpine-store.js"></script>
 
@@ -246,6 +211,7 @@
     <script src="/static/dev/js/websocket.js"></script>
     <script src="/static/dev/js/gestures.js"></script>
     <script src="/static/dev/js/tabs.js"></script>
+    <script src="/static/dev/js/keyboard-handler.js"></script>
 
     <!-- Initialization -->
     <script>

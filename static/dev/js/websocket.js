@@ -61,8 +61,18 @@ function connectWebSocket() {
         }
     };
 
-    ws.onclose = () => {
-        console.log('Terminal disconnected');
+    ws.onclose = (event) => {
+        console.log('Terminal disconnected', event.code, event.reason);
+
+        // Check if it's an authentication failure (code 1008)
+        if (event.code === 1008) {
+            console.log('[Auth] Session expired or invalid token - redirecting to login');
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = '/dev/login';
+            return;
+        }
+
         store.updateConnectionStatus('disconnected');
 
         if (window.term) {
@@ -132,7 +142,7 @@ window.addEventListener('beforeunload', () => {
     }
 });
 
-// Auto-refresh token every 25 minutes
+// Auto-refresh token every 11 hours 55 minutes (5 min before 12 hour expiry)
 setInterval(async () => {
     const refreshToken = localStorage.getItem('refresh_token');
     if (refreshToken) {
@@ -149,9 +159,10 @@ setInterval(async () => {
                 const data = await response.json();
                 localStorage.setItem('access_token', data.access_token);
                 localStorage.setItem('refresh_token', data.refresh_token);
+                console.log('[Token] Refreshed successfully');
             }
         } catch (error) {
             console.error('Token refresh failed:', error);
         }
     }
-}, 25 * 60 * 1000);
+}, (11 * 60 * 60 * 1000) + (55 * 60 * 1000));  // 11h 55m

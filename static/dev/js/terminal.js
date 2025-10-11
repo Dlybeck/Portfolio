@@ -40,6 +40,10 @@ function initTerminal() {
     fitAddon = new FitAddon.FitAddon();
     term.loadAddon(fitAddon);
 
+    // Enable clickable URLs
+    const webLinksAddon = new WebLinksAddon.WebLinksAddon();
+    term.loadAddon(webLinksAddon);
+
     term.open(document.getElementById('terminal'));
     fitAddon.fit();
 

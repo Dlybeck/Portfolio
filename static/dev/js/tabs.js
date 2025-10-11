@@ -6,6 +6,27 @@ let separateTerminal = null;
 let separateWs = null;
 let separateFitAddon = null;
 
+// Global fetch error handler for auth and offline detection
+function handleFetchError(response) {
+    if (!response.ok) {
+        // Auth errors - redirect to login
+        if (response.status === 401 || response.status === 403) {
+            console.log('[Auth] Unauthorized - redirecting to login');
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = '/dev/login';
+            return true;
+        }
+        // Server offline errors - reload to show server_offline page
+        if (response.status === 502 || response.status === 503 || response.status === 504) {
+            console.log('[Server] Server offline - reloading page');
+            window.location.reload();
+            return true;
+        }
+    }
+    return false;
+}
+
 function switchTab(tabName) {
     currentTab = tabName;
     Alpine.store('dashboard').switchTab(tabName);
@@ -153,6 +174,8 @@ async function loadFileBrowser(path) {
             body: JSON.stringify({ path })
         });
 
+        if (handleFetchError(response)) return;
+
         const data = await response.json();
         const allItems = [...(data.directories || []), ...(data.files || [])];
         displayFiles(allItems, path);
@@ -195,6 +218,8 @@ async function openFile(path) {
             },
             body: JSON.stringify({ path })
         });
+
+        if (handleFetchError(response)) return;
 
         if (response.ok) {
             // It's a directory
@@ -240,6 +265,8 @@ async function viewFile(path) {
         const response = await fetch(`/dev/api/read-file?path=${encodeURIComponent(path)}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+
+        if (handleFetchError(response)) return;
 
         if (!response.ok) {
             throw new Error('Failed to load file');
@@ -330,21 +357,26 @@ async function viewFile(path) {
     }
 }
 
-function navigateUp() {
+async function navigateUp() {
     const token = localStorage.getItem('access_token');
-    fetch('/dev/api/parent-directory', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ path: currentFilePath })
-    })
-    .then(res => res.json())
-    .then(data => {
+    try {
+        const response = await fetch('/dev/api/parent-directory', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ path: currentFilePath })
+        });
+
+        if (handleFetchError(response)) return;
+
+        const data = await response.json();
         if (data.parent) {
             currentFilePath = data.parent;
             loadFileBrowser(data.parent);
         }
-    });
+    } catch (error) {
+        console.error('Error navigating up:', error);
+    }
 }

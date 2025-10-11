@@ -491,7 +491,7 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
             async with aiohttp.ClientSession(connector=connector) as aio_session:
                 async with aio_session.ws_connect(
                     ws_url,
-                    timeout=aiohttp.ClientTimeout(total=3600)
+                    timeout=aiohttp.ClientTimeout(total=43200)  # 12 hours for long dev sessions
                 ) as ws:
                     # Bidirectional proxy
                     async def forward_to_mac():

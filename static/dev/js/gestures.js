@@ -148,6 +148,25 @@ function toolbarHandler() {
             store.vibrate(20);
         },
 
+        async pasteFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text && window.ws && window.ws.readyState === WebSocket.OPEN) {
+                    window.ws.send(JSON.stringify({
+                        type: 'input',
+                        data: text
+                    }));
+                    showNotification('📋 Pasted from clipboard', 'success');
+                    Alpine.store('dashboard').vibrate(20);
+                } else if (!text) {
+                    showNotification('Clipboard is empty', 'info');
+                }
+            } catch (error) {
+                console.error('Paste failed:', error);
+                showNotification('⚠️ Paste failed - grant clipboard permission', 'info');
+            }
+        },
+
         copyTerminal() {
             if (window.term) {
                 const selection = window.term.getSelection();

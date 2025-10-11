@@ -84,6 +84,9 @@ document.addEventListener('alpine:init', () => {
         theme: localStorage.getItem('theme') || 'dark',
         soundEnabled: localStorage.getItem('soundEnabled') !== 'false',
 
+        // Selection mode state
+        selectionMode: false,
+
         // Methods
         switchView(view) {
             if (window.innerWidth > 768) return; // Desktop - no switching

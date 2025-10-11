@@ -124,6 +124,30 @@ function toolbarHandler() {
             Alpine.store('dashboard').vibrate(10);
         },
 
+        toggleSelectionMode() {
+            const store = Alpine.store('dashboard');
+            store.selectionMode = !store.selectionMode;
+
+            // Get xterm helper textarea elements
+            const helpers = document.getElementsByClassName("xterm-helper-textarea");
+
+            if (store.selectionMode) {
+                // Enable selection mode - disable keyboard input
+                for (let helper of helpers) {
+                    helper.setAttribute("disabled", "true");
+                }
+                showNotification('✏️ Selection mode enabled - Long press to select text', 'info');
+            } else {
+                // Disable selection mode - re-enable keyboard input
+                for (let helper of helpers) {
+                    helper.removeAttribute("disabled");
+                }
+                showNotification('⌨️ Keyboard mode enabled', 'info');
+            }
+
+            store.vibrate(20);
+        },
+
         copyTerminal() {
             if (window.term) {
                 const selection = window.term.getSelection();

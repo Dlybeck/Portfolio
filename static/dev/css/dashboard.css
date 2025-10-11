@@ -108,6 +108,16 @@ body {
     to { transform: translateY(0); }
 }
 
+.selection-mode-banner {
+    background: #ff8800;
+    color: white;
+    padding: 8px 16px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    animation: slideDown 0.3s;
+}
+
 .btn-logout {
     background: var(--danger-color);
     color: white;

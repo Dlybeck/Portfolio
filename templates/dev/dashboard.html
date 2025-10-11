@@ -89,11 +89,24 @@
         <span>Disconnected - <a href="#" @click="location.reload()" style="color: #000; text-decoration: underline;">Click to reconnect</a></span>
     </div>
 
+    <!-- Selection Mode Banner -->
+    <div
+        class="selection-mode-banner"
+        x-show="$store.dashboard.selectionMode"
+        x-transition
+        style="display: none;"
+    >
+        ✏️ Selection Mode Active - Long press to select text, tap Select again to exit
+    </div>
+
     <!-- Mobile Swipeable Keyboard Shortcuts Toolbar -->
     <div class="swipe-toolbar" x-data="toolbarHandler()">
         <div
             class="swipe-container"
             :style="`transform: translateX(-${$store.dashboard.toolbarPage * 50}%)`"
+            @touchstart="onToolbarTouchStart"
+            @touchmove="onToolbarTouchMove"
+            @touchend="onToolbarTouchEnd"
         >
             <!-- Page 1: Claude & Control Keys -->
             <div class="swipe-page">
@@ -109,9 +122,14 @@
                     <span class="btn-icon">⛔</span>
                     <span class="btn-label">^C</span>
                 </button>
-                <button class="shortcut-btn" @click="copyTerminal()" title="Copy selected text">
-                    <span class="btn-icon">📋</span>
-                    <span class="btn-label">Copy</span>
+                <button
+                    class="shortcut-btn"
+                    :class="$store.dashboard.selectionMode ? 'active' : ''"
+                    @click="toggleSelectionMode()"
+                    title="Toggle selection mode"
+                >
+                    <span class="btn-icon">✏️</span>
+                    <span class="btn-label">Select</span>
                 </button>
             </div>
 

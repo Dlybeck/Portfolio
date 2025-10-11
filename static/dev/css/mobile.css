@@ -103,8 +103,6 @@
 
     /* Keyboard visible state - hide header, keep toolbar visible */
     body.keyboard-visible {
-        /* Use actual viewport height to prevent content overflow */
-        height: var(--viewport-height, 100vh) !important;
         overflow: hidden !important; /* Prevent body scroll */
     }
 

@@ -23,9 +23,6 @@
     function updateViewport() {
         const currentHeight = viewport.height;
 
-        // Set CSS custom property with actual viewport height
-        document.documentElement.style.setProperty('--viewport-height', `${currentHeight}px`);
-
         const heightDifference = initialHeight - currentHeight;
 
         // Consider keyboard visible if viewport shrunk by more than 150px

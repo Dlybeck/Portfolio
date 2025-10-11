@@ -32,7 +32,10 @@ function connectWebSocket() {
 
     ws.onmessage = (event) => {
         const message = JSON.parse(event.data);
-        if (message.type === 'output') {
+        if (message.type === 'ping') {
+            // Respond to server ping to keep connection alive
+            ws.send(JSON.dumps({type: 'pong'}));
+        } else if (message.type === 'output') {
             if (window.term) {
                 window.term.write(message.data);
             }

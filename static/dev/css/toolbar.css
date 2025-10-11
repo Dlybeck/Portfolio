@@ -7,6 +7,9 @@
     overflow: hidden;
     display: none; /* Hidden by default, shown on mobile */
     flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .swipe-container {

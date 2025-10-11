@@ -598,6 +598,9 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
                 elif data["type"] == "resize":
                     # Resize terminal (affects all clients)
                     persistent_session.resize(data["rows"], data["cols"])
+                elif data["type"] == "pong":
+                    # Client responded to ping - keep connection alive
+                    pass
                 elif data["type"] == "toggle_term_mode":
                     # Toggle terminal mode and restart Claude
                     new_mode = data.get("mode", "fancy")
@@ -630,8 +633,23 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
                     # Client will auto-reconnect and new session will use new TERM
                     break
 
-        # Only run the client message handler (broadcast loop runs separately)
-        await handle_client_messages()
+        async def send_keepalive_pings():
+            """Send ping every 30 seconds to keep connection alive"""
+            try:
+                while True:
+                    await asyncio.sleep(30)
+                    try:
+                        await websocket.send_text(json.dumps({"type": "ping"}))
+                    except Exception:
+                        break
+            except asyncio.CancelledError:
+                pass
+
+        # Run both client message handler and ping sender
+        await asyncio.gather(
+            handle_client_messages(),
+            send_keepalive_pings()
+        )
 
     except WebSocketDisconnect:
         # Client disconnected - remove from session

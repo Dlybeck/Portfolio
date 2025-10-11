@@ -30,7 +30,7 @@ class PersistentSession:
         self.claude_started: bool = False  # Track if Claude has been auto-started
         self.claude_start_lock: asyncio.Lock = asyncio.Lock()  # Prevent race conditions
         self.last_activity: float = time.time()  # Track last activity for cleanup
-        self.term_mode: str = 'fancy'  # Track terminal mode: 'fancy' or 'simple'
+        self.term_mode: str = 'simple'  # Track terminal mode: 'fancy' or 'simple' (default simple for mobile)
 
         # Start terminal session
         self._start_terminal()

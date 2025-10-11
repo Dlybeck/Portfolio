@@ -11,7 +11,9 @@ function initTerminal() {
     // Calculate fixed dimensions - never resize
     const fontSize = store.fontSize;
     const charWidth = fontSize * 0.6; // Approximate character width
-    const cols = Math.max(80, Math.floor(window.innerWidth / charWidth));
+    // Account for padding and scrollbar - subtract 32px for safety
+    const availableWidth = window.innerWidth - 32;
+    const cols = Math.max(80, Math.floor(availableWidth / charWidth));
     const rows = 5000; // Large buffer for full chat history
 
     // Initialize xterm.js with fixed dimensions

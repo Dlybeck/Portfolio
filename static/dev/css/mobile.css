@@ -95,6 +95,12 @@
         display: none !important;
     }
 
+    /* Terminal should always be scrollable on mobile */
+    .terminal-container {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    }
+
     /* Keyboard visible state - hide header, keep toolbar visible */
     body.keyboard-visible {
         /* Use actual viewport height to prevent content overflow */
@@ -108,12 +114,6 @@
 
     body.keyboard-visible .swipe-hint {
         display: none !important;
-    }
-
-    /* Allow terminal to scroll independently when keyboard is visible */
-    body.keyboard-visible .terminal-container {
-        overflow-y: auto !important; /* Terminal scrolls, not body */
-        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
     }
 }
 

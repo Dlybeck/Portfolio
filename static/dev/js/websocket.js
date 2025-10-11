@@ -42,6 +42,22 @@ function connectWebSocket() {
             if (store.terminalOutput.length > 50000) {
                 store.terminalOutput = store.terminalOutput.slice(-50000);
             }
+        } else if (message.type === 'current_term_mode') {
+            // Initial term mode sent on connect
+            window.currentTermMode = message.mode;
+            console.log(`[TermMode] Current mode: ${message.mode}`);
+            // Dispatch event to update button
+            window.dispatchEvent(new CustomEvent('term_mode_update', {
+                detail: { mode: message.mode }
+            }));
+        } else if (message.type === 'term_mode_changed') {
+            // Term mode changed by another client
+            window.currentTermMode = message.mode;
+            console.log(`[TermMode] Mode changed to: ${message.mode}`);
+            // Dispatch event to update button across all devices
+            window.dispatchEvent(new CustomEvent('term_mode_update', {
+                detail: { mode: message.mode }
+            }));
         }
     };
 

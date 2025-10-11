@@ -63,6 +63,11 @@
         -moz-user-select: text !important;
     }
 
+    /* Mobile terminal font size optimization */
+    .xterm {
+        font-size: 12px !important;
+    }
+
     /* Header adjustments */
     .header {
         padding: 8px 12px;

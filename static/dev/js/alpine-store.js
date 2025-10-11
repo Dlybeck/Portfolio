@@ -73,7 +73,7 @@ document.addEventListener('alpine:init', () => {
         // Terminal state
         terminalReady: false,
         workingDir: localStorage.getItem('working_directory') || '~',
-        fontSize: parseInt(localStorage.getItem('fontSize')) || 14,
+        fontSize: parseInt(localStorage.getItem('fontSize')) || (window.innerWidth <= 768 ? 12 : 14),
 
         // Tab state
         currentTab: 'files',

@@ -38,6 +38,16 @@
             <button class="icon-btn hide-mobile" @click="$store.dashboard.decreaseFontSize()" title="Decrease font size">A-</button>
             <button class="icon-btn hide-mobile" @click="$store.dashboard.increaseFontSize()" title="Increase font size">A+</button>
 
+            <button
+                class="icon-btn"
+                @click="toggleTermMode()"
+                :title="window.currentTermMode === 'simple' ? 'Switch to Fancy Mode (ASCII art)' : 'Switch to Simple Mode (clean text)'"
+                x-data="{ mode: window.currentTermMode || 'fancy' }"
+                x-init="window.addEventListener('term_mode_update', (e) => mode = e.detail.mode)"
+            >
+                <span x-text="mode === 'simple' ? '📝' : '🎨'"></span>
+            </button>
+
             <button class="icon-btn" @click="$store.dashboard.toggleTheme()" title="Toggle theme">
                 <span x-text="$store.dashboard.theme === 'light' ? '☀️' : '🌙'"></span>
             </button>

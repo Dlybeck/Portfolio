@@ -557,20 +557,31 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
         await persistent_session.start_broadcast_loop()
 
         # Auto-start Claude ONCE per session (not once per client)
+        # Send current term mode to new client
+        await websocket.send_text(json.dumps({
+            "type": "current_term_mode",
+            "mode": persistent_session.term_mode
+        }))
+
         # Skip auto-start for terminal tab sessions (they should be plain bash)
         # Use lock to prevent race conditions when multiple clients connect simultaneously
         is_terminal_tab = session_id.startswith('terminal_tab_')
         if not is_terminal_tab:
             async with persistent_session.claude_start_lock:
                 if not persistent_session.claude_started:
-                    print("[DEBUG] Auto-starting Claude for this session...")
+                    print(f"[DEBUG] Auto-starting Claude in '{persistent_session.term_mode}' mode...")
                     # Wait for terminal to fully initialize
                     await asyncio.sleep(1.5)
+                    # Set TERM based on mode
+                    if persistent_session.term_mode == 'simple':
+                        persistent_session.write("export TERM=dumb\n")
+                    else:
+                        persistent_session.write("export TERM=xterm-256color\n")
                     # Source shell profile to load PATH, then start claude
                     # Try .zshrc first (macOS default), fallback to .bashrc
                     persistent_session.write("source ~/.zshrc 2>/dev/null || source ~/.bashrc 2>/dev/null; exec claude\n")
                     persistent_session.claude_started = True
-                    print("[DEBUG] Claude command sent with shell profile loaded")
+                    print(f"[DEBUG] Claude started with TERM={persistent_session.term_mode}")
         else:
             print("[DEBUG] Terminal tab session - skipping Claude auto-start")
 
@@ -587,6 +598,37 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
                 elif data["type"] == "resize":
                     # Resize terminal (affects all clients)
                     persistent_session.resize(data["rows"], data["cols"])
+                elif data["type"] == "toggle_term_mode":
+                    # Toggle terminal mode and restart Claude
+                    new_mode = data.get("mode", "fancy")
+                    print(f"[DEBUG] Toggling term mode to '{new_mode}' for session '{session_id}'")
+
+                    # Update session mode
+                    persistent_session.set_term_mode(new_mode)
+
+                    # Broadcast mode change to all connected clients
+                    mode_change_msg = json.dumps({
+                        "type": "term_mode_changed",
+                        "mode": new_mode
+                    })
+                    disconnected = set()
+                    for client in persistent_session.connected_clients:
+                        try:
+                            await client.send_text(mode_change_msg)
+                        except Exception as e:
+                            print(f"[DEBUG] Error sending mode change to client: {e}")
+                            disconnected.add(client)
+
+                    # Clean up disconnected clients
+                    for client in disconnected:
+                        persistent_session.remove_client(client)
+
+                    # Close session to restart with new TERM
+                    from services.session_manager import close_persistent_session
+                    close_persistent_session(session_id)
+
+                    # Client will auto-reconnect and new session will use new TERM
+                    break
 
         # Only run the client message handler (broadcast loop runs separately)
         await handle_client_messages()

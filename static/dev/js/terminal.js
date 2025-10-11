@@ -3,6 +3,9 @@
 let term = null;
 let fitAddon = null;
 
+// Global term mode tracking
+window.currentTermMode = 'fancy';
+
 function initTerminal() {
     const store = Alpine.store('dashboard');
 
@@ -133,4 +136,22 @@ async function killSession() {
     setTimeout(() => {
         window.location.href = window.location.pathname;
     }, 500);
+}
+
+// Toggle terminal mode (fancy/simple)
+function toggleTermMode() {
+    // Toggle mode
+    const newMode = window.currentTermMode === 'fancy' ? 'simple' : 'fancy';
+
+    console.log(`[TermMode] Toggling from ${window.currentTermMode} to ${newMode}`);
+
+    // Send toggle message to backend
+    if (window.ws && window.ws.readyState === WebSocket.OPEN) {
+        window.ws.send(JSON.stringify({
+            type: 'toggle_term_mode',
+            mode: newMode
+        }));
+    } else {
+        console.error('[TermMode] WebSocket not connected');
+    }
 }

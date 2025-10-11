@@ -30,6 +30,7 @@ class PersistentSession:
         self.claude_started: bool = False  # Track if Claude has been auto-started
         self.claude_start_lock: asyncio.Lock = asyncio.Lock()  # Prevent race conditions
         self.last_activity: float = time.time()  # Track last activity for cleanup
+        self.term_mode: str = 'fancy'  # Track terminal mode: 'fancy' or 'simple'
 
         # Start terminal session
         self._start_terminal()
@@ -145,6 +146,15 @@ class PersistentSession:
         """Check if broadcast loop is running"""
         return self.broadcast_task is not None and not self.broadcast_task.done()
 
+    def set_term_mode(self, mode: str):
+        """Set terminal mode (fancy or simple)"""
+        if mode not in ['fancy', 'simple']:
+            print(f"[SessionManager] Invalid term mode: {mode}")
+            return
+
+        self.term_mode = mode
+        print(f"[SessionManager] Set term mode to '{mode}' for session '{self.session_id}'")
+
     def close(self):
         """Explicitly close terminal session (only when requested)"""
         # Cancel broadcast task
@@ -204,7 +214,8 @@ def get_all_sessions():
             "clients": len(session.connected_clients),
             "working_dir": session.working_dir,
             "buffer_size": len(session.output_buffer),
-            "idle_seconds": int(time.time() - session.last_activity)
+            "idle_seconds": int(time.time() - session.last_activity),
+            "term_mode": session.term_mode
         }
         for sid, session in _persistent_sessions.items()
     }

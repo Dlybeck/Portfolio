@@ -19,8 +19,7 @@ function swipeHandler() {
             const target = e.target;
             const isInteractive = target.closest('.swipe-toolbar') ||
                                  target.closest('button') ||
-                                 target.closest('input') ||
-                                 target.closest('.preview-section');
+                                 target.closest('input');
 
             if (isInteractive) {
                 Alpine.store('debugPanel')?.log('🚫 Touch on interactive element - ignoring');
@@ -67,9 +66,9 @@ function swipeHandler() {
                 return;
             }
 
-            // Require longer swipe distance (150px)
-            if (Math.abs(deltaX) < 150) {
-                debug?.log(`❌ Too short: ${Math.round(Math.abs(deltaX))}px < 150px`);
+            // Require longer swipe distance (100px)
+            if (Math.abs(deltaX) < 100) {
+                debug?.log(`❌ Too short: ${Math.round(Math.abs(deltaX))}px < 100px`);
                 this.isSwiping = false;
                 return;
             }

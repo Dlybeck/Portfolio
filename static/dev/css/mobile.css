@@ -9,7 +9,6 @@
     .terminal-section,
     .preview-section {
         width: 100%;
-        flex: 1;
         border: none;
     }
 

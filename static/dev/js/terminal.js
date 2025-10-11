@@ -1,7 +1,6 @@
 /* Terminal Initialization (xterm.js) */
 
 let term = null;
-let fitAddon = null;
 
 // Global term mode tracking
 window.currentTermMode = 'fancy';
@@ -9,11 +8,20 @@ window.currentTermMode = 'fancy';
 function initTerminal() {
     const store = Alpine.store('dashboard');
 
-    // Initialize xterm.js
+    // Calculate fixed dimensions - never resize
+    const fontSize = store.fontSize;
+    const charWidth = fontSize * 0.6; // Approximate character width
+    const cols = Math.max(80, Math.floor(window.innerWidth / charWidth));
+    const rows = 5000; // Large buffer for full chat history
+
+    // Initialize xterm.js with fixed dimensions
     term = new Terminal({
         cursorBlink: true,
-        fontSize: store.fontSize,
+        fontSize: fontSize,
         fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+        rows: rows,
+        cols: cols,
+        scrollback: 0, // No internal scrollback - all rows are visible
         theme: {
             background: '#1a1a1a',
             foreground: '#f8f8f8',
@@ -37,15 +45,11 @@ function initTerminal() {
         }
     });
 
-    fitAddon = new FitAddon.FitAddon();
-    term.loadAddon(fitAddon);
-
     // Enable clickable URLs
     const webLinksAddon = new WebLinksAddon.WebLinksAddon();
     term.loadAddon(webLinksAddon);
 
     term.open(document.getElementById('terminal'));
-    fitAddon.fit();
 
     // Send input to terminal
     term.onData((data) => {
@@ -54,23 +58,17 @@ function initTerminal() {
         }
     });
 
-    // Handle resize
-    window.addEventListener('resize', () => {
-        if (fitAddon) {
-            fitAddon.fit();
-            if (window.ws && window.ws.readyState === WebSocket.OPEN) {
-                window.ws.send(JSON.stringify({
-                    type: 'resize',
-                    rows: term.rows,
-                    cols: term.cols
-                }));
-            }
-        }
-    });
+    // Send initial size to backend
+    if (window.ws && window.ws.readyState === WebSocket.OPEN) {
+        window.ws.send(JSON.stringify({
+            type: 'resize',
+            rows: term.rows,
+            cols: term.cols
+        }));
+    }
 
     // Expose globally for other modules
     window.term = term;
-    window.fitAddon = fitAddon;
 
     store.terminalReady = true;
 }

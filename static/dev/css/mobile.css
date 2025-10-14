@@ -69,6 +69,14 @@
 
     .header-right {
         gap: 6px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+    }
+
+    .header-right::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Edge */
     }
 
     .icon-btn {
@@ -81,8 +89,21 @@
         font-size: 11px;
     }
 
+    /* Header button mobile adjustments */
+    .header-btn {
+        min-height: 48px;
+        padding: 10px 12px;
+        gap: 0;
+        flex-shrink: 0;
+    }
+
+    .header-btn .btn-icon {
+        font-size: 20px;
+    }
+
     .connection-status {
         padding: 4px 6px;
+        flex-shrink: 0;
     }
 
     .hide-mobile {
@@ -96,6 +117,74 @@
 
     body.keyboard-visible .swipe-hint {
         display: none !important;
+    }
+
+    /* Position Indicators */
+    .view-indicators {
+        position: fixed;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        z-index: 100;
+        pointer-events: none;
+        padding: 8px 16px;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+    }
+
+    .indicator-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .indicator-dot.active {
+        background: rgba(255, 255, 255, 0.9);
+        transform: scale(1.2);
+    }
+
+    /* Bounce resistance animations */
+    @keyframes bounce-left {
+        0%, 100% { transform: translateX(0); }
+        50% { transform: translateX(10px); }
+    }
+
+    @keyframes bounce-right {
+        0%, 100% { transform: translateX(0); }
+        50% { transform: translateX(-10px); }
+    }
+
+    .bounce-left {
+        animation: bounce-left 0.3s ease-out;
+    }
+
+    .bounce-right {
+        animation: bounce-right 0.3s ease-out;
+    }
+
+    /* Files section - hidden by default on mobile */
+    .files-section {
+        display: none;
+        width: 100%;
+        border: none;
+    }
+
+    /* Show files section when in files view */
+    body[data-view="files"] .terminal-section {
+        display: none;
+    }
+
+    body[data-view="files"] .files-section {
+        display: flex;
+    }
+
+    body[data-view="files"] .preview-section {
+        display: none;
     }
 }
 

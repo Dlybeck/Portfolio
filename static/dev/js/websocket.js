@@ -20,8 +20,12 @@ function connectWebSocket() {
     const newSessionParam = urlParams.get('new_session');
     const sessionParam = newSessionParam ? `&session=session_${newSessionParam}` : '';
 
+    // Send preferred terminal mode (from localStorage/Alpine store)
+    const preferredMode = store.termMode || 'simple';
+    const modeParam = `&mode=${preferredMode}`;
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/dev/ws/terminal?cwd=${encodeURIComponent(workingDir)}&token=${encodeURIComponent(token)}${sessionParam}`;
+    const wsUrl = `${protocol}//${window.location.host}/dev/ws/terminal?cwd=${encodeURIComponent(workingDir)}&token=${encodeURIComponent(token)}${sessionParam}${modeParam}`;
 
     ws = new WebSocket(wsUrl);
 
@@ -34,7 +38,7 @@ function connectWebSocket() {
         const message = JSON.parse(event.data);
         if (message.type === 'ping') {
             // Respond to server ping to keep connection alive
-            ws.send(JSON.dumps({type: 'pong'}));
+            ws.send(JSON.stringify({type: 'pong'}));
         } else if (message.type === 'output') {
             if (window.term) {
                 window.term.write(message.data);
@@ -49,6 +53,14 @@ function connectWebSocket() {
             // Initial term mode sent on connect
             window.currentTermMode = message.mode;
             console.log(`[TermMode] Current mode: ${message.mode}`);
+
+            // Update localStorage and Alpine store
+            localStorage.setItem('term_mode', message.mode);
+            const store = Alpine.store('dashboard');
+            if (store) {
+                store.termMode = message.mode;
+            }
+
             // Dispatch event to update button
             window.dispatchEvent(new CustomEvent('term_mode_update', {
                 detail: { mode: message.mode }
@@ -57,6 +69,14 @@ function connectWebSocket() {
             // Term mode changed by another client
             window.currentTermMode = message.mode;
             console.log(`[TermMode] Mode changed to: ${message.mode}`);
+
+            // Update localStorage and Alpine store
+            localStorage.setItem('term_mode', message.mode);
+            const store = Alpine.store('dashboard');
+            if (store) {
+                store.termMode = message.mode;
+            }
+
             // Dispatch event to update button across all devices
             window.dispatchEvent(new CustomEvent('term_mode_update', {
                 detail: { mode: message.mode }

@@ -1,5 +1,8 @@
 /* Touch Gesture Handlers - Alpine.js Components */
 
+// View order: Terminal → Files → Preview
+const VIEWS = ['terminal', 'files', 'preview'];
+
 // Main swipe handler for view switching
 function swipeHandler() {
     return {
@@ -8,6 +11,7 @@ function swipeHandler() {
         touchCurrentX: 0,
         touchCurrentY: 0,
         isSwiping: false,
+        currentViewIndex: 0, // Start at terminal
 
         onTouchStart(e) {
             if (window.innerWidth > 768) {
@@ -19,7 +23,9 @@ function swipeHandler() {
             const target = e.target;
             const isInteractive = target.closest('.swipe-toolbar') ||
                                  target.closest('button') ||
-                                 target.closest('input');
+                                 target.closest('input') ||
+                                 target.closest('.file-list') ||
+                                 target.closest('#fileList');
 
             if (isInteractive) {
                 Alpine.store('debugPanel')?.log('🚫 Touch on interactive element - ignoring');
@@ -29,7 +35,12 @@ function swipeHandler() {
             this.touchStartX = e.touches[0].clientX;
             this.touchStartY = e.touches[0].clientY;
             this.isSwiping = false;
-            Alpine.store('debugPanel')?.log(`👇 Touch start: X=${Math.round(this.touchStartX)}, Y=${Math.round(this.touchStartY)}`);
+
+            // Update current index based on current view
+            const store = Alpine.store('dashboard');
+            this.currentViewIndex = VIEWS.indexOf(store.currentView);
+
+            Alpine.store('debugPanel')?.log(`👇 Touch start: X=${Math.round(this.touchStartX)}, Y=${Math.round(this.touchStartY)}, Index=${this.currentViewIndex}`);
         },
 
         onTouchMove(e) {
@@ -74,21 +85,56 @@ function swipeHandler() {
             }
 
             const store = Alpine.store('dashboard');
-            debug?.log(`📍 Current view: ${store.currentView}`);
+            debug?.log(`📍 Current view: ${store.currentView} (index ${this.currentViewIndex})`);
 
-            if (deltaX < 0 && store.currentView === 'terminal') {
-                // Swipe left - show preview
-                debug?.log('✅ Swipe LEFT → Switching to preview');
-                store.switchView('preview');
-            } else if (deltaX > 0 && store.currentView === 'preview') {
-                // Swipe right - show terminal
-                debug?.log('✅ Swipe RIGHT → Switching to terminal');
-                store.switchView('terminal');
-            } else {
-                debug?.log(`⚠️ No action: deltaX=${Math.round(deltaX)}, view=${store.currentView}`);
+            // Swipe left (next view)
+            if (deltaX < 0) {
+                if (this.currentViewIndex < VIEWS.length - 1) {
+                    // Can move to next view
+                    this.currentViewIndex++;
+                    const newView = VIEWS[this.currentViewIndex];
+                    debug?.log(`✅ Swipe LEFT → Switching to ${newView} (index ${this.currentViewIndex})`);
+                    store.switchView(newView);
+                } else {
+                    // At rightmost view - show resistance
+                    debug?.log('⚠️ At rightmost view - resistance feedback');
+                    this.showResistance('right');
+                }
+            }
+            // Swipe right (previous view)
+            else if (deltaX > 0) {
+                if (this.currentViewIndex > 0) {
+                    // Can move to previous view
+                    this.currentViewIndex--;
+                    const newView = VIEWS[this.currentViewIndex];
+                    debug?.log(`✅ Swipe RIGHT → Switching to ${newView} (index ${this.currentViewIndex})`);
+                    store.switchView(newView);
+                } else {
+                    // At leftmost view - show resistance
+                    debug?.log('⚠️ At leftmost view - resistance feedback');
+                    this.showResistance('left');
+                }
             }
 
             this.isSwiping = false;
+        },
+
+        showResistance(direction) {
+            // Haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+
+            // Visual feedback - add bounce animation to main container
+            const mainContainer = document.querySelector('.main-container');
+            if (mainContainer) {
+                mainContainer.classList.add(`bounce-${direction}`);
+                setTimeout(() => {
+                    mainContainer.classList.remove(`bounce-${direction}`);
+                }, 300);
+            }
+
+            Alpine.store('debugPanel')?.log(`💥 Resistance feedback: ${direction}`);
         }
     };
 }

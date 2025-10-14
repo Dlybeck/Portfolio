@@ -408,6 +408,113 @@ async def read_file(
             return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
+@dev_router.post("/api/save-file")
+async def save_file(
+    req: Request,
+    user: dict = Depends(get_current_user)
+):
+    """
+    Save file content - proxy if Cloud Run, execute locally if Mac
+    Requires authentication (JWT token)
+    """
+    if IS_CLOUD_RUN:
+        # Cloud Run: Proxy to Mac
+        try:
+            body = await req.body()
+            auth_header = req.headers.get("Authorization", "")
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": auth_header
+            }
+            async with httpx.AsyncClient(timeout=30.0, proxy=SOCKS5_PROXY) as client:
+                response = await client.post(
+                    f"{MAC_SERVER_URL}/dev/api/save-file",
+                    content=body,
+                    headers=headers
+                )
+                return JSONResponse(content=response.json(), status_code=response.status_code)
+        except Exception as e:
+            return JSONResponse(content={"error": str(e)}, status_code=500)
+    else:
+        # Mac: Execute locally
+        class SaveFileRequest(BaseModel):
+            path: str
+            content: str
+
+        try:
+            body = await req.json()
+            save_req = SaveFileRequest(**body)
+
+            # Security validations
+            file_path = save_req.path
+
+            # Validate file path is absolute
+            if not os.path.isabs(file_path):
+                return JSONResponse(
+                    content={"error": "File path must be absolute"},
+                    status_code=400
+                )
+
+            # Prevent directory traversal attacks
+            if ".." in file_path:
+                return JSONResponse(
+                    content={"error": "Invalid file path (directory traversal not allowed)"},
+                    status_code=400
+                )
+
+            # Expand ~ to home directory
+            file_path = os.path.expanduser(file_path)
+            path_obj = Path(file_path)
+
+            # Check file exists
+            if not path_obj.exists():
+                return JSONResponse(
+                    content={"error": "File not found"},
+                    status_code=404
+                )
+
+            # Check it's a file (not a directory)
+            if not path_obj.is_file():
+                return JSONResponse(
+                    content={"error": "Path is not a file"},
+                    status_code=400
+                )
+
+            # Check file is writable
+            if not os.access(file_path, os.W_OK):
+                return JSONResponse(
+                    content={"error": "Permission denied - file is not writable"},
+                    status_code=403
+                )
+
+            # Write content to file with UTF-8 encoding
+            # Preserve line endings (don't convert)
+            bytes_written = path_obj.write_text(save_req.content, encoding='utf-8')
+
+            print(f"[DEBUG] Saved {bytes_written} bytes to {file_path}")
+
+            return JSONResponse(content={
+                "success": True,
+                "message": f"File saved successfully",
+                "bytes_written": bytes_written,
+                "path": str(path_obj)
+            })
+
+        except PermissionError as e:
+            return JSONResponse(
+                content={"error": f"Permission denied: {str(e)}"},
+                status_code=403
+            )
+        except Exception as e:
+            print(f"[ERROR] Failed to save file: {e}")
+            import traceback
+            traceback.print_exc()
+            return JSONResponse(
+                content={"error": str(e)},
+                status_code=500
+            )
+
+
 @dev_router.get("/debug/sessions")
 async def debug_sessions(user: dict = Depends(get_current_user)):
     """🔒 Debug endpoint to inspect active sessions - requires authentication"""
@@ -449,7 +556,7 @@ async def kill_session(
 
 
 @dev_router.websocket("/ws/terminal")
-async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str = None, token: str = None):
+async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str = None, token: str = None, mode: str = None):
     """
     🔒 WebSocket endpoint for terminal access - requires JWT token
     Proxy if Cloud Run, execute if Mac
@@ -483,10 +590,12 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
             # Create SOCKS5 connector
             connector = ProxyConnector.from_url(SOCKS5_PROXY)
 
-            # Connect to Mac's WebSocket through SOCKS5 (forward auth token)
+            # Connect to Mac's WebSocket through SOCKS5 (forward auth token and mode)
             ws_url = f"ws://{MAC_SERVER_IP}:{MAC_SERVER_PORT}/dev/ws/terminal?cwd={cwd}&token={token}"
             if session:
                 ws_url += f"&session={session}"
+            if mode:
+                ws_url += f"&mode={mode}"
 
             async with aiohttp.ClientSession(connector=connector) as aio_session:
                 async with aio_session.ws_connect(
@@ -544,6 +653,14 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
             working_dir=working_dir,
             command="bash"
         )
+
+        # Set client's preferred mode if this is a new session or if mode is specified
+        # Validate mode parameter
+        if mode and mode in ['fancy', 'simple']:
+            # If this is a new session (claude_started=False), set the preferred mode
+            if not persistent_session.claude_started:
+                persistent_session.term_mode = mode
+                print(f"[DEBUG] Setting initial term mode to '{mode}' for new session '{session_id}'")
 
         # Add this client/device to the session
         persistent_session.add_client(websocket)

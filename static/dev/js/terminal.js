@@ -2,8 +2,8 @@
 
 let term = null;
 
-// Global term mode tracking
-window.currentTermMode = 'fancy';
+// Global term mode tracking - initialize from store
+window.currentTermMode = Alpine.store('dashboard').termMode;
 
 function initTerminal() {
     const store = Alpine.store('dashboard');
@@ -13,7 +13,14 @@ function initTerminal() {
     const charWidth = fontSize * 0.6; // Approximate character width
     // Account for padding and scrollbar - subtract 32px for safety
     const availableWidth = window.innerWidth - 32;
-    const cols = Math.max(80, Math.floor(availableWidth / charWidth));
+    let cols = Math.max(80, Math.floor(availableWidth / charWidth));
+
+    // On mobile (width <= 768px), cap at 80 columns to prevent text wrapping
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+        cols = Math.min(cols, 80);
+    }
+
     const rows = 5000; // Large buffer for full chat history
 
     // Initialize xterm.js with fixed dimensions
@@ -148,6 +155,15 @@ function toggleTermMode() {
     const newMode = window.currentTermMode === 'fancy' ? 'simple' : 'fancy';
 
     console.log(`[TermMode] Toggling from ${window.currentTermMode} to ${newMode}`);
+
+    // Save preference to localStorage
+    localStorage.setItem('term_mode', newMode);
+
+    // Update Alpine store
+    const store = Alpine.store('dashboard');
+    if (store) {
+        store.termMode = newMode;
+    }
 
     // Send toggle message to backend
     if (window.ws && window.ws.readyState === WebSocket.OPEN) {

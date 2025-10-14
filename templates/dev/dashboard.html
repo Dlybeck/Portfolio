@@ -35,27 +35,19 @@
         <h1 class="hide-mobile">🤖 Claude Code Terminal</h1>
 
         <div class="header-right">
-            <button class="icon-btn hide-mobile" @click="$store.dashboard.decreaseFontSize()" title="Decrease font size">A-</button>
-            <button class="icon-btn hide-mobile" @click="$store.dashboard.increaseFontSize()" title="Increase font size">A+</button>
-
+            <!-- Mode Toggle Button -->
             <button
-                class="icon-btn"
+                class="header-btn mode-toggle-btn"
                 @click="toggleTermMode()"
                 :title="window.currentTermMode === 'simple' ? 'Switch to Fancy Mode (ASCII art)' : 'Switch to Simple Mode (clean text)'"
                 x-data="{ mode: window.currentTermMode || 'fancy' }"
                 x-init="window.addEventListener('term_mode_update', (e) => mode = e.detail.mode)"
             >
-                <span x-text="mode === 'simple' ? '📝' : '🎨'"></span>
+                <span class="btn-icon" x-text="mode === 'simple' ? '📝' : '🎨'"></span>
+                <span class="btn-text hide-mobile" x-text="mode === 'simple' ? 'Simple' : 'Fancy'"></span>
             </button>
 
-            <button class="icon-btn" @click="$store.dashboard.toggleTheme()" title="Toggle theme">
-                <span x-text="$store.dashboard.theme === 'light' ? '☀️' : '🌙'"></span>
-            </button>
-
-            <button class="icon-btn" @click="$store.dashboard.toggleSound()" title="Toggle notification sound">
-                <span x-text="$store.dashboard.soundEnabled ? '🔔' : '🔕'"></span>
-            </button>
-
+            <!-- Connection Status -->
             <span class="connection-status">
                 <span
                     class="status-dot"
@@ -72,10 +64,26 @@
                 "></span>
             </span>
 
-            <span class="hide-mobile">👤 {{ user.username }}</span>
-            <button class="btn-logout" @click="killSession()" style="background: #dc3545; margin-right: 8px;" title="Kill stuck session & restart">💀</button>
-            <button class="btn-logout" @click="changeDirectory()" style="background: #667eea; margin-right: 8px;">📁</button>
-            <button class="btn-logout" @click="logout()">Logout</button>
+            <!-- Username Display -->
+            <span class="hide-mobile user-display">{{ user.username }}</span>
+
+            <!-- Change Directory Button -->
+            <button class="header-btn change-dir-btn" @click="changeDirectory()" title="Change working directory">
+                <span class="btn-icon">📁</span>
+                <span class="btn-text hide-mobile">Change Dir</span>
+            </button>
+
+            <!-- Kill Session Button -->
+            <button class="header-btn kill-btn" @click="killSession()" title="Kill stuck session & restart">
+                <span class="btn-icon">💀</span>
+                <span class="btn-text hide-mobile">Kill</span>
+            </button>
+
+            <!-- Logout Button -->
+            <button class="header-btn logout-btn" @click="logout()" title="Logout">
+                <span class="btn-icon hide-mobile">🚪</span>
+                <span class="btn-text">Logout</span>
+            </button>
         </div>
     </header>
 
@@ -197,6 +205,18 @@
             </div>
         </section>
 
+        <!-- Files Section -->
+        <section class="files-section">
+            <div class="preview-tabs" x-data="{ activeTab: 'files' }">
+                <div class="tab active">Files</div>
+            </div>
+            <div class="tab-content" id="filesTabContent">
+                <div class="placeholder">
+                    Loading files...
+                </div>
+            </div>
+        </section>
+
         <!-- Preview Section -->
         <section class="preview-section">
             <div class="preview-tabs" x-data="{ activeTab: 'files' }">
@@ -224,6 +244,13 @@
             </div>
         </section>
     </main>
+
+    <!-- Position Indicators (Mobile Only) -->
+    <div class="view-indicators show-mobile">
+        <span class="indicator-dot" :class="$store.dashboard.currentView === 'terminal' ? 'active' : ''"></span>
+        <span class="indicator-dot" :class="$store.dashboard.currentView === 'files' ? 'active' : ''"></span>
+        <span class="indicator-dot" :class="$store.dashboard.currentView === 'preview' ? 'active' : ''"></span>
+    </div>
 
     <!-- Alpine Store (Load First!) -->
     <script src="/static/dev/js/alpine-store.js"></script>

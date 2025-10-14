@@ -19,4 +19,14 @@
     body[data-view="preview"] .terminal-section {
         display: flex !important; /* Override mobile hiding */
     }
+
+    /* Hide position indicators on desktop */
+    .view-indicators {
+        display: none !important;
+    }
+
+    /* Hide files section on desktop - only show terminal and preview side by side */
+    .files-section {
+        display: none !important;
+    }
 }

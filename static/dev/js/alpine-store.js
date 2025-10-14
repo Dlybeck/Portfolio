@@ -60,7 +60,7 @@ document.addEventListener('alpine:init', () => {
     // Main dashboard store
     Alpine.store('dashboard', {
         // View state
-        currentView: 'terminal',  // 'terminal' | 'preview'
+        currentView: 'terminal',  // 'terminal' | 'files' | 'preview'
 
         // Toolbar state
         toolbarPage: 0,
@@ -84,6 +84,22 @@ document.addEventListener('alpine:init', () => {
         theme: localStorage.getItem('theme') || 'dark',
         soundEnabled: localStorage.getItem('soundEnabled') !== 'false',
 
+        // Terminal mode state (fancy/simple)
+        termMode: (() => {
+            // Check if user has a saved preference
+            const savedMode = localStorage.getItem('term_mode');
+            if (savedMode) {
+                return savedMode;
+            }
+            // No saved preference - default based on device type
+            // Mobile (width <= 768px) defaults to 'simple', desktop to 'fancy'
+            const isMobile = window.innerWidth <= 768;
+            const defaultMode = isMobile ? 'simple' : 'fancy';
+            // Save the default so it persists
+            localStorage.setItem('term_mode', defaultMode);
+            return defaultMode;
+        })(),
+
         // Selection mode state
         selectionMode: false,
 
@@ -91,10 +107,25 @@ document.addEventListener('alpine:init', () => {
         switchView(view) {
             if (window.innerWidth > 768) return; // Desktop - no switching
 
-            if (view === 'terminal' || view === 'preview') {
+            if (view === 'terminal' || view === 'files' || view === 'preview') {
                 this.currentView = view;
                 document.body.dataset.view = view;
                 this.vibrate(10);
+
+                // If switching to files view, load the file browser
+                if (view === 'files') {
+                    this.loadFilesView();
+                }
+            }
+        },
+
+        loadFilesView() {
+            // Load file browser into the files section
+            const workingDir = localStorage.getItem('working_directory') || '~';
+
+            // Use the existing loadFileBrowser function from tabs.js
+            if (typeof loadFileBrowserForFiles === 'function') {
+                loadFileBrowserForFiles(workingDir);
             }
         },
 

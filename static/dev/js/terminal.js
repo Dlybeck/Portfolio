@@ -165,6 +165,13 @@ function toggleTermMode() {
         store.termMode = newMode;
     }
 
+    // Show confirmation toast
+    if (newMode === 'simple') {
+        showToast('✓ Simple Mode: Clean text, no ASCII art', 'success');
+    } else {
+        showToast('✓ Fancy Mode: Full colors and ASCII art', 'success');
+    }
+
     // Send toggle message to backend
     if (window.ws && window.ws.readyState === WebSocket.OPEN) {
         window.ws.send(JSON.stringify({

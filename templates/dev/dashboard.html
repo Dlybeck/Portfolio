@@ -44,7 +44,7 @@
                 x-init="window.addEventListener('term_mode_update', (e) => mode = e.detail.mode)"
             >
                 <span class="btn-icon" x-text="mode === 'simple' ? '📝' : '🎨'"></span>
-                <span class="btn-text hide-mobile" x-text="mode === 'simple' ? 'Simple' : 'Fancy'"></span>
+                <span class="btn-text" x-text="mode === 'simple' ? 'Simple' : 'Fancy'"></span>
             </button>
 
             <!-- Connection Status -->
@@ -219,19 +219,14 @@
 
         <!-- Preview Section -->
         <section class="preview-section">
-            <div class="preview-tabs" x-data="{ activeTab: 'files' }">
-                <div
-                    class="tab"
-                    :class="activeTab === 'files' ? 'active' : ''"
-                    @click="activeTab = 'files'; switchTab('files')"
-                >Files</div>
+            <div class="preview-tabs" x-data="{ activeTab: 'preview' }">
                 <div
                     class="tab"
                     :class="activeTab === 'terminal' ? 'active' : ''"
                     @click="activeTab = 'terminal'; switchTab('terminal')"
                 >Terminal</div>
                 <div
-                    class="tab"
+                    class="tab active"
                     :class="activeTab === 'preview' ? 'active' : ''"
                     @click="activeTab = 'preview'; switchTab('preview')"
                 >Preview</div>
@@ -268,8 +263,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             initTerminal();
             connectWebSocket();
-            // Load files tab by default
-            switchTab('files');
+            // Load preview tab by default
+            switchTab('preview');
         });
     </script>
 </body>

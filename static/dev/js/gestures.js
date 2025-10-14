@@ -25,7 +25,13 @@ function swipeHandler() {
                                  target.closest('button') ||
                                  target.closest('input') ||
                                  target.closest('.file-list') ||
-                                 target.closest('#fileList');
+                                 target.closest('#fileList') ||
+                                 target.closest('.terminal-section') ||
+                                 target.closest('.terminal-container') ||
+                                 target.closest('#terminal') ||
+                                 target.closest('.xterm') ||
+                                 target.closest('.xterm-screen') ||
+                                 target.closest('.xterm-helper-textarea');
 
             if (isInteractive) {
                 Alpine.store('debugPanel')?.log('🚫 Touch on interactive element - ignoring');

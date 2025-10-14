@@ -116,6 +116,28 @@ document.addEventListener('alpine:init', () => {
                 if (view === 'files') {
                     this.loadFilesView();
                 }
+
+                // If switching to terminal view, refresh and focus it
+                if (view === 'terminal') {
+                    setTimeout(() => {
+                        if (window.term) {
+                            window.term.refresh();
+                            window.term.focus();
+
+                            // On mobile, also focus the hidden textarea to trigger keyboard
+                            if (window.innerWidth <= 768) {
+                                try {
+                                    const textarea = document.querySelector('.xterm-helper-textarea');
+                                    if (textarea) {
+                                        textarea.focus();
+                                    }
+                                } catch (e) {
+                                    console.log('Could not focus textarea:', e);
+                                }
+                            }
+                        }
+                    }, 50);
+                }
             }
         },
 

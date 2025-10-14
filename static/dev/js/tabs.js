@@ -1,6 +1,6 @@
 /* Tab Content Management */
 
-let currentTab = 'files';
+let currentTab = 'preview';
 let currentFilePath = localStorage.getItem('working_directory') || '~';
 let separateTerminal = null;
 let separateWs = null;
@@ -38,10 +38,6 @@ function updateTabContent() {
     const store = Alpine.store('dashboard');
 
     switch(currentTab) {
-        case 'files':
-            loadFileBrowser(currentFilePath);
-            break;
-
         case 'terminal':
             initSeparateTerminal();
             break;

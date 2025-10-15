@@ -26,11 +26,8 @@ function swipeHandler() {
                                  target.closest('input') ||
                                  target.closest('.file-list') ||
                                  target.closest('#fileList') ||
-                                 target.closest('.terminal-section') ||
-                                 target.closest('.terminal-container') ||
-                                 target.closest('#terminal') ||
-                                 target.closest('.xterm') ||
-                                 target.closest('.xterm-screen') ||
+                                 target.closest('.view-indicators') ||
+                                 target.closest('.indicator-dot') ||
                                  target.closest('.xterm-helper-textarea');
 
             if (isInteractive) {

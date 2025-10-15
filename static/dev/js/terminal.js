@@ -154,6 +154,9 @@ function toggleTermMode() {
     // Toggle mode
     const newMode = window.currentTermMode === 'fancy' ? 'simple' : 'fancy';
 
+    // Update global state immediately
+    window.currentTermMode = newMode;
+
     console.log(`[TermMode] Toggling from ${window.currentTermMode} to ${newMode}`);
 
     // Save preference to localStorage

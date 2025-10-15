@@ -223,6 +223,7 @@ body {
 }
 
 .terminal-container {
+    flex: 1;
     padding: 8px;
     overflow: hidden;
 }

@@ -27,8 +27,7 @@ function swipeHandler() {
                                  target.closest('.file-list') ||
                                  target.closest('#fileList') ||
                                  target.closest('.view-indicators') ||
-                                 target.closest('.indicator-dot') ||
-                                 target.closest('.xterm-helper-textarea');
+                                 target.closest('.indicator-dot');
 
             if (isInteractive) {
                 Alpine.store('debugPanel')?.log('🚫 Touch on interactive element - ignoring');

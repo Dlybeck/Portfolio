@@ -3,7 +3,7 @@ Authentication routes for Dev Dashboard
 Handles login, logout, token refresh, and 2FA setup
 """
 
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Response
 from pydantic import BaseModel
 from datetime import timedelta
 from core.security import (
@@ -51,10 +51,11 @@ class SetupInfoResponse(BaseModel):
 # ================================
 
 @auth_router.post("/login", response_model=TokenResponse)
-async def login(request: LoginRequest):
+async def login(request: LoginRequest, response: Response):
     """
     Login with username, password, and 2FA code
     Returns JWT access and refresh tokens
+    Also sets session cookie for browser-based auth
     """
     # Authenticate user (validates all credentials + 2FA)
     authenticate_user(request.username, request.password, request.totp_code)
@@ -65,6 +66,17 @@ async def login(request: LoginRequest):
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     refresh_token = create_refresh_token(data={"sub": request.username})
+
+    # Set session cookie for browser-based authentication
+    # This allows redirects and iframe content to stay authenticated
+    response.set_cookie(
+        key="session_token",
+        value=access_token,
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        httponly=True,  # Prevent JavaScript access
+        secure=True,    # Require HTTPS (self-signed cert is fine)
+        samesite="none" # Allow cross-domain cookies (required for Tailscale IP)
+    )
 
     return TokenResponse(
         access_token=access_token,

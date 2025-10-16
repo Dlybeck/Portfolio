@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-from core.security import get_current_user
+from core.security import get_current_user, get_session_user
 from services.session_manager import get_or_create_persistent_session, close_persistent_session
 import json
 import asyncio
@@ -138,37 +138,76 @@ async def debug_connectivity(user: dict = Depends(get_current_user)):
 @dev_router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     """Serve the login page"""
+    # If running in Cloud Run, redirect to Tailscale URL where login actually works
+    if IS_CLOUD_RUN:
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(
+            url="https://davids-macbook-pro.tail1e7db.ts.net/dev/login",
+            status_code=302
+        )
     return templates.TemplateResponse("dev/login.html", {"request": request})
 
 
 @dev_router.get("", response_class=HTMLResponse)
-async def project_selector(request: Request):
+async def dev_dashboard_redirect(request: Request):
     """
-    Project selector page - choose working directory
+    Redirect /dev to appropriate destination:
+    - Cloud Run: Redirect to Tailscale URL (dev environment on Mac)
+    - Local Mac: Redirect to /dev/terminal (VS Code)
     """
-    if not await is_mac_server_available():
-        return templates.TemplateResponse("dev/server_offline.html", {
-            "request": request
-        })
-    return templates.TemplateResponse("dev/project_selector.html", {
-        "request": request
-    })
+    from fastapi.responses import RedirectResponse
+
+    if IS_CLOUD_RUN:
+        # Redirect to Tailscale URL where dev environment is actually running
+        return RedirectResponse(
+            url="https://davids-macbook-pro.tail1e7db.ts.net/dev",
+            status_code=302
+        )
+    else:
+        # Running on Mac - redirect to local terminal/VS Code
+        return RedirectResponse(url="/dev/terminal", status_code=302)
 
 
 @dev_router.get("/terminal", response_class=HTMLResponse)
 async def terminal_dashboard(request: Request):
     """
-    Terminal dashboard page
-    Authentication is checked client-side via JavaScript
+    VS Code dashboard (replaces old terminal dashboard)
+    Extracts token from cookie/header/query and passes it to code-server
     """
-    if not await is_mac_server_available():
-        return templates.TemplateResponse("dev/server_offline.html", {
-            "request": request
-        })
-    return templates.TemplateResponse("dev/dashboard.html", {
-        "request": request,
-        "user": {"username": "admin"}
-    })
+    from fastapi.responses import RedirectResponse
+
+    # Extract token from multiple sources (same logic as get_session_user)
+    token = None
+
+    # Try session cookie first
+    token = request.cookies.get("session_token")
+
+    # Try Authorization header
+    if not token:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header.replace("Bearer ", "")
+
+    # Try query parameter
+    if not token:
+        token = request.query_params.get("tkn")
+
+    if not token:
+        # No authentication found, redirect to login
+        return RedirectResponse(url="/dev/login", status_code=302)
+
+    # Validate token
+    try:
+        from core.security import verify_token
+        payload = verify_token(token)
+        if payload.get("type") != "access":
+            return RedirectResponse(url="/dev/login", status_code=302)
+    except:
+        return RedirectResponse(url="/dev/login", status_code=302)
+
+    # Redirect to code-server proxy with token in query parameter
+    # This allows the WebSocket connections to read the token
+    return RedirectResponse(url=f"/dev/vscode/?tkn={token}", status_code=302)
 
 
 @dev_router.post("/api/chat")
@@ -792,3 +831,107 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
             await websocket.close()
         except:
             pass
+
+
+# ==================== CODE-SERVER PROXY ROUTES ====================
+
+from services.code_server_proxy import get_proxy
+
+
+@dev_router.get("/vscode/{path:path}")
+@dev_router.post("/vscode/{path:path}")
+@dev_router.put("/vscode/{path:path}")
+@dev_router.delete("/vscode/{path:path}")
+@dev_router.patch("/vscode/{path:path}")
+async def vscode_proxy(
+    path: str,
+    request: Request,
+    user: dict = Depends(get_session_user)
+):
+    """
+    🔒 Authenticated proxy to code-server
+
+    All HTTP methods supported (GET, POST, PUT, DELETE, PATCH)
+    Requires session cookie authentication
+    """
+    proxy = get_proxy()
+    return await proxy.proxy_request(request, path)
+
+
+@dev_router.websocket("/vscode/{path:path}")
+async def vscode_websocket_proxy(
+    websocket: WebSocket,
+    path: str,
+    token: str = None,
+    tkn: str = None
+):
+    """
+    🔒 Authenticated WebSocket proxy to code-server
+
+    This route handles ALL WebSocket connections to code-server.
+    FastAPI will route WebSocket upgrade requests here instead of the HTTP GET route.
+
+    Required for:
+    - Terminal connections
+    - Live file updates
+    - Extension communication
+
+    Authentication via (checked in order):
+    1. Query parameter 'tkn' (from page URL)
+    2. Query parameter 'token' (legacy)
+    3. Session cookie (same-domain only)
+    4. Extract from Referer header (if page was loaded with tkn parameter)
+    """
+    # Try to get token from multiple sources
+    auth_token = None
+
+    # Try query parameter 'tkn' first (passed from page URL)
+    if tkn:
+        auth_token = tkn
+        print(f"[WS Auth] Using 'tkn' query parameter for authentication")
+
+    # Try query parameter 'token' (legacy)
+    elif token:
+        auth_token = token
+        print(f"[WS Auth] Using 'token' query parameter for authentication")
+
+    # Try session cookie (same-domain only)
+    elif websocket.cookies.get("session_token"):
+        auth_token = websocket.cookies.get("session_token")
+        print(f"[WS Auth] Using session cookie for authentication")
+
+    # Try to extract from Referer header as last resort
+    else:
+        referer = websocket.headers.get("referer", "")
+        if "tkn=" in referer:
+            # Extract token from referer URL
+            import urllib.parse
+            parsed = urllib.parse.urlparse(referer)
+            params = urllib.parse.parse_qs(parsed.query)
+            if "tkn" in params and params["tkn"]:
+                auth_token = params["tkn"][0]
+                print(f"[WS Auth] Extracted token from Referer header")
+
+    if not auth_token:
+        print(f"[WS Auth] No authentication token found (cookie, query, or referer)")
+        await websocket.close(code=1008, reason="Missing authentication token")
+        return
+
+    try:
+        from core.security import verify_token
+        payload = verify_token(auth_token)
+        if payload.get("type") != "access":
+            await websocket.close(code=1008, reason="Invalid token type")
+            return
+        print(f"[WS Auth] Authenticated user: {payload.get('sub')}")
+    except Exception as e:
+        print(f"[WS Auth] Authentication failed: {e}")
+        await websocket.close(code=1008, reason="Invalid authentication token")
+        return
+
+    # Accept connection
+    await websocket.accept()
+
+    # Proxy to code-server
+    proxy = get_proxy()
+    await proxy.proxy_websocket(websocket, path)

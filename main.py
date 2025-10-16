@@ -56,18 +56,48 @@ if __name__ == "__main__":
     import uvicorn
     import subprocess
     import os
+    from pathlib import Path
 
     # Determine if running in Cloud Run
     is_cloud_run = os.environ.get("K_SERVICE") is not None
 
+    # Check if SSL certificates exist
+    ssl_cert_path = Path.home() / ".ssl" / "cert.pem"
+    ssl_key_path = Path.home() / ".ssl" / "key.pem"
+    has_ssl = ssl_cert_path.exists() and ssl_key_path.exists()
+
     if is_cloud_run:
-        # In Cloud Run, bind to all interfaces
+        # In Cloud Run, bind to all interfaces (HTTP only)
         print("🌐 Running in Cloud Run - binding to 0.0.0.0:8080")
         host = "0.0.0.0"
+        port = 8080
+        uvicorn.run(app, host=host, port=port)
     else:
-        # Local development - bind to all interfaces for local network testing
-        print("🌐 Local development - binding to 0.0.0.0:8080")
-        print("📱 Access from phone via: http://<your-mac-ip>:8080/dev")
+        # Local development - use HTTPS if certificates available
         host = "0.0.0.0"
 
-    uvicorn.run(app, host=host, port=8080)
+        if has_ssl:
+            # HTTPS mode
+            port = 8443
+            print("🔒 Local development - HTTPS enabled")
+            print(f"🌐 Binding to https://{host}:{port}")
+            print(f"📱 Access via: https://100.84.184.84:{port}/dev")
+            print(f"📱 Access via: https://localhost:{port}/dev")
+            print("⚠️  Browser will show security warning for self-signed certificate - this is expected")
+
+            uvicorn.run(
+                app,
+                host=host,
+                port=port,
+                ssl_keyfile=str(ssl_key_path),
+                ssl_certfile=str(ssl_cert_path)
+            )
+        else:
+            # HTTP fallback
+            port = 8080
+            print("🌐 Local development - HTTP mode (no SSL certificates found)")
+            print(f"📱 Access via: http://localhost:{port}/dev")
+            print("⚠️  To enable HTTPS, generate certificates with:")
+            print("    openssl req -x509 -newkey rsa:2048 -nodes -keyout ~/.ssl/key.pem -out ~/.ssl/cert.pem -days 365")
+
+            uvicorn.run(app, host=host, port=port)

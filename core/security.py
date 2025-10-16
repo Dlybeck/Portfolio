@@ -9,7 +9,7 @@ import os
 import bcrypt
 from jose import JWTError, jwt
 import pyotp
-from fastapi import HTTPException, status, Depends
+from fastapi import HTTPException, status, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 
@@ -269,6 +269,68 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     """
     token = credentials.credentials
     payload = verify_token(token)
+
+    # Check token type
+    if payload.get("type") != "access":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token type"
+        )
+
+    username = payload.get("sub")
+    if username is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token"
+        )
+
+    return {"username": username}
+
+
+async def get_session_user(request: Request) -> dict:
+    """
+    Dependency to validate user via multiple auth methods (cross-domain compatible)
+
+    Checks in order:
+    1. Session cookie (for same-domain access)
+    2. Authorization header (for API/cross-domain access)
+    3. Query parameter 'tkn' (for redirect-based access)
+
+    Use this for browser-based routes that need flexible authentication
+    (e.g., code-server proxy routes accessed via Tailscale)
+    """
+    token = None
+
+    # Try session cookie first (same-domain)
+    token = request.cookies.get("session_token")
+
+    # Try Authorization header second (cross-domain API)
+    if not token:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header.replace("Bearer ", "")
+
+    # Try query parameter third (for redirects/iframes)
+    if not token:
+        token = request.query_params.get("tkn")
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated. Please login first.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Verify token
+    try:
+        payload = verify_token(token)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Token validation failed: {str(e)}"
+        )
 
     # Check token type
     if payload.get("type") != "access":

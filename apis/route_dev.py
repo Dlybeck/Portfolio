@@ -137,35 +137,18 @@ async def debug_connectivity(user: dict = Depends(get_current_user)):
 
 @dev_router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
-    """Serve the login page"""
-    # If running in Cloud Run, redirect to Tailscale URL where login actually works
-    if IS_CLOUD_RUN:
-        from fastapi.responses import RedirectResponse
-        return RedirectResponse(
-            url="https://davids-macbook-pro.tail1e7db.ts.net/dev/login",
-            status_code=302
-        )
+    """Serve the login page (works in both Cloud Run and local environments)"""
     return templates.TemplateResponse("dev/login.html", {"request": request})
 
 
 @dev_router.get("", response_class=HTMLResponse)
 async def dev_dashboard_redirect(request: Request):
     """
-    Redirect /dev to appropriate destination:
-    - Cloud Run: Redirect to Tailscale URL (dev environment on Mac)
-    - Local Mac: Redirect to /dev/terminal (VS Code)
+    Redirect /dev to /dev/terminal (VS Code)
+    Works in both Cloud Run (proxies to Mac) and local environments
     """
     from fastapi.responses import RedirectResponse
-
-    if IS_CLOUD_RUN:
-        # Redirect to Tailscale URL where dev environment is actually running
-        return RedirectResponse(
-            url="https://davids-macbook-pro.tail1e7db.ts.net/dev",
-            status_code=302
-        )
-    else:
-        # Running on Mac - redirect to local terminal/VS Code
-        return RedirectResponse(url="/dev/terminal", status_code=302)
+    return RedirectResponse(url="/dev/terminal", status_code=302)
 
 
 @dev_router.get("/terminal", response_class=HTMLResponse)

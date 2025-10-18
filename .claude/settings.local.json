@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git fetch:*)",
+      "Bash(lsof:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(node:*)",
+      "Bash(python3:*)",
+      "Bash(python:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nMajor UX improvements: breadcrumb navigation, file editing, 3-view carousel, navbar cleanup, mobile defaults\n\n- Add breadcrumb navigation with tappable path segments for faster folder navigation\n- Implement file editing with save/cancel and unsaved changes protection\n- Create 3-view swipe carousel (Terminal → Files → Preview) with hard stops and position indicators\n- Clean up navbar: remove unused buttons, add clear labels, improve touch targets (48px)\n- Auto-detect mobile and default to simple mode (80 col terminal width)\n- Fix: JSON.dumps → JSON.stringify in websocket ping/pong\n- Add backend /api/save-file endpoint with security validation\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(cat:*)",
+      "WebSearch",
+      "Bash(brew install:*)",
+      "Bash(code-server --version)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(code-server:*)",
+      "Bash(kill:*)",
+      "Bash(awk:*)",
+      "Bash(xargs kill:*)",
+      "Bash(openssl req:*)",
+      "Bash(echo $K_SERVICE)",
+      "Bash(xargs ps:*)",
+      "Bash(sudo security add-trusted-cert:*)",
+      "Bash(sw_vers)",
+      "Bash(security find-certificate:*)",
+      "Bash(security dump-trust-settings:*)",
+      "Bash(tailscale status:*)",
+      "Bash(tailscale serve:*)",
+      "Bash(scutil:*)",
+      "Bash(gcloud run services describe:*)",
+      "Bash(gcloud run services list:*)",
+      "Bash(gcloud run deploy:*)",
+      "Bash(gcloud run services logs read:*)",
+      "Bash(git restore:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

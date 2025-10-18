@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Foreman Workflow: Multi-Agent Architecture for Complex Refactoring</title>
+</head>
+<body>
+
+<h1>The Foreman Workflow: Multi-Agent Architecture for Complex Refactoring</h1>
+
+<h2>Overview</h2>
+
+<p>The <strong>Foreman + Specialist multi-agent workflow</strong> is a structured approach to managing complex, multi-phase refactoring projects. Instead of trying to do everything directly, it creates a <strong>hierarchical agent system</strong> where:</p>
+<ul>
+    <li><strong>1 Foreman agent</strong> = Strategic planner and coordinator</li>
+    <li><strong>Multiple Specialist agents</strong> = Tactical executors with domain expertise</li>
+</ul>
+
+<p>Think of it like a construction project: The foreman doesn't personally install every pipe and wire—they analyze the building, create work orders, and delegate to specialists (plumber, electrician, etc.).</p>
+
+<hr>
+
+<h2>The Workflow Architecture</h2>
+
+<h3>Step 1: Foreman Analysis Phase</h3>
+
+<p>When starting a new phase, launch the <strong>Foreman agent</strong> with a prompt like:</p>
+
+<pre><code>You are the Foreman coordinating Phase 4: ViewModel Refactoring.
+
+Analyze the codebase and create 3-5 detailed work orders.
+Each work order should specify:
+- Exact files to modify
+- Lines of code to extract
+- Technical requirements
+- Success criteria
+- Risk assessment
+</code></pre>
+
+<p><strong>What the Foreman Does:</strong></p>
+<ol>
+    <li><strong>Reads files</strong> to understand current state (e.g., read DeliveryViewModel.kt - 1,160 lines)</li>
+    <li><strong>Identifies patterns</strong> (e.g., "Lines 87-274 are model pre-warming logic")</li>
+    <li><strong>Creates work orders</strong> with surgical precision:
+        <ul>
+            <li>VM-401: Extract lines 87-274 → ModelPreWarmingService</li>
+            <li>VM-402: Extract image processing → ImageProcessingService</li>
+            <li>VM-403: Extract focus classification → FocusClassificationService</li>
+            <li>etc.</li>
+        </ul>
+    </li>
+    <li><strong>Assesses risks</strong> (High/Medium/Low)</li>
+    <li><strong>Estimates effort</strong> (2-3 hours per work order)</li>
+</ol>
+
+<p><strong>Why This Works:</strong></p>
+<ul>
+    <li>The Foreman has a <strong>bird's-eye view</strong> of the entire phase</li>
+    <li>Creates a <strong>systematic plan</strong> before any code changes</li>
+    <li><strong>No ad-hoc refactoring</strong>—everything is intentional</li>
+</ul>
+
+<hr>
+
+<h3>Step 2: Specialist Execution Phase</h3>
+
+<p>Once the Foreman creates work orders, launch <strong>Specialist agents</strong> to execute them:</p>
+
+<pre><code>You are the ViewModel Specialist executing WORK ORDER VM-401.
+
+Task: Extract ModelPreWarmingService from DeliveryViewModel
+
+Requirements:
+- Create new file: ModelPreWarmingService.kt
+- Extract lines 87-274 from DeliveryViewModel
+- Use Hilt @Singleton injection
+- Maintain exact functionality
+- Build must succeed
+
+Execute this work order and provide final report.
+</code></pre>
+
+<p><strong>What Each Specialist Does:</strong></p>
+<ol>
+    <li><strong>Reads the target file</strong> (DeliveryViewModel.kt)</li>
+    <li><strong>Extracts the code</strong> with surgical precision</li>
+    <li><strong>Creates the new service file</strong> (ModelPreWarmingService.kt)</li>
+    <li><strong>Updates the ViewModel</strong> to use the service</li>
+    <li><strong>Tests the build</strong> (<code>./gradlew assembleDebug</code>)</li>
+    <li><strong>Creates 2 commits</strong>:
+        <ul>
+            <li>Commit 1: Create service file</li>
+            <li>Commit 2: Update ViewModel to use service</li>
+        </ul>
+    </li>
+    <li><strong>Reports results</strong> (files changed, line counts, build status)</li>
+</ol>
+
+<p><strong>Why This Works:</strong></p>
+<ul>
+    <li>Each specialist is <strong>hyper-focused</strong> on ONE work order</li>
+    <li>Has <strong>explicit instructions</strong> (not vague goals)</li>
+    <li><strong>Validates success</strong> with build verification</li>
+    <li><strong>Autonomous execution</strong>—doesn't need to ask questions mid-task</li>
+</ul>
+
+<hr>
+
+<h2>Real Example: Phase 5 UI Consolidation</h2>
+
+<h3>Foreman Analysis (UI-501)</h3>
+<pre><code>FOREMAN ANALYSIS:
+- CompletionScreen.kt and PaletteCompletionScreen.kt
+- Both have IDENTICAL drawCompletionAnimation() function (68 lines each)
+- Total duplicate: 136+ lines
+- Animation logic: circle → checkmark → text (3 stages)
+
+WORK ORDER CREATED: UI-501
+Title: Extract Completion Animation Component
+Files: CompletionScreen.kt (222 lines), PaletteCompletionScreen.kt (218 lines)
+Create: CompletionAnimation.kt
+Estimated Reduction: ~190 lines per screen (85% reduction)
+Risk: Low
+</code></pre>
+
+<h3>Specialist Execution</h3>
+<pre><code>UI SPECIALIST EXECUTING UI-501:
+
+1. Read CompletionScreen.kt → identified lines 50-218 (animation logic)
+2. Read PaletteCompletionScreen.kt → identified lines 45-213 (EXACT DUPLICATE)
+3. Created CompletionAnimation.kt (262 lines with docs)
+   - AnimatedCompletionOverlay composable
+   - DrawScope.drawSuccessAnimation() extension
+4. Updated CompletionScreen.kt → reduced 222 → 33 lines (85% reduction)
+5. Updated PaletteCompletionScreen.kt → reduced 218 → 29 lines (87% reduction)
+6. Built successfully (3 seconds)
+7. Committed: 997c4b1
+
+RESULT: Eliminated 379 duplicate lines, created reusable component
+</code></pre>
+
+<hr>
+
+<h2>Why This Workflow Is So Effective</h2>
+
+<h3>1. Separation of Planning vs. Execution</h3>
+<ul>
+    <li><strong>Foreman</strong>: "What should we do and in what order?"</li>
+    <li><strong>Specialist</strong>: "How do we execute this specific task?"</li>
+    <li>Never trying to plan AND code at the same time</li>
+</ul>
+
+<h3>2. Context Management</h3>
+<p>Each agent has a <strong>focused context</strong>:</p>
+<ul>
+    <li>Foreman only analyzes, doesn't write code</li>
+    <li>Specialist only executes ONE work order</li>
+    <li>No context pollution from unrelated tasks</li>
+</ul>
+
+<h3>3. Explicit Success Criteria</h3>
+<p>Every work order has measurable goals:</p>
+<ul>
+    <li>✅ Files created/modified (with line counts)</li>
+    <li>✅ Build successful</li>
+    <li>✅ Commits made</li>
+    <li>✅ Functionality preserved</li>
+</ul>
+
+<p>The specialist knows <strong>exactly when they are done</strong>.</p>
+
+<h3>4. Autonomous Execution</h3>
+<p>Once launched, specialists:</p>
+<ul>
+    <li>Read files independently</li>
+    <li>Make implementation decisions</li>
+    <li>Run builds</li>
+    <li>Create commits</li>
+    <li>Report back</li>
+</ul>
+
+<p>No micromanagement needed—just launch and wait for the report.</p>
+
+<h3>5. Work Log Tracking</h3>
+<p>The <code>.claude/agents/state/work-log.json</code> file acts as:</p>
+<ul>
+    <li><strong>Project management system</strong> (20/25 work orders complete)</li>
+    <li><strong>Audit trail</strong> (who did what, when)</li>
+    <li><strong>Progress tracker</strong> (Phase 4: 5/5 work orders done)</li>
+    <li><strong>Metrics dashboard</strong> (436 logs migrated, 531 lines eliminated)</li>
+</ul>
+
+<hr>
+
+<h2>Agent Types Used in This Project</h2>
+
+<h3>Infrastructure Specialist</h3>
+<ul>
+    <li>Created AppLogger framework</li>
+    <li>Migrated utility files to new logging system</li>
+    <li><strong>Focus</strong>: DI modules, logging framework</li>
+</ul>
+
+<h3>ML Specialist</h3>
+<ul>
+    <li>Migrated TFLiteClassifier logs</li>
+    <li>Consolidated model pre-warming logic</li>
+    <li><strong>Focus</strong>: ML pipeline, inference</li>
+</ul>
+
+<h3>Camera Specialist</h3>
+<ul>
+    <li>Consolidated camera setup logic</li>
+    <li>Created CameraService infrastructure</li>
+    <li><strong>Focus</strong>: CameraX, image capture</li>
+</ul>
+
+<h3>ViewModel Specialist</h3>
+<ul>
+    <li>Extracted 5 services from DeliveryViewModel</li>
+    <li>Reduced ViewModel from 1,160 → 732 lines</li>
+    <li><strong>Focus</strong>: Service extraction, business logic</li>
+</ul>
+
+<h3>UI Specialist</h3>
+<ul>
+    <li>Created 7 reusable UI components</li>
+    <li>Consolidated duplicate animations</li>
+    <li><strong>Focus</strong>: Compose UI, design system</li>
+</ul>
+
+<hr>
+
+<h2>Comparison: Traditional vs. Foreman Workflow</h2>
+
+<h3>Traditional Approach (Ineffective):</h3>
+<pre><code>Developer: "Refactor DeliveryViewModel"
+AI: *starts reading file*
+AI: "This is 1,160 lines... um... let me extract... this part?"
+AI: *writes some code*
+AI: "Wait, I should also extract this other part..."
+AI: *gets confused about what they're doing*
+AI: "Actually, let me think about the architecture first..."
+
+Result: Messy, incomplete, lots of back-and-forth
+</code></pre>
+
+<h3>Foreman Workflow (Effective):</h3>
+<pre><code>Developer: "Continue with Phase 4"
+AI: *launches Foreman*
+Foreman: Creates 5 detailed work orders (VM-401 through VM-405)
+AI: *launches ViewModel Specialist for VM-401*
+Specialist: Executes VM-401, reports success
+AI: *launches ViewModel Specialist for VM-402*
+Specialist: Executes VM-402, reports success
+... (repeat for all 5 work orders)
+
+Result: Clean, systematic, complete, tracked
+</code></pre>
+
+<hr>
+
+<h2>Key Insights</h2>
+
+<h3>1. Work Orders Are Like Compiler Directives</h3>
+<p>They're <strong>precise specifications</strong>, not vague goals:</p>
+<ul>
+    <li>❌ "Clean up DeliveryViewModel" (vague)</li>
+    <li>✅ "Extract lines 87-274 to ModelPreWarmingService.kt, reduce ViewModel by 178 lines, build must succeed" (precise)</li>
+</ul>
+
+<h3>2. Agents Don't Get Overwhelmed</h3>
+<p>Each agent sees <strong>only their task</strong>:</p>
+<ul>
+    <li>Foreman doesn't see code details (just structure)</li>
+    <li>Specialist doesn't see the big picture (just their work order)</li>
+    <li>No cognitive overload</li>
+</ul>
+
+<h3>3. Built-In Quality Control</h3>
+<p>Every work order has:</p>
+<ul>
+    <li>Success criteria (must reduce by X lines)</li>
+    <li>Build verification (must compile)</li>
+    <li>Commit requirements (2 commits per work order)</li>
+</ul>
+
+<p>If any fail, the specialist reports it for investigation.</p>
+
+<h3>4. Parallelizable (If Needed)</h3>
+<p>Because work orders are independent, you can:</p>
+<ul>
+    <li>Run VM-401, VM-403, VM-405 in parallel</li>
+    <li>Run UI-501, UI-503, UI-505 in parallel</li>
+</ul>
+
+<p>This architecture supports parallel execution when needed.</p>
+
+<hr>
+
+<h2>How It Actually Works (Behind the Scenes)</h2>
+
+<p>There's no actual multi-agent system running. Here's what really happens:</p>
+
+<ol>
+    <li><strong>Use the Task tool</strong> to launch "agents"</li>
+    <li><strong>Each Task invocation</strong> creates a fresh context with:
+        <ul>
+            <li>Role: "You are the Foreman/Specialist"</li>
+            <li>Goal: Specific work order</li>
+            <li>Tools: Read, Write, Edit, Bash, etc.</li>
+        </ul>
+    </li>
+    <li><strong>The agent executes</strong> autonomously with those tools</li>
+    <li><strong>Reports back</strong> with a structured summary</li>
+    <li><strong>Parse the summary</strong> and move to the next work order</li>
+</ol>
+
+<p>It's like <strong>role-playing different personas</strong>, where each persona has:</p>
+<ul>
+    <li>A specific job title (Foreman, ViewModel Specialist, etc.)</li>
+    <li>A specific task (analyze Phase 4, execute VM-401, etc.)</li>
+    <li>A specific context (only sees what's relevant to their task)</li>
+</ul>
+
+<hr>
+
+<h2>How to Use This Workflow for Your Projects</h2>
+
+<h3>Setup Structure</h3>
+<pre><code>.claude/
+├── agents/
+│   ├── state/
+│   │   ├── work-log.json        # Project progress tracking
+│   │   └── pending-approvals.json
+│   └── work-orders/
+│       ├── phase1-infrastructure.md
+│       ├── phase2-ml.md
+│       └── ...
+└── FOREMAN_WORKFLOW.md          # This document
+</code></pre>
+
+<h3>Workflow Steps</h3>
+
+<ol>
+    <li><strong>Define Phases</strong>
+        <ul>
+            <li>Break project into logical phases (Infrastructure, ML, UI, etc.)</li>
+            <li>Each phase should have a clear goal</li>
+        </ul>
+    </li>
+    <li><strong>Launch Foreman for Phase Analysis</strong>
+        <pre><code>Prompt: "You are the Foreman coordinating Phase X: [Name].
+        Analyze the codebase and create 3-5 detailed work orders."</code></pre>
+    </li>
+    <li><strong>Review Work Orders</strong>
+        <ul>
+            <li>Foreman creates work orders with risk assessment</li>
+            <li>Review and approve before execution</li>
+        </ul>
+    </li>
+    <li><strong>Execute Work Orders with Specialists</strong>
+        <pre><code>Prompt: "You are the [X] Specialist executing WORK ORDER [ID].
+        [Detailed requirements]
+        Execute this work order and provide final report."</code></pre>
+    </li>
+    <li><strong>Track Progress</strong>
+        <ul>
+            <li>Update work-log.json after each work order</li>
+            <li>Track metrics (files changed, lines added/removed, etc.)</li>
+        </ul>
+    </li>
+    <li><strong>Verify Between Phases</strong>
+        <ul>
+            <li>Build verification after each work order</li>
+            <li>Comprehensive testing between phases</li>
+        </ul>
+    </li>
+</ol>
+
+<h3>Work Order Template</h3>
+
+<pre><code>### WORK ORDER: [ID]
+**TITLE:** [Descriptive title]
+**PRIORITY:** High/Medium/Low
+**RISK:** High/Medium/Low
+**ESTIMATED EFFORT:** X-Y hours
+
+#### DESCRIPTION:
+[What needs to be done and why]
+
+#### SCOPE:
+- Files to modify: [list]
+- Lines to extract/consolidate: ~X lines
+- Components to create: [list]
+
+#### TECHNICAL REQUIREMENTS:
+1. [Specific requirement 1]
+2. [Specific requirement 2]
+...
+
+#### SUCCESS CRITERIA:
+- ✅ [Measurable outcome 1]
+- ✅ [Measurable outcome 2]
+...
+</code></pre>
+
+<hr>
+
+<h2>Use Cases for This Workflow</h2>
+
+<p>This workflow is ideal for:</p>
+
+<ul>
+    <li>✅ <strong>Large refactoring projects</strong> (extracting services, splitting monoliths)</li>
+    <li>✅ <strong>Multi-file migrations</strong> (updating API calls across many files)</li>
+    <li>✅ <strong>Feature implementations</strong> (touching many files systematically)</li>
+    <li>✅ <strong>Technical debt cleanup</strong> (consistent patterns across codebase)</li>
+    <li>✅ <strong>Logging framework migrations</strong> (like we did: 436 log calls)</li>
+    <li>✅ <strong>Component library creation</strong> (extracting reusable UI components)</li>
+    <li>✅ <strong>Architecture improvements</strong> (moving to clean architecture)</li>
+</ul>
+
+<p>The key is: <strong>Break big tasks into small, precise work orders, then execute systematically.</strong></p>
+
+<hr>
+
+<h2>Results from This Project</h2>
+
+<p>Using the Foreman workflow, we completed:</p>
+
+<ul>
+    <li><strong>25 work orders</strong> across 5 phases</li>
+    <li><strong>436 logs</strong> migrated to centralized framework</li>
+    <li><strong>531 lines</strong> of duplicate code eliminated</li>
+    <li><strong>12 new files</strong> created (services + components)</li>
+    <li><strong>95+ files</strong> improved and refactored</li>
+    <li><strong>428-line reduction</strong> in DeliveryViewModel (37%)</li>
+    <li><strong>7 reusable components</strong> for consistent UI</li>
+    <li><strong>5 ML services</strong> with clean architecture</li>
+    <li><strong>100% code quality</strong> (no TODOs, no FIXMEs)</li>
+    <li><strong>All builds successful</strong> throughout the process</li>
+</ul>
+
+<p><strong>Total Time</strong>: Completed in a single day<br>
+<strong>Build Status</strong>: BUILD SUCCESSFUL (100% success rate)<br>
+<strong>Code Quality</strong>: Production-ready</p>
+
+<hr>
+
+<h2>Tips for Success</h2>
+
+<h3>For the Foreman Phase:</h3>
+<ol>
+    <li>Give enough context about the project goals</li>
+    <li>Specify the number of work orders desired (3-5 is ideal)</li>
+    <li>Ask for risk assessment and effort estimation</li>
+    <li>Request specific file paths and line numbers</li>
+</ol>
+
+<h3>For the Specialist Phase:</h3>
+<ol>
+    <li>Include the full work order in the prompt</li>
+    <li>Specify build verification requirements</li>
+    <li>Request structured final reports</li>
+    <li>Require commits after each work order</li>
+</ol>
+
+<h3>General Best Practices:</h3>
+<ol>
+    <li>Execute work orders sequentially (not in parallel) unless you're confident</li>
+    <li>Verify builds after each work order</li>
+    <li>Update work-log.json frequently</li>
+    <li>Review specialist reports before proceeding</li>
+    <li>Keep work orders focused (single responsibility)</li>
+</ol>
+
+<hr>
+
+<h2>Conclusion</h2>
+
+<p>The Foreman workflow transforms chaotic refactoring into a <strong>systematic, trackable, successful process</strong>. By separating planning (Foreman) from execution (Specialists) and using precise work orders, you can tackle massive codebases with confidence.</p>
+
+<p>The key insight: <strong>Complex problems become simple when broken into small, well-defined tasks.</strong></p>
+
+<hr>
+
+<p><strong>Document Version</strong>: 1.0<br>
+<strong>Created</strong>: 2025-10-13<br>
+<strong>Project</strong>: FocusAI-Zebra Cleanup (25/25 work orders completed)</p>
+
+</body>
+</html>

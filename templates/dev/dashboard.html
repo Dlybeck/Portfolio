@@ -20,6 +20,9 @@
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-web-links@0.11.0/lib/addon-web-links.min.js"></script>
 
+    <!-- Auth Service for Token Refresh -->
+    <script src="/static/js/auth-service.js"></script>
+
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 </head>
@@ -261,6 +264,12 @@
     <script>
         // Initialize terminal and connect WebSocket on page load
         document.addEventListener('DOMContentLoaded', () => {
+            // Start automatic token refresh if user is logged in
+            if (localStorage.getItem('access_token') && localStorage.getItem('refresh_token')) {
+                console.log('[Dashboard] Starting automatic token refresh...');
+                window.authService.startAutoRefresh();
+            }
+
             initTerminal();
             connectWebSocket();
             // Load preview tab by default

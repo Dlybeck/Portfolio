@@ -86,9 +86,10 @@ async def login(request: LoginRequest, response: Response):
 
 
 @auth_router.post("/refresh", response_model=TokenResponse)
-async def refresh_token(request: RefreshRequest):
+async def refresh_token(request: RefreshRequest, response: Response):
     """
     Refresh access token using refresh token
+    Also updates session cookie for seamless browser-based authentication
     """
     # Verify refresh token
     payload = verify_token(request.refresh_token)
@@ -113,6 +114,16 @@ async def refresh_token(request: RefreshRequest):
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     new_refresh_token = create_refresh_token(data={"sub": username})
+
+    # Update session cookie with new access token
+    response.set_cookie(
+        key="session_token",
+        value=access_token,
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        httponly=True,
+        secure=True,
+        samesite="none"
+    )
 
     return TokenResponse(
         access_token=access_token,

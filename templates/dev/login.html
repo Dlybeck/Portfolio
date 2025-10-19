@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dev Dashboard - Login</title>
     <link rel="stylesheet" href="/static/css/dev-theme.css">
+    <script src="/static/js/auth-service.js"></script>
     <style>
         * {
             margin: 0;
@@ -248,9 +249,15 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Store tokens
-                    localStorage.setItem('access_token', data.access_token);
-                    localStorage.setItem('refresh_token', data.refresh_token);
+                    // Store tokens using auth service
+                    window.authService.storeTokens(
+                        data.access_token,
+                        data.refresh_token,
+                        data.expires_in
+                    );
+
+                    // Start automatic token refresh
+                    window.authService.startAutoRefresh();
 
                     // Redirect to dashboard
                     window.location.href = '/dev';

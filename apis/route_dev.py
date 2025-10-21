@@ -10,6 +10,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from core.security import get_current_user, get_session_user
 from services.session_manager import get_or_create_persistent_session, close_persistent_session
+from services.socks5_connection_manager import proxy_request
 import json
 import asyncio
 import os
@@ -50,32 +51,25 @@ async def is_mac_server_available():
         print(f"[DEBUG] Using cached Mac server availability: {_mac_availability_cache['available']}")
         return _mac_availability_cache["available"]
 
-    # If in Cloud Run, check via SOCKS5 proxy with retry logic
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            print(f"[DEBUG] Checking Mac server (attempt {attempt + 1}/{max_retries}) at {MAC_SERVER_IP}:{MAC_SERVER_PORT} via SOCKS5")
+    # If in Cloud Run, check via SOCKS5 proxy with auto-retry
+    try:
+        print(f"[DEBUG] Checking Mac server at {MAC_SERVER_IP}:{MAC_SERVER_PORT} via connection manager")
 
-            # Use async httpx client with SOCKS5 proxy and longer timeout
-            async with httpx.AsyncClient(timeout=10.0, proxy=SOCKS5_PROXY) as client:
-                response = await client.get(f"{MAC_SERVER_URL}/")
-                is_available = response.status_code < 500
-                print(f"[DEBUG] Mac server available: {is_available} (status: {response.status_code})")
+        # Use connection manager with built-in retry logic
+        response = await proxy_request("GET", f"{MAC_SERVER_URL}/")
+        is_available = response.status_code < 500
+        print(f"[DEBUG] Mac server available: {is_available} (status: {response.status_code})")
 
-                # Update cache
-                _mac_availability_cache["available"] = is_available
-                _mac_availability_cache["last_check"] = current_time
-                return is_available
-        except Exception as e:
-            print(f"[DEBUG] Mac server check attempt {attempt + 1} failed: {e}")
-            if attempt < max_retries - 1:
-                # Wait a bit before retry (exponential backoff)
-                await asyncio.sleep(0.5 * (2 ** attempt))
-            else:
-                # All retries failed, update cache to unavailable
-                _mac_availability_cache["available"] = False
-                _mac_availability_cache["last_check"] = current_time
-                return False
+        # Update cache
+        _mac_availability_cache["available"] = is_available
+        _mac_availability_cache["last_check"] = current_time
+        return is_available
+    except Exception as e:
+        print(f"[DEBUG] Mac server check failed after retries: {e}")
+        # All retries failed, update cache to unavailable
+        _mac_availability_cache["available"] = False
+        _mac_availability_cache["last_check"] = current_time
+        return False
 
 dev_router = APIRouter(prefix="/dev", tags=["Dev Dashboard"])
 
@@ -115,14 +109,13 @@ async def debug_connectivity(user: dict = Depends(get_current_user)):
     except Exception as e:
         results["socket_test"] = {"error": str(e)}
 
-    # Test HTTP request through SOCKS5 proxy
+    # Test HTTP request through connection manager
     try:
-        async with httpx.AsyncClient(timeout=5.0, proxy=SOCKS5_PROXY) as client:
-            response = await client.get(f"{MAC_SERVER_URL}/")
-            results["http_test"] = {
-                "status": response.status_code,
-                "success": True
-            }
+        response = await proxy_request("GET", f"{MAC_SERVER_URL}/")
+        results["http_test"] = {
+            "status": response.status_code,
+            "success": True
+        }
     except Exception as e:
         results["http_test"] = {
             "error": str(e),
@@ -198,7 +191,7 @@ async def chat_with_claude(
     req: Request,
     user: dict = Depends(get_current_user)
 ):
-    """Proxy chat requests to Mac server via Tailscale SOCKS5"""
+    """Proxy chat requests to Mac server via connection manager with auto-retry"""
     try:
         body = await req.body()
         # Forward the Authorization header from the original request
@@ -207,13 +200,13 @@ async def chat_with_claude(
             "Content-Type": "application/json",
             "Authorization": auth_header
         }
-        async with httpx.AsyncClient(timeout=60.0, proxy=SOCKS5_PROXY) as client:
-            response = await client.post(
-                f"{MAC_SERVER_URL}/dev/api/chat",
-                content=body,
-                headers=headers
-            )
-            return JSONResponse(content=response.json(), status_code=response.status_code)
+        response = await proxy_request(
+            "POST",
+            f"{MAC_SERVER_URL}/dev/api/chat",
+            content=body,
+            headers=headers
+        )
+        return JSONResponse(content=response.json(), status_code=response.status_code)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
@@ -225,7 +218,7 @@ async def list_directory(
 ):
     """List directories - proxy if Cloud Run, execute locally if Mac"""
     if IS_CLOUD_RUN:
-        # Cloud Run: Proxy to Mac via Tailscale SOCKS5
+        # Cloud Run: Proxy to Mac via connection manager
         try:
             body = await req.body()
             auth_header = req.headers.get("Authorization", "")
@@ -233,13 +226,13 @@ async def list_directory(
                 "Content-Type": "application/json",
                 "Authorization": auth_header
             }
-            async with httpx.AsyncClient(timeout=10.0, proxy=SOCKS5_PROXY) as client:
-                response = await client.post(
-                    f"{MAC_SERVER_URL}/dev/api/list-directory",
-                    content=body,
-                    headers=headers
-                )
-                return JSONResponse(content=response.json(), status_code=response.status_code)
+            response = await proxy_request(
+                "POST",
+                f"{MAC_SERVER_URL}/dev/api/list-directory",
+                content=body,
+                headers=headers
+            )
+            return JSONResponse(content=response.json(), status_code=response.status_code)
         except Exception as e:
             return JSONResponse(content={"error": str(e)}, status_code=500)
     else:
@@ -300,7 +293,7 @@ async def parent_directory(
 ):
     """Get parent directory - proxy if Cloud Run, execute locally if Mac"""
     if IS_CLOUD_RUN:
-        # Cloud Run: Proxy to Mac
+        # Cloud Run: Proxy to Mac via connection manager
         try:
             body = await req.body()
             auth_header = req.headers.get("Authorization", "")
@@ -308,13 +301,13 @@ async def parent_directory(
                 "Content-Type": "application/json",
                 "Authorization": auth_header
             }
-            async with httpx.AsyncClient(timeout=10.0, proxy=SOCKS5_PROXY) as client:
-                response = await client.post(
-                    f"{MAC_SERVER_URL}/dev/api/parent-directory",
-                    content=body,
-                    headers=headers
-                )
-                return JSONResponse(content=response.json(), status_code=response.status_code)
+            response = await proxy_request(
+                "POST",
+                f"{MAC_SERVER_URL}/dev/api/parent-directory",
+                content=body,
+                headers=headers
+            )
+            return JSONResponse(content=response.json(), status_code=response.status_code)
         except Exception as e:
             return JSONResponse(content={"error": str(e)}, status_code=500)
     else:
@@ -377,30 +370,30 @@ async def read_file(
             return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
 
     if IS_CLOUD_RUN:
-        # Cloud Run: Proxy to Mac
+        # Cloud Run: Proxy to Mac via connection manager
         try:
             # Get the original Authorization header from the request
             auth_header = req.headers.get("Authorization", "")
             headers = {"Authorization": auth_header}
-            async with httpx.AsyncClient(timeout=30.0, proxy=SOCKS5_PROXY) as client:
-                response = await client.get(
-                    f"{MAC_SERVER_URL}/dev/api/read-file",
-                    params={"path": path},
-                    headers=headers
-                )
-                # Return file content with appropriate content type and length
-                content_type = response.headers.get("content-type", "application/octet-stream")
-                content_length = response.headers.get("content-length")
+            response = await proxy_request(
+                "GET",
+                f"{MAC_SERVER_URL}/dev/api/read-file",
+                params={"path": path},
+                headers=headers
+            )
+            # Return file content with appropriate content type and length
+            content_type = response.headers.get("content-type", "application/octet-stream")
+            content_length = response.headers.get("content-length")
 
-                response_headers = {"Content-Disposition": f'inline; filename="{Path(path).name}"'}
-                if content_length:
-                    response_headers["Content-Length"] = content_length
+            response_headers = {"Content-Disposition": f'inline; filename="{Path(path).name}"'}
+            if content_length:
+                response_headers["Content-Length"] = content_length
 
-                return StreamingResponse(
-                    iter([response.content]),
-                    media_type=content_type,
-                    headers=response_headers
-                )
+            return StreamingResponse(
+                iter([response.content]),
+                media_type=content_type,
+                headers=response_headers
+            )
         except Exception as e:
             return JSONResponse(content={"error": str(e)}, status_code=500)
     else:
@@ -440,7 +433,7 @@ async def save_file(
     Requires authentication (JWT token)
     """
     if IS_CLOUD_RUN:
-        # Cloud Run: Proxy to Mac
+        # Cloud Run: Proxy to Mac via connection manager
         try:
             body = await req.body()
             auth_header = req.headers.get("Authorization", "")
@@ -448,13 +441,13 @@ async def save_file(
                 "Content-Type": "application/json",
                 "Authorization": auth_header
             }
-            async with httpx.AsyncClient(timeout=30.0, proxy=SOCKS5_PROXY) as client:
-                response = await client.post(
-                    f"{MAC_SERVER_URL}/dev/api/save-file",
-                    content=body,
-                    headers=headers
-                )
-                return JSONResponse(content=response.json(), status_code=response.status_code)
+            response = await proxy_request(
+                "POST",
+                f"{MAC_SERVER_URL}/dev/api/save-file",
+                content=body,
+                headers=headers
+            )
+            return JSONResponse(content=response.json(), status_code=response.status_code)
         except Exception as e:
             return JSONResponse(content={"error": str(e)}, status_code=500)
     else:

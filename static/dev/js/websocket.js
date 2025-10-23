@@ -27,15 +27,40 @@ function connectWebSocket() {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/dev/ws/terminal?cwd=${encodeURIComponent(workingDir)}&token=${encodeURIComponent(token)}${sessionParam}${modeParam}`;
 
+    // Track last message time for client-side ping
+    let lastMessageTime = Date.now();
+    let clientPingInterval = null;
+
     ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
         console.log('Terminal connected');
         store.updateConnectionStatus('connected');
+
+        // Start client-side ping (send ping every 20s, expect response within 10s)
+        clientPingInterval = setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                // Check if we've received any message recently
+                const timeSinceLastMessage = Date.now() - lastMessageTime;
+
+                // If no message for 25 seconds, connection might be dead - force reconnect
+                if (timeSinceLastMessage > 25000) {
+                    console.log(`[ClientPing] No message for ${timeSinceLastMessage/1000}s - forcing reconnect`);
+                    ws.close();
+                    return;
+                }
+
+                // Send client-initiated ping
+                ws.send(JSON.stringify({type: 'ping'}));
+                console.log('[ClientPing] Sent client ping');
+            }
+        }, 20000);  // Every 20 seconds (between server's 15s pings)
     };
 
     ws.onmessage = (event) => {
         const message = JSON.parse(event.data);
+        lastMessageTime = Date.now();  // Update on any message
+
         if (message.type === 'ping') {
             // Respond to server ping to keep connection alive
             ws.send(JSON.stringify({type: 'pong'}));
@@ -86,6 +111,12 @@ function connectWebSocket() {
 
     ws.onclose = (event) => {
         console.log('Terminal disconnected', event.code, event.reason);
+
+        // Clean up client ping interval
+        if (clientPingInterval) {
+            clearInterval(clientPingInterval);
+            clientPingInterval = null;
+        }
 
         // Check if it's an authentication failure (code 1008)
         if (event.code === 1008) {

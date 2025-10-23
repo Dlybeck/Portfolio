@@ -720,6 +720,7 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
         # Handle messages from this specific client
         async def handle_client_messages():
             """Handle messages from this client"""
+            nonlocal last_pong_time
             while True:
                 message = await websocket.receive_text()
                 data = json.loads(message)
@@ -730,9 +731,14 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
                 elif data["type"] == "resize":
                     # Resize terminal (affects all clients)
                     persistent_session.resize(data["rows"], data["cols"])
+                elif data["type"] == "ping":
+                    # Client sent ping - respond with pong
+                    await websocket.send_text(json.dumps({"type": "pong"}))
+                    # print(f"[WebSocket] Received ping, sent pong")
                 elif data["type"] == "pong":
-                    # Client responded to ping - keep connection alive
-                    pass
+                    # Client responded to ping - update timestamp
+                    last_pong_time = asyncio.get_event_loop().time()
+                    # print(f"[WebSocket] Received pong from client")
                 elif data["type"] == "toggle_term_mode":
                     # Toggle terminal mode and restart Claude
                     new_mode = data.get("mode", "fancy")
@@ -765,14 +771,28 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
                     # Client will auto-reconnect and new session will use new TERM
                     break
 
+        # Track last pong time for timeout detection
+        last_pong_time = asyncio.get_event_loop().time()
+        ping_timeout = 10  # seconds - close if no pong response
+
         async def send_keepalive_pings():
-            """Send ping every 30 seconds to keep connection alive"""
+            """Send ping every 15 seconds to keep connection alive"""
+            nonlocal last_pong_time
             try:
                 while True:
-                    await asyncio.sleep(30)
+                    await asyncio.sleep(15)  # Reduced from 30s for mobile
+
+                    # Check if client responded to last ping
+                    time_since_pong = asyncio.get_event_loop().time() - last_pong_time
+                    if time_since_pong > ping_timeout:
+                        print(f"[WebSocket] Client timeout - no pong for {time_since_pong:.1f}s. Closing connection.")
+                        break
+
                     try:
                         await websocket.send_text(json.dumps({"type": "ping"}))
-                    except Exception:
+                        print(f"[WebSocket] Sent ping (last pong: {time_since_pong:.1f}s ago)")
+                    except Exception as e:
+                        print(f"[WebSocket] Ping failed: {e}")
                         break
             except asyncio.CancelledError:
                 pass

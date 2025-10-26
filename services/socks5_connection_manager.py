@@ -16,10 +16,11 @@ import os
 
 # Configuration
 SOCKS5_PROXY = "socks5://localhost:1055"
+SOCKS5_PORT = 1055
 MAX_RETRIES = 3
 INITIAL_RETRY_DELAY = 0.5  # seconds
 MAX_RETRY_DELAY = 5.0  # seconds
-CONNECTION_MAX_AGE = 300  # 5 minutes - recycle connections after this
+CONNECTION_MAX_AGE = 120  # 2 minutes - recycle connections more frequently for better stability
 
 
 class SOCKS5ConnectionManager:
@@ -29,6 +30,13 @@ class SOCKS5ConnectionManager:
         self._client: Optional[httpx.AsyncClient] = None
         self._client_created_at: float = 0
         self._is_cloud_run = os.environ.get("K_SERVICE") is not None
+        self._request_stats = {
+            "total_requests": 0,
+            "failed_requests": 0,
+            "retried_requests": 0,
+            "last_error": None,
+            "last_error_time": None,
+        }
 
     async def _create_fresh_client(self) -> httpx.AsyncClient:
         """Create a new httpx client with SOCKS5 proxy"""
@@ -85,6 +93,52 @@ class SOCKS5ConnectionManager:
 
         return self._client
 
+    async def check_socks5_health(self) -> Dict[str, Any]:
+        """
+        Check SOCKS5 proxy health
+
+        Returns:
+            Dict with health status
+        """
+        if not self._is_cloud_run:
+            return {"healthy": True, "reason": "Running locally (no SOCKS5)"}
+
+        import socket
+
+        try:
+            # Check if SOCKS5 port is listening
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(2)
+            result = sock.connect_ex(("localhost", SOCKS5_PORT))
+            sock.close()
+
+            if result == 0:
+                return {"healthy": True, "socks5_port": SOCKS5_PORT, "listening": True}
+            else:
+                return {
+                    "healthy": False,
+                    "reason": f"SOCKS5 port {SOCKS5_PORT} not listening",
+                    "socks5_port": SOCKS5_PORT,
+                    "listening": False
+                }
+        except Exception as e:
+            return {
+                "healthy": False,
+                "reason": f"Error checking SOCKS5: {e}",
+                "socks5_port": SOCKS5_PORT,
+                "listening": False
+            }
+
+    def get_stats(self) -> Dict[str, Any]:
+        """Get connection statistics"""
+        age = time.time() - self._client_created_at if self._client else 0
+        return {
+            "client_active": self._client is not None,
+            "client_age_seconds": age,
+            "max_age_seconds": CONNECTION_MAX_AGE,
+            "stats": self._request_stats,
+        }
+
     async def request_with_retry(
         self,
         method: str,
@@ -105,6 +159,7 @@ class SOCKS5ConnectionManager:
         Raises:
             httpx.HTTPError: If all retries fail
         """
+        self._request_stats["total_requests"] += 1
         last_exception = None
         retry_delay = INITIAL_RETRY_DELAY
 
@@ -120,6 +175,7 @@ class SOCKS5ConnectionManager:
 
                 # Success!
                 if attempt > 0:
+                    self._request_stats["retried_requests"] += 1
                     print(f"[ConnectionManager] ✅ Success after {attempt + 1} attempts")
 
                 return response
@@ -138,6 +194,10 @@ class SOCKS5ConnectionManager:
 
                 print(f"[ConnectionManager] ❌ Attempt {attempt + 1} failed: {error_name}: {e}")
 
+                # Track error
+                self._request_stats["last_error"] = f"{error_name}: {e}"
+                self._request_stats["last_error_time"] = time.time()
+
                 # Force recycle client on connection errors
                 await self._close_client()
 
@@ -150,6 +210,7 @@ class SOCKS5ConnectionManager:
                     print(f"[ConnectionManager] 💀 All {MAX_RETRIES} attempts failed")
 
         # All retries failed
+        self._request_stats["failed_requests"] += 1
         raise last_exception
 
     async def cleanup(self):

@@ -40,12 +40,19 @@ def start_application():
 	include_router(app)
 	configure_static(app)
 
-	# Start session cleanup task
+	# Start background tasks
 	@app.on_event("startup")
 	async def startup_event():
 		from services.session_manager import cleanup_idle_sessions
+		from services.tailscale_health_monitor import start_health_monitor
+
+		# Start session cleanup
 		asyncio.create_task(cleanup_idle_sessions(idle_timeout=3600))
 		print("✅ Session cleanup task started (1 hour idle timeout)")
+
+		# Start Tailscale health monitor (only in Cloud Run)
+		asyncio.create_task(start_health_monitor())
+		print("✅ Tailscale health monitor started")
 
 	return app 
 

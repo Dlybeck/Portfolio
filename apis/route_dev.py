@@ -128,6 +128,76 @@ async def debug_connectivity(user: dict = Depends(get_current_user)):
     return results
 
 
+@dev_router.get("/debug/tailscale-health")
+async def debug_tailscale_health(user: dict = Depends(get_current_user)):
+    """🔒 Debug endpoint for Tailscale and SOCKS5 health - requires authentication"""
+    import os
+    from services.tailscale_health_monitor import get_health_monitor
+    from services.socks5_connection_manager import get_connection_manager
+
+    # Check if in Cloud Run
+    is_cloud_run = os.environ.get("K_SERVICE") is not None
+
+    if not is_cloud_run:
+        return {
+            "environment": "local",
+            "message": "Tailscale health monitoring only runs in Cloud Run",
+            "tailscale_ip": MAC_SERVER_IP,
+        }
+
+    # Get health status from monitor
+    monitor = get_health_monitor()
+    health_status = monitor.get_status()
+
+    # Get SOCKS5 connection manager stats
+    conn_manager = get_connection_manager()
+    socks5_health = await conn_manager.check_socks5_health()
+    conn_stats = conn_manager.get_stats()
+
+    # Format timestamps
+    import time
+    from datetime import datetime
+
+    def format_timestamp(ts):
+        if ts:
+            return datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
+        return None
+
+    return {
+        "environment": "cloud_run",
+        "tailscale_monitor": {
+            "healthy": health_status["healthy"],
+            "status": health_status["status"],
+            "consecutive_failures": health_status["consecutive_failures"],
+            "last_check": format_timestamp(health_status["last_check_time"]),
+            "stats": {
+                "total_checks": health_status["stats"]["total_checks"],
+                "failures": health_status["stats"]["failures"],
+                "recoveries": health_status["stats"]["recoveries"],
+                "last_failure": format_timestamp(health_status["stats"].get("last_failure_time")),
+                "last_recovery": format_timestamp(health_status["stats"].get("last_recovery_time")),
+            }
+        },
+        "socks5_proxy": socks5_health,
+        "connection_manager": {
+            "client_active": conn_stats["client_active"],
+            "client_age_seconds": round(conn_stats["client_age_seconds"], 1),
+            "max_age_seconds": conn_stats["max_age_seconds"],
+            "requests": {
+                "total": conn_stats["stats"]["total_requests"],
+                "failed": conn_stats["stats"]["failed_requests"],
+                "retried": conn_stats["stats"]["retried_requests"],
+                "last_error": conn_stats["stats"]["last_error"],
+                "last_error_time": format_timestamp(conn_stats["stats"]["last_error_time"]),
+            }
+        },
+        "target": {
+            "mac_ip": MAC_SERVER_IP,
+            "mac_port": MAC_SERVER_PORT,
+        }
+    }
+
+
 @dev_router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     """Serve the login page (works in both Cloud Run and local environments)"""

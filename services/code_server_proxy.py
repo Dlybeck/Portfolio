@@ -146,7 +146,7 @@ class CodeServerProxy:
         path: str
     ):
         """
-        Proxy WebSocket connection to code-server
+        Proxy WebSocket connection to code-server with retry logic
 
         Args:
             client_ws: FastAPI WebSocket from browser
@@ -162,6 +162,59 @@ class CodeServerProxy:
             ws_url = f"ws://127.0.0.1:8888/{path}"
             print(f"[CodeServerProxy WS] Local mode: connecting to {ws_url}")
 
+        # Retry configuration (matching HTTP retry logic)
+        max_retries = 3
+        retry_delay = 0.5
+        last_exception = None
+
+        for attempt in range(max_retries):
+            try:
+                if attempt > 0:
+                    # Wait before retry with exponential backoff
+                    wait_time = min(retry_delay * (2 ** (attempt - 1)), 2.5)
+                    print(f"[WS Proxy] Retry attempt {attempt + 1}/{max_retries} after {wait_time}s delay...")
+                    await asyncio.sleep(wait_time)
+
+                await self._proxy_websocket_connection(client_ws, ws_url, path)
+                return  # Success!
+
+            except (OSError, ConnectionError, TimeoutError) as e:
+                last_exception = e
+                error_name = type(e).__name__
+                print(f"[WS Proxy] ❌ Connection attempt {attempt + 1}/{max_retries} failed: {error_name}: {e}")
+
+                if attempt < max_retries - 1:
+                    print(f"[WS Proxy] 🔄 Will retry connection...")
+                else:
+                    print(f"[WS Proxy] 💀 All {max_retries} connection attempts failed")
+
+            except Exception as e:
+                # Non-retryable error
+                print(f"[WS Proxy] ❌ Non-retryable error: {type(e).__name__}: {e}")
+                await client_ws.close(code=1011, reason=f"Proxy error: {type(e).__name__}")
+                return
+
+        # All retries exhausted
+        error_msg = f"Connection failed after {max_retries} attempts"
+        if last_exception:
+            error_msg += f": {last_exception}"
+        print(f"[WS Proxy] {error_msg}")
+        await client_ws.close(code=1011, reason="SOCKS5 proxy unavailable")
+
+    async def _proxy_websocket_connection(
+        self,
+        client_ws: WebSocket,
+        ws_url: str,
+        path: str
+    ):
+        """
+        Establish and maintain WebSocket proxy connection (internal method)
+
+        Args:
+            client_ws: FastAPI WebSocket from browser
+            ws_url: Target WebSocket URL
+            path: WebSocket path
+        """
         try:
             if IS_CLOUD_RUN:
                 # Cloud Run: Use aiohttp with SOCKS5 proxy
@@ -259,8 +312,9 @@ class CodeServerProxy:
                     )
 
         except Exception as e:
-            print(f"[WS Proxy] Connection error: {e}")
-            await client_ws.close(code=1011, reason="Proxy error")
+            # Re-raise to be caught by retry logic in proxy_websocket()
+            print(f"[WS Proxy] Connection error in _proxy_websocket_connection: {type(e).__name__}: {e}")
+            raise
 
     async def close(self):
         """Close HTTP client"""

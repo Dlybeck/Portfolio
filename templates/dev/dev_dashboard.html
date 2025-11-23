@@ -93,6 +93,7 @@
             opacity: 1;
         }
     </style>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <!-- Auth Service for Token Refresh -->
     <script src="/static/js/auth-service.js"></script>
 </head>
@@ -111,7 +112,7 @@
         <iframe id="vscode-iframe" class="active" src="/dev/vscode/?tkn={{ token }}"></iframe>
 
         <!-- Agor Iframe - direct connection for local dev (anonymous auth) -->
-        <iframe id="agor-iframe" src="http://localhost:3030/ui/"></iframe>
+        <iframe id="agor-iframe" src="/dev/agor/ui/?tkn={{ token }}"></iframe>
     </div>
 
     <!-- Script for switching -->

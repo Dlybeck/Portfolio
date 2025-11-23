@@ -78,6 +78,7 @@ class CodeServerProxy:
         # Add code-server specific headers
         headers['X-Forwarded-For'] = request.client.host
         headers['X-Forwarded-Proto'] = request.url.scheme
+        headers['X-Forwarded-Prefix'] = '/dev/vscode'
 
         return headers
 

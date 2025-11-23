@@ -55,7 +55,13 @@
       "Bash(scripts/start-local-dev.sh:*)",
       "Bash(pmset:*)",
       "Bash(sudo pmset:*)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(tailscale ping:*)",
+      "Bash(sudo launchctl:*)",
+      "Bash(open:*)",
+      "Bash(for i in {1..3})",
+      "Bash(do curl -s -o /dev/null -w \"Attempt $i - Status: %{http_code} Time: %{time_total}s\\n\" http://100.92.27.13:8080/dev/terminal)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

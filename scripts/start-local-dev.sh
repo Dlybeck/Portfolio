@@ -13,9 +13,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Get project directory
-PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$PROJECT_DIR"
+# Get project directory (parent of scripts/)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$SCRIPT_DIR"
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  Portfolio Dev Environment Startup${NC}"
@@ -42,7 +43,7 @@ echo -e "${GREEN}✓ Virtual environment activated${NC}"
 if ! python -c "import fastapi" 2>/dev/null; then
     echo -e "${YELLOW}Installing Python dependencies...${NC}"
     pip install -q --upgrade pip
-    pip install -q -r ../requirements.txt
+    pip install -q -r "$PROJECT_DIR/requirements.txt"
     echo -e "${GREEN}✓ Dependencies installed${NC}"
 else
     echo -e "${GREEN}✓ Dependencies already installed${NC}"
@@ -132,6 +133,7 @@ if [ ! -f "$HOME/.agor/agor.db" ]; then
     cd "$PROJECT_DIR"
     # Note: If agor prompts, user should answer to complete first-time setup
     agor init || echo -e "${YELLOW}⚠ Agor init incomplete - run 'agor init' manually if needed${NC}"
+    cd "$SCRIPT_DIR"
     echo -e "${GREEN}✓ Agor initialized${NC}"
 else
     echo -e "${GREEN}✓ Agor already initialized (found database)${NC}"
@@ -160,21 +162,21 @@ echo ""
 # ==============================================================================
 echo -e "${YELLOW}[4/5] Checking security configuration...${NC}"
 
-if [ ! -f "../.env" ]; then
+if [ ! -f "$PROJECT_DIR/.env" ]; then
     echo -e "${RED}✗ .env file not found${NC}"
     echo -e "${YELLOW}Run: python setup_security.py${NC}"
     exit 1
 fi
 
 # Check for JWT secret (required for token generation)
-if ! grep -q "^SECRET_KEY=" ../.env 2>/dev/null; then
+if ! grep -q "^SECRET_KEY=" "$PROJECT_DIR/.env" 2>/dev/null; then
     echo -e "${RED}✗ SECRET_KEY not configured${NC}"
     echo -e "${YELLOW}Run: python setup_security.py${NC}"
     exit 1
 fi
 
 # TOTP is optional for local dev (required for cloud)
-if ! grep -q "^TOTP_SECRET=" .env 2>/dev/null; then
+if ! grep -q "^TOTP_SECRET=" "$PROJECT_DIR/.env" 2>/dev/null; then
     echo -e "${YELLOW}⚠ TOTP_SECRET not configured - authentication disabled for local dev${NC}"
 fi
 
@@ -222,9 +224,12 @@ echo ""
 echo -e "${YELLOW}Press Ctrl+C to stop the server${NC}"
 echo ""
 
+# Change to project root so Pydantic Settings can find .env
+cd "$PROJECT_DIR"
+
 # Start uvicorn (this will run in foreground)
 if [ "$PROTOCOL" = "https" ]; then
-    exec python ../main.py
+    exec python main.py
 else
-    exec python ../main.py
+    exec python main.py
 fi

@@ -51,7 +51,10 @@
       "Read(//Users/dlybeck/.local/share/**)",
       "Read(//Users/dlybeck/.agor/**)",
       "Bash(sqlite3:*)",
-      "Bash(./start-local-dev.sh:*)"
+      "Bash(./start-local-dev.sh:*)",
+      "Bash(scripts/start-local-dev.sh:*)",
+      "Bash(pmset:*)",
+      "Bash(sudo pmset:*)"
     ],
     "deny": [],
     "ask": []

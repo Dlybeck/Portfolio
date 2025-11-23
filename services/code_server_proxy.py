@@ -78,7 +78,6 @@ class CodeServerProxy:
         # Add code-server specific headers
         headers['X-Forwarded-For'] = request.client.host
         headers['X-Forwarded-Proto'] = request.url.scheme
-        headers['X-Forwarded-Prefix'] = '/dev/vscode'
 
         return headers
 
@@ -88,14 +87,7 @@ class CodeServerProxy:
         path: str
     ) -> Response:
         """
-        Proxy HTTP request to code-server
-
-        Args:
-            request: FastAPI request object
-            path: Path to proxy (e.g., "index.html")
-
-        Returns:
-            Response from code-server
+        Proxy HTTP request to code-server and rewrite URLs in the response.
         """
         client = await self.get_client()
 
@@ -108,35 +100,59 @@ class CodeServerProxy:
         headers = self._prepare_headers(request)
 
         try:
-            # Proxy the request
-            if request.method == "GET":
-                response = await client.get(url, headers=headers)
-            elif request.method == "POST":
-                body = await request.body()
-                response = await client.post(url, headers=headers, content=body)
-            elif request.method == "PUT":
-                body = await request.body()
-                response = await client.put(url, headers=headers, content=body)
-            elif request.method == "DELETE":
-                response = await client.delete(url, headers=headers)
-            elif request.method == "PATCH":
-                body = await request.body()
-                response = await client.patch(url, headers=headers, content=body)
+            # Proxy the request using a streaming response to handle large files
+            req = client.build_request(request.method, url, headers=headers, content=await request.body())
+            response = await client.send(req, stream=True)
+
+            # Check content type for rewriting
+            content_type = response.headers.get('content-type', '').lower()
+            
+            # --- URL Rewriting Logic ---
+            if 'text/html' in content_type or 'application/javascript' in content_type:
+                # Read the entire content for rewriting
+                body_bytes = await response.aread()
+                
+                # Decode based on charset or default to utf-8
+                charset = 'utf-8'
+                if 'charset=' in content_type:
+                    charset = content_type.split('charset=')[-1]
+                
+                try:
+                    body_str = body_bytes.decode(charset)
+                except (UnicodeDecodeError, LookupError):
+                     # Fallback for incorrect charset headers
+                    body_str = body_bytes.decode('utf-8', errors='replace')
+
+                # Perform replacements
+                # Add /dev/vscode prefix to make paths absolute to the proxy
+                body_str = body_str.replace('"/static/', '"/dev/vscode/static/')
+                body_str = body_str.replace("'/_static/", "'/dev/vscode/_static/")
+                body_str = body_str.replace('"/stable-', '"/dev/vscode/stable-')
+                
+                # Update content-length and return modified response
+                new_body_bytes = body_str.encode('utf-8')
+                response_headers = dict(response.headers)
+                response_headers['content-length'] = str(len(new_body_bytes))
+                
+                # Since httpx decompresses automatically, remove this header
+                response_headers.pop('content-encoding', None)
+
+                return Response(
+                    content=new_body_bytes,
+                    status_code=response.status_code,
+                    headers=response_headers,
+                    media_type=response.headers.get('content-type')
+                )
             else:
-                raise HTTPException(status_code=405, detail="Method not allowed")
-
-            # Prepare response headers (remove compression headers since httpx already decoded)
-            response_headers = dict(response.headers)
-            response_headers.pop('content-encoding', None)  # Remove gzip/brotli encoding
-            response_headers.pop('content-length', None)    # Length changed after decoding
-
-            # Return response
-            return Response(
-                content=response.content,
-                status_code=response.status_code,
-                headers=response_headers,
-                media_type=response.headers.get('content-type')
-            )
+                # For non-text content (images, etc.), stream the response directly
+                response.headers.pop('content-encoding', None)
+                response.headers.pop('transfer-encoding', None)
+                return StreamingResponse(
+                    response.aiter_bytes(),
+                    status_code=response.status_code,
+                    headers=response.headers,
+                    media_type=response.headers.get('content-type')
+                )
 
         except httpx.ConnectError:
             raise HTTPException(
@@ -144,6 +160,7 @@ class CodeServerProxy:
                 detail="code-server is not running. Please start it first."
             )
         except Exception as e:
+            logger.error(f"Error in code-server proxy: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
     async def proxy_websocket(

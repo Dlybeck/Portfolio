@@ -78,7 +78,6 @@ class CodeServerProxy:
         # Add code-server specific headers
         headers['X-Forwarded-For'] = request.client.host
         headers['X-Forwarded-Proto'] = request.url.scheme
-        headers['X-Forwarded-Prefix'] = '/dev/vscode'
 
         return headers
 
@@ -88,14 +87,8 @@ class CodeServerProxy:
         path: str
     ) -> Response:
         """
-        Proxy HTTP request to code-server
-
-        Args:
-            request: FastAPI request object
-            path: Path to proxy (e.g., "index.html")
-
-        Returns:
-            Response from code-server
+        Proxy HTTP request to code-server.
+        Injects a <base> tag into the main HTML response to fix asset paths.
         """
         client = await self.get_client()
 
@@ -106,37 +99,65 @@ class CodeServerProxy:
 
         # Prepare headers
         headers = self._prepare_headers(request)
-
+        
         try:
-            # Proxy the request
-            if request.method == "GET":
-                response = await client.get(url, headers=headers)
-            elif request.method == "POST":
-                body = await request.body()
-                response = await client.post(url, headers=headers, content=body)
-            elif request.method == "PUT":
-                body = await request.body()
-                response = await client.put(url, headers=headers, content=body)
-            elif request.method == "DELETE":
-                response = await client.delete(url, headers=headers)
-            elif request.method == "PATCH":
-                body = await request.body()
-                response = await client.patch(url, headers=headers, content=body)
+            req = client.build_request(request.method, url, headers=headers, content=await request.body())
+            response = await client.send(req, stream=True)
+
+            content_type = response.headers.get('content-type', '').lower()
+            
+            # --- <base href> Injection Logic ---
+            # Inject only into the main HTML document. We identify it by checking
+            # the path and content type. The root path is often empty or just '/'.
+            is_html_entrypoint = 'text/html' in content_type and (path == "" or path == "/" or "index.html" in path)
+
+            if is_html_entrypoint:
+                body_bytes = await response.aread()
+                
+                charset = 'utf-8'
+                if 'charset=' in content_type:
+                    charset = content_type.split('charset=')[-1]
+                
+                try:
+                    body_str = body_bytes.decode(charset)
+                except (UnicodeDecodeError, LookupError):
+                    body_str = body_bytes.decode('utf-8', errors='replace')
+
+                # Inject the <base> tag right after the <head> tag.
+                # This is more robust than simple string replacement.
+                head_tag = "<head>"
+                injection = f'<head>\\n    <base href="/dev/vscode/">'
+                
+                if head_tag in body_str:
+                    body_str = body_str.replace(head_tag, injection, 1)
+                else:
+                    # Fallback if <head> is not found (less likely)
+                    logger.warning("Could not find <head> tag to inject <base> tag.")
+
+                new_body_bytes = body_str.encode('utf-8')
+                response_headers = dict(response.headers)
+                response_headers['content-length'] = str(len(new_body_bytes))
+                response_headers.pop('content-encoding', None)
+
+                return Response(
+                    content=new_body_bytes,
+                    status_code=response.status_code,
+                    headers=response_headers,
+                    media_type=response.headers.get('content-type')
+                )
             else:
-                raise HTTPException(status_code=405, detail="Method not allowed")
+                # For all other assets (JS, CSS, images), stream them directly.
+                # This prevents corruption and is more efficient.
+                response_headers = dict(response.headers)
+                response_headers.pop('content-encoding', None)
+                response_headers.pop('transfer-encoding', None)
 
-            # Prepare response headers (remove compression headers since httpx already decoded)
-            response_headers = dict(response.headers)
-            response_headers.pop('content-encoding', None)  # Remove gzip/brotli encoding
-            response_headers.pop('content-length', None)    # Length changed after decoding
-
-            # Return response
-            return Response(
-                content=response.content,
-                status_code=response.status_code,
-                headers=response_headers,
-                media_type=response.headers.get('content-type')
-            )
+                return StreamingResponse(
+                    response.aiter_bytes(),
+                    status_code=response.status_code,
+                    headers=response_headers,
+                    media_type=response.headers.get('content-type')
+                )
 
         except httpx.ConnectError:
             raise HTTPException(
@@ -144,6 +165,7 @@ class CodeServerProxy:
                 detail="code-server is not running. Please start it first."
             )
         except Exception as e:
+            logger.error(f"Error in code-server proxy: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
     async def proxy_websocket(

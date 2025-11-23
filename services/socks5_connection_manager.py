@@ -13,10 +13,16 @@ import asyncio
 import time
 from typing import Optional, Dict, Any
 import os
+from core.config import settings
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # Configuration
-SOCKS5_PROXY = "socks5://localhost:1055"
-SOCKS5_PORT = 1055
+SOCKS5_PROXY = settings.SOCKS5_PROXY
+SOCKS5_PORT = settings.SOCKS5_PORT
 MAX_RETRIES = 3
 INITIAL_RETRY_DELAY = 0.5  # seconds
 MAX_RETRY_DELAY = 5.0  # seconds
@@ -29,7 +35,7 @@ class SOCKS5ConnectionManager:
     def __init__(self):
         self._client: Optional[httpx.AsyncClient] = None
         self._client_created_at: float = 0
-        self._is_cloud_run = os.environ.get("K_SERVICE") is not None
+        self._is_cloud_run = settings.K_SERVICE is not None
         self._request_stats = {
             "total_requests": 0,
             "failed_requests": 0,
@@ -58,7 +64,7 @@ class SOCKS5ConnectionManager:
             )
 
         self._client_created_at = time.time()
-        print(f"[ConnectionManager] Created fresh {'SOCKS5 proxy' if self._is_cloud_run else 'direct'} client")
+        logger.info(f"Created fresh {'SOCKS5 proxy' if self._is_cloud_run else 'direct'} client")
         return self._client
 
     async def _close_client(self):
@@ -66,9 +72,9 @@ class SOCKS5ConnectionManager:
         if self._client:
             try:
                 await self._client.aclose()
-                print("[ConnectionManager] Closed existing client")
+                logger.info("Closed existing client")
             except Exception as e:
-                print(f"[ConnectionManager] Error closing client: {e}")
+                logger.error(f"Error closing client: {e}")
             finally:
                 self._client = None
                 self._client_created_at = 0
@@ -82,7 +88,7 @@ class SOCKS5ConnectionManager:
         should_recycle = age > CONNECTION_MAX_AGE
 
         if should_recycle:
-            print(f"[ConnectionManager] Client is {age:.1f}s old, recycling (max age: {CONNECTION_MAX_AGE}s)")
+            logger.info(f"Client is {age:.1f}s old, recycling (max age: {CONNECTION_MAX_AGE}s)")
 
         return should_recycle
 
@@ -168,7 +174,7 @@ class SOCKS5ConnectionManager:
                 # Get fresh client if needed
                 client = await self.get_client()
 
-                print(f"[ConnectionManager] {method} {url} (attempt {attempt + 1}/{MAX_RETRIES})")
+                logger.info(f"{method} {url} (attempt {attempt + 1}/{MAX_RETRIES})")
 
                 # Make request
                 response = await client.request(method, url, **kwargs)
@@ -176,7 +182,7 @@ class SOCKS5ConnectionManager:
                 # Success!
                 if attempt > 0:
                     self._request_stats["retried_requests"] += 1
-                    print(f"[ConnectionManager] ✅ Success after {attempt + 1} attempts")
+                    logger.info(f"Success after {attempt + 1} attempts")
 
                 return response
 
@@ -192,7 +198,7 @@ class SOCKS5ConnectionManager:
                 last_exception = e
                 error_name = type(e).__name__
 
-                print(f"[ConnectionManager] ❌ Attempt {attempt + 1} failed: {error_name}: {e}")
+                logger.error(f"Attempt {attempt + 1} failed: {error_name}: {e}")
 
                 # Track error
                 self._request_stats["last_error"] = f"{error_name}: {e}"
@@ -204,10 +210,10 @@ class SOCKS5ConnectionManager:
                 # If this isn't the last attempt, wait and retry
                 if attempt < MAX_RETRIES - 1:
                     wait_time = min(retry_delay * (2 ** attempt), MAX_RETRY_DELAY)
-                    print(f"[ConnectionManager] 🔄 Retrying in {wait_time:.1f}s...")
+                    logger.warning(f"Retrying in {wait_time:.1f}s...")
                     await asyncio.sleep(wait_time)
                 else:
-                    print(f"[ConnectionManager] 💀 All {MAX_RETRIES} attempts failed")
+                    logger.error(f"All {MAX_RETRIES} attempts failed")
 
         # All retries failed
         self._request_stats["failed_requests"] += 1

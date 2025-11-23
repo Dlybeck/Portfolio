@@ -8,6 +8,11 @@ from fastapi.responses import Response, StreamingResponse
 import httpx
 import os
 import asyncio
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -203,7 +208,7 @@ async def proxy_websocket(websocket: WebSocket):
                 )
 
     except Exception as e:
-        print(f"WebSocket proxy error: {e}")
+        logger.error(f"WebSocket proxy error: {e}")
         try:
             await websocket.close()
         except:

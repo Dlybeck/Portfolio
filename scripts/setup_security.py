@@ -44,7 +44,7 @@ def validate_password(password: str) -> tuple[bool, str]:
     return True, ""
 
 
-def generate_qr_code(totp_uri: str, filename: str = "totp_qr.png"):
+def generate_qr_code(totp_uri: str, filename: str = "generated/totp_qr.png"):
     """Generate QR code for TOTP setup"""
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
     qr.add_data(totp_uri)

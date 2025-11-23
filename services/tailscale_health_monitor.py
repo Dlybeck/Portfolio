@@ -19,7 +19,12 @@ import time
 import os
 from typing import Dict, Optional
 import httpx
+from core.config import settings
+import logging
 
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # Configuration
 SOCKS5_PORT = 1055
@@ -33,7 +38,7 @@ class TailscaleHealthMonitor:
     """Monitors and maintains Tailscale connection health"""
 
     def __init__(self):
-        self.is_cloud_run = os.environ.get("K_SERVICE") is not None
+        self.is_cloud_run = settings.K_SERVICE is not None
         self.consecutive_failures = 0
         self.last_check_time = 0
         self.last_status = "unknown"
@@ -54,10 +59,10 @@ class TailscaleHealthMonitor:
                 timeout=5
             )
             is_running = result.returncode == 0
-            print(f"[TailscaleHealth] tailscaled process: {'✅ running' if is_running else '❌ not running'}")
+            logger.info(f"tailscaled process: {'✅ running' if is_running else '❌ not running'}")
             return is_running
         except Exception as e:
-            print(f"[TailscaleHealth] Error checking tailscaled process: {e}")
+            logger.error(f"Error checking tailscaled process: {e}")
             return False
 
     def _check_socks5_proxy(self) -> bool:
@@ -68,10 +73,10 @@ class TailscaleHealthMonitor:
             result = sock.connect_ex(("localhost", SOCKS5_PORT))
             sock.close()
             is_listening = result == 0
-            print(f"[TailscaleHealth] SOCKS5 proxy (:{SOCKS5_PORT}): {'✅ listening' if is_listening else '❌ not listening'}")
+            logger.info(f"SOCKS5 proxy (:{SOCKS5_PORT}): {'✅ listening' if is_listening else '❌ not listening'}")
             return is_listening
         except Exception as e:
-            print(f"[TailscaleHealth] Error checking SOCKS5 proxy: {e}")
+            logger.error(f"Error checking SOCKS5 proxy: {e}")
             return False
 
     async def _check_mac_connectivity(self) -> bool:
@@ -87,10 +92,10 @@ class TailscaleHealthMonitor:
             ) as client:
                 response = await client.get(f"http://{MAC_SERVER_IP}:{MAC_SERVER_PORT}/")
                 is_reachable = response.status_code < 500
-                print(f"[TailscaleHealth] Mac server connectivity: {'✅ reachable' if is_reachable else '⚠️ error response'} (status: {response.status_code})")
+                logger.info(f"Mac server connectivity: {'✅ reachable' if is_reachable else '⚠️ error response'} (status: {response.status_code})")
                 return is_reachable
         except Exception as e:
-            print(f"[TailscaleHealth] ❌ Mac server not reachable: {e}")
+            logger.error(f"❌ Mac server not reachable: {e}")
             return False
 
     def _check_tailscale_status(self) -> bool:
@@ -108,18 +113,18 @@ class TailscaleHealthMonitor:
                 status = json.loads(result.stdout)
                 backend_state = status.get("BackendState", "unknown")
                 is_connected = backend_state == "Running"
-                print(f"[TailscaleHealth] Tailscale status: {backend_state} {'✅' if is_connected else '❌'}")
+                logger.info(f"Tailscale status: {backend_state} {'✅' if is_connected else '❌'}")
                 return is_connected
             else:
-                print(f"[TailscaleHealth] ❌ tailscale status failed: {result.stderr}")
+                logger.error(f"tailscale status failed: {result.stderr}")
                 return False
         except Exception as e:
-            print(f"[TailscaleHealth] Error checking Tailscale status: {e}")
+            logger.error(f"Error checking Tailscale status: {e}")
             return False
 
     async def _attempt_recovery(self) -> bool:
         """Attempt to recover Tailscale connection"""
-        print("[TailscaleHealth] 🔄 Attempting Tailscale recovery...")
+        logger.info("Attempting Tailscale recovery...")
 
         try:
             # First, try to restart the connection
@@ -131,7 +136,7 @@ class TailscaleHealthMonitor:
             )
 
             if result.returncode == 0:
-                print("[TailscaleHealth] ✅ Tailscale reconnected successfully")
+                logger.info("Tailscale reconnected successfully")
                 await asyncio.sleep(5)  # Give it time to establish connection
 
                 # Verify recovery
@@ -140,14 +145,14 @@ class TailscaleHealthMonitor:
                     self.health_stats["last_recovery_time"] = time.time()
                     return True
                 else:
-                    print("[TailscaleHealth] ⚠️ Tailscale up succeeded but Mac not reachable")
+                    logger.warning("Tailscale up succeeded but Mac not reachable")
                     return False
             else:
-                print(f"[TailscaleHealth] ❌ Tailscale up failed: {result.stderr}")
+                logger.error(f"Tailscale up failed: {result.stderr}")
                 return False
 
         except Exception as e:
-            print(f"[TailscaleHealth] ❌ Recovery failed: {e}")
+            logger.error(f"Recovery failed: {e}")
             return False
 
     async def perform_health_check(self) -> Dict:
@@ -160,7 +165,7 @@ class TailscaleHealthMonitor:
         self.health_stats["total_checks"] += 1
         self.last_check_time = time.time()
 
-        print(f"\n[TailscaleHealth] === Health Check #{self.health_stats['total_checks']} ===")
+        logger.info(f"Health Check #{self.health_stats['total_checks']}")
 
         # Check all components
         checks = {
@@ -176,7 +181,7 @@ class TailscaleHealthMonitor:
         if is_healthy:
             self.consecutive_failures = 0
             self.last_status = "healthy"
-            print("[TailscaleHealth] ✅ All systems healthy")
+            logger.info("All systems healthy")
         else:
             self.consecutive_failures += 1
             self.health_stats["failures"] += 1
@@ -184,12 +189,12 @@ class TailscaleHealthMonitor:
             self.last_status = "unhealthy"
 
             failed_checks = [k for k, v in checks.items() if not v]
-            print(f"[TailscaleHealth] ❌ Health check failed. Failed: {', '.join(failed_checks)}")
-            print(f"[TailscaleHealth] Consecutive failures: {self.consecutive_failures}/{MAX_CONSECUTIVE_FAILURES}")
+            logger.warning(f"Health check failed. Failed: {', '.join(failed_checks)}")
+            logger.warning(f"Consecutive failures: {self.consecutive_failures}/{MAX_CONSECUTIVE_FAILURES}")
 
             # Attempt recovery if we've had multiple consecutive failures
             if self.consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
-                print(f"[TailscaleHealth] 🚨 {MAX_CONSECUTIVE_FAILURES} consecutive failures - triggering recovery")
+                logger.critical(f"{MAX_CONSECUTIVE_FAILURES} consecutive failures - triggering recovery")
                 recovery_success = await self._attempt_recovery()
 
                 if recovery_success:
@@ -210,17 +215,17 @@ class TailscaleHealthMonitor:
     async def start_monitoring(self):
         """Start the health monitoring loop"""
         if not self.is_cloud_run:
-            print("[TailscaleHealth] Running locally - health monitoring disabled")
+            logger.info("Running locally - health monitoring disabled")
             return
 
-        print(f"[TailscaleHealth] 🚀 Starting Tailscale health monitor (interval: {HEALTH_CHECK_INTERVAL}s)")
+        logger.info(f"Starting Tailscale health monitor (interval: {HEALTH_CHECK_INTERVAL}s)")
 
         while True:
             try:
                 await self.perform_health_check()
                 await asyncio.sleep(HEALTH_CHECK_INTERVAL)
             except Exception as e:
-                print(f"[TailscaleHealth] ❌ Error in monitoring loop: {e}")
+                logger.error(f"Error in monitoring loop: {e}")
                 await asyncio.sleep(HEALTH_CHECK_INTERVAL)
 
     def get_status(self) -> Dict:

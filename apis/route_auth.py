@@ -15,6 +15,7 @@ from core.security import (
     generate_setup_info,
     ACCESS_TOKEN_EXPIRE_MINUTES,
 )
+from core.config import settings
 
 auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -79,7 +80,7 @@ async def login(request: LoginRequest, response: Response):
     # Set session cookie for browser-based authentication
     # This allows redirects and iframe content to stay authenticated
     import os
-    is_https = os.environ.get("HTTPS", "false").lower() == "true" or os.environ.get("K_SERVICE") is not None
+    is_https = settings.HTTPS or settings.K_SERVICE is not None
 
     response.set_cookie(
         key="session_token",
@@ -129,7 +130,7 @@ async def refresh_token(request: RefreshRequest, response: Response):
 
     # Update session cookie with new access token
     import os
-    is_https = os.environ.get("HTTPS", "false").lower() == "true" or os.environ.get("K_SERVICE") is not None
+    is_https = settings.HTTPS or settings.K_SERVICE is not None
 
     response.set_cookie(
         key="session_token",

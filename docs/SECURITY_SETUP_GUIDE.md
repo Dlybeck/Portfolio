@@ -105,7 +105,7 @@ Enter dashboard password: MySecureP@ssw0rd2025!
 ✅ Generated TOTP secret: JBSWY3DPEHPK3PXP
 
 📷 Generating QR code for Google Authenticator...
-✅ QR code saved to: totp_qr.png
+✅ QR code saved to: generated/totp_qr.png
 
 💾 Creating .env file...
 ✅ Created .env file
@@ -121,7 +121,7 @@ Enter dashboard password: MySecureP@ssw0rd2025!
 1. Open Google Authenticator app
 2. Tap "+" to add account
 3. Choose "Scan QR code"
-4. Scan `totp_qr.png` (open the image on your computer)
+4. Scan `generated/totp_qr.png` (open the image on your computer)
 
 **Alternative (manual entry):**
 1. Choose "Enter setup key"

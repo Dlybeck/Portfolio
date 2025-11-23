@@ -8,6 +8,11 @@ import os
 import sys
 import requests
 from datetime import datetime
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 OAUTH_CLIENT_ID = os.getenv('TAILSCALE_OAUTH_CLIENT_ID')
 OAUTH_CLIENT_SECRET = os.getenv('TAILSCALE_OAUTH_CLIENT_SECRET')
@@ -17,8 +22,8 @@ def check_oauth_health():
     """Test if OAuth credentials are valid"""
 
     if not OAUTH_CLIENT_ID or not OAUTH_CLIENT_SECRET:
-        print("❌ OAuth credentials not found in environment")
-        print("Set TAILSCALE_OAUTH_CLIENT_ID and TAILSCALE_OAUTH_CLIENT_SECRET")
+        logger.error("OAuth credentials not found in environment")
+        logger.error("Set TAILSCALE_OAUTH_CLIENT_ID and TAILSCALE_OAUTH_CLIENT_SECRET")
         return False
 
     # Get OAuth token
@@ -31,8 +36,8 @@ def check_oauth_health():
         )
 
         if token_response.status_code != 200:
-            print(f"❌ OAuth client invalid: {token_response.status_code}")
-            print(f"Response: {token_response.text}")
+            logger.error(f"OAuth client invalid: {token_response.status_code}")
+            logger.error(f"Response: {token_response.text}")
             print_renewal_instructions()
             return False
 
@@ -47,16 +52,16 @@ def check_oauth_health():
 
         if devices_response.status_code == 200:
             devices = devices_response.json()
-            print(f"✅ OAuth client is healthy!")
-            print(f"   Tailnet: {TAILNET}")
-            print(f"   Devices: {len(devices.get('devices', []))}")
+            logger.info("OAuth client is healthy!")
+            logger.info(f"Tailnet: {TAILNET}")
+            logger.info(f"Devices: {len(devices.get('devices', []))}")
             return True
         else:
-            print(f"⚠️  OAuth token works but API access failed: {devices_response.status_code}")
+            logger.warning(f"OAuth token works but API access failed: {devices_response.status_code}")
             return False
 
     except Exception as e:
-        print(f"❌ Error checking OAuth health: {e}")
+        logger.error(f"Error checking OAuth health: {e}")
         print_renewal_instructions()
         return False
 
@@ -90,8 +95,7 @@ def print_renewal_instructions():
     print()
 
 if __name__ == '__main__':
-    print(f"🔍 Checking Tailscale OAuth health at {datetime.now()}")
-    print()
+    logger.info(f"Checking Tailscale OAuth health at {datetime.now()}")
 
     is_healthy = check_oauth_health()
 

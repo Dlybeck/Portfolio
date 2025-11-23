@@ -11,15 +11,20 @@ import os
 from fastapi import Request, Response, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 from typing import Dict, Any
+from core.config import settings
+import logging
 
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # Detect if running in Cloud Run (proxy mode) or locally (direct mode)
-IS_CLOUD_RUN = os.environ.get("K_SERVICE") is not None
+IS_CLOUD_RUN = settings.K_SERVICE is not None
 
 # Mac server configuration
-MAC_SERVER_IP = "100.84.184.84"
-MAC_SERVER_PORT = 8888
-SOCKS5_PROXY = "socks5://localhost:1055"
+MAC_SERVER_IP = settings.MAC_SERVER_IP
+MAC_SERVER_PORT = settings.MAC_SERVER_PORT
+SOCKS5_PROXY = settings.SOCKS5_PROXY
 
 
 class CodeServerProxy:
@@ -32,11 +37,11 @@ class CodeServerProxy:
         elif IS_CLOUD_RUN:
             # In Cloud Run, connect to Mac via Tailscale
             self.code_server_url = f"http://{MAC_SERVER_IP}:{MAC_SERVER_PORT}"
-            print(f"[CodeServerProxy] Cloud Run mode: proxying to {self.code_server_url} via SOCKS5")
+            logger.info(f"Cloud Run mode: proxying to {self.code_server_url} via SOCKS5")
         else:
             # Local Mac, connect to localhost
             self.code_server_url = "http://127.0.0.1:8888"
-            print(f"[CodeServerProxy] Local mode: connecting to {self.code_server_url}")
+            logger.info(f"Local mode: connecting to {self.code_server_url}")
 
         self.client = None
 
@@ -53,7 +58,7 @@ class CodeServerProxy:
             # Add SOCKS5 proxy if running in Cloud Run
             if IS_CLOUD_RUN:
                 client_kwargs["proxy"] = SOCKS5_PROXY
-                print(f"[CodeServerProxy] HTTP client using SOCKS5 proxy: {SOCKS5_PROXY}")
+                logger.info(f"HTTP client using SOCKS5 proxy: {SOCKS5_PROXY}")
 
             self.client = httpx.AsyncClient(**client_kwargs)
         return self.client
@@ -156,11 +161,11 @@ class CodeServerProxy:
         if IS_CLOUD_RUN:
             # Cloud Run: Connect to Mac via SOCKS5
             ws_url = f"ws://{MAC_SERVER_IP}:{MAC_SERVER_PORT}/{path}"
-            print(f"[CodeServerProxy WS] Cloud Run mode: connecting to {ws_url} via SOCKS5")
+            logger.info(f"Cloud Run mode: connecting to {ws_url} via SOCKS5")
         else:
             # Local: Connect to localhost
             ws_url = f"ws://127.0.0.1:8888/{path}"
-            print(f"[CodeServerProxy WS] Local mode: connecting to {ws_url}")
+            logger.info(f"Local mode: connecting to {ws_url}")
 
         # Retry configuration (matching HTTP retry logic)
         max_retries = 3
@@ -172,7 +177,7 @@ class CodeServerProxy:
                 if attempt > 0:
                     # Wait before retry with exponential backoff
                     wait_time = min(retry_delay * (2 ** (attempt - 1)), 2.5)
-                    print(f"[WS Proxy] Retry attempt {attempt + 1}/{max_retries} after {wait_time}s delay...")
+                    logger.info(f"Retry attempt {attempt + 1}/{max_retries} after {wait_time}s delay...")
                     await asyncio.sleep(wait_time)
 
                 await self._proxy_websocket_connection(client_ws, ws_url, path)
@@ -181,16 +186,16 @@ class CodeServerProxy:
             except (OSError, ConnectionError, TimeoutError) as e:
                 last_exception = e
                 error_name = type(e).__name__
-                print(f"[WS Proxy] ❌ Connection attempt {attempt + 1}/{max_retries} failed: {error_name}: {e}")
+                logger.error(f"Connection attempt {attempt + 1}/{max_retries} failed: {error_name}: {e}")
 
                 if attempt < max_retries - 1:
-                    print(f"[WS Proxy] 🔄 Will retry connection...")
+                    logger.info("Will retry connection...")
                 else:
-                    print(f"[WS Proxy] 💀 All {max_retries} connection attempts failed")
+                    logger.error(f"All {max_retries} connection attempts failed")
 
             except Exception as e:
                 # Non-retryable error
-                print(f"[WS Proxy] ❌ Non-retryable error: {type(e).__name__}: {e}")
+                logger.error(f"Non-retryable error: {type(e).__name__}: {e}")
                 await client_ws.close(code=1011, reason=f"Proxy error: {type(e).__name__}")
                 return
 
@@ -198,7 +203,7 @@ class CodeServerProxy:
         error_msg = f"Connection failed after {max_retries} attempts"
         if last_exception:
             error_msg += f": {last_exception}"
-        print(f"[WS Proxy] {error_msg}")
+        logger.error(f"{error_msg}")
         await client_ws.close(code=1011, reason="SOCKS5 proxy unavailable")
 
     async def _proxy_websocket_connection(
@@ -216,104 +221,56 @@ class CodeServerProxy:
             path: WebSocket path
         """
         try:
+            # Unified proxy logic using websockets library
+            connect_kwargs = {
+                "ping_interval": 30,
+                "ping_timeout": 10,
+                "close_timeout": 10
+            }
             if IS_CLOUD_RUN:
-                # Cloud Run: Use aiohttp with SOCKS5 proxy
-                import aiohttp
-                from aiohttp_socks import ProxyConnector
+                connect_kwargs["proxy"] = SOCKS5_PROXY
 
-                connector = ProxyConnector.from_url(SOCKS5_PROXY)
+            async with websockets.connect(ws_url, **connect_kwargs) as server_ws:
+                # Bidirectional proxy
+                async def forward_to_server():
+                    """Forward messages from browser to code-server"""
+                    try:
+                        while True:
+                            message = await client_ws.receive()
 
-                async with aiohttp.ClientSession(connector=connector) as session:
-                    async with session.ws_connect(
-                        ws_url,
-                        timeout=aiohttp.ClientTimeout(total=43200)  # 12 hours
-                    ) as server_ws:
-                        # Bidirectional proxy
-                        async def forward_to_server():
-                            """Forward messages from browser to code-server"""
-                            try:
-                                while True:
-                                    message = await client_ws.receive()
+                            if message.get('type') == 'websocket.disconnect':
+                                break
+                            elif 'text' in message:
+                                await server_ws.send(message['text'])
+                            elif 'bytes' in message:
+                                await server_ws.send(message['bytes'])
+                    except WebSocketDisconnect:
+                        pass
+                    except Exception as e:
+                        logger.error(f"Forward error: {e}")
 
-                                    if message.get('type') == 'websocket.disconnect':
-                                        break
-                                    elif 'text' in message:
-                                        await server_ws.send_str(message['text'])
-                                    elif 'bytes' in message:
-                                        await server_ws.send_bytes(message['bytes'])
-                            except WebSocketDisconnect:
-                                pass
-                            except Exception as e:
-                                print(f"[WS Proxy] Forward error: {e}")
+                async def forward_to_client():
+                    """Forward messages from code-server to browser"""
+                    try:
+                        async for message in server_ws:
+                            if isinstance(message, str):
+                                await client_ws.send_text(message)
+                            elif isinstance(message, bytes):
+                                await client_ws.send_bytes(message)
+                    except WebSocketDisconnect:
+                        pass
+                    except Exception as e:
+                        logger.error(f"Backward error: {e}")
 
-                        async def forward_to_client():
-                            """Forward messages from code-server to browser"""
-                            try:
-                                async for msg in server_ws:
-                                    if msg.type == aiohttp.WSMsgType.TEXT:
-                                        await client_ws.send_text(msg.data)
-                                    elif msg.type == aiohttp.WSMsgType.BINARY:
-                                        await client_ws.send_bytes(msg.data)
-                                    elif msg.type == aiohttp.WSMsgType.ERROR:
-                                        break
-                            except WebSocketDisconnect:
-                                pass
-                            except Exception as e:
-                                print(f"[WS Proxy] Backward error: {e}")
-
-                        await asyncio.gather(
-                            forward_to_server(),
-                            forward_to_client(),
-                            return_exceptions=True
-                        )
-            else:
-                # Local: Use websockets library (direct connection)
-                async with websockets.connect(
-                    ws_url,
-                    ping_interval=30,
-                    ping_timeout=10,
-                    close_timeout=10
-                ) as server_ws:
-                    # Bidirectional proxy
-                    async def forward_to_server():
-                        """Forward messages from browser to code-server"""
-                        try:
-                            while True:
-                                message = await client_ws.receive()
-
-                                if message.get('type') == 'websocket.disconnect':
-                                    break
-                                elif 'text' in message:
-                                    await server_ws.send(message['text'])
-                                elif 'bytes' in message:
-                                    await server_ws.send(message['bytes'])
-                        except WebSocketDisconnect:
-                            pass
-                        except Exception as e:
-                            print(f"[WS Proxy] Forward error: {e}")
-
-                    async def forward_to_client():
-                        """Forward messages from code-server to browser"""
-                        try:
-                            async for message in server_ws:
-                                if isinstance(message, str):
-                                    await client_ws.send_text(message)
-                                elif isinstance(message, bytes):
-                                    await client_ws.send_bytes(message)
-                        except WebSocketDisconnect:
-                            pass
-                        except Exception as e:
-                            print(f"[WS Proxy] Backward error: {e}")
-
-                    await asyncio.gather(
-                        forward_to_server(),
-                        forward_to_client(),
-                        return_exceptions=True
-                    )
+                await asyncio.gather(
+                    forward_to_server(),
+                    forward_to_client(),
+                    return_exceptions=True
+                )
 
         except Exception as e:
             # Re-raise to be caught by retry logic in proxy_websocket()
-            print(f"[WS Proxy] Connection error in _proxy_websocket_connection: {type(e).__name__}: {e}")
+            logger.error(f"Connection error in _proxy_websocket_connection: {type(e).__name__}: {e}")
             raise
 
     async def close(self):

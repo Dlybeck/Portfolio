@@ -2,7 +2,9 @@
 # Tailscale diagnostics script
 # Run this AFTER connecting Tailscale (while internet is broken)
 
-OUTPUT_FILE="/Users/dlybeck/Documents/Portfolio/tailscale_diagnostics.txt"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+OUTPUT_FILE="$PROJECT_DIR/logs/tailscale_diagnostics.txt"
 
 echo "=== Tailscale Diagnostics ===" > "$OUTPUT_FILE"
 echo "Generated: $(date)" >> "$OUTPUT_FILE"

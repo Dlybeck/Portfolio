@@ -115,7 +115,7 @@ This will:
 
 ### 3. Set Up Google Authenticator
 
-- Scan `totp_qr.png` with Google Authenticator app
+- Scan `generated/totp_qr.png` with Google Authenticator app
 - Save the 6-digit codes
 
 ### 4. Install Dependencies

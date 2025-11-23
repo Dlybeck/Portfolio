@@ -41,8 +41,8 @@ def simple_reset():
         provisioning_uri = totp.provisioning_uri(name="admin", issuer_name="Dev Dashboard")
 
         img = qrcode.make(provisioning_uri)
-        img.save("new_totp_qr.png")
-        print(f"✅ QR code saved as: new_totp_qr.png")
+        img.save("generated/new_totp_qr.png")
+        print(f"✅ QR code saved as: generated/new_totp_qr.png")
 
         print("\n" + "="*50)
         print("SUCCESS! Credentials reset")
@@ -50,7 +50,7 @@ def simple_reset():
         print(f"Username: admin")
         print(f"Password: {simple_password}")
         print(f"\nNext steps:")
-        print(f"1. Scan new_totp_qr.png with Google Authenticator")
+        print(f"1. Scan generated/new_totp_qr.png with Google Authenticator")
         print(f"2. Login with the credentials above")
         print(f"3. Change password after logging in if needed")
 

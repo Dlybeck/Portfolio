@@ -1,24 +1,23 @@
-fastapi
-uvicorn
-jinja2
-httpx[socks]
-aiohttp
-aiohttp-socks
+fastapi==0.115.6
+uvicorn==0.34.0
+jinja2==3.1.5
+httpx[socks]==0.28.1
 
 # Authentication & Security
-python-jose[cryptography]
-bcrypt>=4.0.0
-python-multipart
-pyotp
-python-dotenv
+python-jose[cryptography]==3.5.0
+bcrypt==5.0.0
+python-multipart==0.0.20
+pyotp==2.9.0
+python-dotenv==1.1.1
+pydantic-settings==2.12.0
 
 # Terminal & WebSockets
-websockets
-ptyprocess
-aiofiles
+websockets==15.0.1
+ptyprocess==0.7.0
+aiofiles==24.1.0
 
 # AI Integration
-anthropic
+anthropic==0.69.0
 
 # Utilities
-qrcode[pil]
+qrcode[pil]==8.2

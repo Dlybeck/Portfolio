@@ -9,6 +9,11 @@ import os
 from pathlib import Path
 from typing import Dict, Optional
 from datetime import datetime
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
 class SessionState:
@@ -41,9 +46,9 @@ class SessionState:
         try:
             with open(self.state_file, 'w') as f:
                 json.dump(existing_state, f, indent=2)
-            print(f"[SessionState] Saved state for '{self.session_id}': {state_data}")
+            logger.info(f"Saved state for '{self.session_id}': {state_data}")
         except Exception as e:
-            print(f"[SessionState] Error saving state: {e}")
+            logger.error(f"Error saving state: {e}")
 
     def load(self) -> Optional[Dict]:
         """
@@ -58,17 +63,17 @@ class SessionState:
         try:
             with open(self.state_file, 'r') as f:
                 state = json.load(f)
-            print(f"[SessionState] Loaded state for '{self.session_id}': {state}")
+            logger.info(f"Loaded state for '{self.session_id}': {state}")
             return state
         except Exception as e:
-            print(f"[SessionState] Error loading state: {e}")
+            logger.error(f"Error loading state: {e}")
             return None
 
     def delete(self):
         """Delete saved state file"""
         if self.state_file.exists():
             self.state_file.unlink()
-            print(f"[SessionState] Deleted state for '{self.session_id}'")
+            logger.info(f"Deleted state for '{self.session_id}'")
 
     def get_working_dir(self) -> Optional[str]:
         """Get saved working directory"""

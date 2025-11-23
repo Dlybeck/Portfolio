@@ -13,7 +13,11 @@ from fastapi import WebSocket
 from services.terminal_service import TerminalSession
 from services.session_state import SessionState
 import os
+import logging
 
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 class PersistentSession:
     """A persistent terminal session that supports multiple connected clients"""
@@ -46,18 +50,18 @@ class PersistentSession:
         self.terminal = TerminalSession(command=self.command, working_dir=self.working_dir)
         self.terminal.start()
 
-        print(f"[SessionManager] Started persistent session '{self.session_id}' in {self.working_dir}")
+        logger.info(f"[SessionManager] Started persistent session '{self.session_id}' in {self.working_dir}")
 
     def add_client(self, websocket: WebSocket):
         """Add a client to this session"""
         self.connected_clients.add(websocket)
         self.last_activity = time.time()  # Update activity
-        print(f"[SessionManager] Client connected to '{self.session_id}'. Total clients: {len(self.connected_clients)}")
+        logger.info(f"[SessionManager] Client connected to '{self.session_id}'. Total clients: {len(self.connected_clients)}")
 
     def remove_client(self, websocket: WebSocket):
         """Remove a client from this session (but keep terminal alive)"""
         self.connected_clients.discard(websocket)
-        print(f"[SessionManager] Client disconnected from '{self.session_id}'. Remaining clients: {len(self.connected_clients)}")
+        logger.info(f"[SessionManager] Client disconnected from '{self.session_id}'. Remaining clients: {len(self.connected_clients)}")
         # Note: We do NOT close the terminal even if no clients connected
 
     async def broadcast(self, data: str):
@@ -73,7 +77,7 @@ class PersistentSession:
             try:
                 await client.send_text(message)
             except Exception as e:
-                print(f"[SessionManager] Error sending to client: {e}")
+                logger.error(f"[SessionManager] Error sending to client: {e}")
                 disconnected.add(client)
 
         # Remove disconnected clients
@@ -115,7 +119,7 @@ class PersistentSession:
 
         async def broadcast_loop():
             """Read from terminal and broadcast to all clients"""
-            print(f"[SessionManager] Starting broadcast loop for '{self.session_id}'")
+            logger.info(f"[SessionManager] Starting broadcast loop for '{self.session_id}'")
             while True:
                 try:
                     # Collect all available output
@@ -137,7 +141,7 @@ class PersistentSession:
                     # Wait for next frame
                     await asyncio.sleep(0.016)
                 except Exception as e:
-                    print(f"[SessionManager] Broadcast loop error: {e}")
+                    logger.error(f"[SessionManager] Broadcast loop error: {e}")
                     await asyncio.sleep(0.1)
 
         self.broadcast_task = asyncio.create_task(broadcast_loop())
@@ -149,11 +153,11 @@ class PersistentSession:
     def set_term_mode(self, mode: str):
         """Set terminal mode (fancy or simple)"""
         if mode not in ['fancy', 'simple']:
-            print(f"[SessionManager] Invalid term mode: {mode}")
+            logger.warning(f"[SessionManager] Invalid term mode: {mode}")
             return
 
         self.term_mode = mode
-        print(f"[SessionManager] Set term mode to '{mode}' for session '{self.session_id}'")
+        logger.info(f"[SessionManager] Set term mode to '{mode}' for session '{self.session_id}'")
 
     def close(self):
         """Explicitly close terminal session (only when requested)"""
@@ -163,7 +167,7 @@ class PersistentSession:
 
         if self.terminal:
             self.terminal.close()
-            print(f"[SessionManager] Closed persistent session '{self.session_id}'")
+            logger.info(f"[SessionManager] Closed persistent session '{self.session_id}'")
 
 
 # Global persistent sessions storage
@@ -204,7 +208,7 @@ def close_persistent_session(session_id: str):
     if session_id in _persistent_sessions:
         _persistent_sessions[session_id].close()
         del _persistent_sessions[session_id]
-        print(f"[SessionManager] Removed persistent session '{session_id}'")
+        logger.info(f"[SessionManager] Removed persistent session '{session_id}'")
 
 
 def get_all_sessions():
@@ -238,7 +242,7 @@ async def cleanup_idle_sessions(idle_timeout: int = 3600):
                     idle_time = current_time - session.last_activity
                     if idle_time > idle_timeout:
                         to_close.append(session_id)
-                        print(f"[SessionManager] Closing idle session '{session_id}' (idle for {int(idle_time)}s)")
+                        logger.info(f"[SessionManager] Closing idle session '{session_id}' (idle for {int(idle_time)}s)")
 
             # Close idle sessions
             for session_id in to_close:
@@ -247,5 +251,5 @@ async def cleanup_idle_sessions(idle_timeout: int = 3600):
             # Check every 5 minutes
             await asyncio.sleep(300)
         except Exception as e:
-            print(f"[SessionManager] Cleanup error: {e}")
+            logger.error(f"[SessionManager] Cleanup error: {e}")
             await asyncio.sleep(60)

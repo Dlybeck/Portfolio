@@ -4,6 +4,12 @@ import asyncio
 from starlette.requests import Request
 from starlette.responses import StreamingResponse
 from starlette.websockets import WebSocket, WebSocketDisconnect
+from core.config import settings
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 class AgorProxy:
     """
@@ -12,7 +18,7 @@ class AgorProxy:
     def __init__(self, agor_url: str):
         self.agor_url = agor_url
         self.client = httpx.AsyncClient(base_url=self.agor_url)
-        print(f"Initialized AgorProxy for URL: {self.agor_url}")
+        logger.info(f"Initialized AgorProxy for URL: {self.agor_url}")
 
     async def proxy_request(self, request: Request, path: str):
         # Build relative URL with query params (client already has base_url set)
@@ -47,14 +53,14 @@ class AgorProxy:
                 headers=resp.headers
             )
         except httpx.ConnectError as e:
-            print(f"Agor proxy connection error: {e}")
+            logger.error(f"Agor proxy connection error: {e}")
             return StreamingResponse(
                 iter([f"Agor server not reachable: {e}".encode()]),
                 status_code=503,
                 media_type="text/plain"
             )
         except Exception as e:
-            print(f"Agor proxy error: {e}")
+            logger.error(f"Agor proxy error: {e}")
             return StreamingResponse(
                 iter([f"Agor proxy error: {e}".encode()]),
                 status_code=500,
@@ -68,7 +74,7 @@ class AgorProxy:
         try:
             async with httpx.AsyncClient() as client:
                 async with client.websocket_connect(agor_ws_url) as agor_websocket:
-                    print(f"WebSocket connection established to Agor: {agor_ws_url}")
+                    logger.info(f"WebSocket connection established to Agor: {agor_ws_url}")
 
                     async def forward_client_to_agor():
                         try:
@@ -76,9 +82,9 @@ class AgorProxy:
                                 message = await client_websocket.receive_text()
                                 await agor_websocket.send_text(message)
                         except WebSocketDisconnect:
-                            print("Client disconnected from Agor WebSocket")
+                            logger.info("Client disconnected from Agor WebSocket")
                         except Exception as e:
-                            print(f"Error forwarding client to Agor: {e}")
+                            logger.error(f"Error forwarding client to Agor: {e}")
 
                     async def forward_agor_to_client():
                         try:
@@ -86,17 +92,17 @@ class AgorProxy:
                                 message = await agor_websocket.receive_text()
                                 await client_websocket.send_text(message)
                         except Exception as e:
-                            print(f"Error forwarding Agor to client: {e}")
+                            logger.error(f"Error forwarding Agor to client: {e}")
                             
                     await asyncio.gather(
                         forward_client_to_agor(),
                         forward_agor_to_client()
                     )
         except httpx.ConnectError as e:
-            print(f"Could not connect to Agor WebSocket: {e}")
+            logger.error(f"Could not connect to Agor WebSocket: {e}")
             await client_websocket.close(code=1011) # Internal Error
         except Exception as e:
-            print(f"Agor WebSocket proxy error: {e}")
+            logger.error(f"Agor WebSocket proxy error: {e}")
             await client_websocket.close(code=1011) # Internal Error
 
 _agor_proxy_instance: AgorProxy = None
@@ -105,6 +111,6 @@ def get_proxy() -> AgorProxy:
     global _agor_proxy_instance
     if _agor_proxy_instance is None:
         # Use AGOR_URL environment variable if available, otherwise default to localhost:5678
-        agor_url = os.environ.get("AGOR_URL", "http://localhost:3030")
+        agor_url = settings.AGOR_URL
         _agor_proxy_instance = AgorProxy(agor_url)
     return _agor_proxy_instance

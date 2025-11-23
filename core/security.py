@@ -11,25 +11,29 @@ from jose import JWTError, jwt
 import pyotp
 from fastapi import HTTPException, status, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from dotenv import load_dotenv
+from core.config import settings
+import threading
+import logging
 
-load_dotenv()
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # ================================
 # Configuration
 # ================================
 
-SECRET_KEY = os.getenv("SECRET_KEY", "change-this-immediately")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "720"))  # 12 hours for long dev sessions
-REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
 
-DASHBOARD_USERNAME = os.getenv("DASHBOARD_USERNAME", "admin")
-DASHBOARD_PASSWORD_HASH = os.getenv("DASHBOARD_PASSWORD_HASH", "")
-TOTP_SECRET = os.getenv("TOTP_SECRET", "")
+DASHBOARD_USERNAME = settings.DASHBOARD_USERNAME
+DASHBOARD_PASSWORD_HASH = settings.DASHBOARD_PASSWORD_HASH
+TOTP_SECRET = settings.TOTP_SECRET
 
-MAX_LOGIN_ATTEMPTS = int(os.getenv("MAX_LOGIN_ATTEMPTS", "20"))
-LOCKOUT_DURATION_MINUTES = int(os.getenv("LOCKOUT_DURATION_MINUTES", "15"))
+MAX_LOGIN_ATTEMPTS = settings.MAX_LOGIN_ATTEMPTS
+LOCKOUT_DURATION_MINUTES = settings.LOCKOUT_DURATION_MINUTES
 
 # HTTP Bearer token authentication
 security = HTTPBearer()
@@ -38,48 +42,70 @@ security = HTTPBearer()
 # Rate Limiting & Lockout
 # ================================
 
-login_attempts = {}  # {username: {"count": int, "locked_until": datetime}}
+class RateLimiter:
+    """Manages login attempts and account lockouts."""
+    _instance = None
+    _lock = threading.Lock()
 
+    def __new__(cls):
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super(RateLimiter, cls).__new__(cls)
+                cls._instance._login_attempts = {}  # {username: {"count": int, "locked_until": datetime}}
+        return cls._instance
 
-def is_account_locked(username: str) -> bool:
-    """Check if account is locked due to failed login attempts"""
-    if username not in login_attempts:
-        return False
+    def is_account_locked(self, username: str) -> bool:
+        """Check if account is locked due to failed login attempts"""
+        with self._lock:
+            if username not in self._login_attempts:
+                return False
 
-    attempt_data = login_attempts[username]
+            attempt_data = self._login_attempts[username]
 
-    # Check if lockout has expired
-    if "locked_until" in attempt_data:
-        if datetime.now() < attempt_data["locked_until"]:
-            return True
-        else:
-            # Lockout expired, reset
-            login_attempts[username] = {"count": 0}
+            # Check if lockout has expired
+            if "locked_until" in attempt_data:
+                if datetime.now() < attempt_data["locked_until"]:
+                    return True
+                else:
+                    # Lockout expired, reset
+                    self._login_attempts[username] = {"count": 0}
+                    return False
             return False
 
-    return False
+    def get_lockout_remaining_time(self, username: str) -> Optional[int]:
+        """Returns remaining lockout time in minutes, or None if not locked."""
+        with self._lock:
+            if username not in self._login_attempts:
+                return None
+            attempt_data = self._login_attempts[username]
+            if "locked_until" in attempt_data and datetime.now() < attempt_data["locked_until"]:
+                remaining_time = attempt_data["locked_until"] - datetime.now()
+                return int(remaining_time.total_seconds() / 60)
+            return None
 
+    def record_failed_login(self, username: str):
+        """Record failed login attempt and lock account if threshold exceeded"""
+        with self._lock:
+            if username not in self._login_attempts:
+                self._login_attempts[username] = {"count": 0}
 
-def record_failed_login(username: str):
-    """Record failed login attempt and lock account if threshold exceeded"""
-    if username not in login_attempts:
-        login_attempts[username] = {"count": 0}
+            self._login_attempts[username]["count"] += 1
 
-    login_attempts[username]["count"] += 1
+            if self._login_attempts[username]["count"] >= settings.MAX_LOGIN_ATTEMPTS:
+                lockout_until = datetime.now() + timedelta(minutes=settings.LOCKOUT_DURATION_MINUTES)
+                self._login_attempts[username]["locked_until"] = lockout_until
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail=f"Account locked due to too many failed attempts. Try again in {settings.LOCKOUT_DURATION_MINUTES} minutes."
+                )
 
-    if login_attempts[username]["count"] >= MAX_LOGIN_ATTEMPTS:
-        lockout_until = datetime.now() + timedelta(minutes=LOCKOUT_DURATION_MINUTES)
-        login_attempts[username]["locked_until"] = lockout_until
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Account locked due to too many failed attempts. Try again in {LOCKOUT_DURATION_MINUTES} minutes."
-        )
+    def reset_login_attempts(self, username: str):
+        """Reset login attempts after successful login"""
+        with self._lock:
+            if username in self._login_attempts:
+                self._login_attempts[username] = {"count": 0}
 
-
-def reset_login_attempts(username: str):
-    """Reset login attempts after successful login"""
-    if username in login_attempts:
-        login_attempts[username] = {"count": 0}
+rate_limiter = RateLimiter() # Instantiate the singleton
 
 
 # ================================
@@ -93,7 +119,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         hash_bytes = hashed_password.encode('utf-8')
         return bcrypt.checkpw(password_bytes, hash_bytes)
     except Exception as e:
-        print(f"Password verification error: {e}")
+        logger.error(f"Password verification error: {e}")
         return False
 
 
@@ -148,12 +174,12 @@ def get_totp_provisioning_uri() -> str:
     Get TOTP provisioning URI for QR code generation
     Use this to set up Google Authenticator
     """
-    if not TOTP_SECRET:
+    if not settings.TOTP_SECRET:
         raise ValueError("TOTP_SECRET not configured")
 
-    totp = pyotp.TOTP(TOTP_SECRET)
+    totp = pyotp.TOTP(settings.TOTP_SECRET)
     return totp.provisioning_uri(
-        name=DASHBOARD_USERNAME,
+        name=settings.DASHBOARD_USERNAME,
         issuer_name="Dev Dashboard"
     )
 
@@ -212,53 +238,52 @@ def authenticate_user(username: str = None, password: str = None, totp_token: st
     """
     # For single-user systems, just validate 2FA code
     if totp_token:
-        print(f"Authenticating with 2FA code...")
+        logger.info(f"Authenticating with 2FA code...")
 
         # Validate TOTP 2FA token
         if not verify_totp(totp_token):
-            print(f"Authentication failed: Incorrect TOTP code.")
+            logger.warning(f"Authentication failed: Incorrect TOTP code.")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect 2FA code"
             )
-        print(f"2FA validation passed.")
-        print(f"Authentication successful")
+        logger.info(f"2FA validation passed.")
+        logger.info(f"Authentication successful")
         return True
 
     # Legacy support for username/password auth (if someone has it configured)
     if username and password:
-        print(f"Attempting legacy authentication for user: {username}")
+        logger.info(f"Attempting legacy authentication for user: {username}")
 
         # Check if account is locked
-        if is_account_locked(username):
-            remaining_time = login_attempts[username]["locked_until"] - datetime.now()
-            remaining_minutes = int(remaining_time.total_seconds() / 60)
-            print(f"Authentication failed for {username}: Account is locked.")
+        if rate_limiter.is_account_locked(username):
+            remaining_minutes = rate_limiter.get_lockout_remaining_time(username)
+            logger.warning(f"Authentication failed for {username}: Account is locked.")
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail=f"Account locked. Try again in {remaining_minutes} minutes."
             )
 
         # Validate username
-        if DASHBOARD_USERNAME and username != DASHBOARD_USERNAME:
-            print(f"Authentication failed for {username}: Incorrect username.")
-            record_failed_login(username)
+        if settings.DASHBOARD_USERNAME and username != settings.DASHBOARD_USERNAME:
+            logger.warning(f"Authentication failed for {username}: Incorrect username.")
+            rate_limiter.record_failed_login(username)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect credentials"
             )
 
         # Validate password
-        if DASHBOARD_PASSWORD_HASH and not verify_password(password, DASHBOARD_PASSWORD_HASH):
-            print(f"Authentication failed for {username}: Incorrect password.")
-            record_failed_login(username)
+        if settings.DASHBOARD_PASSWORD_HASH and not verify_password(password, settings.DASHBOARD_PASSWORD_HASH):
+            logger.warning(f"Authentication failed for {username}: Incorrect password.")
+            rate_limiter.record_failed_login(username)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect credentials"
             )
 
-        print(f"Legacy authentication successful for user: {username}")
-        reset_login_attempts(username)
+        logger.info(f"Legacy authentication successful for user: {username}")
+        rate_limiter.reset_login_attempts(username)
         return True
 
     # No valid credentials provided
@@ -395,39 +420,39 @@ def validate_security_config():
     import os
 
     # Check if running in Cloud Run
-    is_cloud_run = os.environ.get("K_SERVICE") is not None
+    is_cloud_run = settings.K_SERVICE is not None
 
     errors = []
     warnings = []
 
-    if SECRET_KEY == "change-this-immediately":
+    if settings.SECRET_KEY == "change-this-immediately":
         errors.append("SECRET_KEY not set in .env - Generate with: openssl rand -hex 32")
 
     # For cloud deployment, require TOTP
-    if is_cloud_run and not TOTP_SECRET:
+    if is_cloud_run and not settings.TOTP_SECRET:
         errors.append("TOTP_SECRET not set in .env - Generate with: python -c 'import pyotp; print(pyotp.random_base32())'")
 
     # Password is optional (for single-user 2FA-only mode)
-    if not DASHBOARD_PASSWORD_HASH and not is_cloud_run:
+    if not settings.DASHBOARD_PASSWORD_HASH and not is_cloud_run:
         warnings.append("DASHBOARD_PASSWORD_HASH not set - using 2FA-only mode")
 
     # For local development, TOTP is optional
-    if not is_cloud_run and not TOTP_SECRET:
+    if not is_cloud_run and not settings.TOTP_SECRET:
         warnings.append("TOTP_SECRET not set - authentication disabled for local development")
 
     if errors:
-        print("\n⚠️  SECURITY CONFIGURATION ERRORS:")
+        logger.error("SECURITY CONFIGURATION ERRORS:")
         for error in errors:
-            print(f"  - {error}")
-        print("\nRun: python setup_security.py\n")
+            logger.error(f"  - {error}")
+        logger.info("Run: python setup_security.py")
         raise ValueError("Security configuration incomplete")
 
     if warnings:
-        print("\n⚠️  SECURITY CONFIGURATION WARNINGS:")
+        logger.warning("SECURITY CONFIGURATION WARNINGS:")
         for warning in warnings:
-            print(f"  - {warning}")
+            logger.warning(f"  - {warning}")
 
     if is_cloud_run:
-        print("✅ Security configuration validated (Cloud Run - 2FA enabled)")
+        logger.info("Security configuration validated (Cloud Run - 2FA enabled)")
     else:
-        print("✅ Security configuration validated (Local - development mode)")
+        logger.info("Security configuration validated (Local - development mode)")

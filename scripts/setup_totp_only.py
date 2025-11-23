@@ -32,8 +32,8 @@ def main():
     qr.add_data(totp_uri)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
-    img.save("totp_qr.png")
-    print(f"✅ QR code saved to: totp_qr.png")
+    img.save("generated/totp_qr.png")
+    print(f"✅ QR code saved to: generated/totp_qr.png")
 
     # Update .env file
     env_file = Path(".env")
@@ -54,7 +54,7 @@ def main():
     print()
     print("1. Open Google Authenticator on your phone")
     print("2. Tap '+' to add a new account")
-    print("3. Scan the QR code: totp_qr.png")
+    print("3. Scan the QR code: generated/totp_qr.png")
     print()
     print("   OR manually enter this secret:")
     print(f"   {totp_secret}")

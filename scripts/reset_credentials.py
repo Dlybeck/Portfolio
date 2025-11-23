@@ -81,7 +81,7 @@ def secure_credential_reset():
         totp = pyotp.TOTP(new_totp_secret)
         provisioning_uri = totp.provisioning_uri(name=username, issuer_name="Dev Dashboard")
         
-        qr_filename = "new_totp_qr.png"
+        qr_filename = "generated/new_totp_qr.png"
         img = qrcode.make(provisioning_uri)
         img.save(qr_filename)
         

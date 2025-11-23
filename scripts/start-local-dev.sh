@@ -42,7 +42,7 @@ echo -e "${GREEN}✓ Virtual environment activated${NC}"
 if ! python -c "import fastapi" 2>/dev/null; then
     echo -e "${YELLOW}Installing Python dependencies...${NC}"
     pip install -q --upgrade pip
-    pip install -q -r requirements.txt
+    pip install -q -r ../requirements.txt
     echo -e "${GREEN}✓ Dependencies installed${NC}"
 else
     echo -e "${GREEN}✓ Dependencies already installed${NC}"
@@ -160,14 +160,14 @@ echo ""
 # ==============================================================================
 echo -e "${YELLOW}[4/5] Checking security configuration...${NC}"
 
-if [ ! -f ".env" ]; then
+if [ ! -f "../.env" ]; then
     echo -e "${RED}✗ .env file not found${NC}"
     echo -e "${YELLOW}Run: python setup_security.py${NC}"
     exit 1
 fi
 
 # Check for JWT secret (required for token generation)
-if ! grep -q "^SECRET_KEY=" .env 2>/dev/null; then
+if ! grep -q "^SECRET_KEY=" ../.env 2>/dev/null; then
     echo -e "${RED}✗ SECRET_KEY not configured${NC}"
     echo -e "${YELLOW}Run: python setup_security.py${NC}"
     exit 1
@@ -224,7 +224,7 @@ echo ""
 
 # Start uvicorn (this will run in foreground)
 if [ "$PROTOCOL" = "https" ]; then
-    exec python main.py
+    exec python ../main.py
 else
-    exec python main.py
+    exec python ../main.py
 fi

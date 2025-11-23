@@ -202,64 +202,70 @@ def verify_token(token: str) -> dict:
 # Authentication Functions
 # ================================
 
-def authenticate_user(username: str, password: str, totp_token: str) -> bool:
+def authenticate_user(username: str = None, password: str = None, totp_token: str = None) -> bool:
     """
-    Authenticate user with username, password, and 2FA token
-    Returns True if all credentials are valid
+    Authenticate user - supports two modes:
+    1. Cloud/Production: 2FA only (username/password optional, only TOTP required)
+    2. Local: Skip auth entirely (handled at route level)
+
+    Returns True if credentials are valid
     """
-    print(f"Attempting to authenticate user: {username}")
+    # For single-user systems, just validate 2FA code
+    if totp_token:
+        print(f"Authenticating with 2FA code...")
 
-    # Check if account is locked
-    if is_account_locked(username):
-        remaining_time = login_attempts[username]["locked_until"] - datetime.now()
-        remaining_minutes = int(remaining_time.total_seconds() / 60)
-        print(f"Authentication failed for {username}: Account is locked.")
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Account locked. Try again in {remaining_minutes} minutes."
-        )
+        # Validate TOTP 2FA token
+        if not verify_totp(totp_token):
+            print(f"Authentication failed: Incorrect TOTP code.")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect 2FA code"
+            )
+        print(f"2FA validation passed.")
+        print(f"Authentication successful")
+        return True
 
-    # Validate username
-    if username != DASHBOARD_USERNAME:
-        print(f"Authentication failed for {username}: Incorrect username.")
-        record_failed_login(username)
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username, password, or 2FA code"
-        )
-    print(f"Username validation passed for {username}.")
+    # Legacy support for username/password auth (if someone has it configured)
+    if username and password:
+        print(f"Attempting legacy authentication for user: {username}")
 
-    # Validate password
-    if not DASHBOARD_PASSWORD_HASH:
-        print(f"Authentication failed for {username}: Password hash not configured.")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Dashboard password not configured. Set DASHBOARD_PASSWORD_HASH in .env"
-        )
+        # Check if account is locked
+        if is_account_locked(username):
+            remaining_time = login_attempts[username]["locked_until"] - datetime.now()
+            remaining_minutes = int(remaining_time.total_seconds() / 60)
+            print(f"Authentication failed for {username}: Account is locked.")
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Account locked. Try again in {remaining_minutes} minutes."
+            )
 
-    if not verify_password(password, DASHBOARD_PASSWORD_HASH):
-        print(f"Authentication failed for {username}: Incorrect password.")
-        record_failed_login(username)
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username, password, or 2FA code"
-        )
-    print(f"Password validation passed for {username}.")
+        # Validate username
+        if DASHBOARD_USERNAME and username != DASHBOARD_USERNAME:
+            print(f"Authentication failed for {username}: Incorrect username.")
+            record_failed_login(username)
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect credentials"
+            )
 
-    # Validate TOTP 2FA token
-    if not verify_totp(totp_token):
-        print(f"Authentication failed for {username}: Incorrect TOTP code.")
-        record_failed_login(username)
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username, password, or 2FA code"
-        )
-    print(f"TOTP validation passed for {username}.")
+        # Validate password
+        if DASHBOARD_PASSWORD_HASH and not verify_password(password, DASHBOARD_PASSWORD_HASH):
+            print(f"Authentication failed for {username}: Incorrect password.")
+            record_failed_login(username)
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect credentials"
+            )
 
-    # All credentials valid
-    print(f"Authentication successful for user: {username}")
-    reset_login_attempts(username)
-    return True
+        print(f"Legacy authentication successful for user: {username}")
+        reset_login_attempts(username)
+        return True
+
+    # No valid credentials provided
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="No valid credentials provided"
+    )
 
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
@@ -386,22 +392,42 @@ def hash_password_for_env(password: str) -> str:
 
 def validate_security_config():
     """Validate security configuration on startup"""
+    import os
+
+    # Check if running in Cloud Run
+    is_cloud_run = os.environ.get("K_SERVICE") is not None
+
     errors = []
+    warnings = []
 
     if SECRET_KEY == "change-this-immediately":
         errors.append("SECRET_KEY not set in .env - Generate with: openssl rand -hex 32")
 
-    if not DASHBOARD_PASSWORD_HASH:
-        errors.append("DASHBOARD_PASSWORD_HASH not set in .env")
-
-    if not TOTP_SECRET:
+    # For cloud deployment, require TOTP
+    if is_cloud_run and not TOTP_SECRET:
         errors.append("TOTP_SECRET not set in .env - Generate with: python -c 'import pyotp; print(pyotp.random_base32())'")
+
+    # Password is optional (for single-user 2FA-only mode)
+    if not DASHBOARD_PASSWORD_HASH and not is_cloud_run:
+        warnings.append("DASHBOARD_PASSWORD_HASH not set - using 2FA-only mode")
+
+    # For local development, TOTP is optional
+    if not is_cloud_run and not TOTP_SECRET:
+        warnings.append("TOTP_SECRET not set - authentication disabled for local development")
 
     if errors:
         print("\n⚠️  SECURITY CONFIGURATION ERRORS:")
         for error in errors:
             print(f"  - {error}")
-        print("\nSee .env.example for configuration template\n")
+        print("\nRun: python setup_security.py\n")
         raise ValueError("Security configuration incomplete")
 
-    print("✅ Security configuration validated")
+    if warnings:
+        print("\n⚠️  SECURITY CONFIGURATION WARNINGS:")
+        for warning in warnings:
+            print(f"  - {warning}")
+
+    if is_cloud_run:
+        print("✅ Security configuration validated (Cloud Run - 2FA enabled)")
+    else:
+        print("✅ Security configuration validated (Local - development mode)")

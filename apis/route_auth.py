@@ -24,9 +24,9 @@ auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
 # ================================
 
 class LoginRequest(BaseModel):
-    username: str
-    password: str
-    totp_code: str  # 6-digit 2FA code
+    totp_code: str  # 6-digit 2FA code (required)
+    username: str | None = None  # Optional for legacy support
+    password: str | None = None  # Optional for legacy support
 
 
 class TokenResponse(BaseModel):
@@ -53,29 +53,41 @@ class SetupInfoResponse(BaseModel):
 @auth_router.post("/login", response_model=TokenResponse)
 async def login(request: LoginRequest, response: Response):
     """
-    Login with username, password, and 2FA code
+    Login with 2FA code (single-user mode)
     Returns JWT access and refresh tokens
     Also sets session cookie for browser-based auth
+
+    Supports legacy username/password if provided
     """
-    # Authenticate user (validates all credentials + 2FA)
-    authenticate_user(request.username, request.password, request.totp_code)
+    # Authenticate user (2FA only for single-user systems)
+    authenticate_user(
+        username=request.username,
+        password=request.password,
+        totp_token=request.totp_code
+    )
+
+    # For single-user systems, use a default username
+    username = request.username or "admin"
 
     # Create tokens
     access_token = create_access_token(
-        data={"sub": request.username},
+        data={"sub": username},
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
-    refresh_token = create_refresh_token(data={"sub": request.username})
+    refresh_token = create_refresh_token(data={"sub": username})
 
     # Set session cookie for browser-based authentication
     # This allows redirects and iframe content to stay authenticated
+    import os
+    is_https = os.environ.get("HTTPS", "false").lower() == "true" or os.environ.get("K_SERVICE") is not None
+
     response.set_cookie(
         key="session_token",
         value=access_token,
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         httponly=True,  # Prevent JavaScript access
-        secure=True,    # Require HTTPS (self-signed cert is fine)
-        samesite="none" # Allow cross-domain cookies (required for Tailscale IP)
+        secure=is_https,    # Only require HTTPS in production/cloud
+        samesite="lax" if not is_https else "none"  # Lax for local, None for cross-domain
     )
 
     return TokenResponse(
@@ -116,13 +128,16 @@ async def refresh_token(request: RefreshRequest, response: Response):
     new_refresh_token = create_refresh_token(data={"sub": username})
 
     # Update session cookie with new access token
+    import os
+    is_https = os.environ.get("HTTPS", "false").lower() == "true" or os.environ.get("K_SERVICE") is not None
+
     response.set_cookie(
         key="session_token",
         value=access_token,
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         httponly=True,
-        secure=True,
-        samesite="none"
+        secure=is_https,
+        samesite="lax" if not is_https else "none"
     )
 
     return TokenResponse(

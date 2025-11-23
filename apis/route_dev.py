@@ -217,8 +217,8 @@ async def dev_dashboard_redirect(request: Request):
 @dev_router.get("/terminal", response_class=HTMLResponse)
 async def terminal_dashboard(request: Request):
     """
-    VS Code dashboard (replaces old terminal dashboard)
-    Extracts token from cookie/header/query and passes it to code-server
+    Serve the new dev dashboard with switchable views for VS Code, Agor, and the original terminal.
+    Extracts token from cookie/header/query and passes it to the template.
     """
     from fastapi.responses import RedirectResponse
 
@@ -251,9 +251,18 @@ async def terminal_dashboard(request: Request):
     except:
         return RedirectResponse(url="/dev/login", status_code=302)
 
-    # Redirect to code-server proxy with token in query parameter
-    # This allows the WebSocket connections to read the token
-    return RedirectResponse(url=f"/dev/vscode/?tkn={token}", status_code=302)
+    # Render the new dev_dashboard.html, passing the token for iframes
+    return templates.TemplateResponse("dev/dev_dashboard.html", {"request": request, "token": token})
+
+
+@dev_router.get("/raw-terminal", response_class=HTMLResponse)
+async def raw_terminal_dashboard(request: Request, user: dict = Depends(get_current_user)):
+    """
+    Serve the original terminal dashboard (dashboard_old.html).
+    This is used as an iframe source in the new dev_dashboard.html.
+    """
+    return templates.TemplateResponse("dev/dashboard_old.html", {"request": request, "user": user})
+
 
 
 @dev_router.post("/api/chat")
@@ -902,6 +911,7 @@ async def terminal_websocket(websocket: WebSocket, cwd: str = "~", session: str 
 # ==================== CODE-SERVER PROXY ROUTES ====================
 
 from services.code_server_proxy import get_proxy
+from services.agor_proxy import get_proxy as get_agor_proxy
 
 
 @dev_router.get("/vscode/{path:path}")
@@ -1000,4 +1010,97 @@ async def vscode_websocket_proxy(
 
     # Proxy to code-server
     proxy = get_proxy()
+    await proxy.proxy_websocket(websocket, path)
+
+
+# ==================== AGOR PROXY ROUTES ====================
+
+@dev_router.get("/agor/{path:path}")
+@dev_router.post("/agor/{path:path}")
+@dev_router.put("/agor/{path:path}")
+@dev_router.delete("/agor/{path:path}")
+@dev_router.patch("/agor/{path:path}")
+async def agor_proxy(
+    path: str,
+    request: Request,
+    user: dict = Depends(get_session_user)
+):
+    """
+    🔒 Authenticated proxy to Agor server
+
+    All HTTP methods supported (GET, POST, PUT, DELETE, PATCH)
+    Requires session cookie authentication
+    """
+    proxy = get_agor_proxy()
+    return await proxy.proxy_request(request, path)
+
+
+@dev_router.websocket("/agor/{path:path}")
+async def agor_websocket_proxy(
+    websocket: WebSocket,
+    path: str,
+    token: str = None,
+    tkn: str = None
+):
+    """
+    🔒 Authenticated WebSocket proxy to Agor server
+
+    Authentication via (checked in order):
+    1. Query parameter 'tkn' (from page URL)
+    2. Query parameter 'token' (legacy)
+    3. Session cookie (same-domain only)
+    4. Extract from Referer header (if page was loaded with tkn parameter)
+    """
+    # Try to get token from multiple sources
+    auth_token = None
+
+    # Try query parameter 'tkn' first (passed from page URL)
+    if tkn:
+        auth_token = tkn
+        print(f"[WS Auth] Using 'tkn' query parameter for Agor authentication")
+
+    # Try query parameter 'token' (legacy)
+    elif token:
+        auth_token = token
+        print(f"[WS Auth] Using 'token' query parameter for Agor authentication")
+
+    # Try session cookie (same-domain only)
+    elif websocket.cookies.get("session_token"):
+        auth_token = websocket.cookies.get("session_token")
+        print(f"[WS Auth] Using session cookie for Agor authentication")
+
+    # Try to extract from Referer header as last resort
+    else:
+        referer = websocket.headers.get("referer", "")
+        if "tkn=" in referer:
+            # Extract token from referer URL
+            import urllib.parse
+            parsed = urllib.parse.urlparse(referer)
+            params = urllib.parse.parse_qs(parsed.query)
+            if "tkn" in params and params["tkn"]:
+                auth_token = params["tkn"][0]
+                print(f"[WS Auth] Extracted token from Referer header for Agor")
+
+    if not auth_token:
+        print(f"[WS Auth] No authentication token found for Agor (cookie, query, or referer)")
+        await websocket.close(code=1008, reason="Missing authentication token")
+        return
+
+    try:
+        from core.security import verify_token
+        payload = verify_token(auth_token)
+        if payload.get("type") != "access":
+            await websocket.close(code=1008, reason="Invalid token type")
+            return
+        print(f"[WS Auth] Authenticated user for Agor: {payload.get('sub')}")
+    except Exception as e:
+        print(f"[WS Auth] Agor authentication failed: {e}")
+        await websocket.close(code=1008, reason="Invalid authentication token")
+        return
+
+    # Accept connection
+    await websocket.accept()
+
+    # Proxy to Agor server
+    proxy = get_agor_proxy()
     await proxy.proxy_websocket(websocket, path)

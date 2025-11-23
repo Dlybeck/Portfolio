@@ -132,6 +132,16 @@
             margin-left: 8px;
         }
 
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #1565c0;
+        }
+
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -154,32 +164,13 @@
             <p>Secure remote development access</p>
         </div>
 
+        <div class="info-box">
+            ℹ️ Single-user authentication: Just enter your 2FA code
+        </div>
+
         <div id="error" class="error-message"></div>
 
         <form id="loginForm">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    autocomplete="username"
-                    required
-                    autofocus
-                >
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    autocomplete="current-password"
-                    required
-                >
-            </div>
-
             <div class="form-group">
                 <label for="totp">2FA Code</label>
                 <input
@@ -191,6 +182,7 @@
                     pattern="[0-9]{6}"
                     autocomplete="one-time-code"
                     required
+                    autofocus
                 >
                 <div class="help-text">Enter the 6-digit code from Google Authenticator</div>
             </div>
@@ -232,8 +224,6 @@
             setLoading(true);
 
             const formData = {
-                username: document.getElementById('username').value,
-                password: document.getElementById('password').value,
                 totp_code: document.getElementById('totp').value
             };
 
@@ -262,8 +252,11 @@
                     // Redirect to dashboard
                     window.location.href = '/dev';
                 } else {
-                    showError(data.detail || 'Login failed. Please check your credentials.');
+                    showError(data.detail || 'Login failed. Please check your 2FA code.');
                     setLoading(false);
+                    // Clear and refocus the input
+                    document.getElementById('totp').value = '';
+                    document.getElementById('totp').focus();
                 }
             } catch (error) {
                 showError('Connection error. Please try again.');
@@ -271,10 +264,8 @@
             }
         });
 
-        // Auto-focus first empty field
-        if (!document.getElementById('username').value) {
-            document.getElementById('username').focus();
-        }
+        // Auto-focus the 2FA input
+        document.getElementById('totp').focus();
     </script>
 </body>
 </html>

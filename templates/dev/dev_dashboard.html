@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dev Dashboard</title>
+    <link rel="stylesheet" href="/static/dev/css/variables.css">
+    <link rel="stylesheet" href="/static/dev/css/dashboard.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent body scroll */
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            font-family: var(--font-family-sans);
+            background-color: var(--color-background);
+            color: var(--color-text);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: var(--color-header-bg);
+            border-bottom: 1px solid var(--color-border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.5em;
+            color: var(--color-primary);
+        }
+        .switcher-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .switcher-buttons button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: var(--border-radius);
+            background-color: var(--color-button-bg);
+            color: var(--color-button-text);
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .switcher-buttons button:hover {
+            background-color: var(--color-button-hover-bg);
+        }
+        .switcher-buttons button.active {
+            background-color: var(--color-primary);
+            color: var(--color-white);
+        }
+        .content-container {
+            flex-grow: 1;
+            position: relative;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            visibility: hidden; /* Hidden by default, JS will manage */
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        iframe.active {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+    <!-- Auth Service for Token Refresh -->
+    <script src="/static/js/auth-service.js"></script>
+</head>
+<body>
+    <header class="header">
+        <h1>Dev Environments</h1>
+        <div class="switcher-buttons">
+            <button id="vscode-button" class="active">VS Code</button>
+            <button id="agor-button">Agor</button>
+        </div>
+        <button class="header-btn logout-btn" onclick="logout()" title="Logout">
+            <span class="btn-icon hide-mobile">🚪</span>
+            <span class="btn-text">Logout</span>
+        </button>
+    </header>
+
+    <div class="content-container">
+        <!-- VS Code Iframe -->
+        <iframe id="vscode-iframe" class="active" src="/dev/vscode/?tkn={{ token }}"></iframe>
+
+        <!-- Agor Iframe - direct connection for local dev (anonymous auth) -->
+        <iframe id="agor-iframe" src="http://localhost:3030/ui/"></iframe>
+    </div>
+
+    <!-- Script for switching -->
+    <script>
+        const vscodeButton = document.getElementById('vscode-button');
+        const agorButton = document.getElementById('agor-button');
+
+        const vscodeIframe = document.getElementById('vscode-iframe');
+        const agorIframe = document.getElementById('agor-iframe');
+
+        function showFrame(frameId) {
+            vscodeIframe.classList.remove('active');
+            agorIframe.classList.remove('active');
+
+            vscodeButton.classList.remove('active');
+            agorButton.classList.remove('active');
+
+            if (frameId === 'vscode') {
+                vscodeIframe.classList.add('active');
+                vscodeButton.classList.add('active');
+            } else if (frameId === 'agor') {
+                agorIframe.classList.add('active');
+                agorButton.classList.add('active');
+            }
+        }
+
+        vscodeButton.addEventListener('click', () => showFrame('vscode'));
+        agorButton.addEventListener('click', () => showFrame('agor'));
+
+        // Initial view
+        showFrame('vscode');
+
+        // Logout function
+        function logout() {
+            window.authService.logout();
+            window.location.href = '/dev/login'; // Redirect to login page
+        }
+
+        // Start automatic token refresh if user is logged in
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('access_token') && localStorage.getItem('refresh_token')) {
+                console.log('[Dashboard] Starting automatic token refresh...');
+                window.authService.startAutoRefresh();
+            }
+        });
+    </script>
+</body>
+</html>

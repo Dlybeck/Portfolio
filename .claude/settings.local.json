@@ -54,7 +54,8 @@
       "Bash(./start-local-dev.sh:*)",
       "Bash(scripts/start-local-dev.sh:*)",
       "Bash(pmset:*)",
-      "Bash(sudo pmset:*)"
+      "Bash(sudo pmset:*)",
+      "Read(//tmp/**)"
     ],
     "deny": [],
     "ask": []

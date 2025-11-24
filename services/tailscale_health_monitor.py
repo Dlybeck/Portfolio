@@ -127,9 +127,9 @@ class TailscaleHealthMonitor:
         logger.info("Attempting Tailscale recovery...")
 
         try:
-            # First, try to restart the connection
+            # First, try to restart the connection with --reset to avoid flag conflicts
             result = subprocess.run(
-                ["tailscale", "up", "--accept-routes"],
+                ["tailscale", "up", "--reset", "--accept-routes"],
                 capture_output=True,
                 text=True,
                 timeout=30
@@ -175,8 +175,11 @@ class TailscaleHealthMonitor:
             "mac_reachable": await self._check_mac_connectivity(),
         }
 
-        # Overall health
-        is_healthy = all(checks.values())
+        # Overall health - only require the CRITICAL checks
+        # If Mac is reachable through SOCKS5, the connection is working!
+        # Don't worry about process checks - they can have false negatives in containers
+        critical_checks = checks["socks5_listening"] and checks["mac_reachable"]
+        is_healthy = critical_checks
 
         if is_healthy:
             self.consecutive_failures = 0

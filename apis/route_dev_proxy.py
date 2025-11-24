@@ -245,7 +245,23 @@ async def vscode_proxy(
     🔒 Authenticated proxy to code-server
     """
     proxy = get_vscode_proxy()
-    return await proxy.proxy_request(request, path)
+    response = await proxy.proxy_request(request, path)
+
+    # Set session token cookie for WebSocket authentication
+    # Extract token from query params or cookies
+    token = request.query_params.get("tkn") or request.query_params.get("token") or request.cookies.get("session_token")
+    if token and not request.cookies.get("session_token"):
+        response.set_cookie(
+            key="session_token",
+            value=token,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=3600  # 1 hour
+        )
+        logger.debug("Set session_token cookie for VS Code WebSocket auth")
+
+    return response
 
 
 @dev_proxy_router.websocket("/vscode/{path:path}")

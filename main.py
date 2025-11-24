@@ -12,10 +12,85 @@ from apis.route_debug_tailscale import debug_router
 from core.security import validate_security_config
 import asyncio
 import logging
+import subprocess
+import socket
+import httpx
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+
+async def run_startup_diagnostics():
+	"""Run comprehensive diagnostics on startup and log results"""
+	MAC_SERVER_IP = settings.MAC_SERVER_IP
+	MAC_SERVER_PORT = settings.MAC_SERVER_PORT
+	SOCKS5_PROXY = settings.SOCKS5_PROXY
+	SOCKS5_PORT = settings.SOCKS5_PORT
+
+	# 1. Check Tailscale daemon
+	try:
+		result = subprocess.run(["pgrep", "-x", "tailscaled"], capture_output=True, timeout=5)
+		if result.returncode == 0:
+			logger.info("✅ tailscaled process running (PID: %s)", result.stdout.decode().strip())
+		else:
+			logger.error("❌ tailscaled process NOT running")
+	except Exception as e:
+		logger.error("❌ Error checking tailscaled: %s", e)
+
+	# 2. Check Tailscale status
+	try:
+		result = subprocess.run(["tailscale", "status", "--json"], capture_output=True, text=True, timeout=5)
+		if result.returncode == 0:
+			import json
+			status = json.loads(result.stdout)
+			backend_state = status.get("BackendState", "unknown")
+			if backend_state == "Running":
+				self_ip = status.get("Self", {}).get("TailscaleIPs", ["unknown"])[0]
+				logger.info("✅ Tailscale connected (IP: %s, State: %s)", self_ip, backend_state)
+			else:
+				logger.error("❌ Tailscale NOT connected (State: %s)", backend_state)
+		else:
+			logger.error("❌ tailscale status failed: %s", result.stderr)
+	except Exception as e:
+		logger.error("❌ Error checking Tailscale status: %s", e)
+
+	# 3. Check SOCKS5 port
+	try:
+		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		sock.settimeout(2)
+		result = sock.connect_ex(("localhost", SOCKS5_PORT))
+		sock.close()
+		if result == 0:
+			logger.info("✅ SOCKS5 proxy listening on port %d", SOCKS5_PORT)
+		else:
+			logger.error("❌ SOCKS5 proxy NOT listening on port %d", SOCKS5_PORT)
+	except Exception as e:
+		logger.error("❌ Error checking SOCKS5 port: %s", e)
+
+	# 4. Test HTTP through SOCKS5
+	try:
+		async with httpx.AsyncClient(proxy=SOCKS5_PROXY, timeout=10.0) as client:
+			response = await client.get(f"http://{MAC_SERVER_IP}:{MAC_SERVER_PORT}/")
+			logger.info("✅ HTTP via SOCKS5 successful (status: %d)", response.status_code)
+	except Exception as e:
+		logger.error("❌ HTTP via SOCKS5 failed: %s (%s)", type(e).__name__, e)
+
+	# 5. Check python-socks installation
+	try:
+		import python_socks
+		logger.info("✅ python-socks installed (version: %s)", python_socks.__version__)
+	except ImportError:
+		logger.error("❌ python-socks NOT installed")
+
+	# 6. Test WebSocket through SOCKS5
+	try:
+		import websockets
+		ws_url = f"ws://{MAC_SERVER_IP}:{MAC_SERVER_PORT}/"
+		async with websockets.connect(ws_url, proxy=SOCKS5_PROXY, ping_interval=None, close_timeout=5) as ws:
+			logger.info("✅ WebSocket via SOCKS5 successful")
+	except Exception as e:
+		logger.error("❌ WebSocket via SOCKS5 failed: %s (%s)", type(e).__name__, e)
 
 
 def include_router(app):
@@ -55,6 +130,14 @@ def start_application():
 	async def startup_event():
 		from services.session_manager import cleanup_idle_sessions
 		from services.tailscale_health_monitor import start_health_monitor
+
+		# Run startup diagnostics if in Cloud Run
+		if settings.K_SERVICE is not None:
+			logger.info("=" * 60)
+			logger.info("CLOUD RUN STARTUP DIAGNOSTICS")
+			logger.info("=" * 60)
+			await run_startup_diagnostics()
+			logger.info("=" * 60)
 
 		# Start session cleanup
 		asyncio.create_task(cleanup_idle_sessions(idle_timeout=3600))

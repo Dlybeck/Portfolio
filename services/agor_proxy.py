@@ -1,4 +1,5 @@
 import httpx
+import websockets
 import os
 import asyncio
 from starlette.requests import Request
@@ -11,13 +12,43 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# Detect if running in Cloud Run (proxy mode) or locally (direct mode)
+IS_CLOUD_RUN = settings.K_SERVICE is not None
+
+# Mac server configuration
+MAC_SERVER_IP = settings.MAC_SERVER_IP
+SOCKS5_PROXY = settings.SOCKS5_PROXY
+
 class AgorProxy:
     """
     Proxies requests to the Agor server.
+    When in Cloud Run, connects via Tailscale SOCKS5 proxy.
     """
-    def __init__(self, agor_url: str):
-        self.agor_url = agor_url
-        self.client = httpx.AsyncClient(base_url=self.agor_url)
+    def __init__(self, agor_url: str = None):
+        # Auto-detect URL based on environment
+        if agor_url:
+            self.agor_url = agor_url
+        elif IS_CLOUD_RUN:
+            # In Cloud Run, connect to Mac via Tailscale
+            self.agor_url = f"http://{MAC_SERVER_IP}:3030"
+            logger.info(f"Cloud Run mode: proxying to {self.agor_url} via SOCKS5")
+        else:
+            # Local Mac, connect to localhost
+            self.agor_url = "http://127.0.0.1:3030"
+            logger.info(f"Local mode: connecting to {self.agor_url}")
+
+        # Create client with SOCKS5 proxy if in Cloud Run
+        client_kwargs = {
+            "base_url": self.agor_url,
+            "timeout": httpx.Timeout(60.0, connect=10.0),
+            "follow_redirects": False
+        }
+
+        if IS_CLOUD_RUN:
+            client_kwargs["proxy"] = SOCKS5_PROXY
+            logger.info(f"HTTP client using SOCKS5 proxy: {SOCKS5_PROXY}")
+
+        self.client = httpx.AsyncClient(**client_kwargs)
         logger.info(f"Initialized AgorProxy for URL: {self.agor_url}")
 
     async def proxy_request(self, request: Request, path: str):
@@ -68,49 +99,116 @@ class AgorProxy:
             )
 
     async def proxy_websocket(self, client_websocket: WebSocket, path: str):
+        """
+        Proxy WebSocket connection to Agor with retry logic and SOCKS5 support
+        """
         await client_websocket.accept()
-        agor_ws_url = f"ws://{self.agor_url.replace('http://', '').replace('https://', '')}{path}"
-        
+
+        # Build target WebSocket URL
+        if IS_CLOUD_RUN:
+            ws_url = f"ws://{MAC_SERVER_IP}:3030{path}"
+            logger.info(f"Cloud Run mode: connecting to {ws_url} via SOCKS5")
+        else:
+            ws_url = f"ws://127.0.0.1:3030{path}"
+            logger.info(f"Local mode: connecting to {ws_url}")
+
+        # Retry configuration
+        max_retries = 3
+        retry_delay = 0.5
+        last_exception = None
+
+        for attempt in range(max_retries):
+            try:
+                if attempt > 0:
+                    wait_time = min(retry_delay * (2 ** (attempt - 1)), 2.5)
+                    logger.info(f"Retry attempt {attempt + 1}/{max_retries} after {wait_time}s delay...")
+                    await asyncio.sleep(wait_time)
+
+                await self._proxy_websocket_connection(client_websocket, ws_url)
+                return  # Success!
+
+            except (OSError, ConnectionError, TimeoutError) as e:
+                last_exception = e
+                logger.error(f"Connection attempt {attempt + 1}/{max_retries} failed: {type(e).__name__}: {e}")
+                if attempt < max_retries - 1:
+                    logger.info("Will retry connection...")
+                else:
+                    logger.error(f"All {max_retries} connection attempts failed")
+
+            except Exception as e:
+                logger.error(f"Non-retryable error: {type(e).__name__}: {e}")
+                await client_websocket.close(code=1011, reason=f"Proxy error: {type(e).__name__}")
+                return
+
+        # All retries exhausted
+        error_msg = f"Connection failed after {max_retries} attempts"
+        if last_exception:
+            error_msg += f": {last_exception}"
+        logger.error(error_msg)
+        await client_websocket.close(code=1011, reason="Agor proxy unavailable")
+
+    async def _proxy_websocket_connection(self, client_websocket: WebSocket, ws_url: str):
+        """
+        Establish and maintain WebSocket proxy connection (internal method)
+        """
         try:
-            async with httpx.AsyncClient() as client:
-                async with client.websocket_connect(agor_ws_url) as agor_websocket:
-                    logger.info(f"WebSocket connection established to Agor: {agor_ws_url}")
+            # Use websockets library with SOCKS5 support
+            connect_kwargs = {
+                "ping_interval": 30,
+                "ping_timeout": 10,
+                "close_timeout": 10
+            }
+            if IS_CLOUD_RUN:
+                connect_kwargs["proxy"] = SOCKS5_PROXY
 
-                    async def forward_client_to_agor():
-                        try:
-                            while True:
-                                message = await client_websocket.receive_text()
-                                await agor_websocket.send_text(message)
-                        except WebSocketDisconnect:
-                            logger.info("Client disconnected from Agor WebSocket")
-                        except Exception as e:
-                            logger.error(f"Error forwarding client to Agor: {e}")
+            async with websockets.connect(ws_url, **connect_kwargs) as server_ws:
+                logger.info(f"WebSocket connection established to Agor: {ws_url}")
 
-                    async def forward_agor_to_client():
-                        try:
-                            while True:
-                                message = await agor_websocket.receive_text()
+                async def forward_to_server():
+                    """Forward messages from browser to Agor"""
+                    try:
+                        while True:
+                            message = await client_websocket.receive()
+
+                            if message.get('type') == 'websocket.disconnect':
+                                break
+                            elif 'text' in message:
+                                await server_ws.send(message['text'])
+                            elif 'bytes' in message:
+                                await server_ws.send(message['bytes'])
+                    except WebSocketDisconnect:
+                        pass
+                    except Exception as e:
+                        logger.error(f"Forward error: {e}")
+
+                async def forward_to_client():
+                    """Forward messages from Agor to browser"""
+                    try:
+                        async for message in server_ws:
+                            if isinstance(message, str):
                                 await client_websocket.send_text(message)
-                        except Exception as e:
-                            logger.error(f"Error forwarding Agor to client: {e}")
-                            
-                    await asyncio.gather(
-                        forward_client_to_agor(),
-                        forward_agor_to_client()
-                    )
-        except httpx.ConnectError as e:
-            logger.error(f"Could not connect to Agor WebSocket: {e}")
-            await client_websocket.close(code=1011) # Internal Error
+                            elif isinstance(message, bytes):
+                                await client_websocket.send_bytes(message)
+                    except WebSocketDisconnect:
+                        pass
+                    except Exception as e:
+                        logger.error(f"Backward error: {e}")
+
+                await asyncio.gather(
+                    forward_to_server(),
+                    forward_to_client(),
+                    return_exceptions=True
+                )
         except Exception as e:
-            logger.error(f"Agor WebSocket proxy error: {e}")
-            await client_websocket.close(code=1011) # Internal Error
+            logger.error(f"Connection error in _proxy_websocket_connection: {type(e).__name__}: {e}")
+            raise
 
 _agor_proxy_instance: AgorProxy = None
 
 def get_proxy() -> AgorProxy:
+    """Get global Agor proxy instance"""
     global _agor_proxy_instance
     if _agor_proxy_instance is None:
-        # Use AGOR_URL environment variable if available, otherwise default to localhost:5678
-        agor_url = settings.AGOR_URL
-        _agor_proxy_instance = AgorProxy(agor_url)
+        # Auto-detects environment and configures SOCKS5 if needed
+        _agor_proxy_instance = AgorProxy()
     return _agor_proxy_instance

@@ -97,13 +97,11 @@ class AgorProxy:
                 except (UnicodeDecodeError, LookupError):
                     body_str = body_bytes.decode('utf-8', errors='replace')
 
-                # Inject <base href="/dev/agor/"> to fix absolute paths like /ui/assets/...
-                head_tag = "<head>"
-                injection = f'<head>\n    <base href="/dev/agor/">'
-
-                if head_tag in body_str:
-                    body_str = body_str.replace(head_tag, injection, 1)
-                    logger.info("Injected <base href> tag into Agor HTML")
+                # Rewrite absolute paths /ui/ to /dev/agor/ui/ for proper routing
+                # This fixes paths like /ui/assets/index.js to /dev/agor/ui/assets/index.js
+                body_str = body_str.replace('"/ui/', '"/dev/agor/ui/')
+                body_str = body_str.replace("'/ui/", "'/dev/agor/ui/")
+                logger.info("Rewrote /ui/ paths to /dev/agor/ui/ in Agor HTML")
 
                 # Encode and update headers
                 new_body_bytes = body_str.encode('utf-8')

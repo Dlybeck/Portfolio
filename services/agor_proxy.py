@@ -80,8 +80,9 @@ class AgorProxy:
 
             content_type = resp.headers.get('content-type', '').lower()
 
-            # Inject <base href> tag for HTML responses to fix relative paths
+            # Rewrite paths for HTML and JavaScript responses
             is_html = 'text/html' in content_type
+            is_js = 'javascript' in content_type or path.endswith('.js')
 
             if is_html:
                 # Read the full response
@@ -101,7 +102,15 @@ class AgorProxy:
                 # This fixes paths like /ui/assets/index.js to /dev/agor/ui/assets/index.js
                 body_str = body_str.replace('"/ui/', '"/dev/agor/ui/')
                 body_str = body_str.replace("'/ui/", "'/dev/agor/ui/")
-                logger.info("Rewrote /ui/ paths to /dev/agor/ui/ in Agor HTML")
+
+                # Fix React Router basename by injecting script before app loads
+                # The Agor app has <Router basename="/ui"> but we're serving at /dev/agor/ui/
+                # Inject a base tag to fix routing
+                if '<head>' in body_str:
+                    base_injection = '<head>\n    <base href="/dev/agor/ui/">'
+                    body_str = body_str.replace('<head>', base_injection, 1)
+
+                logger.info("Rewrote /ui/ paths to /dev/agor/ui/ and injected base tag in Agor HTML")
 
                 # Encode and update headers
                 new_body_bytes = body_str.encode('utf-8')
@@ -114,8 +123,45 @@ class AgorProxy:
                     status_code=resp.status_code,
                     headers=response_headers
                 )
+            elif is_js:
+                # Rewrite JavaScript files to fix React Router basename
+                body_bytes = await resp.aread()
+
+                try:
+                    body_str = body_bytes.decode('utf-8')
+
+                    # Fix React Router basename from "/ui" to "/dev/agor/ui"
+                    # Match patterns like: basename="/ui" or basename:"/ui" or basename='/ui'
+                    body_str = body_str.replace('basename:"/ui"', 'basename:"/dev/agor/ui"')
+                    body_str = body_str.replace('basename="/ui"', 'basename="/dev/agor/ui"')
+                    body_str = body_str.replace("basename:'/ui'", "basename:'/dev/agor/ui'")
+                    body_str = body_str.replace("basename='/ui'", "basename='/dev/agor/ui'")
+
+                    new_body_bytes = body_str.encode('utf-8')
+                    response_headers = dict(resp.headers)
+                    response_headers['content-length'] = str(len(new_body_bytes))
+                    response_headers.pop('content-encoding', None)
+
+                    logger.debug(f"Rewrote React Router basename in JS file: {path}")
+
+                    return StreamingResponse(
+                        iter([new_body_bytes]),
+                        status_code=resp.status_code,
+                        headers=response_headers
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to rewrite JS file {path}: {e}, streaming as-is")
+                    # Fall back to streaming if rewrite fails
+                    response_headers = dict(resp.headers)
+                    response_headers.pop('content-encoding', None)
+                    response_headers.pop('transfer-encoding', None)
+                    return StreamingResponse(
+                        iter([body_bytes]),
+                        status_code=resp.status_code,
+                        headers=response_headers
+                    )
             else:
-                # Stream non-HTML responses directly
+                # Stream non-HTML/JS responses directly
                 response_headers = dict(resp.headers)
                 response_headers.pop('content-encoding', None)
                 response_headers.pop('transfer-encoding', None)

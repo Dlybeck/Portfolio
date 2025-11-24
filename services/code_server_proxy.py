@@ -106,10 +106,10 @@ class CodeServerProxy:
 
             content_type = response.headers.get('content-type', '').lower()
             
-            # --- <base href> Injection Logic ---
-            # Inject only into the main HTML document. We identify it by checking
-            # the path and content type. The root path is often empty or just '/'.
-            is_html_entrypoint = 'text/html' in content_type and (path == "" or path == "/" or "index.html" in path)
+            # --- Path rewriting for HTML and JS ---
+            is_html = 'text/html' in content_type
+            is_js = 'javascript' in content_type or path.endswith('.js')
+            is_html_entrypoint = is_html and (path == "" or path == "/" or "index.html" in path)
 
             if is_html_entrypoint:
                 body_bytes = await response.aread()
@@ -145,8 +145,47 @@ class CodeServerProxy:
                     headers=response_headers,
                     media_type=response.headers.get('content-type')
                 )
+            elif is_js or is_html:
+                # Rewrite JS and other HTML files to fix absolute paths
+                body_bytes = await response.aread()
+
+                try:
+                    charset = 'utf-8'
+                    if 'charset=' in content_type:
+                        charset = content_type.split('charset=')[-1]
+                    body_str = body_bytes.decode(charset, errors='replace')
+
+                    # Fix absolute paths from /static/ or /stable- to /dev/vscode/...
+                    # VS Code uses absolute paths that need to be prefixed
+                    body_str = body_str.replace('"static/', '"/dev/vscode/static/')
+                    body_str.replace("'static/", "'/dev/vscode/static/")
+                    body_str = body_str.replace('"/stable-', '"/dev/vscode/stable-')
+                    body_str = body_str.replace("'/stable-", "'/dev/vscode/stable-")
+
+                    new_body_bytes = body_str.encode('utf-8')
+                    response_headers = dict(response.headers)
+                    response_headers['content-length'] = str(len(new_body_bytes))
+                    response_headers.pop('content-encoding', None)
+
+                    return Response(
+                        content=new_body_bytes,
+                        status_code=response.status_code,
+                        headers=response_headers,
+                        media_type=response.headers.get('content-type')
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to rewrite file {path}: {e}, streaming as-is")
+                    response_headers = dict(response.headers)
+                    response_headers.pop('content-encoding', None)
+                    response_headers.pop('transfer-encoding', None)
+                    return StreamingResponse(
+                        iter([body_bytes]),
+                        status_code=response.status_code,
+                        headers=response_headers,
+                        media_type=response.headers.get('content-type')
+                    )
             else:
-                # For all other assets (JS, CSS, images), stream them directly.
+                # For all other assets (CSS, images, WASM), stream them directly.
                 # This prevents corruption and is more efficient.
                 response_headers = dict(response.headers)
                 response_headers.pop('content-encoding', None)

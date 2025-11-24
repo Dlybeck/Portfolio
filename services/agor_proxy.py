@@ -78,11 +78,55 @@ class AgorProxy:
                 follow_redirects=False
             )
 
-            return StreamingResponse(
-                resp.aiter_bytes(),
-                status_code=resp.status_code,
-                headers=resp.headers
-            )
+            content_type = resp.headers.get('content-type', '').lower()
+
+            # Inject <base href> tag for HTML responses to fix relative paths
+            is_html = 'text/html' in content_type
+
+            if is_html:
+                # Read the full response
+                body_bytes = await resp.aread()
+
+                # Decode with proper charset
+                charset = 'utf-8'
+                if 'charset=' in content_type:
+                    charset = content_type.split('charset=')[-1]
+
+                try:
+                    body_str = body_bytes.decode(charset)
+                except (UnicodeDecodeError, LookupError):
+                    body_str = body_bytes.decode('utf-8', errors='replace')
+
+                # Inject <base href="/dev/agor/"> to fix absolute paths like /ui/assets/...
+                head_tag = "<head>"
+                injection = f'<head>\n    <base href="/dev/agor/">'
+
+                if head_tag in body_str:
+                    body_str = body_str.replace(head_tag, injection, 1)
+                    logger.info("Injected <base href> tag into Agor HTML")
+
+                # Encode and update headers
+                new_body_bytes = body_str.encode('utf-8')
+                response_headers = dict(resp.headers)
+                response_headers['content-length'] = str(len(new_body_bytes))
+                response_headers.pop('content-encoding', None)
+
+                return StreamingResponse(
+                    iter([new_body_bytes]),
+                    status_code=resp.status_code,
+                    headers=response_headers
+                )
+            else:
+                # Stream non-HTML responses directly
+                response_headers = dict(resp.headers)
+                response_headers.pop('content-encoding', None)
+                response_headers.pop('transfer-encoding', None)
+
+                return StreamingResponse(
+                    resp.aiter_bytes(),
+                    status_code=resp.status_code,
+                    headers=response_headers
+                )
         except httpx.ConnectError as e:
             logger.error(f"Agor proxy connection error: {e}")
             return StreamingResponse(

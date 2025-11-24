@@ -158,7 +158,7 @@ class CodeServerProxy:
                     # Fix absolute paths from /static/ or /stable- to /dev/vscode/...
                     # VS Code uses absolute paths that need to be prefixed
                     body_str = body_str.replace('"static/', '"/dev/vscode/static/')
-                    body_str.replace("'static/", "'/dev/vscode/static/")
+                    body_str = body_str.replace("'static/", "'/dev/vscode/static/")
                     body_str = body_str.replace('"/stable-', '"/dev/vscode/stable-')
                     body_str = body_str.replace("'/stable-", "'/dev/vscode/stable-")
 

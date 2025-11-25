@@ -254,53 +254,102 @@ class AgorProxy:
         Establish and maintain WebSocket proxy connection (internal method)
         """
         try:
-            # Use websockets library with SOCKS5 support
-            connect_kwargs = {
-                "ping_interval": 30,
-                "ping_timeout": 10,
-                "close_timeout": 10
-            }
             if IS_CLOUD_RUN:
-                connect_kwargs["proxy"] = SOCKS5_PROXY
+                # Cloud Run: Use aiohttp with SOCKS5 proxy (same as code-server proxy)
+                import aiohttp
+                from aiohttp_socks import ProxyConnector
 
-            async with websockets.connect(ws_url, **connect_kwargs) as server_ws:
-                logger.info(f"WebSocket connection established to Agor: {ws_url}")
+                connector = ProxyConnector.from_url(SOCKS5_PROXY)
 
-                async def forward_to_server():
-                    """Forward messages from browser to Agor"""
-                    try:
-                        while True:
-                            message = await client_websocket.receive()
+                async with aiohttp.ClientSession(connector=connector) as session:
+                    async with session.ws_connect(
+                        ws_url,
+                        timeout=aiohttp.ClientTimeout(total=43200)  # 12 hours
+                    ) as server_ws:
+                        logger.info(f"WebSocket connection established to Agor: {ws_url}")
 
-                            if message.get('type') == 'websocket.disconnect':
-                                break
-                            elif 'text' in message:
-                                await server_ws.send(message['text'])
-                            elif 'bytes' in message:
-                                await server_ws.send(message['bytes'])
-                    except WebSocketDisconnect:
-                        pass
-                    except Exception as e:
-                        logger.error(f"Forward error: {e}")
+                        async def forward_to_server():
+                            """Forward messages from browser to Agor"""
+                            try:
+                                while True:
+                                    message = await client_websocket.receive()
 
-                async def forward_to_client():
-                    """Forward messages from Agor to browser"""
-                    try:
-                        async for message in server_ws:
-                            if isinstance(message, str):
-                                await client_websocket.send_text(message)
-                            elif isinstance(message, bytes):
-                                await client_websocket.send_bytes(message)
-                    except WebSocketDisconnect:
-                        pass
-                    except Exception as e:
-                        logger.error(f"Backward error: {e}")
+                                    if message.get('type') == 'websocket.disconnect':
+                                        break
+                                    elif 'text' in message:
+                                        await server_ws.send_str(message['text'])
+                                    elif 'bytes' in message:
+                                        await server_ws.send_bytes(message['bytes'])
+                            except WebSocketDisconnect:
+                                pass
+                            except Exception as e:
+                                logger.error(f"Forward error: {e}")
 
-                await asyncio.gather(
-                    forward_to_server(),
-                    forward_to_client(),
-                    return_exceptions=True
-                )
+                        async def forward_to_client():
+                            """Forward messages from Agor to browser"""
+                            try:
+                                async for msg in server_ws:
+                                    if msg.type == aiohttp.WSMsgType.TEXT:
+                                        await client_websocket.send_text(msg.data)
+                                    elif msg.type == aiohttp.WSMsgType.BINARY:
+                                        await client_websocket.send_bytes(msg.data)
+                                    elif msg.type == aiohttp.WSMsgType.ERROR:
+                                        break
+                            except WebSocketDisconnect:
+                                pass
+                            except Exception as e:
+                                logger.error(f"Backward error: {e}")
+
+                        await asyncio.gather(
+                            forward_to_server(),
+                            forward_to_client(),
+                            return_exceptions=True
+                        )
+            else:
+                # Local: Use websockets library (direct connection)
+                async with websockets.connect(
+                    ws_url,
+                    ping_interval=30,
+                    ping_timeout=10,
+                    close_timeout=10
+                ) as server_ws:
+                    logger.info(f"WebSocket connection established to Agor: {ws_url}")
+
+                    async def forward_to_server():
+                        """Forward messages from browser to Agor"""
+                        try:
+                            while True:
+                                message = await client_websocket.receive()
+
+                                if message.get('type') == 'websocket.disconnect':
+                                    break
+                                elif 'text' in message:
+                                    await server_ws.send(message['text'])
+                                elif 'bytes' in message:
+                                    await server_ws.send(message['bytes'])
+                        except WebSocketDisconnect:
+                            pass
+                        except Exception as e:
+                            logger.error(f"Forward error: {e}")
+
+                    async def forward_to_client():
+                        """Forward messages from Agor to browser"""
+                        try:
+                            async for message in server_ws:
+                                if isinstance(message, str):
+                                    await client_websocket.send_text(message)
+                                elif isinstance(message, bytes):
+                                    await client_websocket.send_bytes(message)
+                        except WebSocketDisconnect:
+                            pass
+                        except Exception as e:
+                            logger.error(f"Backward error: {e}")
+
+                    await asyncio.gather(
+                        forward_to_server(),
+                        forward_to_client(),
+                        return_exceptions=True
+                    )
         except Exception as e:
             logger.error(f"Connection error in _proxy_websocket_connection: {type(e).__name__}: {e}")
             raise

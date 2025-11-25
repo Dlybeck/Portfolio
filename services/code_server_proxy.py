@@ -123,11 +123,17 @@ class CodeServerProxy:
                 except (UnicodeDecodeError, LookupError):
                     body_str = body_bytes.decode('utf-8', errors='replace')
 
-                # Inject the <base> tag right after the <head> tag.
-                # This is more robust than simple string replacement.
+                # Inject the <base> tag and configuration script to disable remote connection
                 head_tag = "<head>"
-                injection = f'<head>\\n    <base href="/dev/vscode/">'
-                
+                injection = f'''<head>
+    <base href="/dev/vscode/">
+    <meta name="vs-remote-authority" content="">
+    <script>
+        // Disable remote connection attempts for code-server
+        window.remoteAuthority = undefined;
+        window.isCodeServerRunning = true;
+    </script>'''
+
                 if head_tag in body_str:
                     body_str = body_str.replace(head_tag, injection, 1)
                 else:

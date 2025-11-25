@@ -251,15 +251,18 @@ async def vscode_proxy(
     # Extract token from query params or cookies
     token = request.query_params.get("tkn") or request.query_params.get("token") or request.cookies.get("session_token")
     if token and not request.cookies.get("session_token"):
+        # Determine if we're on HTTPS based on headers
+        is_secure = request.headers.get("x-forwarded-proto") == "https" or request.url.scheme == "https"
         response.set_cookie(
             key="session_token",
             value=token,
-            httponly=True,
-            secure=True,
+            path="/dev/vscode",  # Scope cookie to VS Code paths
+            httponly=False,  # Allow JavaScript access for WebSocket connections
+            secure=is_secure,  # Only require HTTPS if we're on HTTPS
             samesite="lax",
             max_age=3600  # 1 hour
         )
-        logger.debug("Set session_token cookie for VS Code WebSocket auth")
+        logger.info(f"Set session_token cookie for VS Code (secure={is_secure}, path=/dev/vscode)")
 
     return response
 

@@ -282,17 +282,30 @@ class CodeServerProxy:
             path: WebSocket path
         """
         try:
+            # Prepare headers to forward to code-server
+            # Forward relevant headers from browser to backend
+            extra_headers = {}
+            if hasattr(client_ws, 'headers'):
+                # Forward cookie for authentication
+                if 'cookie' in client_ws.headers:
+                    extra_headers['Cookie'] = client_ws.headers['cookie']
+                # Forward user-agent
+                if 'user-agent' in client_ws.headers:
+                    extra_headers['User-Agent'] = client_ws.headers['user-agent']
+
             # Unified proxy logic using websockets library
             connect_kwargs = {
                 "ping_interval": 30,
                 "ping_timeout": 10,
                 "close_timeout": 10,
-                "open_timeout": 60  # Increase timeout for slow SOCKS5/Tailscale connection
+                "open_timeout": 60,  # Increase timeout for slow SOCKS5/Tailscale connection
+                "extra_headers": extra_headers  # Forward headers
             }
             if IS_CLOUD_RUN:
                 connect_kwargs["proxy"] = SOCKS5_PROXY
                 connect_kwargs["open_timeout"] = 120  # Even longer timeout in Cloud Run
 
+            logger.debug(f"Connecting to {ws_url} with headers: {list(extra_headers.keys())}")
             async with websockets.connect(ws_url, **connect_kwargs) as server_ws:
                 # Bidirectional proxy
                 async def forward_to_server():

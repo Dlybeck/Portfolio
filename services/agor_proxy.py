@@ -38,9 +38,10 @@ class AgorProxy:
             logger.info(f"Local mode: connecting to {self.agor_url}")
 
         # Create client with SOCKS5 proxy if in Cloud Run
+        # Use longer timeouts for Tailscale relay connections
         client_kwargs = {
             "base_url": self.agor_url,
-            "timeout": httpx.Timeout(60.0, connect=10.0),
+            "timeout": httpx.Timeout(120.0, connect=30.0),  # Increased for slow Tailscale relay
             "follow_redirects": False
         }
 
@@ -280,7 +281,7 @@ class AgorProxy:
                 async with aiohttp.ClientSession(connector=connector) as session:
                     async with session.ws_connect(
                         ws_url,
-                        timeout=aiohttp.ClientTimeout(total=43200)  # 12 hours
+                        timeout=aiohttp.ClientTimeout(total=43200, connect=60)  # 12 hours total, 60s connect for slow Tailscale relay
                     ) as server_ws:
                         logger.info(f"WebSocket connection established to Agor: {ws_url}")
 

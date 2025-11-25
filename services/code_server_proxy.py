@@ -11,20 +11,15 @@ import os
 from fastapi import Request, Response, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 from typing import Dict, Any
-from core.config import settings
-import logging
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
 
 # Detect if running in Cloud Run (proxy mode) or locally (direct mode)
-IS_CLOUD_RUN = settings.K_SERVICE is not None
+IS_CLOUD_RUN = os.environ.get("K_SERVICE") is not None
 
 # Mac server configuration
-MAC_SERVER_IP = settings.MAC_SERVER_IP
-MAC_SERVER_PORT = settings.MAC_SERVER_PORT
-SOCKS5_PROXY = settings.SOCKS5_PROXY
+MAC_SERVER_IP = "100.84.184.84"
+MAC_SERVER_PORT = 8888
+SOCKS5_PROXY = "socks5://localhost:1055"
 
 
 class CodeServerProxy:
@@ -37,11 +32,11 @@ class CodeServerProxy:
         elif IS_CLOUD_RUN:
             # In Cloud Run, connect to Mac via Tailscale
             self.code_server_url = f"http://{MAC_SERVER_IP}:{MAC_SERVER_PORT}"
-            logger.info(f"Cloud Run mode: proxying to {self.code_server_url} via SOCKS5")
+            print(f"[CodeServerProxy] Cloud Run mode: proxying to {self.code_server_url} via SOCKS5")
         else:
             # Local Mac, connect to localhost
             self.code_server_url = "http://127.0.0.1:8888"
-            logger.info(f"Local mode: connecting to {self.code_server_url}")
+            print(f"[CodeServerProxy] Local mode: connecting to {self.code_server_url}")
 
         self.client = None
 
@@ -58,7 +53,7 @@ class CodeServerProxy:
             # Add SOCKS5 proxy if running in Cloud Run
             if IS_CLOUD_RUN:
                 client_kwargs["proxy"] = SOCKS5_PROXY
-                logger.info(f"HTTP client using SOCKS5 proxy: {SOCKS5_PROXY}")
+                print(f"[CodeServerProxy] HTTP client using SOCKS5 proxy: {SOCKS5_PROXY}")
 
             self.client = httpx.AsyncClient(**client_kwargs)
         return self.client
@@ -87,8 +82,14 @@ class CodeServerProxy:
         path: str
     ) -> Response:
         """
-        Proxy HTTP request to code-server.
-        Injects a <base> tag into the main HTML response to fix asset paths.
+        Proxy HTTP request to code-server
+
+        Args:
+            request: FastAPI request object
+            path: Path to proxy (e.g., "index.html")
+
+        Returns:
+            Response from code-server
         """
         client = await self.get_client()
 
@@ -99,103 +100,37 @@ class CodeServerProxy:
 
         # Prepare headers
         headers = self._prepare_headers(request)
-        
+
         try:
-            req = client.build_request(request.method, url, headers=headers, content=await request.body())
-            response = await client.send(req, stream=True)
-
-            content_type = response.headers.get('content-type', '').lower()
-            
-            # --- Path rewriting for HTML and JS ---
-            is_html = 'text/html' in content_type
-            is_js = 'javascript' in content_type or path.endswith('.js')
-            is_html_entrypoint = is_html and (path == "" or path == "/" or "index.html" in path)
-
-            if is_html_entrypoint:
-                body_bytes = await response.aread()
-                
-                charset = 'utf-8'
-                if 'charset=' in content_type:
-                    charset = content_type.split('charset=')[-1]
-                
-                try:
-                    body_str = body_bytes.decode(charset)
-                except (UnicodeDecodeError, LookupError):
-                    body_str = body_bytes.decode('utf-8', errors='replace')
-
-                # Inject the <base> tag for correct asset paths
-                head_tag = "<head>"
-                injection = f'<head>\n    <base href="/dev/vscode/">'
-
-                if head_tag in body_str:
-                    body_str = body_str.replace(head_tag, injection, 1)
-                else:
-                    # Fallback if <head> is not found (less likely)
-                    logger.warning("Could not find <head> tag to inject <base> tag.")
-
-                new_body_bytes = body_str.encode('utf-8')
-                response_headers = dict(response.headers)
-                response_headers['content-length'] = str(len(new_body_bytes))
-                response_headers.pop('content-encoding', None)
-
-                return Response(
-                    content=new_body_bytes,
-                    status_code=response.status_code,
-                    headers=response_headers,
-                    media_type=response.headers.get('content-type')
-                )
-            elif is_js or is_html:
-                # Rewrite JS and other HTML files to fix absolute paths
-                body_bytes = await response.aread()
-
-                try:
-                    charset = 'utf-8'
-                    if 'charset=' in content_type:
-                        charset = content_type.split('charset=')[-1]
-                    body_str = body_bytes.decode(charset, errors='replace')
-
-                    # Fix absolute paths from /static/ or /stable- to /dev/vscode/...
-                    # VS Code uses absolute paths that need to be prefixed
-                    body_str = body_str.replace('"static/', '"/dev/vscode/static/')
-                    body_str = body_str.replace("'static/", "'/dev/vscode/static/")
-                    body_str = body_str.replace('"/stable-', '"/dev/vscode/stable-')
-                    body_str = body_str.replace("'/stable-", "'/dev/vscode/stable-")
-
-                    new_body_bytes = body_str.encode('utf-8')
-                    response_headers = dict(response.headers)
-                    response_headers['content-length'] = str(len(new_body_bytes))
-                    response_headers.pop('content-encoding', None)
-
-                    return Response(
-                        content=new_body_bytes,
-                        status_code=response.status_code,
-                        headers=response_headers,
-                        media_type=response.headers.get('content-type')
-                    )
-                except Exception as e:
-                    logger.warning(f"Failed to rewrite file {path}: {e}, streaming as-is")
-                    response_headers = dict(response.headers)
-                    response_headers.pop('content-encoding', None)
-                    response_headers.pop('transfer-encoding', None)
-                    return StreamingResponse(
-                        iter([body_bytes]),
-                        status_code=response.status_code,
-                        headers=response_headers,
-                        media_type=response.headers.get('content-type')
-                    )
+            # Proxy the request
+            if request.method == "GET":
+                response = await client.get(url, headers=headers)
+            elif request.method == "POST":
+                body = await request.body()
+                response = await client.post(url, headers=headers, content=body)
+            elif request.method == "PUT":
+                body = await request.body()
+                response = await client.put(url, headers=headers, content=body)
+            elif request.method == "DELETE":
+                response = await client.delete(url, headers=headers)
+            elif request.method == "PATCH":
+                body = await request.body()
+                response = await client.patch(url, headers=headers, content=body)
             else:
-                # For all other assets (CSS, images, WASM), stream them directly.
-                # This prevents corruption and is more efficient.
-                response_headers = dict(response.headers)
-                response_headers.pop('content-encoding', None)
-                response_headers.pop('transfer-encoding', None)
+                raise HTTPException(status_code=405, detail="Method not allowed")
 
-                return StreamingResponse(
-                    response.aiter_bytes(),
-                    status_code=response.status_code,
-                    headers=response_headers,
-                    media_type=response.headers.get('content-type')
-                )
+            # Prepare response headers (remove compression headers since httpx already decoded)
+            response_headers = dict(response.headers)
+            response_headers.pop('content-encoding', None)  # Remove gzip/brotli encoding
+            response_headers.pop('content-length', None)    # Length changed after decoding
+
+            # Return response
+            return Response(
+                content=response.content,
+                status_code=response.status_code,
+                headers=response_headers,
+                media_type=response.headers.get('content-type')
+            )
 
         except httpx.ConnectError:
             raise HTTPException(
@@ -203,7 +138,6 @@ class CodeServerProxy:
                 detail="code-server is not running. Please start it first."
             )
         except Exception as e:
-            logger.error(f"Error in code-server proxy: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
     async def proxy_websocket(
@@ -222,11 +156,11 @@ class CodeServerProxy:
         if IS_CLOUD_RUN:
             # Cloud Run: Connect to Mac via SOCKS5
             ws_url = f"ws://{MAC_SERVER_IP}:{MAC_SERVER_PORT}/{path}"
-            logger.info(f"Cloud Run mode: connecting to {ws_url} via SOCKS5")
+            print(f"[CodeServerProxy WS] Cloud Run mode: connecting to {ws_url} via SOCKS5")
         else:
             # Local: Connect to localhost
             ws_url = f"ws://127.0.0.1:8888/{path}"
-            logger.info(f"Local mode: connecting to {ws_url}")
+            print(f"[CodeServerProxy WS] Local mode: connecting to {ws_url}")
 
         # Retry configuration (matching HTTP retry logic)
         max_retries = 3
@@ -238,7 +172,7 @@ class CodeServerProxy:
                 if attempt > 0:
                     # Wait before retry with exponential backoff
                     wait_time = min(retry_delay * (2 ** (attempt - 1)), 2.5)
-                    logger.info(f"Retry attempt {attempt + 1}/{max_retries} after {wait_time}s delay...")
+                    print(f"[WS Proxy] Retry attempt {attempt + 1}/{max_retries} after {wait_time}s delay...")
                     await asyncio.sleep(wait_time)
 
                 await self._proxy_websocket_connection(client_ws, ws_url, path)
@@ -247,16 +181,16 @@ class CodeServerProxy:
             except (OSError, ConnectionError, TimeoutError) as e:
                 last_exception = e
                 error_name = type(e).__name__
-                logger.error(f"Connection attempt {attempt + 1}/{max_retries} failed: {error_name}: {e}")
+                print(f"[WS Proxy] ❌ Connection attempt {attempt + 1}/{max_retries} failed: {error_name}: {e}")
 
                 if attempt < max_retries - 1:
-                    logger.info("Will retry connection...")
+                    print(f"[WS Proxy] 🔄 Will retry connection...")
                 else:
-                    logger.error(f"All {max_retries} connection attempts failed")
+                    print(f"[WS Proxy] 💀 All {max_retries} connection attempts failed")
 
             except Exception as e:
                 # Non-retryable error
-                logger.error(f"Non-retryable error: {type(e).__name__}: {e}")
+                print(f"[WS Proxy] ❌ Non-retryable error: {type(e).__name__}: {e}")
                 await client_ws.close(code=1011, reason=f"Proxy error: {type(e).__name__}")
                 return
 
@@ -264,7 +198,7 @@ class CodeServerProxy:
         error_msg = f"Connection failed after {max_retries} attempts"
         if last_exception:
             error_msg += f": {last_exception}"
-        logger.error(f"{error_msg}")
+        print(f"[WS Proxy] {error_msg}")
         await client_ws.close(code=1011, reason="SOCKS5 proxy unavailable")
 
     async def _proxy_websocket_connection(
@@ -282,71 +216,104 @@ class CodeServerProxy:
             path: WebSocket path
         """
         try:
-            # Prepare headers to forward to code-server
-            # Forward relevant headers from browser to backend
-            extra_headers = {}
-            if hasattr(client_ws, 'headers'):
-                # Forward cookie for authentication
-                if 'cookie' in client_ws.headers:
-                    extra_headers['Cookie'] = client_ws.headers['cookie']
-                # Forward user-agent
-                if 'user-agent' in client_ws.headers:
-                    extra_headers['User-Agent'] = client_ws.headers['user-agent']
-
-            # Unified proxy logic using websockets library
-            connect_kwargs = {
-                "ping_interval": 30,
-                "ping_timeout": 10,
-                "close_timeout": 10,
-                "open_timeout": 60,  # Increase timeout for slow SOCKS5/Tailscale connection
-                "extra_headers": extra_headers  # Forward headers
-            }
             if IS_CLOUD_RUN:
-                connect_kwargs["proxy"] = SOCKS5_PROXY
-                connect_kwargs["open_timeout"] = 120  # Even longer timeout in Cloud Run
+                # Cloud Run: Use aiohttp with SOCKS5 proxy
+                import aiohttp
+                from aiohttp_socks import ProxyConnector
 
-            logger.debug(f"Connecting to {ws_url} with headers: {list(extra_headers.keys())}")
-            async with websockets.connect(ws_url, **connect_kwargs) as server_ws:
-                # Bidirectional proxy
-                async def forward_to_server():
-                    """Forward messages from browser to code-server"""
-                    try:
-                        while True:
-                            message = await client_ws.receive()
+                connector = ProxyConnector.from_url(SOCKS5_PROXY)
 
-                            if message.get('type') == 'websocket.disconnect':
-                                break
-                            elif 'text' in message:
-                                await server_ws.send(message['text'])
-                            elif 'bytes' in message:
-                                await server_ws.send(message['bytes'])
-                    except WebSocketDisconnect:
-                        pass
-                    except Exception as e:
-                        logger.error(f"Forward error: {e}")
+                async with aiohttp.ClientSession(connector=connector) as session:
+                    async with session.ws_connect(
+                        ws_url,
+                        timeout=aiohttp.ClientTimeout(total=43200)  # 12 hours
+                    ) as server_ws:
+                        # Bidirectional proxy
+                        async def forward_to_server():
+                            """Forward messages from browser to code-server"""
+                            try:
+                                while True:
+                                    message = await client_ws.receive()
 
-                async def forward_to_client():
-                    """Forward messages from code-server to browser"""
-                    try:
-                        async for message in server_ws:
-                            if isinstance(message, str):
-                                await client_ws.send_text(message)
-                            elif isinstance(message, bytes):
-                                await client_ws.send_bytes(message)
-                    except WebSocketDisconnect:
-                        pass
-                    except Exception as e:
-                        logger.error(f"Backward error: {e}")
+                                    if message.get('type') == 'websocket.disconnect':
+                                        break
+                                    elif 'text' in message:
+                                        await server_ws.send_str(message['text'])
+                                    elif 'bytes' in message:
+                                        await server_ws.send_bytes(message['bytes'])
+                            except WebSocketDisconnect:
+                                pass
+                            except Exception as e:
+                                print(f"[WS Proxy] Forward error: {e}")
 
-                await asyncio.gather(
-                    forward_to_server(),
-                    forward_to_client(),
-                    return_exceptions=True
-                )
+                        async def forward_to_client():
+                            """Forward messages from code-server to browser"""
+                            try:
+                                async for msg in server_ws:
+                                    if msg.type == aiohttp.WSMsgType.TEXT:
+                                        await client_ws.send_text(msg.data)
+                                    elif msg.type == aiohttp.WSMsgType.BINARY:
+                                        await client_ws.send_bytes(msg.data)
+                                    elif msg.type == aiohttp.WSMsgType.ERROR:
+                                        break
+                            except WebSocketDisconnect:
+                                pass
+                            except Exception as e:
+                                print(f"[WS Proxy] Backward error: {e}")
+
+                        await asyncio.gather(
+                            forward_to_server(),
+                            forward_to_client(),
+                            return_exceptions=True
+                        )
+            else:
+                # Local: Use websockets library (direct connection)
+                async with websockets.connect(
+                    ws_url,
+                    ping_interval=30,
+                    ping_timeout=10,
+                    close_timeout=10
+                ) as server_ws:
+                    # Bidirectional proxy
+                    async def forward_to_server():
+                        """Forward messages from browser to code-server"""
+                        try:
+                            while True:
+                                message = await client_ws.receive()
+
+                                if message.get('type') == 'websocket.disconnect':
+                                    break
+                                elif 'text' in message:
+                                    await server_ws.send(message['text'])
+                                elif 'bytes' in message:
+                                    await server_ws.send(message['bytes'])
+                        except WebSocketDisconnect:
+                            pass
+                        except Exception as e:
+                            print(f"[WS Proxy] Forward error: {e}")
+
+                    async def forward_to_client():
+                        """Forward messages from code-server to browser"""
+                        try:
+                            async for message in server_ws:
+                                if isinstance(message, str):
+                                    await client_ws.send_text(message)
+                                elif isinstance(message, bytes):
+                                    await client_ws.send_bytes(message)
+                        except WebSocketDisconnect:
+                            pass
+                        except Exception as e:
+                            print(f"[WS Proxy] Backward error: {e}")
+
+                    await asyncio.gather(
+                        forward_to_server(),
+                        forward_to_client(),
+                        return_exceptions=True
+                    )
 
         except Exception as e:
             # Re-raise to be caught by retry logic in proxy_websocket()
-            logger.error(f"Connection error in _proxy_websocket_connection: {type(e).__name__}: {e}")
+            print(f"[WS Proxy] Connection error in _proxy_websocket_connection: {type(e).__name__}: {e}")
             raise
 
     async def close(self):

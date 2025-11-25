@@ -151,12 +151,29 @@
             window.location.href = '/dev/login'; // Redirect to login page
         }
 
-        // Start automatic token refresh if user is logged in
+        // Check for token on page load and redirect if missing
         document.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('access_token') && localStorage.getItem('refresh_token')) {
-                console.log('[Dashboard] Starting automatic token refresh...');
-                window.authService.startAutoRefresh();
+            const accessToken = localStorage.getItem('access_token');
+            const refreshToken = localStorage.getItem('refresh_token');
+
+            if (!accessToken || !refreshToken) {
+                // No tokens found, redirect to login
+                console.log('[Dashboard] No tokens found, redirecting to login...');
+                window.location.href = '/dev/login';
+                return;
             }
+
+            // Check if current URL has token parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            if (!urlParams.has('tkn')) {
+                // Add token to URL to maintain session on refresh
+                console.log('[Dashboard] Adding token to URL for session persistence...');
+                window.location.href = `/dev/terminal?tkn=${accessToken}`;
+                return;
+            }
+
+            console.log('[Dashboard] Starting automatic token refresh...');
+            window.authService.startAutoRefresh();
         });
     </script>
 </body>

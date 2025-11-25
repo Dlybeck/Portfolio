@@ -14,6 +14,8 @@ pydantic-settings==2.12.0
 # Terminal & WebSockets
 websockets==15.0.1
 python-socks==2.5.2  # Required for websockets SOCKS5 proxy support
+aiohttp==3.11.11
+aiohttp-socks==0.9.1  # Required for code-server WebSocket SOCKS5 proxy
 ptyprocess==0.7.0
 aiofiles==24.1.0
 

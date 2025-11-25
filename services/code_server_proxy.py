@@ -123,16 +123,9 @@ class CodeServerProxy:
                 except (UnicodeDecodeError, LookupError):
                     body_str = body_bytes.decode('utf-8', errors='replace')
 
-                # Inject the <base> tag and configuration script to disable remote connection
+                # Inject the <base> tag for correct asset paths
                 head_tag = "<head>"
-                injection = f'''<head>
-    <base href="/dev/vscode/">
-    <meta name="vs-remote-authority" content="">
-    <script>
-        // Disable remote connection attempts for code-server
-        window.remoteAuthority = undefined;
-        window.isCodeServerRunning = true;
-    </script>'''
+                injection = f'<head>\n    <base href="/dev/vscode/">'
 
                 if head_tag in body_str:
                     body_str = body_str.replace(head_tag, injection, 1)
@@ -293,10 +286,12 @@ class CodeServerProxy:
             connect_kwargs = {
                 "ping_interval": 30,
                 "ping_timeout": 10,
-                "close_timeout": 10
+                "close_timeout": 10,
+                "open_timeout": 60  # Increase timeout for slow SOCKS5/Tailscale connection
             }
             if IS_CLOUD_RUN:
                 connect_kwargs["proxy"] = SOCKS5_PROXY
+                connect_kwargs["open_timeout"] = 120  # Even longer timeout in Cloud Run
 
             async with websockets.connect(ws_url, **connect_kwargs) as server_ws:
                 # Bidirectional proxy

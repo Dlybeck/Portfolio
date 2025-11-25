@@ -109,6 +109,8 @@ class AgorProxy:
                 body_str = body_str.replace("'/socket.io/", "'/dev/agor/socket.io/")
                 body_str = body_str.replace('"/socket.io"', '"/dev/agor/socket.io"')
                 body_str = body_str.replace("'/socket.io'", "'/dev/agor/socket.io'")
+                body_str = body_str.replace('||"/socket.io"', '||"/dev/agor/socket.io"')
+                body_str = body_str.replace("||'/socket.io'", "||'/dev/agor/socket.io'")
 
                 # Fix React Router basename by injecting script before app loads
                 # The Agor app has <Router basename="/ui"> but we're serving at /dev/agor/ui/
@@ -146,10 +148,13 @@ class AgorProxy:
 
                     # Fix Socket.IO connection path from "/socket.io" to "/dev/agor/socket.io"
                     # This is critical for WebSocket authentication to work
+                    # Match all patterns: quoted strings and default values (||"/socket.io")
                     body_str = body_str.replace('"/socket.io/', '"/dev/agor/socket.io/')
                     body_str = body_str.replace("'/socket.io/", "'/dev/agor/socket.io/")
                     body_str = body_str.replace('"/socket.io"', '"/dev/agor/socket.io"')
                     body_str = body_str.replace("'/socket.io'", "'/dev/agor/socket.io'")
+                    body_str = body_str.replace('||"/socket.io"', '||"/dev/agor/socket.io"')
+                    body_str = body_str.replace("||'/socket.io'", "||'/dev/agor/socket.io'")
 
                     new_body_bytes = body_str.encode('utf-8')
                     response_headers = dict(resp.headers)

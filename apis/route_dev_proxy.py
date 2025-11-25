@@ -332,6 +332,19 @@ async def agor_socketio_websocket_proxy(
     await proxy.proxy_websocket(websocket, f"/socket.io/{path}")
 
 
+# Public UI routes (no session auth required - users need to access login page)
+@dev_proxy_router.get("/agor/ui/{path:path}")
+async def agor_ui_proxy(
+    path: str,
+    request: Request
+):
+    """
+    🔓 Public proxy to Agor UI (users need access to login page)
+    """
+    proxy = get_agor_proxy()
+    return await proxy.proxy_request(request, f"ui/{path}")
+
+
 # Authenticated Agor routes (require session token)
 @dev_proxy_router.get("/agor/{path:path}")
 @dev_proxy_router.post("/agor/{path:path}")

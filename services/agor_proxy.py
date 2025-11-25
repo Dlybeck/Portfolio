@@ -103,6 +103,13 @@ class AgorProxy:
                 body_str = body_str.replace('"/ui/', '"/dev/agor/ui/')
                 body_str = body_str.replace("'/ui/", "'/dev/agor/ui/")
 
+                # Fix Socket.IO connection path from "/socket.io" to "/dev/agor/socket.io"
+                # This is critical for WebSocket authentication to work
+                body_str = body_str.replace('"/socket.io/', '"/dev/agor/socket.io/')
+                body_str = body_str.replace("'/socket.io/", "'/dev/agor/socket.io/")
+                body_str = body_str.replace('"/socket.io"', '"/dev/agor/socket.io"')
+                body_str = body_str.replace("'/socket.io'", "'/dev/agor/socket.io'")
+
                 # Fix React Router basename by injecting script before app loads
                 # The Agor app has <Router basename="/ui"> but we're serving at /dev/agor/ui/
                 # Inject a base tag to fix routing
@@ -110,7 +117,7 @@ class AgorProxy:
                     base_injection = '<head>\n    <base href="/dev/agor/ui/">'
                     body_str = body_str.replace('<head>', base_injection, 1)
 
-                logger.info("Rewrote /ui/ paths to /dev/agor/ui/ and injected base tag in Agor HTML")
+                logger.info("Rewrote /ui/ and /socket.io/ paths to /dev/agor/* and injected base tag in Agor HTML")
 
                 # Encode and update headers
                 new_body_bytes = body_str.encode('utf-8')
@@ -137,12 +144,19 @@ class AgorProxy:
                     body_str = body_str.replace("basename:'/ui'", "basename:'/dev/agor/ui'")
                     body_str = body_str.replace("basename='/ui'", "basename='/dev/agor/ui'")
 
+                    # Fix Socket.IO connection path from "/socket.io" to "/dev/agor/socket.io"
+                    # This is critical for WebSocket authentication to work
+                    body_str = body_str.replace('"/socket.io/', '"/dev/agor/socket.io/')
+                    body_str = body_str.replace("'/socket.io/", "'/dev/agor/socket.io/")
+                    body_str = body_str.replace('"/socket.io"', '"/dev/agor/socket.io"')
+                    body_str = body_str.replace("'/socket.io'", "'/dev/agor/socket.io'")
+
                     new_body_bytes = body_str.encode('utf-8')
                     response_headers = dict(resp.headers)
                     response_headers['content-length'] = str(len(new_body_bytes))
                     response_headers.pop('content-encoding', None)
 
-                    logger.debug(f"Rewrote React Router basename in JS file: {path}")
+                    logger.debug(f"Rewrote React Router basename and Socket.IO paths in JS file: {path}")
 
                     return StreamingResponse(
                         iter([new_body_bytes]),

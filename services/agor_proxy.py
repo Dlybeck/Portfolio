@@ -156,6 +156,17 @@ class AgorProxy:
                     body_str = body_str.replace('||"/socket.io"', '||"/dev/agor/socket.io"')
                     body_str = body_str.replace("||'/socket.io'", "||'/dev/agor/socket.io'")
 
+                    # Increase Socket.IO connection timeout for slow Tailscale relay
+                    # Find and replace the Socket.IO options object to add timeout
+                    # Pattern: transports:["polling","websocket"] or similar config objects
+                    import re
+                    # Add timeout to Socket.IO initialization (increase from default ~20s to 60s)
+                    body_str = re.sub(
+                        r'(transports:\s*\[[^\]]+\])',
+                        r'\1,timeout:60000',
+                        body_str
+                    )
+
                     new_body_bytes = body_str.encode('utf-8')
                     response_headers = dict(resp.headers)
                     response_headers['content-length'] = str(len(new_body_bytes))

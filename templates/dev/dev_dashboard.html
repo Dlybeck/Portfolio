@@ -18,13 +18,17 @@
             background-color: #1a1a1a;
         }
         .header {
-            display: flex;
+            display: flex !important;
             justify-content: space-between;
             align-items: center;
             padding: 6px 16px;
             background: linear-gradient(135deg, #006699, #005588);
-            height: 40px;
+            height: 40px !important;
+            min-height: 40px !important;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            position: relative !important;
+            z-index: 9999 !important;
+            flex-shrink: 0 !important;
         }
         .header h1 {
             margin: 0;
@@ -151,8 +155,68 @@
             window.location.href = '/dev/login'; // Redirect to login page
         }
 
+        // Protect header from being hidden by iframe manipulation
+        function protectHeader() {
+            const header = document.querySelector('.header');
+            if (!header) return;
+
+            // Ensure header stays visible
+            header.style.display = 'flex';
+            header.style.visibility = 'visible';
+            header.style.opacity = '1';
+
+            // Watch for any attempts to hide the header
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.target === header) {
+                        // If someone tries to hide the header, restore it
+                        const computed = window.getComputedStyle(header);
+                        if (computed.display === 'none' || computed.visibility === 'hidden' || computed.opacity === '0') {
+                            console.warn('[Dashboard] Header visibility was modified, restoring...');
+                            header.style.display = 'flex';
+                            header.style.visibility = 'visible';
+                            header.style.opacity = '1';
+                        }
+                    }
+                });
+            });
+
+            observer.observe(header, {
+                attributes: true,
+                attributeFilter: ['style', 'class']
+            });
+
+            // Also watch the body for any style changes that might affect layout
+            const bodyObserver = new MutationObserver(() => {
+                const body = document.body;
+                const computed = window.getComputedStyle(body);
+
+                // Ensure body stays flexbox column
+                if (computed.display !== 'flex' || computed.flexDirection !== 'column') {
+                    body.style.display = 'flex';
+                    body.style.flexDirection = 'column';
+                }
+            });
+
+            bodyObserver.observe(document.body, {
+                attributes: true,
+                attributeFilter: ['style', 'class']
+            });
+        }
+
+        // Block any postMessage attempts from iframes trying to manipulate parent
+        window.addEventListener('message', (event) => {
+            // Log but ignore resize/fullscreen requests from iframes
+            if (event.data && (event.data.type === 'resize' || event.data.type === 'fullscreen')) {
+                console.log('[Dashboard] Blocked iframe manipulation attempt:', event.data);
+                return false;
+            }
+        });
+
         // Check for token on page load and redirect if missing
         document.addEventListener('DOMContentLoaded', () => {
+            // Start header protection immediately
+            protectHeader();
             const accessToken = localStorage.getItem('access_token');
             const refreshToken = localStorage.getItem('refresh_token');
 

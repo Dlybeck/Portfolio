@@ -305,6 +305,33 @@ async def agor_auth_proxy(
     return await proxy.proxy_request(request, "authentication")
 
 
+# Public Socket.IO endpoints (no session auth required - Agor handles its own auth)
+@dev_proxy_router.get("/agor/socket.io/{path:path}")
+@dev_proxy_router.post("/agor/socket.io/{path:path}")
+async def agor_socketio_proxy(
+    path: str,
+    request: Request
+):
+    """
+    🔓 Public proxy to Agor Socket.IO endpoint
+    """
+    proxy = get_agor_proxy()
+    return await proxy.proxy_request(request, f"socket.io/{path}")
+
+
+@dev_proxy_router.websocket("/agor/socket.io/{path:path}")
+async def agor_socketio_websocket_proxy(
+    websocket: WebSocket,
+    path: str
+):
+    """
+    🔓 Public WebSocket proxy to Agor Socket.IO (Agor handles its own auth)
+    """
+    await websocket.accept()
+    proxy = get_agor_proxy()
+    await proxy.proxy_websocket(websocket, f"/socket.io/{path}")
+
+
 # Authenticated Agor routes (require session token)
 @dev_proxy_router.get("/agor/{path:path}")
 @dev_proxy_router.post("/agor/{path:path}")

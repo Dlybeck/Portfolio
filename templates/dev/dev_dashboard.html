@@ -2,20 +2,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Dev Dashboard</title>
     <link rel="stylesheet" href="/static/dev/css/variables.css">
     <link rel="stylesheet" href="/static/dev/css/dashboard.css">
     <style>
+        html {
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+        }
         body {
             margin: 0;
             padding: 0;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            display: flex !important;
+            flex-direction: column !important;
             height: 100vh;
+            height: 100dvh; /* Dynamic viewport height for mobile */
+            width: 100vw;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: #1a1a1a;
+            position: fixed !important;
+            top: 0;
+            left: 0;
         }
         .header {
             display: flex !important;
@@ -80,6 +94,10 @@
             flex-grow: 1;
             position: relative;
             background: #1a1a1a;
+            overflow: hidden;
+            /* Mobile-specific: prevent any scrolling or bouncing */
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: none;
         }
         iframe {
             width: 100%;
@@ -213,10 +231,79 @@
             }
         });
 
+        // Mobile-specific protections
+        function setupMobileProtection() {
+            // Prevent pull-to-refresh and overscroll on mobile
+            let lastTouchY = 0;
+            let preventPullToRefresh = false;
+
+            document.body.addEventListener('touchstart', (e) => {
+                if (e.touches.length !== 1) return;
+                lastTouchY = e.touches[0].clientY;
+                // Prevent pull-to-refresh at the top of the page
+                preventPullToRefresh = window.pageYOffset === 0;
+            }, { passive: false });
+
+            document.body.addEventListener('touchmove', (e) => {
+                const touchY = e.touches[0].clientY;
+                const touchYDelta = touchY - lastTouchY;
+                lastTouchY = touchY;
+
+                // Prevent pull-to-refresh
+                if (preventPullToRefresh) {
+                    // If scrolling down at top of page, prevent
+                    if (touchYDelta > 0) {
+                        e.preventDefault();
+                        return;
+                    }
+                }
+            }, { passive: false });
+
+            // Prevent viewport changes on mobile when keyboard appears
+            const viewport = document.querySelector('meta[name=viewport]');
+            function preventViewportChange() {
+                if (viewport) {
+                    viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+                }
+            }
+
+            // Fix viewport on orientation change
+            window.addEventListener('orientationchange', () => {
+                preventViewportChange();
+                // Force header to stay visible after orientation change
+                setTimeout(protectHeader, 100);
+            });
+
+            // Prevent iOS Safari from hiding UI on scroll
+            window.addEventListener('scroll', (e) => {
+                if (window.scrollY !== 0) {
+                    window.scrollTo(0, 0);
+                }
+            }, { passive: false });
+
+            // Handle resize events (triggered by mobile browser UI appearing/disappearing)
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    // Re-protect header after resize
+                    protectHeader();
+
+                    // Ensure body layout is correct
+                    document.body.style.display = 'flex';
+                    document.body.style.flexDirection = 'column';
+                }, 100);
+            });
+        }
+
         // Check for token on page load and redirect if missing
         document.addEventListener('DOMContentLoaded', () => {
             // Start header protection immediately
             protectHeader();
+
+            // Setup mobile-specific protections
+            setupMobileProtection();
+
             const accessToken = localStorage.getItem('access_token');
             const refreshToken = localStorage.getItem('refresh_token');
 

@@ -292,6 +292,20 @@ async def vscode_websocket_proxy(
 
 
 # ==================== AGOR PROXY ROUTES ====================
+
+# Public authentication endpoint (no session auth required - Agor handles its own auth)
+@dev_proxy_router.post("/agor/authentication")
+async def agor_auth_proxy(
+    request: Request
+):
+    """
+    🔓 Public proxy to Agor authentication endpoint
+    """
+    proxy = get_agor_proxy()
+    return await proxy.proxy_request(request, "authentication")
+
+
+# Authenticated Agor routes (require session token)
 @dev_proxy_router.get("/agor/{path:path}")
 @dev_proxy_router.post("/agor/{path:path}")
 @dev_proxy_router.put("/agor/{path:path}")

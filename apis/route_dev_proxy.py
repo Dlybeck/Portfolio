@@ -331,6 +331,10 @@ async def agor_socketio_websocket_proxy(
     """
     🔓 Public WebSocket proxy to Agor Socket.IO (Agor handles its own auth)
     """
+    logger.info(f"🔌 Agor Socket.IO WebSocket request received")
+    logger.info(f"   Path: {path}")
+    logger.info(f"   EIO: {EIO}, transport: {transport}, t: {t}, sid: {sid}")
+
     # Build full path with query parameters (critical for Socket.IO: ?EIO=4&transport=websocket)
     full_path = f"/socket.io/{path}"
 
@@ -347,7 +351,9 @@ async def agor_socketio_websocket_proxy(
 
     if query_params:
         full_path += f"?{'&'.join(query_params)}"
-        logger.info(f"Agor Socket.IO WebSocket connecting to: {full_path}")
+        logger.info(f"   Full path with query: {full_path}")
+    else:
+        logger.warning(f"   ⚠️  No query parameters received!")
 
     await websocket.accept()
     proxy = get_agor_proxy()

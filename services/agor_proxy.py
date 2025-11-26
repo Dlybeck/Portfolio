@@ -226,10 +226,12 @@ class AgorProxy:
         # Build target WebSocket URL
         if IS_CLOUD_RUN:
             ws_url = f"ws://{MAC_SERVER_IP}:3030{path}"
-            logger.info(f"Cloud Run mode: connecting to {ws_url} via SOCKS5")
+            logger.info(f"🔌 Cloud Run mode: WebSocket proxy starting")
+            logger.info(f"   Target: {ws_url}")
+            logger.info(f"   SOCKS5: {SOCKS5_PROXY}")
         else:
             ws_url = f"ws://127.0.0.1:3030{path}"
-            logger.info(f"Local mode: connecting to {ws_url}")
+            logger.info(f"🔌 Local mode: WebSocket proxy to {ws_url}")
 
         # Retry configuration
         max_retries = 3
@@ -248,14 +250,15 @@ class AgorProxy:
 
             except (OSError, ConnectionError, TimeoutError) as e:
                 last_exception = e
-                logger.error(f"Connection attempt {attempt + 1}/{max_retries} failed: {type(e).__name__}: {e}")
+                logger.error(f"❌ Connection attempt {attempt + 1}/{max_retries} failed: {type(e).__name__}: {e}")
                 if attempt < max_retries - 1:
-                    logger.info("Will retry connection...")
+                    logger.info("🔄 Will retry connection...")
                 else:
-                    logger.error(f"All {max_retries} connection attempts failed")
+                    logger.error(f"💀 All {max_retries} connection attempts failed")
 
             except Exception as e:
-                logger.error(f"Non-retryable error: {type(e).__name__}: {e}")
+                logger.error(f"❌ Non-retryable error in proxy_websocket: {type(e).__name__}: {e}")
+                logger.exception(e)  # Print full stack trace
                 await client_websocket.close(code=1011, reason=f"Proxy error: {type(e).__name__}")
                 return
 
@@ -277,13 +280,16 @@ class AgorProxy:
                 from aiohttp_socks import ProxyConnector
 
                 connector = ProxyConnector.from_url(SOCKS5_PROXY)
+                logger.info(f"🔌 SOCKS5 connector created, attempting connection...")
 
                 async with aiohttp.ClientSession(connector=connector) as session:
+                    logger.info(f"🔌 aiohttp session created, connecting to {ws_url}...")
                     async with session.ws_connect(
                         ws_url,
                         timeout=aiohttp.ClientTimeout(total=43200, connect=60)  # 12 hours total, 60s connect for slow Tailscale relay
                     ) as server_ws:
-                        logger.info(f"WebSocket connection established to Agor: {ws_url}")
+                        logger.info(f"✅ WebSocket connection ESTABLISHED to Agor: {ws_url}")
+                        logger.info(f"🔌 Starting bidirectional message forwarding...")
 
                         async def forward_to_server():
                             """Forward messages from browser to Agor"""

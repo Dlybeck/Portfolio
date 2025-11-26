@@ -355,7 +355,7 @@ async def agor_socketio_websocket_proxy(
     else:
         logger.warning(f"   ⚠️  No query parameters received!")
 
-    await websocket.accept()
+    # Don't accept here - let the proxy function handle it after backend connection
     proxy = get_agor_proxy()
     await proxy.proxy_websocket(websocket, full_path)
 

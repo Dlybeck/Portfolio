@@ -292,12 +292,16 @@ class AgorProxy:
                                     message = await client_websocket.receive()
 
                                     if message.get('type') == 'websocket.disconnect':
+                                        logger.info("Browser disconnected from Agor WebSocket")
                                         break
                                     elif 'text' in message:
+                                        logger.debug(f"Browser → Agor: {message['text'][:100]}")
                                         await server_ws.send_str(message['text'])
                                     elif 'bytes' in message:
+                                        logger.debug(f"Browser → Agor: {len(message['bytes'])} bytes")
                                         await server_ws.send_bytes(message['bytes'])
                             except WebSocketDisconnect:
+                                logger.info("Browser WebSocket disconnect")
                                 pass
                             except Exception as e:
                                 logger.error(f"Forward error: {e}")
@@ -307,12 +311,16 @@ class AgorProxy:
                             try:
                                 async for msg in server_ws:
                                     if msg.type == aiohttp.WSMsgType.TEXT:
+                                        logger.debug(f"Agor → Browser: {msg.data[:100]}")
                                         await client_websocket.send_text(msg.data)
                                     elif msg.type == aiohttp.WSMsgType.BINARY:
+                                        logger.debug(f"Agor → Browser: {len(msg.data)} bytes")
                                         await client_websocket.send_bytes(msg.data)
                                     elif msg.type == aiohttp.WSMsgType.ERROR:
+                                        logger.error("Agor WebSocket error message received")
                                         break
                             except WebSocketDisconnect:
+                                logger.info("Browser disconnected during forward_to_client")
                                 pass
                             except Exception as e:
                                 logger.error(f"Backward error: {e}")

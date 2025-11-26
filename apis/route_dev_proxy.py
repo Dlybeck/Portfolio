@@ -327,9 +327,15 @@ async def agor_socketio_websocket_proxy(
     """
     🔓 Public WebSocket proxy to Agor Socket.IO (Agor handles its own auth)
     """
+    # Build full path with query parameters (critical for Socket.IO: ?EIO=4&transport=websocket)
+    full_path = f"/socket.io/{path}"
+    if websocket.url.query:
+        full_path += f"?{websocket.url.query}"
+        logger.info(f"Agor Socket.IO WebSocket path with query: {full_path}")
+
     await websocket.accept()
     proxy = get_agor_proxy()
-    await proxy.proxy_websocket(websocket, f"/socket.io/{path}")
+    await proxy.proxy_websocket(websocket, full_path)
 
 
 # Public UI routes (no session auth required - users need to access login page)

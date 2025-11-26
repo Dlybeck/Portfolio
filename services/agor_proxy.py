@@ -148,6 +148,17 @@ class AgorProxy:
                     body_str = body_str.replace("basename:'/ui'", "basename:'/dev/agor/ui'")
                     body_str = body_str.replace("basename='/ui'", "basename='/dev/agor/ui'")
 
+                    # Fix all /ui/ asset paths in strings (images, fonts, etc)
+                    # Matches: "/ui/assets/...", '/ui/assets/...', "/ui/fonts/...", etc
+                    body_str = body_str.replace('"/ui/assets/', '"/dev/agor/ui/assets/')
+                    body_str = body_str.replace("'/ui/assets/", "'/dev/agor/ui/assets/")
+                    body_str = body_str.replace('"/ui/fonts/', '"/dev/agor/ui/fonts/')
+                    body_str = body_str.replace("'/ui/fonts/", "'/dev/agor/ui/fonts/")
+                    body_str = body_str.replace('"/ui/images/', '"/dev/agor/ui/images/')
+                    body_str = body_str.replace("'/ui/images/", "'/dev/agor/ui/images/")
+                    body_str = body_str.replace('"/ui/static/', '"/dev/agor/ui/static/')
+                    body_str = body_str.replace("'/ui/static/", "'/dev/agor/ui/static/")
+
                     # Fix Socket.IO connection path from "/socket.io" to "/dev/agor/socket.io"
                     # This is critical for WebSocket authentication to work
                     # Match all patterns: quoted strings and default values (||"/socket.io")

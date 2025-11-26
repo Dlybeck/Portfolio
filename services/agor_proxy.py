@@ -81,9 +81,10 @@ class AgorProxy:
 
             content_type = resp.headers.get('content-type', '').lower()
 
-            # Rewrite paths for HTML and JavaScript responses
+            # Rewrite paths for HTML, JavaScript, and CSS responses
             is_html = 'text/html' in content_type
             is_js = 'javascript' in content_type or path.endswith('.js')
+            is_css = 'text/css' in content_type or path.endswith('.css')
 
             if is_html:
                 # Read the full response
@@ -191,8 +192,43 @@ class AgorProxy:
                         status_code=resp.status_code,
                         headers=response_headers
                     )
+            elif is_css:
+                # Rewrite CSS files to fix asset paths
+                body_bytes = await resp.aread()
+
+                try:
+                    body_str = body_bytes.decode('utf-8')
+
+                    # Fix CSS url() references from /ui/ to /dev/agor/ui/
+                    # Matches: url('/ui/...'), url("/ui/..."), url(/ui/...)
+                    import re
+                    body_str = re.sub(r'url\(["\']?/ui/', r'url(/dev/agor/ui/', body_str)
+
+                    new_body_bytes = body_str.encode('utf-8')
+                    response_headers = dict(resp.headers)
+                    response_headers['content-length'] = str(len(new_body_bytes))
+                    response_headers.pop('content-encoding', None)
+
+                    logger.debug(f"Rewrote CSS asset paths in: {path}")
+
+                    return StreamingResponse(
+                        iter([new_body_bytes]),
+                        status_code=resp.status_code,
+                        headers=response_headers
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to rewrite CSS file {path}: {e}, streaming as-is")
+                    # Fall back to streaming if rewrite fails
+                    response_headers = dict(resp.headers)
+                    response_headers.pop('content-encoding', None)
+                    response_headers.pop('transfer-encoding', None)
+                    return StreamingResponse(
+                        iter([body_bytes]),
+                        status_code=resp.status_code,
+                        headers=response_headers
+                    )
             else:
-                # Stream non-HTML/JS responses directly
+                # Stream non-HTML/JS/CSS responses directly
                 response_headers = dict(resp.headers)
                 response_headers.pop('content-encoding', None)
                 response_headers.pop('transfer-encoding', None)

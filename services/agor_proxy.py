@@ -169,6 +169,14 @@ class AgorProxy:
                     body_str = body_str.replace('||"/socket.io"', '||"/dev/agor/socket.io"')
                     body_str = body_str.replace("||'/socket.io'", "||'/dev/agor/socket.io'")
 
+                    # Fix Agor 0.9.0 path detection for proxy environments
+                    # Agor checks if(window.location.pathname.startsWith("/ui")) to decide whether to add :3030
+                    # We're serving at /dev/agor/ui/ so we need to patch this check
+                    body_str = body_str.replace(
+                        'window.location.pathname.startsWith("/ui")',
+                        '(window.location.pathname.startsWith("/ui")||window.location.pathname.includes("/agor/ui"))'
+                    )
+
                     # Increase Socket.IO connection timeout for slow Tailscale relay
                     # Find and replace the Socket.IO options object to add timeout
                     # Pattern: transports:["polling","websocket"] or similar config objects

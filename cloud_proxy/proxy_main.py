@@ -20,7 +20,8 @@ app = FastAPI()
 MAC_SERVER_URL = "http://100.84.184.84:8080"
 
 # HTTP client for proxying requests
-client = httpx.AsyncClient(timeout=60.0)
+# Use longer timeout for initial code-server/Agor loads via Tailscale
+client = httpx.AsyncClient(timeout=httpx.Timeout(300.0, connect=30.0))
 
 
 @app.get("/health")

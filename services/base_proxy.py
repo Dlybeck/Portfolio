@@ -193,12 +193,12 @@ class BaseProxy:
             if IS_CLOUD_RUN:
                 connector = ProxyConnector.from_url(SOCKS5_PROXY)
             
-            # Forward only essential headers for authentication and context
-            # Filtering out WS protocol headers that aiohttp will regenerate or conflict with
+            # Forward most headers to ensure compatibility, but filter strictly problematic ones
+            # We DO need to filter 'Connection' and 'Upgrade' because aiohttp handles those
             ws_headers = {}
-            allowed_headers = {'authorization', 'cookie', 'user-agent', 'x-forwarded-for', 'x-forwarded-proto'}
+            excluded_headers = {'host', 'connection', 'upgrade', 'sec-websocket-key', 'sec-websocket-version', 'sec-websocket-extensions'}
             for k, v in client_ws.headers.items():
-                if k.lower() in allowed_headers:
+                if k.lower() not in excluded_headers:
                     ws_headers[k] = v
             
             # Force Origin to match upstream to bypass CSWSH checks

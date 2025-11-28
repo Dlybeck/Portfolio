@@ -197,43 +197,48 @@ class BaseProxy:
             # Actually we can use a one-off session or the shared one.
             # Better to use a dedicated session for the long-lived WS connection to be safe.
             async with aiohttp.ClientSession(connector=connector) as ws_session:
-                async with ws_session.ws_connect(
-                    ws_url,
-                    timeout=aiohttp.ClientTimeout(total=43200, connect=60),
-                    heartbeat=15.0,
-                    autoping=True
-                ) as server_ws:
-                    
-                    # Bidirectional forwarding
-                    async def forward_client_to_server():
-                        try:
-                            while True:
-                                msg = await client_ws.receive()
-                                if msg.get("type") == "websocket.disconnect":
-                                    break
-                                if "text" in msg:
-                                    await server_ws.send_str(msg["text"])
-                                if "bytes" in msg:
-                                    await server_ws.send_bytes(msg["bytes"])
-                        except Exception:
-                            pass
+                try:
+                    async with ws_session.ws_connect(
+                        ws_url,
+                        timeout=aiohttp.ClientTimeout(total=43200, connect=60), # Increased connect timeout
+                        heartbeat=15.0,
+                        autoping=True,
+                        headers=client_ws.headers # Forward headers for auth
+                    ) as server_ws:
+                        
+                        # Bidirectional forwarding
+                        async def forward_client_to_server():
+                            try:
+                                while True:
+                                    msg = await client_ws.receive()
+                                    if msg.get("type") == "websocket.disconnect":
+                                        break
+                                    if "text" in msg:
+                                        await server_ws.send_str(msg["text"])
+                                    if "bytes" in msg:
+                                        await server_ws.send_bytes(msg["bytes"])
+                            except Exception as e:
+                                logger.error(f"[{self.__class__.__name__}] Client->Server error: {e}")
 
-                    async def forward_server_to_client():
-                        try:
-                            async for msg in server_ws:
-                                if msg.type == aiohttp.WSMsgType.TEXT:
-                                    await client_ws.send_text(msg.data)
-                                elif msg.type == aiohttp.WSMsgType.BINARY:
-                                    await client_ws.send_bytes(msg.data)
-                                elif msg.type == aiohttp.WSMsgType.ERROR:
-                                    break
-                        except Exception:
-                            pass
+                        async def forward_server_to_client():
+                            try:
+                                async for msg in server_ws:
+                                    if msg.type == aiohttp.WSMsgType.TEXT:
+                                        await client_ws.send_text(msg.data)
+                                    elif msg.type == aiohttp.WSMsgType.BINARY:
+                                        await client_ws.send_bytes(msg.data)
+                                    elif msg.type == aiohttp.WSMsgType.ERROR:
+                                        break
+                            except Exception as e:
+                                logger.error(f"[{self.__class__.__name__}] Server->Client error: {e}")
 
-                    await asyncio.gather(forward_client_to_server(), forward_server_to_client())
+                        await asyncio.gather(forward_client_to_server(), forward_server_to_client())
+                except Exception as e:
+                    logger.error(f"[{self.__class__.__name__}] WS Connection failed: {e}")
+                    await client_ws.close(code=1011, reason=str(e))
 
         except Exception as e:
-            logger.error(f"[{self.__class__.__name__}] WS Error: {e}")
+            logger.error(f"[{self.__class__.__name__}] WS Setup Error: {e}")
             await client_ws.close(code=1011)
 
     async def close(self):

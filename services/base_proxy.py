@@ -215,6 +215,10 @@ class BaseProxy:
                 protocols = [p.strip() for p in client_ws.headers['sec-websocket-protocol'].split(',')]
                 logger.info(f"[{self.__class__.__name__}] Forwarding WS protocols: {protocols}")
 
+            # Log critical WS headers for debugging
+            if 'sec-websocket-key' not in client_ws.headers:
+                logger.warning(f"[{self.__class__.__name__}] Missing Sec-WebSocket-Key in client request")
+            
             async with aiohttp.ClientSession(connector=connector) as ws_session:
                 try:
                     async with ws_session.ws_connect(

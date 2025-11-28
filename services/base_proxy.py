@@ -5,13 +5,14 @@ Centralizes logic for:
 - SOCKS5 proxy negotiation (for Cloud Run)
 - Header filtering/normalization
 - Streaming responses
-- WebSocket tunneling
+- WebSocket tunneling (using websockets library)
 """
 
 import aiohttp
 import asyncio
 import os
 import logging
+import websockets
 from typing import Dict, Any, Optional, AsyncGenerator
 from fastapi import Request, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
@@ -175,98 +176,84 @@ class BaseProxy:
             raise HTTPException(status_code=500, detail=str(e))
 
     async def proxy_websocket(self, client_ws: WebSocket, path: str):
-        """Generic WebSocket proxy with SOCKS5 support"""
+        """Generic WebSocket proxy with SOCKS5 support using websockets library"""
         await client_ws.accept()
         
         # Construct WebSocket URL
-        scheme = "ws" if not self.base_url.startswith("https") else "wss"
-        # Extract host/port from base_url logic
-        # But wait, the base_url might be http://IP:PORT
-        # We need to convert http:// -> ws://
         ws_base = self.base_url.replace("http://", "ws://").replace("https://", "wss://")
         ws_url = f"{ws_base}/{path}"
 
         logger.info(f"[{self.__class__.__name__}] WS Proxy to {ws_url}")
 
+        # Prepare headers
+        ws_headers = {}
+        excluded_headers = {'host', 'connection', 'upgrade', 'sec-websocket-key', 'sec-websocket-version', 'sec-websocket-extensions'}
+        for k, v in client_ws.headers.items():
+            if k.lower() not in excluded_headers:
+                ws_headers[k] = v
+        
+        # Spoof Origin
+        upstream_origin = ws_url.replace("ws://", "http://").replace("wss://", "https://")
+        upstream_origin = "/".join(upstream_origin.split("/")[:3])
+        ws_headers['Origin'] = upstream_origin
+        logger.info(f"[{self.__class__.__name__}] Spoofing Origin: {upstream_origin}")
+
+        # Prepare subprotocols
+        subprotocols = None
+        if 'sec-websocket-protocol' in client_ws.headers:
+            subprotocols = [p.strip() for p in client_ws.headers['sec-websocket-protocol'].split(',')]
+            logger.info(f"[{self.__class__.__name__}] Forwarding WS protocols: {subprotocols}")
+
+        # Configure Proxy for websockets library
+        proxy_url = None
+        if IS_CLOUD_RUN:
+            proxy_url = SOCKS5_PROXY
+            logger.info(f"[{self.__class__.__name__}] Using websockets proxy: {proxy_url}")
+
         try:
-            connector = None
-            if IS_CLOUD_RUN:
-                connector = ProxyConnector.from_url(SOCKS5_PROXY)
-            
-            # Forward most headers to ensure compatibility, but filter strictly problematic ones
-            # We DO need to filter 'Connection' and 'Upgrade' because aiohttp handles those
-            ws_headers = {}
-            excluded_headers = {'host', 'connection', 'upgrade', 'sec-websocket-key', 'sec-websocket-version', 'sec-websocket-extensions'}
-            for k, v in client_ws.headers.items():
-                if k.lower() not in excluded_headers:
-                    ws_headers[k] = v
-            
-            # Force Origin to match upstream to bypass CSWSH checks
-            # Convert ws://... -> http://... and wss://... -> https://...
-            upstream_origin = ws_url.replace("ws://", "http://").replace("wss://", "https://")
-            # Remove path from origin
-            upstream_origin = "/".join(upstream_origin.split("/")[:3])
-            ws_headers['Origin'] = upstream_origin
-            logger.info(f"[{self.__class__.__name__}] Spoofing Origin: {upstream_origin}")
-
-            # Extract WebSocket subprotocols (e.g. for auth or specific app protocols)
-            protocols = None
-            if 'sec-websocket-protocol' in client_ws.headers:
-                protocols_str = client_ws.headers['sec-websocket-protocol']
-                protocols = [p.strip() for p in protocols_str.split(',')]
-                logger.info(f"[{self.__class__.__name__}] Extracted WS protocols: {protocols}")
+            async with websockets.connect(
+                ws_url,
+                extra_headers=ws_headers,
+                subprotocols=subprotocols,
+                proxy=proxy_url,
+                open_timeout=60,
+                ping_interval=15,
+                ping_timeout=45
+            ) as server_ws:
                 
-                # Critical: explicitly add the header back. code-server checks this header directly
-                # aiohttp's 'protocols' argument handles the handshake, but the header might be needed for application logic
-                ws_headers['Sec-WebSocket-Protocol'] = protocols_str
+                # Bidirectional forwarding
+                async def forward_client_to_server():
+                    try:
+                        while True:
+                            msg = await client_ws.receive()
+                            if msg.get("type") == "websocket.disconnect":
+                                break
+                            if "text" in msg:
+                                await server_ws.send(msg["text"])
+                            if "bytes" in msg:
+                                await server_ws.send(msg["bytes"])
+                    except WebSocketDisconnect:
+                        pass # Normal closure
+                    except Exception as e:
+                        logger.error(f"[{self.__class__.__name__}] Client->Server error: {e}")
 
-            logger.info(f"[{self.__class__.__name__}] Connecting to WS with headers: {ws_headers}")
+                async def forward_server_to_client():
+                    try:
+                        async for msg in server_ws:
+                            if isinstance(msg, str):
+                                await client_ws.send_text(msg)
+                            elif isinstance(msg, bytes):
+                                await client_ws.send_bytes(msg)
+                    except websockets.exceptions.ConnectionClosed:
+                        pass # Normal closure
+                    except Exception as e:
+                        logger.error(f"[{self.__class__.__name__}] Server->Client error: {e}")
 
-            async with aiohttp.ClientSession(connector=connector) as ws_session:
-                try:
-                    async with ws_session.ws_connect(
-                        ws_url,
-                        timeout=aiohttp.ClientTimeout(total=43200, connect=60), # Increased connect timeout
-                        heartbeat=15.0,
-                        autoping=True,
-                        headers=ws_headers, # Forward filtered headers
-                        protocols=protocols # Forward subprotocols for handshake
-                    ) as server_ws:
-                        
-                        # Bidirectional forwarding
-                        async def forward_client_to_server():
-                            try:
-                                while True:
-                                    msg = await client_ws.receive()
-                                    if msg.get("type") == "websocket.disconnect":
-                                        break
-                                    if "text" in msg:
-                                        await server_ws.send_str(msg["text"])
-                                    if "bytes" in msg:
-                                        await server_ws.send_bytes(msg["bytes"])
-                            except Exception as e:
-                                logger.error(f"[{self.__class__.__name__}] Client->Server error: {e}")
-
-                        async def forward_server_to_client():
-                            try:
-                                async for msg in server_ws:
-                                    if msg.type == aiohttp.WSMsgType.TEXT:
-                                        await client_ws.send_text(msg.data)
-                                    elif msg.type == aiohttp.WSMsgType.BINARY:
-                                        await client_ws.send_bytes(msg.data)
-                                    elif msg.type == aiohttp.WSMsgType.ERROR:
-                                        break
-                            except Exception as e:
-                                logger.error(f"[{self.__class__.__name__}] Server->Client error: {e}")
-
-                        await asyncio.gather(forward_client_to_server(), forward_server_to_client())
-                except Exception as e:
-                    logger.error(f"[{self.__class__.__name__}] WS Connection failed: {e}")
-                    await client_ws.close(code=1011, reason=str(e))
+                await asyncio.gather(forward_client_to_server(), forward_server_to_client())
 
         except Exception as e:
-            logger.error(f"[{self.__class__.__name__}] WS Setup Error: {e}")
-            await client_ws.close(code=1011)
+            logger.error(f"[{self.__class__.__name__}] WS Connection failed: {e}")
+            await client_ws.close(code=1011, reason=str(e))
 
     async def close(self):
         if self.session:

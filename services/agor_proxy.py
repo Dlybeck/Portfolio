@@ -1,5 +1,8 @@
-"Agor HTTP and WebSocket Proxy"
+
+"""
+Agor HTTP and WebSocket Proxy
 Inherits from BaseProxy to reuse connection logic but adds custom rewriting
+"""
 
 from .base_proxy import BaseProxy, IS_CLOUD_RUN, MAC_SERVER_IP, SOCKS5_PROXY
 from fastapi import Request, Response, HTTPException

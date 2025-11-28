@@ -261,17 +261,19 @@ class BaseProxy:
                     # Build request: VER CMD RSV ATYP DST.ADDR DST.PORT
                     request = b'\x05\x01\x00'  # VER=5, CMD=CONNECT, RSV=0
 
-                    # ATYP=0x03 (domain name)
-                    target_host_bytes = target_host.encode('utf-8')
-                    request += b'\x03'  # ATYP
-                    request += struct.pack('B', len(target_host_bytes))  # Domain length
-                    request += target_host_bytes  # Domain name
+                    # Use IPv4 address (ATYP=0x01) instead of domain name for better compatibility
+                    # Parse IP from target_host (should be 100.84.184.84)
+                    ip_parts = [int(x) for x in target_host.split('.')]
+                    request += b'\x01'  # ATYP = IPv4
+                    request += bytes(ip_parts)  # 4 bytes for IPv4 address
                     request += struct.pack('>H', target_port)  # Port (big-endian)
 
+                    logger.info(f"[{self.__class__.__name__}] Sending SOCKS5 CONNECT: {request.hex()}")
                     sock.send(request)
 
                     # Read response
                     response = sock.recv(4)
+                    logger.info(f"[{self.__class__.__name__}] SOCKS5 CONNECT response (first 4 bytes): {response.hex()}")
                     if len(response) < 4 or response[1] != 0x00:
                         raise Exception(f"SOCKS5 connect failed: {response.hex()}")
 

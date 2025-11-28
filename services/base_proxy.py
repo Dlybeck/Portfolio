@@ -176,8 +176,12 @@ class BaseProxy:
             raise HTTPException(status_code=500, detail=str(e))
 
     async def proxy_websocket(self, client_ws: WebSocket, path: str):
-        """Generic WebSocket proxy with SOCKS5 support using websockets library"""
-        await client_ws.accept()
+        """Generic WebSocket proxy with SOCKS5 support using websockets library
+
+        NOTE: The WebSocket must be accepted by the caller BEFORE calling this function.
+        This is already done in the route handlers (route_dev_proxy.py).
+        """
+        # WebSocket already accepted in route handler - do NOT accept again
         
         # Construct WebSocket URL
         ws_base = self.base_url.replace("http://", "ws://").replace("https://", "wss://")

@@ -1,268 +1,188 @@
-import websockets
-import os
-import asyncio
-import aiohttp
-from aiohttp_socks import ProxyConnector
-from starlette.requests import Request
-from starlette.responses import StreamingResponse
-from starlette.websockets import WebSocket, WebSocketDisconnect
-from core.config import settings
-import logging
+"Agor HTTP and WebSocket Proxy"
+Inherits from BaseProxy to reuse connection logic but adds custom rewriting
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+from .base_proxy import BaseProxy, IS_CLOUD_RUN, MAC_SERVER_IP, SOCKS5_PROXY
+from fastapi import Request, Response, HTTPException
+from fastapi.responses import StreamingResponse
+from starlette.websockets import WebSocket
+import logging
+import re
+
 logger = logging.getLogger(__name__)
 
-# Detect if running in Cloud Run (proxy mode) or locally (direct mode)
-IS_CLOUD_RUN = settings.K_SERVICE is not None
-
-# Mac server configuration
-MAC_SERVER_IP = settings.MAC_SERVER_IP
-SOCKS5_PROXY = settings.SOCKS5_PROXY
-
-class AgorProxy:
+class AgorProxy(BaseProxy):
     """
     Proxies requests to the Agor server.
-    When in Cloud Run, connects via Tailscale SOCKS5 proxy.
     """
     def __init__(self, agor_url: str = None):
-        # Auto-detect URL based on environment
-        if agor_url:
-            self.agor_url = agor_url
-        elif IS_CLOUD_RUN:
-            # In Cloud Run, connect to Mac via Tailscale
-            self.agor_url = f"http://{MAC_SERVER_IP}:3030"
-            logger.info(f"Cloud Run mode: proxying to {self.agor_url} via SOCKS5")
-        else:
-            # Local Mac, connect to localhost
-            self.agor_url = "http://127.0.0.1:3030"
-            logger.info(f"Local mode: connecting to {self.agor_url}")
-
-        self.session = None
-        logger.info(f"Initialized AgorProxy for URL: {self.agor_url}")
-
-    async def get_session(self) -> aiohttp.ClientSession:
-        """Get or create aiohttp ClientSession with SOCKS5 proxy if in Cloud Run"""
-        if self.session is None:
-            connector = None
+        if not agor_url:
             if IS_CLOUD_RUN:
-                # Use aiohttp-socks for SOCKS5 proxy
-                connector = ProxyConnector.from_url(
-                    SOCKS5_PROXY,
-                    limit=20,
-                    limit_per_host=20,
-                    force_close=True # Disable keep-alive at connection level
-                )
-                logger.info(f"aiohttp session using SOCKS5 proxy: {SOCKS5_PROXY}")
+                agor_url = f"http://{MAC_SERVER_IP}:3030"
             else:
-                connector = aiohttp.TCPConnector(limit=20, force_close=True)
+                agor_url = "http://127.0.0.1:3030"
+        
+        super().__init__(agor_url)
 
-            # Create session with timeouts
-            timeout = aiohttp.ClientTimeout(total=300.0, connect=10.0)
-            self.session = aiohttp.ClientSession(
-                connector=connector,
-                timeout=timeout,
-                auto_decompress=False # We want to stream raw bytes
-            )
-        return self.session
+    async def _rewrite_response_body(self, body_bytes: bytes, headers: dict, path: str):
+        """
+        Callback to rewrite Agor's HTML/JS/CSS to fix paths and routing.
+        """
+        content_type = headers.get('content-type', '').lower()
+        charset = 'utf-8'
+        if 'charset=' in content_type:
+            charset = content_type.split('charset=')[-1]
+
+        try:
+            body_str = body_bytes.decode(charset)
+        except (UnicodeDecodeError, LookupError):
+            body_str = body_bytes.decode('utf-8', errors='replace')
+
+        # === REWRITE LOGIC ===
+        
+        # 1. Rewrite absolute paths /ui/ to /dev/agor/ui/
+        body_str = body_str.replace('"/ui/', '"/dev/agor/ui/')
+        body_str = body_str.replace("'/ui/", "'/dev/agor/ui/")
+        
+        # 2. Fix Socket.IO connection path
+        # Agor defaults to /socket.io, we need /dev/agor/socket.io
+        # Replace string literals
+        body_str = body_str.replace('"/socket.io/"', '"/dev/agor/socket.io/"') # trailing slash?
+        body_str = body_str.replace('"/socket.io"', '"/dev/agor/socket.io"')
+        body_str = body_str.replace("'/socket.io'", "'/dev/agor/socket.io'")
+        # Replace potential JS defaults
+        body_str = body_str.replace('||"/socket.io"', '||"/dev/agor/socket.io"')
+        body_str = body_str.replace("||'/socket.io'", "||'/dev/agor/socket.io'")
+
+        # 3. Fix React Router basename (usually in JS)
+        body_str = body_str.replace('basename:"/ui"', 'basename:"/dev/agor/ui"')
+        body_str = body_str.replace('basename="/ui"', 'basename="/dev/agor/ui"')
+        body_str = body_str.replace("basename:'/ui'", "basename:'/dev/agor/ui'")
+        body_str = body_str.replace("basename='/ui'", "basename='/dev/agor/ui'")
+
+        # 4. Fix asset paths in JS/CSS
+        # "/ui/assets/..." -> "/dev/agor/ui/assets/..."
+        body_str = body_str.replace('"/ui/assets/', '"/dev/agor/ui/assets/')
+        body_str = body_str.replace("'/ui/assets/", "'/dev/agor/ui/assets/")
+        body_str = body_str.replace('"/ui/fonts/', '"/dev/agor/ui/fonts/')
+        body_str = body_str.replace('"/ui/images/', '"/dev/agor/ui/images/')
+        body_str = body_str.replace('"/ui/static/', '"/dev/agor/ui/static/')
+        
+        # CSS url() rewrites
+        # url(/ui/...) -> url(/dev/agor/ui/...)
+        body_str = re.sub(r'url(["\\]?)/ui/', r'url(/dev/agor/ui/', body_str)
+
+        # 5. Agor 0.9.0 specific path check fix
+        body_str = body_str.replace(
+            'window.location.pathname.startsWith("/ui")',
+            '(window.location.pathname.startsWith("/ui")||window.location.pathname.includes("/agor/ui"))'
+        )
+
+        # 6. Inject <base> tag in HTML
+        if '<head>' in body_str:
+            base_injection = '<head>\n    <base href="/dev/agor/ui/">' # Note: escaped newline for clarity in string literal
+            body_str = body_str.replace('<head>', base_injection, 1)
+
+        # 7. Increase Socket.IO timeout in JS
+        body_str = re.sub(
+            r'(transports:\s*\[[^\]]+\])',
+            r'\1,timeout:60000',
+            body_str
+        )
+
+        logger.info(f"Rewrote content for {path} ({len(body_bytes)} -> {len(body_str)} chars)")
+        
+        new_body = body_str.encode('utf-8')
+        
+        # Calculate new headers
+        new_headers = {
+            'content-length': str(len(new_body)),
+            'content-encoding': '' # We decoded it, so remove gzip header
+        }
+        
+        return new_body, new_headers
 
     async def proxy_request(self, request: Request, path: str):
+        # Determine if we need to rewrite this response
+        # Ideally we check the RESPONSE content-type, but we need to pass the callback *before* request
+        # However, BaseProxy.proxy_request logic:
+        # We can check headers after response starts? 
+        # My BaseProxy.proxy_request needs to be smart enough to conditionally call the callback
+        # OR we override proxy_request here entirely but reuse get_session.
+        
+        # Actually, let's reuse the BaseProxy logic but wrapped.
+        # Wait, BaseProxy accepts a callback. But we only know if we need to use it AFTER seeing headers.
+        # The current BaseProxy implementation takes the callback and uses it unconditionally if provided.
+        # Let's modify BaseProxy to allow decision based on headers, OR we just override here. 
+        
+        # Easier to override for now to keep BaseProxy simple
+        
         session = await self.get_session()
-
-        # Build relative URL with query params
-        url = f"{self.agor_url}/{path}"
+        
+        # Build target URL
+        url = f"{self.base_url}/{path}"
         if request.url.query:
             url += f"?{request.url.query}"
 
-        # Prepare headers, removing host, referer, and existing content-length
-        headers = {key: value for key, value in request.headers.items() if key.lower() not in ["host", "referer", "content-length", "transfer-encoding"]}
-        
-        # Force gzip encoding to avoid Brotli issues over the proxy/VPN
-        # headers['accept-encoding'] = 'gzip'
-        
-        # Add X-Forwarded-For if not present
-        x_forwarded_for = request.headers.get("x-forwarded-for")
-        if x_forwarded_for:
-            headers["x-forwarded-for"] = f"{x_forwarded_for}, {request.client.host}"
-        else:
-            headers["x-forwarded-for"] = request.client.host
-            
-        try:
-            # Create request method
-            method = request.method.upper()
-            
-            # Prepare body (stream it)
-            data = request.stream()
+        headers = self._prepare_headers(request)
+        # Do NOT force gzip for Agor request headers, let it auto-negotiate
+        if 'accept-encoding' in headers:
+            del headers['accept-encoding']
 
+        method = request.method.upper()
+        data = request.stream()
+
+        try:
             # Create request context
-            # We manually enter the context manager to get the response object
             req_ctx = session.request(method, url, headers=headers, data=data)
             resp = await req_ctx.__aenter__()
 
             content_type = resp.headers.get('content-type', '').lower()
+            
+            # Check if we need to rewrite
+            should_rewrite = (
+                'text/html' in content_type or 
+                'javascript' in content_type or 
+                'text/css' in content_type or
+                path.endswith('.js') or 
+                path.endswith('.css')
+            )
 
-            # Rewrite paths for HTML, JavaScript, and CSS responses
-            # We must buffer these to perform replacements
-            is_html = 'text/html' in content_type
-            is_js = 'javascript' in content_type or path.endswith('.js')
-            is_css = 'text/css' in content_type or path.endswith('.css')
-
-            if is_html or is_js or is_css:
+            if should_rewrite:
                 try:
-                    # Read the full response
-                    body_bytes = await resp.read()
+                    body = await resp.read()
                 finally:
-                    # Close response immediately after reading
                     await req_ctx.__aexit__(None, None, None)
-
-                # ... (rest of the replacement logic is identical)
-                if is_html:
-                    # Decode with proper charset
-                    charset = 'utf-8'
-                    if 'charset=' in content_type:
-                        charset = content_type.split('charset=')[-1]
-
-                    try:
-                        body_str = body_bytes.decode(charset)
-                    except (UnicodeDecodeError, LookupError):
-                        body_str = body_bytes.decode('utf-8', errors='replace')
-
-                    # Rewrite absolute paths /ui/ to /dev/agor/ui/ for proper routing
-                    body_str = body_str.replace('"/ui/', '"/dev/agor/ui/')
-                    body_str = body_str.replace("'/ui/", "'/dev/agor/ui/")
-
-                    # Fix Socket.IO connection path
-                    body_str = body_str.replace('"/socket.io/', '"/dev/agor/socket.io/')
-                    body_str = body_str.replace("'/socket.io/", "'/dev/agor/socket.io/")
-                    body_str = body_str.replace('"/socket.io"', '"/dev/agor/socket.io"')
-                    body_str = body_str.replace("'/socket.io'", "'/dev/agor/socket.io'")
-                    body_str = body_str.replace('||"/socket.io"', '||"/dev/agor/socket.io"')
-                    body_str = body_str.replace("||'/socket.io'", "||'/dev/agor/socket.io'")
-
-                    # Fix React Router basename
-                    if '<head>' in body_str:
-                        base_injection = '<head>\n    <base href="/dev/agor/ui/">'
-                        body_str = body_str.replace('<head>', base_injection, 1)
-
-                    logger.info("Rewrote /ui/ and /socket.io/ paths to /dev/agor/* and injected base tag in Agor HTML")
-
-                    # Encode and update headers
-                    new_body_bytes = body_str.encode('utf-8')
-                    response_headers = dict(resp.headers)
-                    response_headers['content-length'] = str(len(new_body_bytes))
-                    response_headers.pop('content-encoding', None)
-                    response_headers.pop('transfer-encoding', None)
-
-                    return StreamingResponse(
-                        iter([new_body_bytes]),
-                        status_code=resp.status,
-                        headers=response_headers
-                    )
-                elif is_js:
-                    # Rewrite JavaScript files
-                    try:
-                        body_str = body_bytes.decode('utf-8')
-
-                        # Fix React Router basename
-                        body_str = body_str.replace('basename:"/ui"', 'basename:"/dev/agor/ui"')
-                        body_str = body_str.replace('basename="/ui"', 'basename="/dev/agor/ui"')
-                        body_str = body_str.replace("basename:'/ui'", "basename:'/dev/agor/ui'")
-                        body_str = body_str.replace("basename='/ui'", "basename='/dev/agor/ui'")
-
-                        # Fix asset paths
-                        body_str = body_str.replace('"/ui/assets/', '"/dev/agor/ui/assets/')
-                        body_str = body_str.replace("'/ui/assets/", "'/dev/agor/ui/assets/")
-                        body_str = body_str.replace('"/ui/fonts/', '"/dev/agor/ui/fonts/')
-                        body_str = body_str.replace("'/ui/fonts/", "'/dev/agor/ui/fonts/")
-                        body_str = body_str.replace('"/ui/images/', '"/dev/agor/ui/images/')
-                        body_str = body_str.replace("'/ui/images/", "'/dev/agor/ui/images/")
-                        body_str = body_str.replace('"/ui/static/', '"/dev/agor/ui/static/')
-                        body_str = body_str.replace("'/ui/static/", "'/dev/agor/ui/static/")
-
-                        # Fix Socket.IO connection path
-                        body_str = body_str.replace('"/socket.io/', '"/dev/agor/socket.io/')
-                        body_str = body_str.replace("'/socket.io/", "'/dev/agor/socket.io/")
-                        body_str = body_str.replace('"/socket.io"', '"/dev/agor/socket.io"')
-                        body_str = body_str.replace("'/socket.io'", "'/dev/agor/socket.io'")
-                        body_str = body_str.replace('||"/socket.io"', '||"/dev/agor/socket.io"')
-                        body_str = body_str.replace("||'/socket.io'", "||'/dev/agor/socket.io'")
-
-                        # Fix Agor 0.9.0 path detection
-                        body_str = body_str.replace(
-                            'window.location.pathname.startsWith("/ui")',
-                            '(window.location.pathname.startsWith("/ui")||window.location.pathname.includes("/agor/ui"))'
-                        )
-
-                        # Increase Socket.IO connection timeout
-                        import re
-                        body_str = re.sub(
-                            r'(transports:\s*\[[^\]]+\])',
-                            r'\1,timeout:60000',
-                            body_str
-                        )
-
-                        new_body_bytes = body_str.encode('utf-8')
-                        response_headers = dict(resp.headers)
-                        response_headers['content-length'] = str(len(new_body_bytes))
-                        response_headers.pop('content-encoding', None)
-                        response_headers.pop('transfer-encoding', None)
-
-                        logger.debug(f"Rewrote React Router basename and Socket.IO paths in JS file: {path}")
-
-                        return StreamingResponse(
-                            iter([new_body_bytes]),
-                            status_code=resp.status,
-                            headers=response_headers
-                        )
-                    except Exception as e:
-                        logger.warning(f"Failed to rewrite JS file {path}: {e}, streaming as-is")
-                        # Fall back to original bytes if rewrite fails
-                        response_headers = dict(resp.headers)
-                        response_headers.pop('content-encoding', None)
-                        response_headers.pop('transfer-encoding', None)
-                        return StreamingResponse(
-                            iter([body_bytes]),
-                            status_code=resp.status,
-                            headers=response_headers
-                        )
-                elif is_css:
-                    # Rewrite CSS files
-                    try:
-                        body_str = body_bytes.decode('utf-8')
-
-                        # Fix CSS url() references
-                        import re
-                        body_str = re.sub(r'url\(["\']?/ui/', r'url(/dev/agor/ui/', body_str)
-
-                        new_body_bytes = body_str.encode('utf-8')
-                        response_headers = dict(resp.headers)
-                        response_headers['content-length'] = str(len(new_body_bytes))
-                        response_headers.pop('content-encoding', None)
-                        response_headers.pop('transfer-encoding', None)
-
-                        logger.debug(f"Rewrote CSS asset paths in: {path}")
-
-                        return StreamingResponse(
-                            iter([new_body_bytes]),
-                            status_code=resp.status,
-                            headers=response_headers
-                        )
-                    except Exception as e:
-                        logger.warning(f"Failed to rewrite CSS file {path}: {e}, streaming as-is")
-                        response_headers = dict(resp.headers)
-                        response_headers.pop('content-encoding', None)
-                        response_headers.pop('transfer-encoding', None)
-                        return StreamingResponse(
-                            iter([body_bytes]),
-                            status_code=resp.status,
-                            headers=response_headers
-                        )
+                
+                new_body, new_headers = await self._rewrite_response_body(body, resp.headers, path)
+                
+                # Prepare response headers
+                excluded_resp_headers = {'content-length', 'transfer-encoding', 'connection', 'content-encoding'}
+                response_headers = {}
+                for k, v in resp.headers.items():
+                    if k.lower() not in excluded_resp_headers:
+                        response_headers[k] = v
+                
+                response_headers.update(new_headers)
+                
+                return StreamingResponse(
+                    iter([new_body]),
+                    status_code=resp.status,
+                    headers=response_headers,
+                    media_type=content_type
+                )
             else:
-                # Stream non-HTML/JS/CSS responses directly
-                response_headers = dict(resp.headers)
-                response_headers.pop('content-encoding', None)
-                response_headers.pop('transfer-encoding', None)
-                response_headers.pop('content-length', None)
+                # Standard Streaming (Images, Fonts, API data)
+                
+                # Prepare response headers
+                excluded_resp_headers = {'content-length', 'transfer-encoding', 'connection', 'content-encoding'}
+                response_headers = {}
+                for k, v in resp.headers.items():
+                    if k.lower() not in excluded_resp_headers:
+                        response_headers[k] = v
+                
+                # Re-add content-encoding if upstream sent it (e.g. gzip)
+                if 'Content-Encoding' in resp.headers:
+                    response_headers['content-encoding'] = resp.headers['Content-Encoding']
 
                 async def content_iterator():
                     try:
@@ -275,197 +195,18 @@ class AgorProxy:
                     content_iterator(),
                     status_code=resp.status,
                     headers=response_headers,
-                    background=None
+                    media_type=content_type
                 )
-        except aiohttp.ClientConnectorError as e:
-            logger.error(f"Agor proxy connection error: {e}")
-            return StreamingResponse(
-                iter([f"Agor server not reachable: {e}".encode()]),
-                status_code=503,
-                media_type="text/plain"
-            )
+
         except Exception as e:
-            logger.error(f"Agor proxy error: {e}")
-            return StreamingResponse(
-                iter([f"Agor proxy error: {e}".encode()]),
-                status_code=500,
-                media_type="text/plain"
-            )
-
-    async def proxy_websocket(self, client_websocket: WebSocket, path: str):
-        """
-        Proxy WebSocket connection to Agor with retry logic and SOCKS5 support
-        """
-        await client_websocket.accept()
-
-        # Build target WebSocket URL
-        if IS_CLOUD_RUN:
-            ws_url = f"ws://{MAC_SERVER_IP}:3030{path}"
-            logger.info(f"🔌 Cloud Run mode: WebSocket proxy starting")
-            logger.info(f"   Target: {ws_url}")
-            logger.info(f"   SOCKS5: {SOCKS5_PROXY}")
-        else:
-            ws_url = f"ws://127.0.0.1:3030{path}"
-            logger.info(f"🔌 Local mode: WebSocket proxy to {ws_url}")
-
-        # Retry configuration
-        max_retries = 3
-        retry_delay = 0.5
-        last_exception = None
-
-        for attempt in range(max_retries):
-            try:
-                if attempt > 0:
-                    wait_time = min(retry_delay * (2 ** (attempt - 1)), 2.5)
-                    logger.info(f"Retry attempt {attempt + 1}/{max_retries} after {wait_time}s delay...")
-                    await asyncio.sleep(wait_time)
-
-                await self._proxy_websocket_connection(client_websocket, ws_url)
-                return  # Success!
-
-            except (OSError, ConnectionError, TimeoutError) as e:
-                last_exception = e
-                logger.error(f"❌ Connection attempt {attempt + 1}/{max_retries} failed: {type(e).__name__}: {e}")
-                if attempt < max_retries - 1:
-                    logger.info("🔄 Will retry connection...")
-                else:
-                    logger.error(f"💀 All {max_retries} connection attempts failed")
-
-            except Exception as e:
-                logger.error(f"❌ Non-retryable error in proxy_websocket: {type(e).__name__}: {e}")
-                logger.exception(e)  # Print full stack trace
-                await client_websocket.close(code=1011, reason=f"Proxy error: {type(e).__name__}")
-                return
-
-        # All retries exhausted
-        error_msg = f"Connection failed after {max_retries} attempts"
-        if last_exception:
-            error_msg += f": {last_exception}"
-        logger.error(error_msg)
-        await client_websocket.close(code=1011, reason="Agor proxy unavailable")
-
-    async def _proxy_websocket_connection(self, client_websocket: WebSocket, ws_url: str):
-        """
-        Establish and maintain WebSocket proxy connection (internal method)
-        """
-        try:
-            if IS_CLOUD_RUN:
-                # Cloud Run: Use aiohttp with SOCKS5 proxy (same as code-server proxy)
-                import aiohttp
-                from aiohttp_socks import ProxyConnector
-
-                connector = ProxyConnector.from_url(SOCKS5_PROXY)
-                logger.info(f"🔌 SOCKS5 connector created, attempting connection...")
-
-                async with aiohttp.ClientSession(connector=connector) as session:
-                    logger.info(f"🔌 aiohttp session created, connecting to {ws_url}...")
-                    async with session.ws_connect(
-                        ws_url,
-                        timeout=aiohttp.ClientTimeout(total=43200, connect=60),  # 12 hours total, 60s connect for slow Tailscale relay
-                        heartbeat=15.0,  # Send ping every 15s to keep SOCKS5/LB connection alive
-                        autoping=True
-                    ) as server_ws:
-                        logger.info(f"✅ WebSocket connection ESTABLISHED to Agor: {ws_url}")
-                        logger.info(f"🔌 Starting bidirectional message forwarding...")
-
-                        async def forward_to_server():
-                            """Forward messages from browser to Agor"""
-                            try:
-                                while True:
-                                    message = await client_websocket.receive()
-
-                                    if message.get('type') == 'websocket.disconnect':
-                                        logger.info("Browser disconnected from Agor WebSocket")
-                                        break
-                                    elif 'text' in message:
-                                        logger.debug(f"Browser → Agor: {message['text'][:100]}")
-                                        await server_ws.send_str(message['text'])
-                                    elif 'bytes' in message:
-                                        logger.debug(f"Browser → Agor: {len(message['bytes'])} bytes")
-                                        await server_ws.send_bytes(message['bytes'])
-                            except WebSocketDisconnect:
-                                logger.info("Browser WebSocket disconnect")
-                                pass
-                            except Exception as e:
-                                logger.error(f"Forward error: {e}")
-
-                        async def forward_to_client():
-                            """Forward messages from Agor to browser"""
-                            try:
-                                async for msg in server_ws:
-                                    if msg.type == aiohttp.WSMsgType.TEXT:
-                                        logger.debug(f"Agor → Browser: {msg.data[:100]}")
-                                        await client_websocket.send_text(msg.data)
-                                    elif msg.type == aiohttp.WSMsgType.BINARY:
-                                        logger.debug(f"Agor → Browser: {len(msg.data)} bytes")
-                                        await client_websocket.send_bytes(msg.data)
-                                    elif msg.type == aiohttp.WSMsgType.ERROR:
-                                        logger.error("Agor WebSocket error message received")
-                                        break
-                            except WebSocketDisconnect:
-                                logger.info("Browser disconnected during forward_to_client")
-                                pass
-                            except Exception as e:
-                                logger.error(f"Backward error: {e}")
-
-                        await asyncio.gather(
-                            forward_to_server(),
-                            forward_to_client(),
-                            return_exceptions=True
-                        )
-            else:
-                # Local: Use websockets library (direct connection)
-                async with websockets.connect(
-                    ws_url,
-                    ping_interval=30,
-                    ping_timeout=10,
-                    close_timeout=10
-                ) as server_ws:
-                    logger.info(f"WebSocket connection established to Agor: {ws_url}")
-
-                    async def forward_to_server():
-                        """Forward messages from browser to Agor"""
-                        try:
-                            while True:
-                                message = await client_websocket.receive()
-
-                                if message.get('type') == 'websocket.disconnect':
-                                    break
-                                elif 'text' in message:
-                                    await server_ws.send(message['text'])
-                                elif 'bytes' in message:
-                                    await server_ws.send(message['bytes'])
-                        except WebSocketDisconnect:
-                            pass
-                        except Exception as e:
-                            logger.error(f"Forward error: {e}")
-
-                    async def forward_to_client():
-                        """Forward messages from Agor to browser"""
-                        try:
-                            async for message in server_ws:
-                                if isinstance(message, str):
-                                    await client_websocket.send_text(message)
-                                elif isinstance(message, bytes):
-                                    await client_websocket.send_bytes(message)
-                        except WebSocketDisconnect:
-                            pass
-                        except Exception as e:
-                            logger.error(f"Backward error: {e}")
-
-                    await asyncio.gather(
-                        forward_to_server(),
-                        forward_to_client(),
-                        return_exceptions=True
-                    )
-        except Exception as e:
-            logger.error(f"Connection error in _proxy_websocket_connection: {type(e).__name__}: {e}")
-            raise
+            logger.error(f"[AgorProxy] Error: {e}")
+            # Clean up if context manager was entered but not exited? 
+            # aiohttp handles this if exception raised inside block.
+            raise HTTPException(status_code=500, detail=str(e))
 
 _agor_proxy_instance: AgorProxy = None
 
 def get_proxy() -> AgorProxy:
-    """Get global Agor proxy instance"""
     global _agor_proxy_instance
     if _agor_proxy_instance is None:
         # Auto-detects environment and configures SOCKS5 if needed

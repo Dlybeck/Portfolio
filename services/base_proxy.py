@@ -194,7 +194,11 @@ class BaseProxy:
                 ws_url += f"?{query_string}"
                 logger.info(f"[{self.__class__.__name__}] Forwarding query params: {query_string}")
 
-        logger.info(f"[{self.__class__.__name__}] WS Proxy to {ws_url}")
+        logger.info(f"[{self.__class__.__name__}] ====== WS PROXY DEBUG ======")
+        logger.info(f"[{self.__class__.__name__}] Client URL: {client_ws.url}")
+        logger.info(f"[{self.__class__.__name__}] Target URL: {ws_url}")
+        logger.info(f"[{self.__class__.__name__}] Path param: {path}")
+        logger.info(f"[{self.__class__.__name__}] Query params: {client_ws.query_params}")
 
         # Prepare headers
         ws_headers = {}
@@ -202,7 +206,7 @@ class BaseProxy:
         for k, v in client_ws.headers.items():
             if k.lower() not in excluded_headers:
                 ws_headers[k] = v
-        
+
         # Spoof Origin
         upstream_origin = ws_url.replace("ws://", "http://").replace("wss://", "https://")
         upstream_origin = "/".join(upstream_origin.split("/")[:3])
@@ -215,6 +219,9 @@ class BaseProxy:
             subprotocols = [p.strip() for p in client_ws.headers['sec-websocket-protocol'].split(',')]
             logger.info(f"[{self.__class__.__name__}] Forwarding WS protocols: {subprotocols}")
 
+        logger.info(f"[{self.__class__.__name__}] Headers: {ws_headers}")
+        logger.info(f"[{self.__class__.__name__}] ==============================")
+
         # Configure Proxy for websockets library
         proxy_url = None
         if IS_CLOUD_RUN:
@@ -222,6 +229,7 @@ class BaseProxy:
             logger.info(f"[{self.__class__.__name__}] Using websockets proxy: {proxy_url}")
 
         try:
+            logger.info(f"[{self.__class__.__name__}] Connecting to upstream WebSocket...")
             async with websockets.connect(
                 ws_url,
                 extra_headers=ws_headers,
@@ -231,32 +239,47 @@ class BaseProxy:
                 ping_interval=15,
                 ping_timeout=45
             ) as server_ws:
-                
+                logger.info(f"[{self.__class__.__name__}] ✅ Connected! Subprotocol selected: {server_ws.subprotocol}")
+
                 # Bidirectional forwarding
+                message_count = {"client_to_server": 0, "server_to_client": 0}
+
                 async def forward_client_to_server():
                     try:
                         while True:
                             msg = await client_ws.receive()
                             if msg.get("type") == "websocket.disconnect":
+                                logger.info(f"[{self.__class__.__name__}] Client disconnected")
                                 break
                             if "text" in msg:
+                                message_count["client_to_server"] += 1
+                                if message_count["client_to_server"] <= 3:
+                                    logger.info(f"[{self.__class__.__name__}] C->S text msg #{message_count['client_to_server']}: {msg['text'][:100]}")
                                 await server_ws.send(msg["text"])
                             if "bytes" in msg:
+                                message_count["client_to_server"] += 1
+                                if message_count["client_to_server"] <= 3:
+                                    logger.info(f"[{self.__class__.__name__}] C->S binary msg #{message_count['client_to_server']}: {len(msg['bytes'])} bytes")
                                 await server_ws.send(msg["bytes"])
                     except WebSocketDisconnect:
-                        pass # Normal closure
+                        logger.info(f"[{self.__class__.__name__}] Client WebSocket disconnected normally")
                     except Exception as e:
                         logger.error(f"[{self.__class__.__name__}] Client->Server error: {e}")
 
                 async def forward_server_to_client():
                     try:
                         async for msg in server_ws:
+                            message_count["server_to_client"] += 1
                             if isinstance(msg, str):
+                                if message_count["server_to_client"] <= 3:
+                                    logger.info(f"[{self.__class__.__name__}] S->C text msg #{message_count['server_to_client']}: {msg[:100]}")
                                 await client_ws.send_text(msg)
                             elif isinstance(msg, bytes):
+                                if message_count["server_to_client"] <= 3:
+                                    logger.info(f"[{self.__class__.__name__}] S->C binary msg #{message_count['server_to_client']}: {len(msg)} bytes")
                                 await client_ws.send_bytes(msg)
-                    except websockets.exceptions.ConnectionClosed:
-                        pass # Normal closure
+                    except websockets.exceptions.ConnectionClosed as e:
+                        logger.info(f"[{self.__class__.__name__}] Server WebSocket closed: {e}")
                     except Exception as e:
                         logger.error(f"[{self.__class__.__name__}] Server->Client error: {e}")
 

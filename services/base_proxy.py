@@ -200,18 +200,16 @@ class BaseProxy:
         logger.info(f"[{self.__class__.__name__}] Path param: {path}")
         logger.info(f"[{self.__class__.__name__}] Query params: {client_ws.query_params}")
 
-        # Prepare headers
+        # Prepare headers - use minimal filtering like Terminal WebSocket does
         ws_headers = {}
         excluded_headers = {'host', 'connection', 'upgrade', 'sec-websocket-key', 'sec-websocket-version', 'sec-websocket-extensions'}
         for k, v in client_ws.headers.items():
             if k.lower() not in excluded_headers:
                 ws_headers[k] = v
 
-        # Spoof Origin
-        upstream_origin = ws_url.replace("ws://", "http://").replace("wss://", "https://")
-        upstream_origin = "/".join(upstream_origin.split("/")[:3])
-        ws_headers['Origin'] = upstream_origin
-        logger.info(f"[{self.__class__.__name__}] Spoofing Origin: {upstream_origin}")
+        # Remove origin spoofing - code-server config has disable-proxy:false so it should accept any origin
+        # The duplicate Origin header might be causing issues
+        logger.info(f"[{self.__class__.__name__}] Using original Origin header (not spoofing)")
 
         # Prepare subprotocols
         subprotocols = None
@@ -235,9 +233,9 @@ class BaseProxy:
                 extra_headers=ws_headers,
                 subprotocols=subprotocols,
                 proxy=proxy_url,
-                open_timeout=60,
-                ping_interval=15,
-                ping_timeout=45
+                open_timeout=30,  # Match closer to Terminal's 10s, but allow some buffer for SOCKS5
+                ping_interval=None,  # Disable automatic pings - let VS Code handle keepalive
+                ping_timeout=None
             ) as server_ws:
                 logger.info(f"[{self.__class__.__name__}] ✅ Connected! Subprotocol selected: {server_ws.subprotocol}")
 

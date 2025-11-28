@@ -182,10 +182,17 @@ class BaseProxy:
         This is already done in the route handlers (route_dev_proxy.py).
         """
         # WebSocket already accepted in route handler - do NOT accept again
-        
+
         # Construct WebSocket URL
         ws_base = self.base_url.replace("http://", "ws://").replace("https://", "wss://")
         ws_url = f"{ws_base}/{path}"
+
+        # CRITICAL: Preserve query parameters (e.g., reconnectionToken for VS Code)
+        if client_ws.query_params:
+            query_string = str(client_ws.url.query)
+            if query_string:
+                ws_url += f"?{query_string}"
+                logger.info(f"[{self.__class__.__name__}] Forwarding query params: {query_string}")
 
         logger.info(f"[{self.__class__.__name__}] WS Proxy to {ws_url}")
 

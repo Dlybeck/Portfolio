@@ -128,8 +128,10 @@ class AgorProxy(BaseProxy):
 
         headers = self._prepare_headers(request)
         # Do NOT force gzip for Agor request headers, let it auto-negotiate
-        if 'accept-encoding' in headers:
-            del headers['accept-encoding']
+        # Robustly remove accept-encoding to avoid double-compression issues during rewrite
+        keys_to_remove = [k for k in headers.keys() if k.lower() == 'accept-encoding']
+        for k in keys_to_remove:
+            del headers[k]
 
         method = request.method.upper()
         data = request.stream()
@@ -140,6 +142,7 @@ class AgorProxy(BaseProxy):
             resp = await req_ctx.__aenter__()
 
             content_type = resp.headers.get('content-type', '').lower()
+            content_encoding = resp.headers.get('content-encoding', '').lower()
             
             # Check if we need to rewrite
             should_rewrite = (
@@ -156,6 +159,29 @@ class AgorProxy(BaseProxy):
                 finally:
                     await req_ctx.__aexit__(None, None, None)
                 
+                # Handle decompression if needed
+                if content_encoding == 'gzip':
+                    import gzip
+                    try:
+                        body = gzip.decompress(body)
+                    except Exception as e:
+                        logger.error(f"Failed to decompress gzip body: {e}")
+                elif content_encoding == 'deflate':
+                    import zlib
+                    try:
+                        body = zlib.decompress(body)
+                    except Exception as e:
+                        logger.error(f"Failed to decompress deflate body: {e}")
+                elif content_encoding == 'br':
+                    try:
+                        import brotli
+                        body = brotli.decompress(body)
+                    except ImportError:
+                        logger.error("Brotli compression received but 'brotli' module not installed")
+                    except Exception as e:
+                        logger.error(f"Failed to decompress brotli body: {e}")
+
+                # Rewrite the body
                 new_body, new_headers = await self._rewrite_response_body(body, resp.headers, path)
                 
                 # Prepare response headers

@@ -171,7 +171,14 @@ if __name__ == "__main__":
         logger.info("Running in Cloud Run - binding to 0.0.0.0:8080")
         host = "0.0.0.0"
         port = 8080
-        uvicorn.run(app, host=host, port=port)
+        uvicorn.run(
+            app,
+            host=host,
+            port=port,
+            timeout_keep_alive=75,  # > 60s load balancer idle timeout
+            ws_ping_interval=30,
+            ws_ping_timeout=45
+        )
     else:
         # Local development - use HTTPS if certificates available
         host = "0.0.0.0"

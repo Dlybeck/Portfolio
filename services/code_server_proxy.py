@@ -45,10 +45,10 @@ class CodeServerProxy:
         if self.client is None:
             # Create client with default decompression (httpx auto-decodes gzip/brotli/deflate)
             client_kwargs = {
-                "timeout": httpx.Timeout(600.0, connect=30.0),
+                "timeout": httpx.Timeout(300.0, connect=10.0),
                 "follow_redirects": False,
                 # Disable keep-alive to prevent SOCKS5 connection stalling
-                "limits": httpx.Limits(max_keepalive_connections=0, max_connections=20, keepalive_expiry=5.0)
+                "limits": httpx.Limits(max_keepalive_connections=0, max_connections=20)
             }
 
             # Add SOCKS5 proxy if running in Cloud Run

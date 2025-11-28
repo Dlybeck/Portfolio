@@ -124,31 +124,22 @@ class CodeServerProxy:
             async def stream_generator():
                 try:
                     async with session.request(method, url, headers=headers, data=data) as resp:
-                        # Yield status and headers first? No, FastAPI takes those separately.
-                        # We can't easily pass status/headers out of the generator *after* entering context.
-                        # We need to enter the context, capture status/headers, then yield chunks.
-                        # BUT StreamingResponse needs status/headers immediately.
-                        
-                        # Alternative: Use session.request without 'async with', and manually close.
-                        # aiohttp supports this but warns about unclosed resources.
                         pass
                 except Exception as e:
                     print(f"Stream error: {e}")
 
-            # Correct approach for aiohttp + FastAPI Streaming:
-            # We initiate the request, await the headers, then return a StreamingResponse
-            # that iterates over the content.
-            
-            # Hack: calling session.request() returns a RequestContextManager.
-            # We can .__aenter__() it manually.
+            # Create request context
             req_ctx = session.request(method, url, headers=headers, data=data)
             resp = await req_ctx.__aenter__()
 
-            # Prepare response headers
-            response_headers = dict(resp.headers)
-            response_headers.pop('content-encoding', None)
-            response_headers.pop('content-length', None)
-            response_headers.pop('transfer-encoding', None)
+            # Prepare response headers (clean and normalize)
+            # We must remove framing headers (Content-Length, Transfer-Encoding) to let FastAPI/Uvicorn handle framing
+            # We MUST preserve Content-Encoding if we are streaming raw compressed bytes
+            excluded_headers = {'content-length', 'transfer-encoding', 'connection', 'host'}
+            response_headers = {}
+            for k, v in resp.headers.items():
+                if k.lower() not in excluded_headers:
+                    response_headers[k] = v
 
             async def content_iterator():
                 try:

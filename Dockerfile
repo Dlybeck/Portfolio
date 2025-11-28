@@ -58,15 +58,15 @@ if [ -z "$AUTH_KEY" ]; then\n\
   exit 1\n\
 fi\n\
 \n\
-echo "✅ Generated fresh auth key (valid 90 days)"
-
-# Start tailscaled in background
-# Fix for Cloud Run packet fragmentation (MTU issue)
-export TS_DEBUG_MTU=512
-tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &
-sleep 2
-
-# Connect to Tailscale network
+echo "✅ Generated fresh auth key (valid 90 days)"\n\
+\n\
+# Start tailscaled in background\n\
+# Fix for Cloud Run packet fragmentation (MTU issue)\n\
+export TS_DEBUG_MTU=512\n\
+tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &\n\
+sleep 2\n\
+\n\
+# Connect to Tailscale network\n\
 tailscale up --authkey=${AUTH_KEY} --hostname=portfolio-app --accept-routes\n\
 \n\
 echo "✅ Connected to Tailscale"\n\

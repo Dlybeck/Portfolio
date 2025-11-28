@@ -58,11 +58,11 @@ class AgorProxy:
                 connector = aiohttp.TCPConnector(limit=20, force_close=True)
 
             # Create session with timeouts
-            timeout = aiohttp.ClientTimeout(total=120.0, connect=30.0)
+            timeout = aiohttp.ClientTimeout(total=300.0, connect=10.0)
             self.session = aiohttp.ClientSession(
                 connector=connector,
                 timeout=timeout,
-                auto_decompress=False
+                auto_decompress=False # We want to stream raw bytes
             )
         return self.session
 
@@ -78,7 +78,7 @@ class AgorProxy:
         headers = {key: value for key, value in request.headers.items() if key.lower() not in ["host", "referer", "content-length", "transfer-encoding"]}
         
         # Force gzip encoding to avoid Brotli issues over the proxy/VPN
-        headers['accept-encoding'] = 'gzip'
+        # headers['accept-encoding'] = 'gzip'
         
         # Add X-Forwarded-For if not present
         x_forwarded_for = request.headers.get("x-forwarded-for")

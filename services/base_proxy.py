@@ -193,9 +193,14 @@ class BaseProxy:
             if IS_CLOUD_RUN:
                 connector = ProxyConnector.from_url(SOCKS5_PROXY)
             
-            # We need a separate session for WS to avoid blocking the HTTP pool?
-            # Actually we can use a one-off session or the shared one.
-            # Better to use a dedicated session for the long-lived WS connection to be safe.
+            # Forward only essential headers for authentication and context
+            # Filtering out WS protocol headers that aiohttp will regenerate or conflict with
+            ws_headers = {}
+            allowed_headers = {'authorization', 'cookie', 'origin', 'user-agent', 'x-forwarded-for', 'x-forwarded-proto'}
+            for k, v in client_ws.headers.items():
+                if k.lower() in allowed_headers:
+                    ws_headers[k] = v
+
             async with aiohttp.ClientSession(connector=connector) as ws_session:
                 try:
                     async with ws_session.ws_connect(
@@ -203,7 +208,7 @@ class BaseProxy:
                         timeout=aiohttp.ClientTimeout(total=43200, connect=60), # Increased connect timeout
                         heartbeat=15.0,
                         autoping=True,
-                        headers=client_ws.headers # Forward headers for auth
+                        headers=ws_headers # Forward filtered headers
                     ) as server_ws:
                         
                         # Bidirectional forwarding

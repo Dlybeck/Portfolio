@@ -209,6 +209,12 @@ class BaseProxy:
             ws_headers['Origin'] = upstream_origin
             logger.info(f"[{self.__class__.__name__}] Spoofing Origin: {upstream_origin}")
 
+            # Extract WebSocket subprotocols (e.g. for auth or specific app protocols)
+            protocols = None
+            if 'sec-websocket-protocol' in client_ws.headers:
+                protocols = [p.strip() for p in client_ws.headers['sec-websocket-protocol'].split(',')]
+                logger.info(f"[{self.__class__.__name__}] Forwarding WS protocols: {protocols}")
+
             async with aiohttp.ClientSession(connector=connector) as ws_session:
                 try:
                     async with ws_session.ws_connect(
@@ -216,7 +222,8 @@ class BaseProxy:
                         timeout=aiohttp.ClientTimeout(total=43200, connect=60), # Increased connect timeout
                         heartbeat=15.0,
                         autoping=True,
-                        headers=ws_headers # Forward filtered headers
+                        headers=ws_headers, # Forward filtered headers
+                        protocols=protocols # Forward subprotocols
                     ) as server_ws:
                         
                         # Bidirectional forwarding

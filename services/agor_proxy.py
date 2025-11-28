@@ -112,6 +112,11 @@ class AgorProxy(BaseProxy):
         body_str = body_str.replace("'/api'", "'/dev/agor/api'")
         body_str = body_str.replace('}/api`', '}/dev/agor/api`')
 
+        # Fix favicon path if it appears in JS/HTML
+        body_str = body_str.replace('"/favicon.png"', '"/dev/agor/ui/favicon.png"')
+        body_str = body_str.replace("'/favicon.png'", "'/dev/agor/ui/favicon.png'")
+        body_str = body_str.replace('href="/favicon.png"', 'href="/dev/agor/ui/favicon.png"')
+
         logger.info(f"Rewrote content for {path} ({len(body_bytes)} -> {len(body_str)} chars)")
         
         new_body = body_str.encode('utf-8')

@@ -212,13 +212,16 @@ class BaseProxy:
             # Extract WebSocket subprotocols (e.g. for auth or specific app protocols)
             protocols = None
             if 'sec-websocket-protocol' in client_ws.headers:
-                protocols = [p.strip() for p in client_ws.headers['sec-websocket-protocol'].split(',')]
-                logger.info(f"[{self.__class__.__name__}] Forwarding WS protocols: {protocols}")
+                protocols_str = client_ws.headers['sec-websocket-protocol']
+                protocols = [p.strip() for p in protocols_str.split(',')]
+                logger.info(f"[{self.__class__.__name__}] Extracted WS protocols: {protocols}")
+                
+                # Critical: explicitly add the header back. code-server checks this header directly
+                # aiohttp's 'protocols' argument handles the handshake, but the header might be needed for application logic
+                ws_headers['Sec-WebSocket-Protocol'] = protocols_str
 
-            # Log critical WS headers for debugging
-            if 'sec-websocket-key' not in client_ws.headers:
-                logger.warning(f"[{self.__class__.__name__}] Missing Sec-WebSocket-Key in client request")
-            
+            logger.info(f"[{self.__class__.__name__}] Connecting to WS with headers: {ws_headers}")
+
             async with aiohttp.ClientSession(connector=connector) as ws_session:
                 try:
                     async with ws_session.ws_connect(
@@ -227,7 +230,7 @@ class BaseProxy:
                         heartbeat=15.0,
                         autoping=True,
                         headers=ws_headers, # Forward filtered headers
-                        protocols=protocols # Forward subprotocols
+                        protocols=protocols # Forward subprotocols for handshake
                     ) as server_ws:
                         
                         # Bidirectional forwarding

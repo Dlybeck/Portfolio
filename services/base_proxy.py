@@ -199,25 +199,7 @@ class BaseProxy:
         logger.info(f"[{self.__class__.__name__}] Target URL: {ws_url}")
         logger.info(f"[{self.__class__.__name__}] Path param: {path}")
         logger.info(f"[{self.__class__.__name__}] Query params: {client_ws.query_params}")
-
-        # Prepare headers - use minimal filtering like Terminal WebSocket does
-        ws_headers = {}
-        excluded_headers = {'host', 'connection', 'upgrade', 'sec-websocket-key', 'sec-websocket-version', 'sec-websocket-extensions'}
-        for k, v in client_ws.headers.items():
-            if k.lower() not in excluded_headers:
-                ws_headers[k] = v
-
-        # Remove origin spoofing - code-server config has disable-proxy:false so it should accept any origin
-        # The duplicate Origin header might be causing issues
-        logger.info(f"[{self.__class__.__name__}] Using original Origin header (not spoofing)")
-
-        # Prepare subprotocols
-        subprotocols = None
-        if 'sec-websocket-protocol' in client_ws.headers:
-            subprotocols = [p.strip() for p in client_ws.headers['sec-websocket-protocol'].split(',')]
-            logger.info(f"[{self.__class__.__name__}] Forwarding WS protocols: {subprotocols}")
-
-        logger.info(f"[{self.__class__.__name__}] Headers: {ws_headers}")
+        logger.info(f"[{self.__class__.__name__}] Headers type: {type(client_ws.headers)}")
         logger.info(f"[{self.__class__.__name__}] ==============================")
 
         # Configure Proxy for websockets library
@@ -228,14 +210,12 @@ class BaseProxy:
 
         try:
             logger.info(f"[{self.__class__.__name__}] Connecting to upstream WebSocket...")
+            # CRITICAL: Use client_ws.headers directly like Terminal does, not a filtered dict
             async with websockets.connect(
                 ws_url,
-                extra_headers=ws_headers,
-                subprotocols=subprotocols,
+                extra_headers=client_ws.headers,  # Pass FastAPI WebSocket.headers directly
                 proxy=proxy_url,
-                open_timeout=30,  # Match closer to Terminal's 10s, but allow some buffer for SOCKS5
-                ping_interval=None,  # Disable automatic pings - let VS Code handle keepalive
-                ping_timeout=None
+                open_timeout=10  # Match Terminal exactly
             ) as server_ws:
                 logger.info(f"[{self.__class__.__name__}] ✅ Connected! Subprotocol selected: {server_ws.subprotocol}")
 

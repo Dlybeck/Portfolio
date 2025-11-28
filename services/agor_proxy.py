@@ -77,6 +77,9 @@ class AgorProxy:
         # Prepare headers, removing host, referer, and existing content-length
         headers = {key: value for key, value in request.headers.items() if key.lower() not in ["host", "referer", "content-length", "transfer-encoding"]}
         
+        # Force gzip encoding to avoid Brotli issues over the proxy/VPN
+        headers['accept-encoding'] = 'gzip'
+        
         # Add X-Forwarded-For if not present
         x_forwarded_for = request.headers.get("x-forwarded-for")
         if x_forwarded_for:

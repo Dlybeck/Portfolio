@@ -74,6 +74,10 @@ class CodeServerProxy:
         headers.pop('connection', None)
         headers.pop('content-length', None) 
         headers.pop('transfer-encoding', None)
+        
+        # Force gzip encoding to avoid Brotli issues over the proxy/VPN
+        # Curl uses gzip by default and works; Chrome uses br (Brotli) which might be stalling
+        headers['accept-encoding'] = 'gzip'
 
         # Add code-server specific headers
         headers['X-Forwarded-For'] = request.client.host

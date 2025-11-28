@@ -47,7 +47,8 @@ class CodeServerProxy:
             client_kwargs = {
                 "timeout": httpx.Timeout(300.0, connect=10.0),
                 "follow_redirects": False,
-                "limits": httpx.Limits(max_keepalive_connections=20)
+                # Disable keep-alive to prevent SOCKS5 connection stalling
+                "limits": httpx.Limits(max_keepalive_connections=0, max_connections=20)
             }
 
             # Add SOCKS5 proxy if running in Cloud Run

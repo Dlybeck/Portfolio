@@ -42,7 +42,9 @@ class AgorProxy:
         client_kwargs = {
             "base_url": self.agor_url,
             "timeout": httpx.Timeout(120.0, connect=30.0),  # Increased for slow Tailscale relay
-            "follow_redirects": False
+            "follow_redirects": False,
+            # Disable keep-alive to prevent SOCKS5 connection stalling
+            "limits": httpx.Limits(max_keepalive_connections=0, max_connections=20)
         }
 
         if IS_CLOUD_RUN:

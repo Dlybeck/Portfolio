@@ -209,6 +209,24 @@ class BaseProxy:
             proxy_url = SOCKS5_PROXY
             logger.info(f"[{self.__class__.__name__}] Using websockets proxy: {proxy_url}")
 
+            # TEST: Try direct SOCKS5 connection first
+            try:
+                import socket
+                test_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                test_sock.settimeout(2)
+                test_sock.connect(('127.0.0.1', 1055))
+                # SOCKS5 handshake: version + num_methods + methods
+                test_sock.send(b'\x05\x01\x00')  # SOCKS5, 1 method, no auth
+                response = test_sock.recv(2)
+                test_sock.close()
+                logger.info(f"[{self.__class__.__name__}] SOCKS5 handshake test: sent=\\x05\\x01\\x00, received={response.hex()}")
+                if response == b'\x05\x00':
+                    logger.info(f"[{self.__class__.__name__}] ✅ SOCKS5 protocol working!")
+                else:
+                    logger.warning(f"[{self.__class__.__name__}] ⚠️ SOCKS5 unexpected response: {response.hex()}")
+            except Exception as e:
+                logger.error(f"[{self.__class__.__name__}] ❌ SOCKS5 test failed: {type(e).__name__}: {e}")
+
         try:
             logger.info(f"[{self.__class__.__name__}] Connecting to upstream WebSocket...")
             # CRITICAL: Use client_ws.headers directly like Terminal does, not a filtered dict

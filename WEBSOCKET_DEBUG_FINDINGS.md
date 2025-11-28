@@ -249,3 +249,69 @@ YES! Line 46 in route_dev_proxy.py: `await websocket.accept()`
 So both access headers after accept. But Terminal uses `websocket.headers` directly (the FastAPI WebSocket object), while we pass it to a function and then access it.
 
 **New hypothesis: The headers are being accessed in a different async context or something is wrong with how we're passing the WebSocket object.**
+
+---
+
+## Update: IPv4 Fix Attempt (Failed)
+
+### Change Made
+Changed `SOCKS5_PROXY` from `socks5://localhost:1055` to `socks5://127.0.0.1:1055`
+
+### Rationale
+In containers, `localhost` might resolve to IPv6 `::1` while Tailscale SOCKS5 only listens on IPv4.
+
+### Result
+**Still fails with same error: "failed to connect to SOCKS proxy"**
+
+### New Discovery: Error is from websockets library
+
+The error "failed to connect to SOCKS proxy" is a generic error from the `websockets` library when the SOCKS5 connection fails. It doesn't tell us WHY.
+
+From [websockets proxy docs](https://websockets.readthedocs.io/en/stable/topics/proxies.html):
+- websockets uses python-socks for SOCKS proxy support
+- python-socks must be installed (it is: v2.7.3)
+- The proxy parameter accepts URLs like `socks5://host:port`
+
+### Hypothesis: Tailscaled SOCKS5 server isn't actually running
+
+The health check shows "SOCKS5 proxy (:1055): ✅ listening" but this only checks if port 1055 accepts TCP connections. It doesn't verify:
+1. The SOCKS5 protocol is actually implemented on that port
+2. Tailscaled is running at all
+3. The SOCKS5 server initialized correctly
+
+### Evidence:
+1. Error is consistent: "failed to connect to SOCKS proxy"
+2. No "could not read packet header" errors anymore (those only appeared once)
+3. Connection fails immediately (no timeout)
+
+### Next Tests Required:
+
+1. **Verify tailscaled is actually running in Cloud Run:**
+   Add logging to cloud_run_entrypoint.sh to confirm tailscaled starts
+
+2. **Test SOCKS5 protocol directly:**
+   ```python
+   import socket
+   import struct
+   
+   # SOCKS5 handshake
+   sock = socket.socket()
+   sock.connect(('127.0.0.1', 1055))
+   # Send version + methods
+   sock.send(b'\x05\x01\x00')  # SOCKS5, 1 method, no auth
+   response = sock.recv(2)
+   print(response)  # Should be b'\x05\x00' if SOCKS5 working
+   ```
+
+3. **Check if python-socks needs asyncio extras:**
+   From search: "pip install python-socks[asyncio]"
+   We might only have the base package
+
+4. **Try connecting without websockets library:**
+   Manually create SOCKS connection, then upgrade to WebSocket
+
+### Sources
+- [python-websockets proxy docs](https://websockets.readthedocs.io/en/stable/topics/proxies.html)
+- [python-socks GitHub](https://github.com/romis2012/python-socks)
+- [WebSocket SOCKS proxy issue #475](https://github.com/python-websockets/websockets/issues/475)
+- [Python Socks needed - Issue #817](https://github.com/websocket-client/websocket-client/issues/817)

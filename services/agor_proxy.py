@@ -341,7 +341,9 @@ class AgorProxy:
                     logger.info(f"🔌 aiohttp session created, connecting to {ws_url}...")
                     async with session.ws_connect(
                         ws_url,
-                        timeout=aiohttp.ClientTimeout(total=43200, connect=60)  # 12 hours total, 60s connect for slow Tailscale relay
+                        timeout=aiohttp.ClientTimeout(total=43200, connect=60),  # 12 hours total, 60s connect for slow Tailscale relay
+                        heartbeat=15.0,  # Send ping every 15s to keep SOCKS5/LB connection alive
+                        autoping=True
                     ) as server_ws:
                         logger.info(f"✅ WebSocket connection ESTABLISHED to Agor: {ws_url}")
                         logger.info(f"🔌 Starting bidirectional message forwarding...")

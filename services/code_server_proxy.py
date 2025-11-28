@@ -226,7 +226,9 @@ class CodeServerProxy:
                 async with aiohttp.ClientSession(connector=connector) as session:
                     async with session.ws_connect(
                         ws_url,
-                        timeout=aiohttp.ClientTimeout(total=43200)  # 12 hours
+                        timeout=aiohttp.ClientTimeout(total=43200),  # 12 hours
+                        heartbeat=15.0,  # Send ping every 15s to keep SOCKS5/LB connection alive
+                        autoping=True
                     ) as server_ws:
                         # Bidirectional proxy
                         async def forward_to_server():

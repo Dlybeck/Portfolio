@@ -92,6 +92,17 @@ class AgorProxy(BaseProxy):
             body_str
         )
 
+        # 8. Rewrite API paths (critical for login and health checks)
+        # Matches: "/health", '/health', etc.
+        body_str = body_str.replace('"/health"', '"/dev/agor/health"')
+        body_str = body_str.replace("'/health'", "'/dev/agor/health'")
+        
+        body_str = body_str.replace('"/auth"', '"/dev/agor/auth"')
+        body_str = body_str.replace("'/auth'", "'/dev/agor/auth'")
+        
+        body_str = body_str.replace('"/api"', '"/dev/agor/api"')
+        body_str = body_str.replace("'/api'", "'/dev/agor/api'")
+
         logger.info(f"Rewrote content for {path} ({len(body_bytes)} -> {len(body_str)} chars)")
         
         new_body = body_str.encode('utf-8')

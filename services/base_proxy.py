@@ -196,10 +196,18 @@ class BaseProxy:
             # Forward only essential headers for authentication and context
             # Filtering out WS protocol headers that aiohttp will regenerate or conflict with
             ws_headers = {}
-            allowed_headers = {'authorization', 'cookie', 'origin', 'user-agent', 'x-forwarded-for', 'x-forwarded-proto'}
+            allowed_headers = {'authorization', 'cookie', 'user-agent', 'x-forwarded-for', 'x-forwarded-proto'}
             for k, v in client_ws.headers.items():
                 if k.lower() in allowed_headers:
                     ws_headers[k] = v
+            
+            # Force Origin to match upstream to bypass CSWSH checks
+            # Convert ws://... -> http://... and wss://... -> https://...
+            upstream_origin = ws_url.replace("ws://", "http://").replace("wss://", "https://")
+            # Remove path from origin
+            upstream_origin = "/".join(upstream_origin.split("/")[:3])
+            ws_headers['Origin'] = upstream_origin
+            logger.info(f"[{self.__class__.__name__}] Spoofing Origin: {upstream_origin}")
 
             async with aiohttp.ClientSession(connector=connector) as ws_session:
                 try:

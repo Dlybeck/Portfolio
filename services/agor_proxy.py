@@ -97,11 +97,20 @@ class AgorProxy(BaseProxy):
         body_str = body_str.replace('"/health"', '"/dev/agor/health"')
         body_str = body_str.replace("'/health'", "'/dev/agor/health'")
         
+        # Handle template literals and dynamic paths: `${qd()}/health` or similar
+        # We look for /health at the end of a path segment in JS
+        body_str = body_str.replace('}/health`', '}/dev/agor/health`')
+        body_str = body_str.replace('+"/health"', '+"/dev/agor/health"')
+        
+        # Auth paths
         body_str = body_str.replace('"/auth"', '"/dev/agor/auth"')
         body_str = body_str.replace("'/auth'", "'/dev/agor/auth'")
+        body_str = body_str.replace('}/auth`', '}/dev/agor/auth`')
         
+        # API paths
         body_str = body_str.replace('"/api"', '"/dev/agor/api"')
         body_str = body_str.replace("'/api'", "'/dev/agor/api'")
+        body_str = body_str.replace('}/api`', '}/dev/agor/api`')
 
         logger.info(f"Rewrote content for {path} ({len(body_bytes)} -> {len(body_str)} chars)")
         

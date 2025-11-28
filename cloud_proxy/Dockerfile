@@ -54,7 +54,9 @@ fi\n\
 \n\
 echo "✅ Generated fresh auth key (valid 90 days)"\n\
 \n\
-# Start tailscaled in background\n\
+# Start tailscaled in background with MTU fix for Cloud Run packet fragmentation\n\
+# See: https://github.com/tailscale/tailscale/issues/9894\n\
+export TS_DEBUG_MTU=1024\n\
 tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &\n\
 sleep 2\n\
 \n\

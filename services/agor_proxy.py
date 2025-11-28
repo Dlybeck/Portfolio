@@ -1,7 +1,8 @@
-import httpx
 import websockets
 import os
 import asyncio
+import aiohttp
+from aiohttp_socks import ProxyConnector
 from starlette.requests import Request
 from starlette.responses import StreamingResponse
 from starlette.websockets import WebSocket, WebSocketDisconnect
@@ -37,30 +38,44 @@ class AgorProxy:
             self.agor_url = "http://127.0.0.1:3030"
             logger.info(f"Local mode: connecting to {self.agor_url}")
 
-        # Create client with SOCKS5 proxy if in Cloud Run
-        # Use longer timeouts for Tailscale relay connections
-        client_kwargs = {
-            "base_url": self.agor_url,
-            "timeout": httpx.Timeout(120.0, connect=30.0),  # Increased for slow Tailscale relay
-            "follow_redirects": False,
-            "limits": httpx.Limits(max_keepalive_connections=20, max_connections=20)
-        }
-
-        if IS_CLOUD_RUN:
-            client_kwargs["proxy"] = SOCKS5_PROXY
-            logger.info(f"HTTP client using SOCKS5 proxy: {SOCKS5_PROXY}")
-
-        self.client = httpx.AsyncClient(**client_kwargs)
+        self.session = None
         logger.info(f"Initialized AgorProxy for URL: {self.agor_url}")
 
+    async def get_session(self) -> aiohttp.ClientSession:
+        """Get or create aiohttp ClientSession with SOCKS5 proxy if in Cloud Run"""
+        if self.session is None:
+            connector = None
+            if IS_CLOUD_RUN:
+                # Use aiohttp-socks for SOCKS5 proxy
+                connector = ProxyConnector.from_url(
+                    SOCKS5_PROXY,
+                    limit=20,
+                    limit_per_host=20,
+                    force_close=True # Disable keep-alive at connection level
+                )
+                logger.info(f"aiohttp session using SOCKS5 proxy: {SOCKS5_PROXY}")
+            else:
+                connector = aiohttp.TCPConnector(limit=20, force_close=True)
+
+            # Create session with timeouts
+            timeout = aiohttp.ClientTimeout(total=120.0, connect=30.0)
+            self.session = aiohttp.ClientSession(
+                connector=connector,
+                timeout=timeout,
+                auto_decompress=False
+            )
+        return self.session
+
     async def proxy_request(self, request: Request, path: str):
-        # Build relative URL with query params (client already has base_url set)
-        url = f"/{path}"
+        session = await self.get_session()
+
+        # Build relative URL with query params
+        url = f"{self.agor_url}/{path}"
         if request.url.query:
             url += f"?{request.url.query}"
 
         # Prepare headers, removing host, referer, and existing content-length
-        headers = {key: value for key, value in request.headers.items() if key.lower() not in ["host", "referer", "content-length"]}
+        headers = {key: value for key, value in request.headers.items() if key.lower() not in ["host", "referer", "content-length", "transfer-encoding"]}
         
         # Add X-Forwarded-For if not present
         x_forwarded_for = request.headers.get("x-forwarded-for")
@@ -70,16 +85,16 @@ class AgorProxy:
             headers["x-forwarded-for"] = request.client.host
             
         try:
-            # Create a request object
-            req = self.client.build_request(
-                method=request.method,
-                url=url,
-                headers=headers,
-                content=request.stream()
-            )
+            # Create request method
+            method = request.method.upper()
+            
+            # Prepare body (stream it)
+            data = request.stream()
 
-            # Send request with streaming enabled
-            resp = await self.client.send(req, stream=True)
+            # Create request context
+            # We manually enter the context manager to get the response object
+            req_ctx = session.request(method, url, headers=headers, data=data)
+            resp = await req_ctx.__aenter__()
 
             content_type = resp.headers.get('content-type', '').lower()
 
@@ -90,10 +105,14 @@ class AgorProxy:
             is_css = 'text/css' in content_type or path.endswith('.css')
 
             if is_html or is_js or is_css:
-                # Read the full response into memory for processing
-                body_bytes = await resp.aread()
-                
-                # ... (rest of the replacement logic is the same)
+                try:
+                    # Read the full response
+                    body_bytes = await resp.read()
+                finally:
+                    # Close response immediately after reading
+                    await req_ctx.__aexit__(None, None, None)
+
+                # ... (rest of the replacement logic is identical)
                 if is_html:
                     # Decode with proper charset
                     charset = 'utf-8'
@@ -106,12 +125,10 @@ class AgorProxy:
                         body_str = body_bytes.decode('utf-8', errors='replace')
 
                     # Rewrite absolute paths /ui/ to /dev/agor/ui/ for proper routing
-                    # This fixes paths like /ui/assets/index.js to /dev/agor/ui/assets/index.js
                     body_str = body_str.replace('"/ui/', '"/dev/agor/ui/')
                     body_str = body_str.replace("'/ui/", "'/dev/agor/ui/")
 
-                    # Fix Socket.IO connection path from "/socket.io" to "/dev/agor/socket.io"
-                    # This is critical for WebSocket authentication to work
+                    # Fix Socket.IO connection path
                     body_str = body_str.replace('"/socket.io/', '"/dev/agor/socket.io/')
                     body_str = body_str.replace("'/socket.io/", "'/dev/agor/socket.io/")
                     body_str = body_str.replace('"/socket.io"', '"/dev/agor/socket.io"')
@@ -119,9 +136,7 @@ class AgorProxy:
                     body_str = body_str.replace('||"/socket.io"', '||"/dev/agor/socket.io"')
                     body_str = body_str.replace("||'/socket.io'", "||'/dev/agor/socket.io'")
 
-                    # Fix React Router basename by injecting script before app loads
-                    # The Agor app has <Router basename="/ui"> but we're serving at /dev/agor/ui/
-                    # Inject a base tag to fix routing
+                    # Fix React Router basename
                     if '<head>' in body_str:
                         base_injection = '<head>\n    <base href="/dev/agor/ui/">'
                         body_str = body_str.replace('<head>', base_injection, 1)
@@ -137,23 +152,21 @@ class AgorProxy:
 
                     return StreamingResponse(
                         iter([new_body_bytes]),
-                        status_code=resp.status_code,
+                        status_code=resp.status,
                         headers=response_headers
                     )
                 elif is_js:
-                    # Rewrite JavaScript files to fix React Router basename
+                    # Rewrite JavaScript files
                     try:
                         body_str = body_bytes.decode('utf-8')
 
-                        # Fix React Router basename from "/ui" to "/dev/agor/ui"
-                        # Match patterns like: basename="/ui" or basename:"/ui" or basename='/ui'
+                        # Fix React Router basename
                         body_str = body_str.replace('basename:"/ui"', 'basename:"/dev/agor/ui"')
                         body_str = body_str.replace('basename="/ui"', 'basename="/dev/agor/ui"')
                         body_str = body_str.replace("basename:'/ui'", "basename:'/dev/agor/ui'")
                         body_str = body_str.replace("basename='/ui'", "basename='/dev/agor/ui'")
 
-                        # Fix all /ui/ asset paths in strings (images, fonts, etc)
-                        # Matches: "/ui/assets/...", '/ui/assets/...', "/ui/fonts/...", etc
+                        # Fix asset paths
                         body_str = body_str.replace('"/ui/assets/', '"/dev/agor/ui/assets/')
                         body_str = body_str.replace("'/ui/assets/", "'/dev/agor/ui/assets/")
                         body_str = body_str.replace('"/ui/fonts/', '"/dev/agor/ui/fonts/')
@@ -163,9 +176,7 @@ class AgorProxy:
                         body_str = body_str.replace('"/ui/static/', '"/dev/agor/ui/static/')
                         body_str = body_str.replace("'/ui/static/", "'/dev/agor/ui/static/")
 
-                        # Fix Socket.IO connection path from "/socket.io" to "/dev/agor/socket.io"
-                        # This is critical for WebSocket authentication to work
-                        # Match all patterns: quoted strings and default values (||"/socket.io")
+                        # Fix Socket.IO connection path
                         body_str = body_str.replace('"/socket.io/', '"/dev/agor/socket.io/')
                         body_str = body_str.replace("'/socket.io/", "'/dev/agor/socket.io/")
                         body_str = body_str.replace('"/socket.io"', '"/dev/agor/socket.io"')
@@ -173,19 +184,14 @@ class AgorProxy:
                         body_str = body_str.replace('||"/socket.io"', '||"/dev/agor/socket.io"')
                         body_str = body_str.replace("||'/socket.io'", "||'/dev/agor/socket.io'")
 
-                        # Fix Agor 0.9.0 path detection for proxy environments
-                        # Agor checks if(window.location.pathname.startsWith("/ui")) to decide whether to add :3030
-                        # We're serving at /dev/agor/ui/ so we need to patch this check
+                        # Fix Agor 0.9.0 path detection
                         body_str = body_str.replace(
                             'window.location.pathname.startsWith("/ui")',
                             '(window.location.pathname.startsWith("/ui")||window.location.pathname.includes("/agor/ui"))'
                         )
 
-                        # Increase Socket.IO connection timeout for slow Tailscale relay
-                        # Find and replace the Socket.IO options object to add timeout
-                        # Pattern: transports:["polling","websocket"] or similar config objects
+                        # Increase Socket.IO connection timeout
                         import re
-                        # Add timeout to Socket.IO initialization (increase from default ~20s to 60s)
                         body_str = re.sub(
                             r'(transports:\s*\[[^\]]+\])',
                             r'\1,timeout:60000',
@@ -202,27 +208,26 @@ class AgorProxy:
 
                         return StreamingResponse(
                             iter([new_body_bytes]),
-                            status_code=resp.status_code,
+                            status_code=resp.status,
                             headers=response_headers
                         )
                     except Exception as e:
                         logger.warning(f"Failed to rewrite JS file {path}: {e}, streaming as-is")
-                        # Fall back to streaming if rewrite fails
+                        # Fall back to original bytes if rewrite fails
                         response_headers = dict(resp.headers)
                         response_headers.pop('content-encoding', None)
                         response_headers.pop('transfer-encoding', None)
                         return StreamingResponse(
                             iter([body_bytes]),
-                            status_code=resp.status_code,
+                            status_code=resp.status,
                             headers=response_headers
                         )
                 elif is_css:
-                    # Rewrite CSS files to fix asset paths
+                    # Rewrite CSS files
                     try:
                         body_str = body_bytes.decode('utf-8')
 
-                        # Fix CSS url() references from /ui/ to /dev/agor/ui/
-                        # Matches: url('/ui/...'), url("/ui/..."), url(/ui/...)
+                        # Fix CSS url() references
                         import re
                         body_str = re.sub(r'url\(["\']?/ui/', r'url(/dev/agor/ui/', body_str)
 
@@ -236,18 +241,17 @@ class AgorProxy:
 
                         return StreamingResponse(
                             iter([new_body_bytes]),
-                            status_code=resp.status_code,
+                            status_code=resp.status,
                             headers=response_headers
                         )
                     except Exception as e:
                         logger.warning(f"Failed to rewrite CSS file {path}: {e}, streaming as-is")
-                        # Fall back to streaming if rewrite fails
                         response_headers = dict(resp.headers)
                         response_headers.pop('content-encoding', None)
                         response_headers.pop('transfer-encoding', None)
                         return StreamingResponse(
                             iter([body_bytes]),
-                            status_code=resp.status_code,
+                            status_code=resp.status,
                             headers=response_headers
                         )
             else:
@@ -257,13 +261,20 @@ class AgorProxy:
                 response_headers.pop('transfer-encoding', None)
                 response_headers.pop('content-length', None)
 
+                async def content_iterator():
+                    try:
+                        async for chunk in resp.content.iter_chunked(4096):
+                            yield chunk
+                    finally:
+                        await req_ctx.__aexit__(None, None, None)
+
                 return StreamingResponse(
-                    resp.aiter_bytes(),
-                    status_code=resp.status_code,
+                    content_iterator(),
+                    status_code=resp.status,
                     headers=response_headers,
-                    background=None # httpx stream is closed when response is consumed
+                    background=None
                 )
-        except httpx.ConnectError as e:
+        except aiohttp.ClientConnectorError as e:
             logger.error(f"Agor proxy connection error: {e}")
             return StreamingResponse(
                 iter([f"Agor server not reachable: {e}".encode()]),

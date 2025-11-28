@@ -4,13 +4,13 @@ Handles reverse proxying to local code-server instance
 When in Cloud Run, proxies through Tailscale SOCKS5
 """
 
-import httpx
-import websockets
+import aiohttp
 import asyncio
 import os
 from fastapi import Request, Response, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 from typing import Dict, Any
+from aiohttp_socks import ProxyConnector
 
 
 # Detect if running in Cloud Run (proxy mode) or locally (direct mode)
@@ -38,25 +38,32 @@ class CodeServerProxy:
             self.code_server_url = "http://127.0.0.1:8888"
             print(f"[CodeServerProxy] Local mode: connecting to {self.code_server_url}")
 
-        self.client = None
+        self.session = None
 
-    async def get_client(self) -> httpx.AsyncClient:
-        """Get or create HTTP client with SOCKS5 proxy if in Cloud Run"""
-        if self.client is None:
-            # Create client with default decompression (httpx auto-decodes gzip/brotli/deflate)
-            client_kwargs = {
-                "timeout": httpx.Timeout(300.0, connect=10.0),
-                "follow_redirects": False,
-                "limits": httpx.Limits(max_keepalive_connections=20, max_connections=20)
-            }
-
-            # Add SOCKS5 proxy if running in Cloud Run
+    async def get_session(self) -> aiohttp.ClientSession:
+        """Get or create aiohttp ClientSession with SOCKS5 proxy if in Cloud Run"""
+        if self.session is None:
+            connector = None
             if IS_CLOUD_RUN:
-                client_kwargs["proxy"] = SOCKS5_PROXY
-                print(f"[CodeServerProxy] HTTP client using SOCKS5 proxy: {SOCKS5_PROXY}")
+                # Use aiohttp-socks for SOCKS5 proxy
+                connector = ProxyConnector.from_url(
+                    SOCKS5_PROXY,
+                    limit=20,       # Max concurrent connections
+                    limit_per_host=20,
+                    force_close=True # Disable keep-alive at the connector level to be safe
+                )
+                print(f"[CodeServerProxy] aiohttp session using SOCKS5 proxy: {SOCKS5_PROXY}")
+            else:
+                connector = aiohttp.TCPConnector(limit=20, force_close=True)
 
-            self.client = httpx.AsyncClient(**client_kwargs)
-        return self.client
+            # Create session with timeouts
+            timeout = aiohttp.ClientTimeout(total=300.0, connect=10.0)
+            self.session = aiohttp.ClientSession(
+                connector=connector,
+                timeout=timeout,
+                auto_decompress=False # We want to stream raw bytes
+            )
+        return self.session
 
     def _prepare_headers(self, request: Request) -> Dict[str, str]:
         """Prepare headers for proxying"""
@@ -65,7 +72,8 @@ class CodeServerProxy:
         # Remove headers that shouldn't be forwarded
         headers.pop('host', None)
         headers.pop('connection', None)
-        headers.pop('content-length', None)  # let httpx recalculate
+        headers.pop('content-length', None) 
+        headers.pop('transfer-encoding', None)
 
         # Add code-server specific headers
         headers['X-Forwarded-For'] = request.client.host
@@ -79,7 +87,7 @@ class CodeServerProxy:
         path: str
     ) -> StreamingResponse:
         """
-        Proxy HTTP request to code-server with streaming
+        Proxy HTTP request to code-server with streaming using aiohttp
 
         Args:
             request: FastAPI request object
@@ -88,7 +96,7 @@ class CodeServerProxy:
         Returns:
             StreamingResponse from code-server
         """
-        client = await self.get_client()
+        session = await self.get_session()
 
         # Build target URL
         url = f"{self.code_server_url}/{path}"
@@ -99,32 +107,64 @@ class CodeServerProxy:
         headers = self._prepare_headers(request)
 
         try:
-            # Create a streaming request
-            req = client.build_request(
-                method=request.method,
-                url=url,
-                headers=headers,
-                content=request.stream()
-            )
+            # Create request method
+            method = request.method.upper()
             
-            # Send request and stream response
-            response = await client.send(req, stream=True)
+            # Prepare body (stream it)
+            data = request.stream()
+
+            # Make the request
+            # Note: we don't use 'async with' here because we return the response iterator
+            # The session/response will be closed when the StreamingResponse finishes?
+            # Actually, aiohttp requires the response context manager to be active while reading.
+            # This is tricky with FastAPI StreamingResponse.
+            # Solution: We must yield from the response inside the StreamingResponse generator.
+            
+            # Create a generator that handles the context manager
+            async def stream_generator():
+                try:
+                    async with session.request(method, url, headers=headers, data=data) as resp:
+                        # Yield status and headers first? No, FastAPI takes those separately.
+                        # We can't easily pass status/headers out of the generator *after* entering context.
+                        # We need to enter the context, capture status/headers, then yield chunks.
+                        # BUT StreamingResponse needs status/headers immediately.
+                        
+                        # Alternative: Use session.request without 'async with', and manually close.
+                        # aiohttp supports this but warns about unclosed resources.
+                        pass
+                except Exception as e:
+                    print(f"Stream error: {e}")
+
+            # Correct approach for aiohttp + FastAPI Streaming:
+            # We initiate the request, await the headers, then return a StreamingResponse
+            # that iterates over the content.
+            
+            # Hack: calling session.request() returns a RequestContextManager.
+            # We can .__aenter__() it manually.
+            req_ctx = session.request(method, url, headers=headers, data=data)
+            resp = await req_ctx.__aenter__()
 
             # Prepare response headers
-            response_headers = dict(response.headers)
-            response_headers.pop('content-encoding', None) 
+            response_headers = dict(resp.headers)
+            response_headers.pop('content-encoding', None)
             response_headers.pop('content-length', None)
             response_headers.pop('transfer-encoding', None)
 
+            async def content_iterator():
+                try:
+                    async for chunk in resp.content.iter_chunked(4096):
+                        yield chunk
+                finally:
+                    await req_ctx.__aexit__(None, None, None)
+
             return StreamingResponse(
-                response.aiter_bytes(),
-                status_code=response.status_code,
+                content_iterator(),
+                status_code=resp.status,
                 headers=response_headers,
-                media_type=response.headers.get('content-type'),
-                background=None # httpx stream is closed when response is consumed
+                media_type=resp.headers.get('content-type')
             )
 
-        except httpx.ConnectError:
+        except aiohttp.ClientConnectorError:
             raise HTTPException(
                 status_code=503,
                 detail="code-server is not running. Please start it first."
@@ -210,9 +250,9 @@ class CodeServerProxy:
         try:
             if IS_CLOUD_RUN:
                 # Cloud Run: Use aiohttp with SOCKS5 proxy
-                import aiohttp
-                from aiohttp_socks import ProxyConnector
-
+                # Re-use the session logic or create new for WS? 
+                # WS needs its own connection.
+                
                 connector = ProxyConnector.from_url(SOCKS5_PROXY)
 
                 async with aiohttp.ClientSession(connector=connector) as session:
@@ -262,6 +302,7 @@ class CodeServerProxy:
                         )
             else:
                 # Local: Use websockets library (direct connection)
+                import websockets
                 async with websockets.connect(
                     ws_url,
                     ping_interval=30,
@@ -312,8 +353,8 @@ class CodeServerProxy:
 
     async def close(self):
         """Close HTTP client"""
-        if self.client:
-            await self.client.aclose()
+        if self.session:
+            await self.session.close()
 
 
 # Global instance

@@ -199,7 +199,8 @@ class BaseProxy:
         logger.info(f"[{self.__class__.__name__}] Target URL: {ws_url}")
         logger.info(f"[{self.__class__.__name__}] Path param: {path}")
         logger.info(f"[{self.__class__.__name__}] Query params: {client_ws.query_params}")
-        logger.info(f"[{self.__class__.__name__}] Headers type: {type(client_ws.headers)}")
+        # Removed headers type logging - it was hanging
+        logger.info(f"[{self.__class__.__name__}] About to configure proxy...")
         logger.info(f"[{self.__class__.__name__}] ==============================")
 
         # Configure Proxy for websockets library

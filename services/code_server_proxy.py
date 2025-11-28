@@ -47,8 +47,7 @@ class CodeServerProxy:
             client_kwargs = {
                 "timeout": httpx.Timeout(300.0, connect=10.0),
                 "follow_redirects": False,
-                # Disable keep-alive to prevent SOCKS5 connection stalling
-                "limits": httpx.Limits(max_keepalive_connections=0, max_connections=20)
+                "limits": httpx.Limits(max_keepalive_connections=20, max_connections=20)
             }
 
             # Add SOCKS5 proxy if running in Cloud Run
@@ -66,10 +65,7 @@ class CodeServerProxy:
         # Remove headers that shouldn't be forwarded
         headers.pop('host', None)
         headers.pop('connection', None)
-
-        # Remove accept-encoding to prevent double compression issues
-        # httpx will handle decompression automatically
-        headers.pop('accept-encoding', None)
+        headers.pop('content-length', None)  # let httpx recalculate
 
         # Add code-server specific headers
         headers['X-Forwarded-For'] = request.client.host
@@ -81,16 +77,16 @@ class CodeServerProxy:
         self,
         request: Request,
         path: str
-    ) -> Response:
+    ) -> StreamingResponse:
         """
-        Proxy HTTP request to code-server
+        Proxy HTTP request to code-server with streaming
 
         Args:
             request: FastAPI request object
             path: Path to proxy (e.g., "index.html")
 
         Returns:
-            Response from code-server
+            StreamingResponse from code-server
         """
         client = await self.get_client()
 
@@ -103,34 +99,29 @@ class CodeServerProxy:
         headers = self._prepare_headers(request)
 
         try:
-            # Proxy the request
-            if request.method == "GET":
-                response = await client.get(url, headers=headers)
-            elif request.method == "POST":
-                body = await request.body()
-                response = await client.post(url, headers=headers, content=body)
-            elif request.method == "PUT":
-                body = await request.body()
-                response = await client.put(url, headers=headers, content=body)
-            elif request.method == "DELETE":
-                response = await client.delete(url, headers=headers)
-            elif request.method == "PATCH":
-                body = await request.body()
-                response = await client.patch(url, headers=headers, content=body)
-            else:
-                raise HTTPException(status_code=405, detail="Method not allowed")
+            # Create a streaming request
+            req = client.build_request(
+                method=request.method,
+                url=url,
+                headers=headers,
+                content=request.stream()
+            )
+            
+            # Send request and stream response
+            response = await client.send(req, stream=True)
 
-            # Prepare response headers (remove compression headers since httpx already decoded)
+            # Prepare response headers
             response_headers = dict(response.headers)
-            response_headers.pop('content-encoding', None)  # Remove gzip/brotli encoding
-            response_headers.pop('content-length', None)    # Length changed after decoding
+            response_headers.pop('content-encoding', None) 
+            response_headers.pop('content-length', None)
+            response_headers.pop('transfer-encoding', None)
 
-            # Return response
-            return Response(
-                content=response.content,
+            return StreamingResponse(
+                response.aiter_bytes(),
                 status_code=response.status_code,
                 headers=response_headers,
-                media_type=response.headers.get('content-type')
+                media_type=response.headers.get('content-type'),
+                background=None # httpx stream is closed when response is consumed
             )
 
         except httpx.ConnectError:

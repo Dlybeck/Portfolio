@@ -43,8 +43,7 @@ class AgorProxy:
             "base_url": self.agor_url,
             "timeout": httpx.Timeout(120.0, connect=30.0),  # Increased for slow Tailscale relay
             "follow_redirects": False,
-            # Disable keep-alive to prevent SOCKS5 connection stalling
-            "limits": httpx.Limits(max_keepalive_connections=0, max_connections=20)
+            "limits": httpx.Limits(max_keepalive_connections=20, max_connections=20)
         }
 
         if IS_CLOUD_RUN:
@@ -71,99 +70,48 @@ class AgorProxy:
             headers["x-forwarded-for"] = request.client.host
             
         try:
-            # Forward the request
-            body = await request.body()
-            resp = await self.client.request(
+            # Create a request object
+            req = self.client.build_request(
                 method=request.method,
                 url=url,
                 headers=headers,
-                content=body,
-                follow_redirects=False
+                content=request.stream()
             )
+
+            # Send request with streaming enabled
+            resp = await self.client.send(req, stream=True)
 
             content_type = resp.headers.get('content-type', '').lower()
 
             # Rewrite paths for HTML, JavaScript, and CSS responses
+            # We must buffer these to perform replacements
             is_html = 'text/html' in content_type
             is_js = 'javascript' in content_type or path.endswith('.js')
             is_css = 'text/css' in content_type or path.endswith('.css')
 
-            if is_html:
-                # Read the full response
+            if is_html or is_js or is_css:
+                # Read the full response into memory for processing
                 body_bytes = await resp.aread()
+                
+                # ... (rest of the replacement logic is the same)
+                if is_html:
+                    # Decode with proper charset
+                    charset = 'utf-8'
+                    if 'charset=' in content_type:
+                        charset = content_type.split('charset=')[-1]
 
-                # Decode with proper charset
-                charset = 'utf-8'
-                if 'charset=' in content_type:
-                    charset = content_type.split('charset=')[-1]
+                    try:
+                        body_str = body_bytes.decode(charset)
+                    except (UnicodeDecodeError, LookupError):
+                        body_str = body_bytes.decode('utf-8', errors='replace')
 
-                try:
-                    body_str = body_bytes.decode(charset)
-                except (UnicodeDecodeError, LookupError):
-                    body_str = body_bytes.decode('utf-8', errors='replace')
-
-                # Rewrite absolute paths /ui/ to /dev/agor/ui/ for proper routing
-                # This fixes paths like /ui/assets/index.js to /dev/agor/ui/assets/index.js
-                body_str = body_str.replace('"/ui/', '"/dev/agor/ui/')
-                body_str = body_str.replace("'/ui/", "'/dev/agor/ui/")
-
-                # Fix Socket.IO connection path from "/socket.io" to "/dev/agor/socket.io"
-                # This is critical for WebSocket authentication to work
-                body_str = body_str.replace('"/socket.io/', '"/dev/agor/socket.io/')
-                body_str = body_str.replace("'/socket.io/", "'/dev/agor/socket.io/")
-                body_str = body_str.replace('"/socket.io"', '"/dev/agor/socket.io"')
-                body_str = body_str.replace("'/socket.io'", "'/dev/agor/socket.io'")
-                body_str = body_str.replace('||"/socket.io"', '||"/dev/agor/socket.io"')
-                body_str = body_str.replace("||'/socket.io'", "||'/dev/agor/socket.io'")
-
-                # Fix React Router basename by injecting script before app loads
-                # The Agor app has <Router basename="/ui"> but we're serving at /dev/agor/ui/
-                # Inject a base tag to fix routing
-                if '<head>' in body_str:
-                    base_injection = '<head>\n    <base href="/dev/agor/ui/">'
-                    body_str = body_str.replace('<head>', base_injection, 1)
-
-                logger.info("Rewrote /ui/ and /socket.io/ paths to /dev/agor/* and injected base tag in Agor HTML")
-
-                # Encode and update headers
-                new_body_bytes = body_str.encode('utf-8')
-                response_headers = dict(resp.headers)
-                response_headers['content-length'] = str(len(new_body_bytes))
-                response_headers.pop('content-encoding', None)
-
-                return StreamingResponse(
-                    iter([new_body_bytes]),
-                    status_code=resp.status_code,
-                    headers=response_headers
-                )
-            elif is_js:
-                # Rewrite JavaScript files to fix React Router basename
-                body_bytes = await resp.aread()
-
-                try:
-                    body_str = body_bytes.decode('utf-8')
-
-                    # Fix React Router basename from "/ui" to "/dev/agor/ui"
-                    # Match patterns like: basename="/ui" or basename:"/ui" or basename='/ui'
-                    body_str = body_str.replace('basename:"/ui"', 'basename:"/dev/agor/ui"')
-                    body_str = body_str.replace('basename="/ui"', 'basename="/dev/agor/ui"')
-                    body_str = body_str.replace("basename:'/ui'", "basename:'/dev/agor/ui'")
-                    body_str = body_str.replace("basename='/ui'", "basename='/dev/agor/ui'")
-
-                    # Fix all /ui/ asset paths in strings (images, fonts, etc)
-                    # Matches: "/ui/assets/...", '/ui/assets/...', "/ui/fonts/...", etc
-                    body_str = body_str.replace('"/ui/assets/', '"/dev/agor/ui/assets/')
-                    body_str = body_str.replace("'/ui/assets/", "'/dev/agor/ui/assets/")
-                    body_str = body_str.replace('"/ui/fonts/', '"/dev/agor/ui/fonts/')
-                    body_str = body_str.replace("'/ui/fonts/", "'/dev/agor/ui/fonts/")
-                    body_str = body_str.replace('"/ui/images/', '"/dev/agor/ui/images/')
-                    body_str = body_str.replace("'/ui/images/", "'/dev/agor/ui/images/")
-                    body_str = body_str.replace('"/ui/static/', '"/dev/agor/ui/static/')
-                    body_str = body_str.replace("'/ui/static/", "'/dev/agor/ui/static/")
+                    # Rewrite absolute paths /ui/ to /dev/agor/ui/ for proper routing
+                    # This fixes paths like /ui/assets/index.js to /dev/agor/ui/assets/index.js
+                    body_str = body_str.replace('"/ui/', '"/dev/agor/ui/')
+                    body_str = body_str.replace("'/ui/", "'/dev/agor/ui/")
 
                     # Fix Socket.IO connection path from "/socket.io" to "/dev/agor/socket.io"
                     # This is critical for WebSocket authentication to work
-                    # Match all patterns: quoted strings and default values (||"/socket.io")
                     body_str = body_str.replace('"/socket.io/', '"/dev/agor/socket.io/')
                     body_str = body_str.replace("'/socket.io/", "'/dev/agor/socket.io/")
                     body_str = body_str.replace('"/socket.io"', '"/dev/agor/socket.io"')
@@ -171,93 +119,149 @@ class AgorProxy:
                     body_str = body_str.replace('||"/socket.io"', '||"/dev/agor/socket.io"')
                     body_str = body_str.replace("||'/socket.io'", "||'/dev/agor/socket.io'")
 
-                    # Fix Agor 0.9.0 path detection for proxy environments
-                    # Agor checks if(window.location.pathname.startsWith("/ui")) to decide whether to add :3030
-                    # We're serving at /dev/agor/ui/ so we need to patch this check
-                    body_str = body_str.replace(
-                        'window.location.pathname.startsWith("/ui")',
-                        '(window.location.pathname.startsWith("/ui")||window.location.pathname.includes("/agor/ui"))'
-                    )
+                    # Fix React Router basename by injecting script before app loads
+                    # The Agor app has <Router basename="/ui"> but we're serving at /dev/agor/ui/
+                    # Inject a base tag to fix routing
+                    if '<head>' in body_str:
+                        base_injection = '<head>\n    <base href="/dev/agor/ui/">'
+                        body_str = body_str.replace('<head>', base_injection, 1)
 
-                    # Increase Socket.IO connection timeout for slow Tailscale relay
-                    # Find and replace the Socket.IO options object to add timeout
-                    # Pattern: transports:["polling","websocket"] or similar config objects
-                    import re
-                    # Add timeout to Socket.IO initialization (increase from default ~20s to 60s)
-                    body_str = re.sub(
-                        r'(transports:\s*\[[^\]]+\])',
-                        r'\1,timeout:60000',
-                        body_str
-                    )
+                    logger.info("Rewrote /ui/ and /socket.io/ paths to /dev/agor/* and injected base tag in Agor HTML")
 
+                    # Encode and update headers
                     new_body_bytes = body_str.encode('utf-8')
                     response_headers = dict(resp.headers)
                     response_headers['content-length'] = str(len(new_body_bytes))
                     response_headers.pop('content-encoding', None)
-
-                    logger.debug(f"Rewrote React Router basename and Socket.IO paths in JS file: {path}")
+                    response_headers.pop('transfer-encoding', None)
 
                     return StreamingResponse(
                         iter([new_body_bytes]),
                         status_code=resp.status_code,
                         headers=response_headers
                     )
-                except Exception as e:
-                    logger.warning(f"Failed to rewrite JS file {path}: {e}, streaming as-is")
-                    # Fall back to streaming if rewrite fails
-                    response_headers = dict(resp.headers)
-                    response_headers.pop('content-encoding', None)
-                    response_headers.pop('transfer-encoding', None)
-                    return StreamingResponse(
-                        iter([body_bytes]),
-                        status_code=resp.status_code,
-                        headers=response_headers
-                    )
-            elif is_css:
-                # Rewrite CSS files to fix asset paths
-                body_bytes = await resp.aread()
+                elif is_js:
+                    # Rewrite JavaScript files to fix React Router basename
+                    try:
+                        body_str = body_bytes.decode('utf-8')
 
-                try:
-                    body_str = body_bytes.decode('utf-8')
+                        # Fix React Router basename from "/ui" to "/dev/agor/ui"
+                        # Match patterns like: basename="/ui" or basename:"/ui" or basename='/ui'
+                        body_str = body_str.replace('basename:"/ui"', 'basename:"/dev/agor/ui"')
+                        body_str = body_str.replace('basename="/ui"', 'basename="/dev/agor/ui"')
+                        body_str = body_str.replace("basename:'/ui'", "basename:'/dev/agor/ui'")
+                        body_str = body_str.replace("basename='/ui'", "basename='/dev/agor/ui'")
 
-                    # Fix CSS url() references from /ui/ to /dev/agor/ui/
-                    # Matches: url('/ui/...'), url("/ui/..."), url(/ui/...)
-                    import re
-                    body_str = re.sub(r'url\(["\']?/ui/', r'url(/dev/agor/ui/', body_str)
+                        # Fix all /ui/ asset paths in strings (images, fonts, etc)
+                        # Matches: "/ui/assets/...", '/ui/assets/...', "/ui/fonts/...", etc
+                        body_str = body_str.replace('"/ui/assets/', '"/dev/agor/ui/assets/')
+                        body_str = body_str.replace("'/ui/assets/", "'/dev/agor/ui/assets/")
+                        body_str = body_str.replace('"/ui/fonts/', '"/dev/agor/ui/fonts/')
+                        body_str = body_str.replace("'/ui/fonts/", "'/dev/agor/ui/fonts/")
+                        body_str = body_str.replace('"/ui/images/', '"/dev/agor/ui/images/')
+                        body_str = body_str.replace("'/ui/images/", "'/dev/agor/ui/images/")
+                        body_str = body_str.replace('"/ui/static/', '"/dev/agor/ui/static/')
+                        body_str = body_str.replace("'/ui/static/", "'/dev/agor/ui/static/")
 
-                    new_body_bytes = body_str.encode('utf-8')
-                    response_headers = dict(resp.headers)
-                    response_headers['content-length'] = str(len(new_body_bytes))
-                    response_headers.pop('content-encoding', None)
+                        # Fix Socket.IO connection path from "/socket.io" to "/dev/agor/socket.io"
+                        # This is critical for WebSocket authentication to work
+                        # Match all patterns: quoted strings and default values (||"/socket.io")
+                        body_str = body_str.replace('"/socket.io/', '"/dev/agor/socket.io/')
+                        body_str = body_str.replace("'/socket.io/", "'/dev/agor/socket.io/")
+                        body_str = body_str.replace('"/socket.io"', '"/dev/agor/socket.io"')
+                        body_str = body_str.replace("'/socket.io'", "'/dev/agor/socket.io'")
+                        body_str = body_str.replace('||"/socket.io"', '||"/dev/agor/socket.io"')
+                        body_str = body_str.replace("||'/socket.io'", "||'/dev/agor/socket.io'")
 
-                    logger.debug(f"Rewrote CSS asset paths in: {path}")
+                        # Fix Agor 0.9.0 path detection for proxy environments
+                        # Agor checks if(window.location.pathname.startsWith("/ui")) to decide whether to add :3030
+                        # We're serving at /dev/agor/ui/ so we need to patch this check
+                        body_str = body_str.replace(
+                            'window.location.pathname.startsWith("/ui")',
+                            '(window.location.pathname.startsWith("/ui")||window.location.pathname.includes("/agor/ui"))'
+                        )
 
-                    return StreamingResponse(
-                        iter([new_body_bytes]),
-                        status_code=resp.status_code,
-                        headers=response_headers
-                    )
-                except Exception as e:
-                    logger.warning(f"Failed to rewrite CSS file {path}: {e}, streaming as-is")
-                    # Fall back to streaming if rewrite fails
-                    response_headers = dict(resp.headers)
-                    response_headers.pop('content-encoding', None)
-                    response_headers.pop('transfer-encoding', None)
-                    return StreamingResponse(
-                        iter([body_bytes]),
-                        status_code=resp.status_code,
-                        headers=response_headers
-                    )
+                        # Increase Socket.IO connection timeout for slow Tailscale relay
+                        # Find and replace the Socket.IO options object to add timeout
+                        # Pattern: transports:["polling","websocket"] or similar config objects
+                        import re
+                        # Add timeout to Socket.IO initialization (increase from default ~20s to 60s)
+                        body_str = re.sub(
+                            r'(transports:\s*\[[^\]]+\])',
+                            r'\1,timeout:60000',
+                            body_str
+                        )
+
+                        new_body_bytes = body_str.encode('utf-8')
+                        response_headers = dict(resp.headers)
+                        response_headers['content-length'] = str(len(new_body_bytes))
+                        response_headers.pop('content-encoding', None)
+                        response_headers.pop('transfer-encoding', None)
+
+                        logger.debug(f"Rewrote React Router basename and Socket.IO paths in JS file: {path}")
+
+                        return StreamingResponse(
+                            iter([new_body_bytes]),
+                            status_code=resp.status_code,
+                            headers=response_headers
+                        )
+                    except Exception as e:
+                        logger.warning(f"Failed to rewrite JS file {path}: {e}, streaming as-is")
+                        # Fall back to streaming if rewrite fails
+                        response_headers = dict(resp.headers)
+                        response_headers.pop('content-encoding', None)
+                        response_headers.pop('transfer-encoding', None)
+                        return StreamingResponse(
+                            iter([body_bytes]),
+                            status_code=resp.status_code,
+                            headers=response_headers
+                        )
+                elif is_css:
+                    # Rewrite CSS files to fix asset paths
+                    try:
+                        body_str = body_bytes.decode('utf-8')
+
+                        # Fix CSS url() references from /ui/ to /dev/agor/ui/
+                        # Matches: url('/ui/...'), url("/ui/..."), url(/ui/...)
+                        import re
+                        body_str = re.sub(r'url\(["\']?/ui/', r'url(/dev/agor/ui/', body_str)
+
+                        new_body_bytes = body_str.encode('utf-8')
+                        response_headers = dict(resp.headers)
+                        response_headers['content-length'] = str(len(new_body_bytes))
+                        response_headers.pop('content-encoding', None)
+                        response_headers.pop('transfer-encoding', None)
+
+                        logger.debug(f"Rewrote CSS asset paths in: {path}")
+
+                        return StreamingResponse(
+                            iter([new_body_bytes]),
+                            status_code=resp.status_code,
+                            headers=response_headers
+                        )
+                    except Exception as e:
+                        logger.warning(f"Failed to rewrite CSS file {path}: {e}, streaming as-is")
+                        # Fall back to streaming if rewrite fails
+                        response_headers = dict(resp.headers)
+                        response_headers.pop('content-encoding', None)
+                        response_headers.pop('transfer-encoding', None)
+                        return StreamingResponse(
+                            iter([body_bytes]),
+                            status_code=resp.status_code,
+                            headers=response_headers
+                        )
             else:
                 # Stream non-HTML/JS/CSS responses directly
                 response_headers = dict(resp.headers)
                 response_headers.pop('content-encoding', None)
                 response_headers.pop('transfer-encoding', None)
+                response_headers.pop('content-length', None)
 
                 return StreamingResponse(
                     resp.aiter_bytes(),
                     status_code=resp.status_code,
-                    headers=response_headers
+                    headers=response_headers,
+                    background=None # httpx stream is closed when response is consumed
                 )
         except httpx.ConnectError as e:
             logger.error(f"Agor proxy connection error: {e}")

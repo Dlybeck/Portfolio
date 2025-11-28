@@ -72,7 +72,7 @@ tailscale up --authkey=${AUTH_KEY} --hostname=portfolio-app --accept-routes\n\
 echo "✅ Connected to Tailscale"\n\
 \n\
 # Start FastAPI app\n\
-exec uvicorn main:app --host 0.0.0.0 --port 8080\n\
+exec uvicorn main:app --host 0.0.0.0 --port 8080
 ' > /app/start.sh && chmod +x /app/start.sh
 
 # Expose the app's port

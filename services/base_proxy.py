@@ -229,12 +229,78 @@ class BaseProxy:
 
         try:
             logger.info(f"[{self.__class__.__name__}] Connecting to upstream WebSocket...")
-            # CRITICAL: Use client_ws.headers directly like Terminal does, not a filtered dict
+
+            # If in Cloud Run, manually create SOCKS connection instead of using websockets' proxy parameter
+            # The websockets library's proxy support via python-socks appears to have issues
+            sock = None
+            if IS_CLOUD_RUN:
+                try:
+                    import socket
+                    import struct
+                    from urllib.parse import urlparse
+
+                    # Parse the target WebSocket URL
+                    parsed = urlparse(ws_url.replace('ws://', 'http://'))
+                    target_host = parsed.hostname
+                    target_port = parsed.port or 80
+
+                    logger.info(f"[{self.__class__.__name__}] Creating manual SOCKS5 connection to {target_host}:{target_port}")
+
+                    # Create socket and connect to SOCKS5 proxy
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.settimeout(10)
+                    sock.connect(('127.0.0.1', 1055))
+
+                    # SOCKS5 handshake
+                    sock.send(b'\x05\x01\x00')  # Version 5, 1 method, no auth
+                    response = sock.recv(2)
+                    if response != b'\x05\x00':
+                        raise Exception(f"SOCKS5 handshake failed: {response.hex()}")
+
+                    # SOCKS5 connect request
+                    # Build request: VER CMD RSV ATYP DST.ADDR DST.PORT
+                    request = b'\x05\x01\x00'  # VER=5, CMD=CONNECT, RSV=0
+
+                    # ATYP=0x03 (domain name)
+                    target_host_bytes = target_host.encode('utf-8')
+                    request += b'\x03'  # ATYP
+                    request += struct.pack('B', len(target_host_bytes))  # Domain length
+                    request += target_host_bytes  # Domain name
+                    request += struct.pack('>H', target_port)  # Port (big-endian)
+
+                    sock.send(request)
+
+                    # Read response
+                    response = sock.recv(4)
+                    if len(response) < 4 or response[1] != 0x00:
+                        raise Exception(f"SOCKS5 connect failed: {response.hex()}")
+
+                    # Read rest of response based on address type
+                    atyp = response[3]
+                    if atyp == 0x01:  # IPv4
+                        sock.recv(4 + 2)  # 4 bytes IP + 2 bytes port
+                    elif atyp == 0x03:  # Domain
+                        domain_len = struct.unpack('B', sock.recv(1))[0]
+                        sock.recv(domain_len + 2)  # domain + 2 bytes port
+                    elif atyp == 0x04:  # IPv6
+                        sock.recv(16 + 2)  # 16 bytes IP + 2 bytes port
+
+                    logger.info(f"[{self.__class__.__name__}] ✅ SOCKS5 connection established")
+
+                    # Make socket non-blocking for async use
+                    sock.setblocking(False)
+
+                except Exception as e:
+                    if sock:
+                        sock.close()
+                    raise Exception(f"Manual SOCKS5 connection failed: {e}")
+
+            # Connect via websockets - with or without pre-established SOCKS socket
             async with websockets.connect(
                 ws_url,
-                extra_headers=client_ws.headers,  # Pass FastAPI WebSocket.headers directly
-                proxy=proxy_url,
-                open_timeout=10  # Match Terminal exactly
+                extra_headers=client_ws.headers,
+                sock=sock,  # Use pre-connected SOCKS socket if in Cloud Run, None otherwise
+                open_timeout=10
             ) as server_ws:
                 logger.info(f"[{self.__class__.__name__}] ✅ Connected! Subprotocol selected: {server_ws.subprotocol}")
 

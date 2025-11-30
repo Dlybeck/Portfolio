@@ -2,7 +2,7 @@
 Dev Dashboard Proxy and WebSocket Routes
 """
 
-from fastapi import APIRouter, Depends, Request, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Request, WebSocket, WebSocketDisconnect, Response
 from core.security import get_session_user
 from services.code_server_proxy import get_proxy as get_vscode_proxy
 from services.session_manager import get_or_create_persistent_session, close_persistent_session
@@ -16,6 +16,7 @@ import os
 logger = logging.getLogger(__name__)
 
 dev_proxy_router = APIRouter(prefix="/dev", tags=["Dev Dashboard - Proxy"])
+
 
 
 # ==================== Terminal WebSocket ====================
@@ -243,6 +244,14 @@ async def vscode_proxy(
     """
     🔒 Authenticated proxy to code-server
     """
+    # MOCK RESPONSE: Handle missing optional VS Code components (vsda)
+    # These files are proprietary to MS VS Code and missing in code-server.
+    # Returning 200 OK (empty) prevents console errors/noise.
+    if path.endswith("vsda.js"):
+        return Response(content="", media_type="application/javascript")
+    if path.endswith("vsda_bg.wasm"):
+        return Response(content="", media_type="application/wasm")
+
     proxy = get_vscode_proxy()
     return await proxy.proxy_request(request, path)
 

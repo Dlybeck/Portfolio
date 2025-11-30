@@ -114,53 +114,9 @@ fi
 echo ""
 
 # ==============================================================================
-# 3. Initialize and Start Agor
+# 3. Check Security Configuration
 # ==============================================================================
-echo -e "${YELLOW}[3/5] Setting up Agor...${NC}"
-
-# Check if agor is installed
-if ! command -v agor &> /dev/null; then
-    echo -e "${RED}✗ Agor not found${NC}"
-    echo -e "${YELLOW}Install with: npm install -g agor-live${NC}"
-    exit 1
-fi
-
-# Initialize Agor if needed (check for database file, not just directory)
-if [ ! -f "$HOME/.agor/agor.db" ]; then
-    echo -e "${YELLOW}Initializing Agor (first time setup)...${NC}"
-    # Agor needs to be initialized in a directory, but we'll use project dir
-    # Run init with default options to avoid prompts
-    cd "$PROJECT_DIR"
-    # Note: If agor prompts, user should answer to complete first-time setup
-    agor init || echo -e "${YELLOW}⚠ Agor init incomplete - run 'agor init' manually if needed${NC}"
-    cd "$SCRIPT_DIR"
-    echo -e "${GREEN}✓ Agor initialized${NC}"
-else
-    echo -e "${GREEN}✓ Agor already initialized (found database)${NC}"
-fi
-
-# Check if Agor daemon is running
-if lsof -i :3030 >/dev/null 2>&1; then
-    echo -e "${GREEN}✓ Agor daemon already running on port 3030${NC}"
-else
-    echo -e "${YELLOW}Starting Agor daemon...${NC}"
-    # Start daemon in background
-    nohup agor daemon start > /tmp/agor-daemon.log 2>&1 &
-    sleep 3
-
-    if lsof -i :3030 >/dev/null 2>&1; then
-        echo -e "${GREEN}✓ Agor daemon started on port 3030${NC}"
-    else
-        echo -e "${YELLOW}⚠ Agor daemon may not be running (check /tmp/agor-daemon.log)${NC}"
-    fi
-fi
-
-echo ""
-
-# ==============================================================================
-# 4. Check Security Configuration
-# ==============================================================================
-echo -e "${YELLOW}[4/5] Checking security configuration...${NC}"
+echo -e "${YELLOW}[3/4] Checking security configuration...${NC}"
 
 if [ ! -f "$PROJECT_DIR/.env" ]; then
     echo -e "${RED}✗ .env file not found${NC}"
@@ -219,7 +175,6 @@ echo ""
 echo -e "${YELLOW}Service URLs:${NC}"
 echo -e "  Dev Dashboard:  ${PROTOCOL}://localhost:${PORT}/dev"
 echo -e "  VS Code:        http://localhost:8888"
-echo -e "  Agor:           http://localhost:3030"
 echo ""
 echo -e "${YELLOW}Press Ctrl+C to stop the server${NC}"
 echo ""

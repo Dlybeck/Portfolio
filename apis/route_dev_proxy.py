@@ -5,7 +5,6 @@ Dev Dashboard Proxy and WebSocket Routes
 from fastapi import APIRouter, Depends, Request, WebSocket, WebSocketDisconnect
 from core.security import get_session_user
 from services.code_server_proxy import get_proxy as get_vscode_proxy
-from services.agor_proxy import get_proxy as get_agor_proxy
 from services.session_manager import get_or_create_persistent_session, close_persistent_session
 from core.config import settings
 import asyncio
@@ -287,149 +286,92 @@ async def vscode_websocket_proxy(
         return
 
     await websocket.accept()
-    proxy = get_vscode_proxy()
-    await proxy.proxy_websocket(websocket, path)
 
+    if settings.K_SERVICE is not None:
+        # Cloud Run: Proxy WebSocket to Mac via SOCKS5 (same pattern as terminal)
+        try:
+            # Construct code-server WebSocket URL
+            ws_url = f"ws://{settings.MAC_SERVER_IP}:{settings.MAC_SERVER_PORT}/dev/vscode/{path}"
 
-# ==================== AGOR PROXY ROUTES ====================
+            # Preserve query parameters (critical for reconnectionToken)
+            if websocket.url.query:
+                ws_url += f"?{websocket.url.query}"
+                logger.info(f"Code-server WS: Forwarding query params: {websocket.url.query}")
 
-# Public authentication endpoint (no session auth required - Agor handles its own auth)
-@dev_proxy_router.post("/agor/authentication")
-async def agor_auth_proxy(
-    request: Request
-):
-    """
-    🔓 Public proxy to Agor authentication endpoint
-    """
-    proxy = get_agor_proxy()
-    return await proxy.proxy_request(request, "authentication")
+            logger.info(f"Code-server WS: Connecting to {ws_url}")
 
+            # Connect using simple pattern (EXACTLY like terminal)
+            async with websockets.connect(
+                ws_url,
+                extra_headers=websocket.headers,
+                proxy=settings.SOCKS5_PROXY,  # Native library support
+                open_timeout=10
+            ) as ws:
+                logger.info("Code-server WS: Connected successfully!")
 
-# Public Socket.IO endpoints (no session auth required - Agor handles its own auth)
-@dev_proxy_router.get("/agor/socket.io/{path:path}")
-@dev_proxy_router.post("/agor/socket.io/{path:path}")
-async def agor_socketio_proxy(
-    path: str,
-    request: Request
-):
-    """
-    🔓 Public proxy to Agor Socket.IO endpoint
-    """
-    proxy = get_agor_proxy()
-    return await proxy.proxy_request(request, f"socket.io/{path}")
+                # Bidirectional proxy (EXACTLY like terminal)
+                async def forward_to_mac():
+                    try:
+                        while True:
+                            data = await websocket.receive_text()
+                            await ws.send(data)
+                    except WebSocketDisconnect:
+                        pass
+                    except Exception as e:
+                        logger.error(f"Code-server WS forward to Mac error: {e}")
 
+                async def forward_to_browser():
+                    try:
+                        async for msg in ws:
+                            await websocket.send_text(msg)
+                    except websockets.exceptions.ConnectionClosed:
+                        pass
+                    except Exception as e:
+                        logger.error(f"Code-server WS forward to browser error: {e}")
 
-@dev_proxy_router.websocket("/agor/socket.io/{path:path}")
-async def agor_socketio_websocket_proxy(
-    websocket: WebSocket,
-    path: str,
-    EIO: str = None,
-    transport: str = None,
-    t: str = None,
-    sid: str = None
-):
-    """
-    🔓 Public WebSocket proxy to Agor Socket.IO (Agor handles its own auth)
-    """
-    logger.info(f"🔌 Agor Socket.IO WebSocket request received")
-    logger.info(f"   Path: {path}")
-    logger.info(f"   EIO: {EIO}, transport: {transport}, t: {t}, sid: {sid}")
+                await asyncio.gather(forward_to_mac(), forward_to_browser())
 
-    # Build full path with query parameters (critical for Socket.IO: ?EIO=4&transport=websocket)
-    full_path = f"/socket.io/{path}"
-
-    # Build query string from Socket.IO parameters
-    query_params = []
-    if EIO:
-        query_params.append(f"EIO={EIO}")
-    if transport:
-        query_params.append(f"transport={transport}")
-    if t:
-        query_params.append(f"t={t}")
-    if sid:
-        query_params.append(f"sid={sid}")
-
-    if query_params:
-        full_path += f"?{'&'.join(query_params)}"
-        logger.info(f"   Full path with query: {full_path}")
-    else:
-        logger.warning(f"   ⚠️  No query parameters received!")
-
-    # Don't accept here - let the proxy function handle it after backend connection
-    proxy = get_agor_proxy()
-    await proxy.proxy_websocket(websocket, full_path)
-
-
-# Public UI routes (no session auth required - users need to access login page)
-@dev_proxy_router.get("/agor/ui/{path:path}")
-async def agor_ui_proxy(
-    path: str,
-    request: Request
-):
-    """
-    🔓 Public proxy to Agor UI (users need access to login page)
-    """
-    proxy = get_agor_proxy()
-    return await proxy.proxy_request(request, f"ui/{path}")
-
-
-# Authenticated Agor routes (require session token)
-@dev_proxy_router.get("/agor/{path:path}")
-@dev_proxy_router.post("/agor/{path:path}")
-@dev_proxy_router.put("/agor/{path:path}")
-@dev_proxy_router.delete("/agor/{path:path}")
-@dev_proxy_router.patch("/agor/{path:path}")
-async def agor_proxy(
-    path: str,
-    request: Request,
-    user: dict = Depends(get_session_user)
-):
-    """
-    🔒 Authenticated proxy to Agor server
-    """
-    proxy = get_agor_proxy()
-    return await proxy.proxy_request(request, path)
-
-
-@dev_proxy_router.websocket("/agor/{path:path}")
-async def agor_websocket_proxy(
-    websocket: WebSocket,
-    path: str,
-    token: str = None,
-    tkn: str = None
-):
-    """
-    🔒 Authenticated WebSocket proxy to Agor server
-    """
-    auth_token = tkn or token or websocket.cookies.get("session_token")
-    if not auth_token:
-        referer = websocket.headers.get("referer", "")
-        if "tkn=" in referer:
-            import urllib.parse
-            parsed = urllib.parse.urlparse(referer)
-            params = urllib.parse.parse_qs(parsed.query)
-            if "tkn" in params and params["tkn"]:
-                auth_token = params["tkn"][0]
-                logger.debug("Extracted token from Referer header for Agor")
-
-    if not auth_token:
-        logger.warning("No authentication token found for Agor (cookie, query, or referer)")
-        await websocket.close(code=1008, reason="Missing authentication token")
+        except Exception as e:
+            logger.error(f"Code-server WebSocket proxy error: {e}")
+            await websocket.close()
         return
 
+    # Mac: Direct connection (no proxy needed)
     try:
-        from core.security import verify_token
-        payload = verify_token(auth_token)
-        if payload.get("type") != "access":
-            await websocket.close(code=1008, reason="Invalid token type")
-            return
-        logger.debug(f"Authenticated user for Agor: {payload.get('sub')}")
-    except Exception as e:
-        logger.warning(f"Agor authentication failed: {e}")
-        await websocket.close(code=1008, reason="Invalid authentication token")
-        return
+        # Connect directly to local code-server
+        ws_url = f"ws://127.0.0.1:{settings.CODE_SERVER_PORT}/{path}"
+        if websocket.url.query:
+            ws_url += f"?{websocket.url.query}"
+            logger.info(f"Code-server WS (local): Forwarding query params: {websocket.url.query}")
 
-    await websocket.accept()
-    proxy = get_agor_proxy()
-    await proxy.proxy_websocket(websocket, path)
+        logger.info(f"Code-server WS (local): Connecting to {ws_url}")
+
+        async with websockets.connect(ws_url, extra_headers=websocket.headers) as ws:
+            logger.info("Code-server WS (local): Connected!")
+
+            # Same bidirectional forwarding
+            async def forward_to_server():
+                try:
+                    while True:
+                        data = await websocket.receive_text()
+                        await ws.send(data)
+                except WebSocketDisconnect:
+                    pass
+                except Exception as e:
+                    logger.error(f"Code-server WS (local) forward error: {e}")
+
+            async def forward_to_client():
+                try:
+                    async for msg in ws:
+                        await websocket.send_text(msg)
+                except websockets.exceptions.ConnectionClosed:
+                    pass
+                except Exception as e:
+                    logger.error(f"Code-server WS (local) receive error: {e}")
+
+            await asyncio.gather(forward_to_server(), forward_to_client())
+
+    except Exception as e:
+        logger.error(f"Code-server WebSocket error (local): {e}")
+        await websocket.close()
 

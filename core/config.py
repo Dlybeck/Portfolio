@@ -9,10 +9,10 @@ class Settings(BaseSettings):
 
     # Core application settings
     K_SERVICE: Optional[str] = None # Set by Cloud Run, if None, assume local
-    AGOR_URL: str = "http://localhost:3030" # Default for local
     HTTPS: bool = False # Used to determine if the application is running under HTTPS
     MAC_SERVER_IP: str = "100.84.184.84"
     MAC_SERVER_PORT: int = 8888
+    CODE_SERVER_PORT: int = 8888
     SOCKS5_PROXY: str = "socks5://127.0.0.1:1055"  # Use explicit IPv4, not localhost
     SOCKS5_PORT: int = 1055
 

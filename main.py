@@ -175,9 +175,9 @@ if __name__ == "__main__":
             app,
             host=host,
             port=port,
-            timeout_keep_alive=75,  # > 60s load balancer idle timeout
-            ws_ping_interval=30,
-            ws_ping_timeout=45
+            timeout_keep_alive=86400,  # 24h for long code-server sessions
+            ws_ping_interval=30,       # Keep frequent pings for connection health
+            ws_ping_timeout=86400      # Allow very long idle sessions
         )
     else:
         # Local development - use HTTPS if certificates available

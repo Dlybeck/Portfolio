@@ -122,50 +122,16 @@
 <body>
     <header class="header">
         <h1>Dev Environment</h1>
-        <div class="switcher-buttons">
-            <button id="vscode-button" class="active">VS Code</button>
-            <button id="agor-button">Agor</button>
-        </div>
         <button class="logout-btn" onclick="logout()" title="Logout">Logout</button>
     </header>
 
     <div class="content-container">
         <!-- VS Code Iframe -->
         <iframe id="vscode-iframe" class="active" src="/dev/vscode/?tkn={{ token }}"></iframe>
-
-        <!-- Agor Iframe - direct connection for local dev (anonymous auth) -->
-        <iframe id="agor-iframe" src="/dev/agor/ui/?tkn={{ token }}"></iframe>
     </div>
 
-    <!-- Script for switching -->
     <script>
-        const vscodeButton = document.getElementById('vscode-button');
-        const agorButton = document.getElementById('agor-button');
-
         const vscodeIframe = document.getElementById('vscode-iframe');
-        const agorIframe = document.getElementById('agor-iframe');
-
-        function showFrame(frameId) {
-            vscodeIframe.classList.remove('active');
-            agorIframe.classList.remove('active');
-
-            vscodeButton.classList.remove('active');
-            agorButton.classList.remove('active');
-
-            if (frameId === 'vscode') {
-                vscodeIframe.classList.add('active');
-                vscodeButton.classList.add('active');
-            } else if (frameId === 'agor') {
-                agorIframe.classList.add('active');
-                agorButton.classList.add('active');
-            }
-        }
-
-        vscodeButton.addEventListener('click', () => showFrame('vscode'));
-        agorButton.addEventListener('click', () => showFrame('agor'));
-
-        // Initial view
-        showFrame('vscode');
 
         // Logout function
         function logout() {

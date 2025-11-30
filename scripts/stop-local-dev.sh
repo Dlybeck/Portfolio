@@ -20,14 +20,6 @@ echo ""
 echo -e "${YELLOW}Stopping FastAPI server...${NC}"
 pkill -f "uvicorn main:app" 2>/dev/null && echo -e "${GREEN}✓ FastAPI stopped${NC}" || echo -e "${YELLOW}⚠ FastAPI not running${NC}"
 
-# Stop Agor daemon
-echo -e "${YELLOW}Stopping Agor daemon...${NC}"
-if command -v agor &> /dev/null; then
-    agor daemon stop 2>/dev/null && echo -e "${GREEN}✓ Agor daemon stopped${NC}" || echo -e "${YELLOW}⚠ Agor not running${NC}"
-else
-    echo -e "${YELLOW}⚠ Agor not installed${NC}"
-fi
-
 # Note about code-server
 echo ""
 echo -e "${YELLOW}Note: code-server is managed by LaunchAgent${NC}"

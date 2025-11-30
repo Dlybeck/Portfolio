@@ -288,9 +288,12 @@ async def vscode_websocket_proxy(
     await websocket.accept()
 
     if settings.K_SERVICE is not None:
-        # Cloud Run: Proxy WebSocket to Mac via SOCKS5 (same pattern as terminal)
+        # Cloud Run: Proxy WebSocket to Mac via SOCKS5
+        sock = None
         try:
             # Construct code-server WebSocket URL (code-server runs at root, not /dev/vscode/)
+            # CRITICAL: websockets library expects ws://hostname:port/path
+            # We must use the IP address to avoid DNS resolution issues in SOCKS proxy
             ws_url = f"ws://{settings.MAC_SERVER_IP}:{settings.MAC_SERVER_PORT}/{path}"
 
             # Preserve query parameters (critical for reconnectionToken)
@@ -300,32 +303,55 @@ async def vscode_websocket_proxy(
 
             logger.info(f"Code-server WS: Connecting to {ws_url}")
 
-            # Connect using simple pattern (EXACTLY like terminal)
+            # 1. Create SOCKS5 connection manually using python-socks
+            # This bypasses websockets library's native proxy support which is flaky
+            from python_socks.async_.asyncio import Proxy
+            
+            logger.info(f"Code-server WS: Creating SOCKS5 tunnel via {settings.SOCKS5_PROXY}")
+            proxy = Proxy.from_url(settings.SOCKS5_PROXY)
+            
+            # Connect to the proxy, then tunnel to the destination
+            # dest_host must be the IP address (100.x.y.z) to ensure SOCKS5 uses it directly
+            sock = await proxy.connect(
+                dest_host=settings.MAC_SERVER_IP, 
+                dest_port=settings.MAC_SERVER_PORT
+            )
+            logger.info("Code-server WS: SOCKS5 tunnel established successfully")
+
+            # 2. Connect WebSocket over the existing SOCKS tunnel
             async with websockets.connect(
                 ws_url,
                 extra_headers=websocket.headers,
-                proxy=settings.SOCKS5_PROXY,  # Native library support
-                open_timeout=10
+                sock=sock, # Pass the connected socket
+                open_timeout=20 # Allow extra time for handshake
             ) as ws:
-                logger.info("Code-server WS: Connected successfully!")
+                logger.info("Code-server WS: WebSocket handshake complete!")
 
                 # Bidirectional proxy (EXACTLY like terminal)
                 async def forward_to_mac():
                     try:
                         while True:
-                            data = await websocket.receive_text()
-                            await ws.send(data)
+                            # Receive can range from text to bytes
+                            message = await websocket.receive()
+                            if "text" in message:
+                                await ws.send(message["text"])
+                            elif "bytes" in message:
+                                await ws.send(message["bytes"])
                     except WebSocketDisconnect:
-                        pass
+                        logger.info("Code-server WS: Client disconnected")
                     except Exception as e:
                         logger.error(f"Code-server WS forward to Mac error: {e}")
 
                 async def forward_to_browser():
                     try:
                         async for msg in ws:
-                            await websocket.send_text(msg)
+                            # Forward text or bytes back to browser
+                            if isinstance(msg, str):
+                                await websocket.send_text(msg)
+                            else:
+                                await websocket.send_bytes(msg)
                     except websockets.exceptions.ConnectionClosed:
-                        pass
+                        logger.info("Code-server WS: Server disconnected")
                     except Exception as e:
                         logger.error(f"Code-server WS forward to browser error: {e}")
 
@@ -333,6 +359,12 @@ async def vscode_websocket_proxy(
 
         except Exception as e:
             logger.error(f"Code-server WebSocket proxy error: {e}")
+            # Close socket explicitly if it was created but WS failed
+            if sock:
+                try:
+                    sock.close()
+                except:
+                    pass
             await websocket.close()
         return
 

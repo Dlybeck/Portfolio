@@ -1,165 +1,165 @@
 /**
- * Speckit Dashboard Controller
- * Handles UI state, API calls, and WebSocket streaming.
+ * Speckit Dashboard Controller (v2 - Stepper UI)
  */
 
 // State
 let currentPhase = 'specify';
-let ws = null;
+let currentModel = localStorage.getItem('speckit_model') || 'claude';
 let isRunning = false;
+let ws = null;
 
-// DOM Elements
-const modelSelect = document.getElementById('modelSelect');
-const logsContent = document.getElementById('logsContent');
-const logsPanel = document.getElementById('logsPanel');
-
-// Initialization
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    // Auth Check
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-        window.location.href = '/dev/login';
-        return;
-    }
-
-    // Load saved model preference
-    const savedModel = localStorage.getItem('speckit_model');
-    if (savedModel) {
-        modelSelect.value = savedModel;
-    }
-
-    // Initialize WebSocket
+    setModel(currentModel);
     connectWebSocket();
-
-    // Load initial artifacts
+    
+    // Try to load existing state
     refreshArtifact('spec');
     refreshArtifact('plan');
+    
+    // Handle enter key in input
+    document.getElementById('main-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleAction();
+    });
 });
 
-// Model Switcher
-modelSelect.addEventListener('change', (e) => {
-    localStorage.setItem('speckit_model', e.target.value);
-    log(`Switched model to ${e.target.value}`, 'info');
-});
+function setModel(model) {
+    currentModel = model;
+    localStorage.setItem('speckit_model', model);
+    
+    document.querySelectorAll('.model-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.innerText.toLowerCase() === model);
+    });
+}
 
-// Tab Switching
-function switchTab(phase) {
-    // Update buttons
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-
-    // Update views
-    document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
-    document.getElementById(`view-${phase}`).style.display = 'block';
-
+function setPhase(phase) {
     currentPhase = phase;
     
-    // Refresh data for this phase
-    if (phase === 'plan') refreshArtifact('plan');
-    if (phase === 'tasks') refreshArtifact('tasks');
+    // Update Stepper UI
+    const steps = ['specify', 'plan', 'tasks', 'implement'];
+    let activeFound = false;
+    
+    steps.forEach((s, index) => {
+        const el = document.getElementById(`step-${s}`);
+        el.classList.remove('active', 'completed');
+        
+        if (s === phase) {
+            el.classList.add('active');
+            activeFound = true;
+        } else if (!activeFound) {
+            el.classList.add('completed');
+        }
+    });
+
+    // Update View Visibility
+    document.querySelectorAll('.phase-view').forEach(el => el.style.display = 'none');
+    document.getElementById(`view-${phase}`).style.display = 'block';
+
+    // Update Action Bar Context
+    updateActionBar(phase);
+
+    // Refresh Data
+    if (phase !== 'specify') refreshArtifact(phase);
 }
 
-// Log Management
-function log(msg, type = 'stdout') {
-    const div = document.createElement('div');
-    div.className = type;
-    div.textContent = msg; // Text content for safety
-    logsContent.appendChild(div);
-    logsContent.scrollTop = logsContent.scrollHeight;
-}
+function updateActionBar(phase) {
+    const input = document.getElementById('main-input');
+    const btnText = document.getElementById('action-text');
+    const inputWrapper = document.getElementById('input-wrapper');
 
-function toggleLogs() {
-    logsPanel.classList.toggle('collapsed');
-    const icon = document.getElementById('logsChevron');
-    if (logsPanel.classList.contains('collapsed')) {
-        icon.classList.remove('bi-chevron-down');
-        icon.classList.add('bi-chevron-up');
-    } else {
-        icon.classList.remove('bi-chevron-up');
-        icon.classList.add('bi-chevron-down');
+    if (phase === 'specify') {
+        input.style.display = 'block';
+        input.placeholder = "Enter a goal (e.g. 'Add dark mode')...";
+        btnText.innerText = "Generate Spec";
+    } else if (phase === 'plan') {
+        input.style.display = 'none';
+        btnText.innerText = "Generate Plan";
+    } else if (phase === 'tasks') {
+        input.style.display = 'none';
+        btnText.innerText = "Generate Tasks";
+    } else if (phase === 'implement') {
+        input.style.display = 'none';
+        btnText.innerText = "Start Build";
     }
 }
 
-// WebSocket Connection
+async function handleAction() {
+    if (isRunning) return;
+
+    const input = document.getElementById('main-input');
+    let args = "";
+
+    if (currentPhase === 'specify') {
+        if (!input.value.trim()) {
+            alert("Please enter a goal.");
+            return;
+        }
+        args = input.value.trim();
+    }
+
+    // Auto-open logs
+    document.getElementById('logs-panel').classList.add('open');
+    
+    await runCommand(currentPhase, args);
+}
+
+// Toggle Logs
+function toggleLogs() {
+    document.getElementById('logs-panel').classList.toggle('open');
+}
+
+// API & WebSocket Logic
 function connectWebSocket() {
     const token = localStorage.getItem('access_token');
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/api/speckit/ws?token=${token}`;
 
     ws = new WebSocket(wsUrl);
-
-    ws.onopen = () => {
-        log('Connected to Speckit stream.', 'info');
-    };
-
-    ws.onmessage = (event) => {
-        try {
-            const msg = JSON.parse(event.data);
-            if (msg.type === 'status' && msg.data === 'completed') {
-                isRunning = false;
-                log(`Process finished with exit code ${msg.exit_code}`, 'info');
-                // Refresh current view artifacts
-                refreshArtifact(currentPhase);
-            } else {
-                log(msg.data, msg.type);
+    
+    ws.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.type === 'status' && msg.data === 'completed') {
+            isRunning = false;
+            log(`Process finished (Exit: ${msg.exit_code})`, 'info');
+            refreshArtifact(currentPhase);
+            
+            // Auto-advance logic could go here
+            if (msg.exit_code === 0) {
+               // maybe suggest next step?
             }
-        } catch (e) {
-            log('Error parsing WS message: ' + event.data, 'stderr');
+        } else {
+            log(msg.data, msg.type);
         }
-    };
-
-    ws.onclose = () => {
-        log('Connection lost. Reconnecting in 5s...', 'stderr');
-        setTimeout(connectWebSocket, 5000);
     };
 }
 
-// API Interaction
-async function runCommand(action) {
-    if (isRunning) {
-        alert('A process is already running. Please wait.');
-        return;
-    }
+function log(text, type) {
+    const container = document.getElementById('logs-content');
+    const div = document.createElement('div');
+    div.style.color = type === 'stderr' ? '#ff6b6b' : (type === 'info' ? '#4dabf7' : '#adb5bd');
+    div.textContent = text;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
 
-    const model = modelSelect.value;
-    let args = "";
-
-    if (action === 'specify') {
-        const input = document.getElementById('spec-input');
-        if (!input.value.trim()) {
-            alert('Please enter a goal.');
-            return;
-        }
-        args = input.value.trim();
-    }
-
-    // Open logs if closed
-    if (logsPanel.classList.contains('collapsed')) {
-        toggleLogs();
-    }
-
-    log(`Starting ${action} with ${model}...`, 'info');
+async function runCommand(action, args) {
     isRunning = true;
-
+    log(`>>> Starting ${action}...`, 'info');
+    
     try {
         const token = localStorage.getItem('access_token');
-        const response = await fetch('/api/speckit/run', {
+        await fetch('/api/speckit/run', {
             method: 'POST',
-            headers: {
+            headers: { 
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
                 action: action,
                 args: args,
-                ai_model: model
+                ai_model: currentModel
             })
         });
-
-        if (!response.ok) {
-            const err = await response.json();
-            throw new Error(err.detail || 'Request failed');
-        }
     } catch (e) {
         log(`Error: ${e.message}`, 'stderr');
         isRunning = false;
@@ -169,75 +169,58 @@ async function runCommand(action) {
 async function refreshArtifact(type) {
     try {
         const token = localStorage.getItem('access_token');
-        const response = await fetch(`/api/speckit/artifacts/${type}`, {
+        const res = await fetch(`/api/speckit/artifacts/${type}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (response.status === 404) {
-            // Handle missing file gracefully
-            if (type === 'plan') document.getElementById('plan-display').innerHTML = '<em>No plan found.</em>';
+        if (res.status === 404) {
+            // Keep default empty state
             return;
         }
 
-        const text = await response.text();
-
+        const text = await res.text();
+        
         if (type === 'spec') {
             document.getElementById('spec-display').innerHTML = marked.parse(text);
+            // If we found a spec, maybe we should show it
+            if(currentPhase === 'specify' && text.length > 0) {
+                // Optional: visual feedback
+            }
         } else if (type === 'plan') {
             document.getElementById('plan-display').innerHTML = marked.parse(text);
         } else if (type === 'tasks') {
-            renderTasks(text); // Custom parser for tasks if they are markdown lists
+            renderTasks(text);
         }
 
     } catch (e) {
-        console.error(`Failed to fetch ${type}:`, e);
+        console.error("Artifact fetch failed", e);
     }
 }
 
-// Simple Task Parser (Markdown Checkboxes -> HTML)
-function renderTasks(markdown) {
+function renderTasks(text) {
     const container = document.getElementById('tasks-list');
-    container.innerHTML = '';
-    
-    // Regex to find [ ] or [x]
-    const lines = markdown.split('\n');
+    // Regex for - [ ] or - [x]
+    const lines = text.split('\n');
+    let html = '';
     let found = false;
 
     lines.forEach(line => {
         const match = line.match(/^\s*- \[(x| )] (.*)/);
         if (match) {
             found = true;
-            const isChecked = match[1] === 'x';
-            const text = match[2];
-            
-            const div = document.createElement('div');
-            div.className = 'task-item';
-            div.innerHTML = `
-                <input type="checkbox" class="task-check" ${isChecked ? 'checked' : ''} disabled>
-                <span class="task-label" style="${isChecked ? 'text-decoration:line-through; color:#666;' : ''}">${text}</span>
+            const checked = match[1] === 'x';
+            html += `
+                <div class="task-item" style="opacity: ${checked ? 0.5 : 1}">
+                    <input type="checkbox" class="task-check" ${checked ? 'checked' : ''} disabled>
+                    <span style="${checked ? 'text-decoration: line-through' : ''}">${match[2]}</span>
+                </div>
             `;
-            container.appendChild(div);
         }
     });
 
-    if (!found) {
-        // Maybe it's JSON?
-        try {
-            const tasks = JSON.parse(markdown);
-            if (Array.isArray(tasks)) {
-                tasks.forEach(task => {
-                    const div = document.createElement('div');
-                    div.className = 'task-item';
-                    div.innerHTML = `
-                        <input type="checkbox" class="task-check" ${task.status === 'completed' ? 'checked' : ''} disabled>
-                        <span class="task-label">${task.description}</span>
-                    `;
-                    container.appendChild(div);
-                });
-            }
-        } catch (e) {
-            // Just render as markdown if all else fails
-            container.innerHTML = `<div class="markdown-body" style="padding:16px;">${marked.parse(markdown)}</div>`;
-        }
+    if (found) {
+        container.innerHTML = html;
+    } else if (text.trim().length > 0) {
+        container.innerHTML = `<div class="markdown-body">${marked.parse(text)}</div>`;
     }
 }

@@ -60,8 +60,18 @@ async def run_speckit_command(
         return {"status": "ready"}
     else:
         raise HTTPException(status_code=400, detail="Invalid action")
-
-    logger.info(f"Starting Speckit command: {cmd}")
+        
+    # Determine Working Directory
+    # 1. Try explicit 'cwd' from payload
+    cwd = command.get("cwd")
+    
+    # 2. Default to project root (where main.py is)
+    if not cwd:
+        # Assuming this file is in apis/route_speckit.py, parent.parent is root
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        cwd = project_root
+    
+    logger.info(f"Starting Speckit command: {cmd} in {cwd}")
 
     try:
         # Inherit environment and ensure essential vars are present
@@ -71,6 +81,7 @@ async def run_speckit_command(
             cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
+            cwd=cwd, # Execute in the correct directory
             env=env
         )
         

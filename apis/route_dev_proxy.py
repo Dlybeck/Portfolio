@@ -290,8 +290,8 @@ async def vscode_websocket_proxy(
     if settings.K_SERVICE is not None:
         # Cloud Run: Proxy WebSocket to Mac via SOCKS5 (same pattern as terminal)
         try:
-            # Construct code-server WebSocket URL
-            ws_url = f"ws://{settings.MAC_SERVER_IP}:{settings.MAC_SERVER_PORT}/dev/vscode/{path}"
+            # Construct code-server WebSocket URL (code-server runs at root, not /dev/vscode/)
+            ws_url = f"ws://{settings.MAC_SERVER_IP}:{settings.MAC_SERVER_PORT}/{path}"
 
             # Preserve query parameters (critical for reconnectionToken)
             if websocket.url.query:

@@ -8,7 +8,9 @@ RUN apt-get update && \
     git \
     iptables \
     iproute2 \
-    || (sleep 5 && apt-get update && apt-get install -y --fix-missing --no-install-recommends curl git iptables iproute2) && \
+    nodejs \
+    npm \
+    || (sleep 5 && apt-get update && apt-get install -y --fix-missing --no-install-recommends curl git iptables iproute2 nodejs npm) && \
     curl -fsSL https://tailscale.com/install.sh | sh && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -26,8 +28,10 @@ COPY . .
 RUN pip install -r requirements.txt
 
 # Install Speckit (specify) via uv
-# repo: github.com/github/spec-kit
 RUN uv tool install git+https://github.com/github/spec-kit --force
+
+# Install Claude Code CLI
+RUN npm install -g @anthropic-ai/claude-code
 
 # Ensure ~/.local/bin is in PATH for uv tools
 ENV PATH="/root/.local/bin:$PATH"

@@ -43,45 +43,92 @@ async def run_speckit_command(
     # The previous 'command -v specify' showed it at /Users/dlybeck/.local/bin/specify
     specify_bin = "specify" 
     
-    # Map actions to CLI commands
-    # Note: The CLI might use different flags or subcommands. 
-    # Assuming standard usage: specify [subcommand] [args]
-    if action == "specify":
-        # 'specify' can take a prompt directly for the 'init' or 'spec' phase?
-        # Looking at docs/GEMINI.md context, commands are 'specify', 'plan', 'tasks'.
-        # 'specify' might be the root command. 
-        # If action is 'specify', maybe it means creating the spec?
-        # Let's assume: `specify "prompt"` creates the spec.
-        cmd = f'{specify_bin} "{args}" --ai {ai_model}'
-    elif action in ["plan", "tasks", "implement"]:
-        cmd = f'{specify_bin} {action} --ai {ai_model}'
-    elif action == "check":
-        # Just a status check, effectively a no-op for the runner
-        return {"status": "ready"}
-    else:
-        raise HTTPException(status_code=400, detail="Invalid action")
-        
-    # Determine Working Directory
+    # Determine Working Directory first
     # 1. Try explicit 'cwd' from payload
     cwd = command.get("cwd")
     
     # 2. Default to project root (where main.py is)
     if not cwd:
-        # Assuming this file is in apis/route_speckit.py, parent.parent is root
         project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         cwd = project_root
+
+    # Map actions to Prompt Templates
+    # The user uses custom Claude commands defined in .claude/commands/
+    prompt_file = None
     
-    logger.info(f"Starting Speckit command: {cmd} in {cwd}")
+    if action == "specify":
+        prompt_file = ".claude/commands/speckit.specify.md"
+    elif action == "plan":
+        prompt_file = ".claude/commands/speckit.plan.md"
+    elif action == "tasks":
+        prompt_file = ".claude/commands/speckit.tasks.md"
+    elif action == "implement":
+        prompt_file = ".claude/commands/speckit.implement.md"
+    elif action == "check":
+        return {"status": "ready", "cwd": cwd}
+    else:
+        raise HTTPException(status_code=400, detail="Invalid action")
+
+    # Load and Format Prompt
+    full_prompt = ""
+    try:
+        prompt_path = os.path.join(cwd, prompt_file)
+        if not os.path.exists(prompt_path):
+             raise FileNotFoundError(f"Prompt file not found: {prompt_path}")
+             
+        with open(prompt_path, "r") as f:
+            template = f.read()
+            # Replace $ARGUMENTS with user args (or empty string)
+            full_prompt = template.replace("$ARGUMENTS", args if args else "")
+            
+            # If args is empty, some prompts might need specific handling, 
+            # but the template usually says "If empty: ERROR".
+            # We rely on the CLI to handle the logic defined in the prompt.
+    except Exception as e:
+        logger.error(f"Error reading prompt template: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to load prompt template: {e}")
+
+    # Construct the Claude CLI command
+    # We use -p (print) for non-interactive execution
+    # We use --dangerously-skip-permissions because we cannot approve tool use interactively via API
+    # We pass the prompt as a positional argument
+    # Note: passing a very long prompt as an arg might hit shell limits. 
+    # Better to write to a temp file or pass via stdin if supported?
+    # 'claude --help' says [prompt] is an argument.
+    # Let's try passing it as an argument first. 
+    # WARNING: Shell command length limits (ARG_MAX) are usually high (megabytes on Linux/Mac), 
+    # but newlines/special chars need careful escaping if passed as string.
+    # Safe bet: Write prompt to a temporary file and cat it? 
+    # Or just rely on Python's subprocess to handle arg passing safely (it skips shell parsing if list is used).
+    
+    cmd_list = [
+        "claude",
+        "-p", 
+        full_prompt,
+        "--dangerously-skip-permissions"
+    ]
+    
+    if ai_model == "gemini":
+         # If the user selected Gemini, does `claude` CLI support switching model backend?
+         # `claude --model` supports aliases. 'gemini-pro' might work if configured?
+         # If not, we stick to Claude or the user's default. 
+         # For now, we just log it.
+         pass
+
+    logger.info(f"Starting Speckit Agent ({action}) in {cwd}")
 
     try:
-        # Inherit environment and ensure essential vars are present
+        # Inherit environment
         env = os.environ.copy()
+        # Force non-interactive mode
+        env["CI"] = "true" 
         
-        process = await asyncio.create_subprocess_shell(
-            cmd,
+        # Use list format for subprocess to avoid shell injection/quoting issues
+        process = await asyncio.create_subprocess_exec(
+            *cmd_list,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
-            cwd=cwd, # Execute in the correct directory
+            cwd=cwd,
             env=env
         )
         
@@ -90,11 +137,7 @@ async def run_speckit_command(
         # Start background streaming
         asyncio.create_task(broadcast_output(process))
         
-        return {"status": "started", "command": cmd}
-        
-    except Exception as e:
-        logger.error(f"Failed to start Speckit: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"status": "started", "cwd": cwd, "agent": "claude"}
 
 async def broadcast_output(process):
     """Reads process output and broadcasts to all active WebSockets."""

@@ -63,7 +63,18 @@
       "Bash(do curl -s -o /dev/null -w \"Attempt $i - Status: %{http_code} Time: %{time_total}s\\n\" http://100.92.27.13:8080/dev/terminal)",
       "Bash(done)",
       "Bash(gcloud config set:*)",
-      "Bash(gcloud auth list:*)"
+      "Bash(gcloud auth list:*)",
+      "Bash(npm view:*)",
+      "Bash(echo:*)",
+      "Bash(~/.agor/config.yaml.test)",
+      "Bash(time curl -s https://davidlybeck.com/dev/health)",
+      "Bash(time curl:*)",
+      "Bash(for i in {1..5})",
+      "Bash(do echo \"Request $i:\")",
+      "Bash(timeout 10 curl:*)",
+      "Bash(timeout 15 curl:*)",
+      "Bash(nslookup:*)",
+      "Bash(gcloud auth login:*)"
     ],
     "deny": [],
     "ask": []

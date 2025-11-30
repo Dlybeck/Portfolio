@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     MAC_SERVER_IP: str = "100.84.184.84"
     MAC_SERVER_PORT: int = 8888
     CODE_SERVER_PORT: int = 8888
-    SOCKS5_PROXY: str = "socks5://127.0.0.1:1055"  # Use explicit IPv4, not localhost
+    SOCKS5_PROXY: str = "socks5://localhost:1055"  # Use localhost to match tailscaled listening behavior
     SOCKS5_PORT: int = 1055
 
     # Authentication & Security

@@ -122,7 +122,10 @@
 <body>
     <header class="header">
         <h1>Dev Environment</h1>
-        <button class="logout-btn" onclick="logout()" title="Logout">Logout</button>
+        <div style="display: flex; gap: 10px;">
+            <a href="/dev/speckit" class="logout-btn" style="text-decoration:none; background:rgba(255,255,255,0.15);">Speckit</a>
+            <button class="logout-btn" onclick="logout()" title="Logout">Logout</button>
+        </div>
     </header>
 
     <div class="content-container">

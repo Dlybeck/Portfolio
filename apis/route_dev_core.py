@@ -75,3 +75,23 @@ async def raw_terminal_dashboard(request: Request, user: dict = Depends(get_curr
     This is used as an iframe source in the new dev_dashboard.html.
     """
     return templates.TemplateResponse("dev/dashboard_old.html", {"request": request, "user": user})
+
+
+@dev_core_router.get("/speckit", response_class=HTMLResponse)
+async def speckit_dashboard(request: Request):
+    """
+    Serve the Speckit Dashboard.
+    """
+    # Extract token for the template
+    token = request.cookies.get("session_token") or request.query_params.get("tkn")
+    
+    if not token:
+        # Try Authorization header
+        auth = request.headers.get("Authorization", "")
+        if auth.startswith("Bearer "):
+            token = auth.replace("Bearer ", "")
+
+    if not token:
+        return RedirectResponse(url="/dev/login", status_code=302)
+
+    return templates.TemplateResponse("dev/speckit_dashboard.html", {"request": request, "token": token})

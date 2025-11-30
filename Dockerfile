@@ -5,12 +5,16 @@ FROM python:3.12.3-slim
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     curl \
+    git \
     iptables \
     iproute2 \
-    || (sleep 5 && apt-get update && apt-get install -y --fix-missing --no-install-recommends curl iptables iproute2) && \
+    || (sleep 5 && apt-get update && apt-get install -y --fix-missing --no-install-recommends curl git iptables iproute2) && \
     curl -fsSL https://tailscale.com/install.sh | sh && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+# Install uv (Python package manager)
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
 # Set the working directory
 WORKDIR /app
@@ -18,8 +22,15 @@ WORKDIR /app
 # Copy project files into the container
 COPY . .
 
-# Install dependencies
+# Install Python dependencies
 RUN pip install -r requirements.txt
+
+# Install Speckit (specify) via uv
+# repo: github.com/github/spec-kit
+RUN uv tool install git+https://github.com/github/spec-kit --force
+
+# Ensure ~/.local/bin is in PATH for uv tools
+ENV PATH="/root/.local/bin:$PATH"
 
 # Copy startup script
 COPY cloud_run_entrypoint.sh /app/start.sh

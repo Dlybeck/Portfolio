@@ -8,6 +8,7 @@ from apis.route_other import other_router
 from apis.route_projects import project_router
 from apis.route_auth import auth_router
 from apis.route_dev import dev_router
+from apis.route_speckit import router as speckit_router
 from apis.route_debug_tailscale import debug_router
 from core.security import validate_security_config
 import asyncio
@@ -101,6 +102,7 @@ def include_router(app):
       app.include_router(project_router)
       app.include_router(auth_router)
       app.include_router(dev_router)
+      app.include_router(speckit_router)
       app.include_router(debug_router, prefix="/debug")
 
  

@@ -319,9 +319,11 @@ async def vscode_websocket_proxy(
             logger.info("Code-server WS: SOCKS5 tunnel established successfully")
 
             # 2. Connect WebSocket over the existing SOCKS tunnel
+            # NOTE: We are NOT passing extra_headers here because it causes a TypeError 
+            # ("unexpected keyword argument 'extra_headers'") when combined with 'sock' in websockets 15.0.
+            # VS Code uses the 'reconnectionToken' in the query params (which we preserved) for session tracking.
             async with websockets.connect(
                 ws_url,
-                extra_headers=websocket.headers,
                 sock=sock, # Pass the connected socket
                 open_timeout=20 # Allow extra time for handshake
             ) as ws:

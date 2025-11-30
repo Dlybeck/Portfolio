@@ -105,11 +105,11 @@ gcloud run deploy portfolio-app \
 2. Click "Create Service"
 3. Select "Deploy one revision from an existing container image" or "Continuously deploy from a repository"
 4. Configure:
-   - **Region**: `us-central1`
+   - **Region**: `us-west1`
    - **Authentication**: Allow unauthenticated invocations
    - **Container**: Use Dockerfile from this repo
    - **Environment Variables**: Set all required variables above
-   - **Resources**: 1 CPU, 1 GiB memory
+   - **Resources**: 1 CPU, 512 MiB memory
    - **Request timeout**: 3600 seconds (1 hour)
 
 ### 3. Verify Tailscale Connection
@@ -117,7 +117,7 @@ gcloud run deploy portfolio-app \
 After deployment, check Cloud Run logs:
 
 ```bash
-gcloud run services logs read portfolio-app --region us-central1 --limit 50
+gcloud run services logs read portfolio --region us-west1 --limit 50
 ```
 
 Look for:
@@ -160,10 +160,10 @@ Automatically detects environment using `K_SERVICE` environment variable.
 ### 1. Test Login
 ```bash
 # Get your Cloud Run URL
-gcloud run services describe portfolio-app --region us-central1 --format='value(status.url)'
+gcloud run services describe portfolio --region us-west1 --format='value(status.url)'
 
 # Visit in browser
-https://portfolio-app-xxx.run.app/dev/login
+https://portfolio-xxx.run.app/dev/login
 ```
 
 ### 2. Test Code-Server Access
@@ -240,7 +240,7 @@ If your Mac's Tailscale IP changes:
 
 2. Redeploy to Cloud Run:
 ```bash
-gcloud run deploy portfolio-app --source . --region us-central1
+gcloud run deploy portfolio --source . --region us-west1
 ```
 
 ---
@@ -330,7 +330,7 @@ The app will:
 ## Support
 
 For issues:
-1. Check Cloud Run logs: `gcloud run services logs read portfolio-app`
+1. Check Cloud Run logs: `gcloud run services logs read portfolio`
 2. Check Mac logs: `tail -f /tmp/portfolio.log`
 3. Visit debug endpoint: `/dev/debug/connectivity`
 4. Review Tailscale status: `tailscale status`

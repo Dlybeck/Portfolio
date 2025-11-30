@@ -230,79 +230,46 @@ class BaseProxy:
         try:
             logger.info(f"[{self.__class__.__name__}] Connecting to upstream WebSocket...")
 
-            # If in Cloud Run, manually create SOCKS connection instead of using websockets' proxy parameter
-            # The websockets library's proxy support via python-socks appears to have issues
+            # Initialize proxy object if in Cloud Run
+            # We use python-socks which is compatible with websockets library
+            # Note: We avoid the 'proxy' argument in websockets.connect because recent versions 
+            # recommend passing the connector or sock, but python-socks provides a create_connection
+            # factory we can use.
+            
+            # Actually, websockets 14+ doesn't have a 'proxy' argument.
+            # We need to create the connection manually using python-socks and pass it as 'sock'.
+            
             sock = None
             if IS_CLOUD_RUN:
                 try:
-                    import socket
-                    import struct
+                    from python_socks.async_.asyncio import Proxy
+                    
+                    logger.info(f"[{self.__class__.__name__}] Connecting to proxy: {SOCKS5_PROXY}")
+                    proxy = Proxy.from_url(SOCKS5_PROXY)
+                    
+                    # Parse target URL
                     from urllib.parse import urlparse
-
-                    # Parse the target WebSocket URL
-                    parsed = urlparse(ws_url.replace('ws://', 'http://'))
+                    parsed = urlparse(ws_url)
                     target_host = parsed.hostname
-                    target_port = parsed.port or 80
-
-                    logger.info(f"[{self.__class__.__name__}] Creating manual SOCKS5 connection to {target_host}:{target_port}")
-
-                    # Create socket and connect to SOCKS5 proxy
-                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    sock.settimeout(10)
-                    sock.connect(('127.0.0.1', 1055))
-
-                    # SOCKS5 handshake
-                    sock.send(b'\x05\x01\x00')  # Version 5, 1 method, no auth
-                    response = sock.recv(2)
-                    if response != b'\x05\x00':
-                        raise Exception(f"SOCKS5 handshake failed: {response.hex()}")
-
-                    # SOCKS5 connect request
-                    # Build request: VER CMD RSV ATYP DST.ADDR DST.PORT
-                    request = b'\x05\x01\x00'  # VER=5, CMD=CONNECT, RSV=0
-
-                    # Use IPv4 address (ATYP=0x01) instead of domain name for better compatibility
-                    # Parse IP from target_host (should be 100.84.184.84)
-                    ip_parts = [int(x) for x in target_host.split('.')]
-                    request += b'\x01'  # ATYP = IPv4
-                    request += bytes(ip_parts)  # 4 bytes for IPv4 address
-                    request += struct.pack('>H', target_port)  # Port (big-endian)
-
-                    logger.info(f"[{self.__class__.__name__}] Sending SOCKS5 CONNECT: {request.hex()}")
-                    sock.send(request)
-
-                    # Read response
-                    response = sock.recv(4)
-                    logger.info(f"[{self.__class__.__name__}] SOCKS5 CONNECT response (first 4 bytes): {response.hex()}")
-                    if len(response) < 4 or response[1] != 0x00:
-                        raise Exception(f"SOCKS5 connect failed: {response.hex()}")
-
-                    # Read rest of response based on address type
-                    atyp = response[3]
-                    if atyp == 0x01:  # IPv4
-                        sock.recv(4 + 2)  # 4 bytes IP + 2 bytes port
-                    elif atyp == 0x03:  # Domain
-                        domain_len = struct.unpack('B', sock.recv(1))[0]
-                        sock.recv(domain_len + 2)  # domain + 2 bytes port
-                    elif atyp == 0x04:  # IPv6
-                        sock.recv(16 + 2)  # 16 bytes IP + 2 bytes port
-
-                    logger.info(f"[{self.__class__.__name__}] ✅ SOCKS5 connection established")
-
-                    # Make socket non-blocking for async use
-                    sock.setblocking(False)
-
+                    target_port = parsed.port or (443 if parsed.scheme == 'wss' else 80)
+                    
+                    logger.info(f"[{self.__class__.__name__}] Establish tunnel to {target_host}:{target_port}")
+                    
+                    # Create connection through proxy
+                    sock = await proxy.connect(dest_host=target_host, dest_port=target_port)
+                    logger.info(f"[{self.__class__.__name__}] ✅ SOCKS5 tunnel established")
+                    
                 except Exception as e:
-                    if sock:
-                        sock.close()
-                    raise Exception(f"Manual SOCKS5 connection failed: {e}")
+                    logger.error(f"[{self.__class__.__name__}] ❌ Failed to create proxy tunnel: {e}")
+                    raise
 
-            # Connect via websockets - with or without pre-established SOCKS socket
+            # Connect via websockets
+            # If sock is provided, it uses that existing connection
             async with websockets.connect(
                 ws_url,
                 extra_headers=client_ws.headers,
-                sock=sock,  # Use pre-connected SOCKS socket if in Cloud Run, None otherwise
-                open_timeout=10
+                sock=sock,
+                open_timeout=20
             ) as server_ws:
                 logger.info(f"[{self.__class__.__name__}] ✅ Connected! Subprotocol selected: {server_ws.subprotocol}")
 

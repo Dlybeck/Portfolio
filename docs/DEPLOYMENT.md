@@ -90,9 +90,9 @@ LOCKOUT_DURATION_MINUTES=15
 
 ```bash
 # Build and deploy in one command
-gcloud run deploy portfolio-app \
+gcloud run deploy portfolio \
   --source . \
-  --region us-central1 \
+  --region us-west1 \
   --allow-unauthenticated \
   --set-env-vars "TAILSCALE_OAUTH_CLIENT_ID=tsoc-client-...,TAILSCALE_OAUTH_CLIENT_SECRET=tsoc-...,SECRET_KEY=...,DASHBOARD_USERNAME=...,DASHBOARD_PASSWORD_HASH=...,TOTP_SECRET=..." \
   --memory 1Gi \
@@ -109,7 +109,7 @@ gcloud run deploy portfolio-app \
    - **Authentication**: Allow unauthenticated invocations
    - **Container**: Use Dockerfile from this repo
    - **Environment Variables**: Set all required variables above
-   - **Resources**: 1 CPU, 512 MiB memory
+   - **Resources**: 1 CPU, 1 GiB memory
    - **Request timeout**: 3600 seconds (1 hour)
 
 ### 3. Verify Tailscale Connection

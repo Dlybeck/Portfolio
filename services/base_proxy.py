@@ -44,11 +44,11 @@ class BaseProxy:
                     SOCKS5_PROXY,
                     limit=20,
                     limit_per_host=20,
-                    force_close=True # Disable keep-alive at connection level
+                    force_close=False # Enable keep-alive for performance
                 )
                 logger.info(f"[{self.__class__.__name__}] Using SOCKS5 proxy: {SOCKS5_PROXY}")
             else:
-                connector = aiohttp.TCPConnector(limit=20, force_close=True)
+                connector = aiohttp.TCPConnector(limit=20, force_close=False)
 
             # Create session with timeouts
             # 300s (5min) total timeout to match Cloud Run limits, 10s connect timeout

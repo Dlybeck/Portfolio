@@ -34,6 +34,33 @@ async def speckit_health():
 async def run_speckit_command_get():
     return {"message": "Use POST to run commands. Speckit router is active."}
 
+@router.get("/debug_proxy")
+async def debug_proxy():
+    """Test the proxy connection to Mac /run endpoint"""
+    if settings.K_SERVICE is None:
+        return {"status": "skipped", "reason": "Running locally"}
+        
+    target_url = f"http://{settings.MAC_SERVER_IP}:{settings.MAC_SERVER_PORT}/api/speckit/run"
+    results = {
+        "target": target_url,
+        "proxy": settings.SOCKS5_PROXY,
+        "test_payload": {"action": "check", "cwd": "/tmp"}
+    }
+    
+    try:
+        async with httpx.AsyncClient(proxy=settings.SOCKS5_PROXY, timeout=10.0) as client:
+            # Try POST
+            resp = await client.post(target_url, json=results["test_payload"])
+            results["status_code"] = resp.status_code
+            results["response_text"] = resp.text
+            results["headers"] = dict(resp.headers)
+            
+    except Exception as e:
+        results["error"] = str(e)
+        results["error_type"] = type(e).__name__
+        
+    return results
+
 @router.post("/run")
 async def run_speckit_command(
     command: dict,

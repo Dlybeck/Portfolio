@@ -41,18 +41,24 @@ async def run_speckit_command(
             # Extract headers (Auth)
             headers = dict(request.headers)
             headers.pop("host", None) # Let httpx set host
+            headers.pop("content-length", None) # Let httpx calculate length
             
             async with httpx.AsyncClient(proxy=settings.SOCKS5_PROXY, timeout=60.0) as client:
                 resp = await client.post(target_url, json=command, headers=headers)
                 
             if resp.status_code != 200:
-                 raise HTTPException(status_code=resp.status_code, detail=resp.text)
+                 # Log the details from the upstream error
+                 error_detail = resp.text
+                 logger.error(f"Upstream Proxy Error ({resp.status_code}): {error_detail}")
+                 raise HTTPException(status_code=resp.status_code, detail=f"Upstream error: {error_detail}")
                  
             return resp.json()
             
+        except HTTPException as he:
+            raise he
         except Exception as e:
-            logger.error(f"Speckit Proxy Error: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            logger.error(f"Speckit Proxy Connection Error: {e}")
+            raise HTTPException(status_code=500, detail=f"Proxy connection failed: {str(e)}")
 
     # MAC: LOCAL EXECUTION
     global ACTIVE_PROCESS
@@ -96,8 +102,14 @@ async def run_speckit_command(
         raise HTTPException(status_code=500, detail=f"Failed to load prompt: {e}")
 
     # Construct Claude Command
+    # Use full path to ensure it is found (especially if run via service/cron)
+    claude_bin = "/Users/dlybeck/.local/bin/claude"
+    if not os.path.exists(claude_bin):
+        # Fallback to "claude" if specific path doesn't exist (e.g. different environment)
+        claude_bin = "claude"
+
     cmd_list = [
-        "claude",
+        claude_bin,
         "-p", 
         full_prompt,
         "--dangerously-skip-permissions"
@@ -124,5 +136,5 @@ async def run_speckit_command(
         
     except Exception as e:
         logger.error(f"Failed to start agent: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Agent start failed: {str(e)}")
 

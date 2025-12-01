@@ -22,6 +22,18 @@ router = APIRouter(prefix="/api/speckit", tags=["Speckit"])
 ACTIVE_PROCESS = None
 ACTIVE_WEBSOCKETS = set()
 
+@router.get("/health")
+async def speckit_health():
+    return {
+        "status": "ok", 
+        "mode": "proxy" if settings.K_SERVICE else "local",
+        "cwd": os.getcwd()
+    }
+
+@router.get("/run")
+async def run_speckit_command_get():
+    return {"message": "Use POST to run commands. Speckit router is active."}
+
 @router.post("/run")
 async def run_speckit_command(
     command: dict,

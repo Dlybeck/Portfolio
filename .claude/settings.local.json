@@ -74,7 +74,12 @@
       "Bash(timeout 10 curl:*)",
       "Bash(timeout 15 curl:*)",
       "Bash(nslookup:*)",
-      "Bash(gcloud auth login:*)"
+      "Bash(gcloud auth login:*)",
+      "Bash(tree:*)",
+      "Bash(gemini --help:*)",
+      "Bash(source .venv/bin/activate)",
+      "Bash(pip install:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []

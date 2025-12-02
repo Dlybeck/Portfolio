@@ -9,6 +9,7 @@ from core.security import get_session_user, verify_token
 from core.config import settings
 import asyncio
 import os
+import subprocess
 import logging
 import json
 import httpx
@@ -21,6 +22,31 @@ router = APIRouter(prefix="/api/speckit", tags=["Speckit"])
 # Global state to track active process and websockets (Local Only)
 ACTIVE_PROCESS = None
 ACTIVE_WEBSOCKETS = set()
+
+async def broadcast_output(process):
+    """Simple broadcast function - reads process output and logs it"""
+    try:
+        # Read both stdout and stderr concurrently
+        async def read_stream(stream, stream_name):
+            while True:
+                line = await stream.readline()
+                if not line:
+                    break
+                decoded = line.decode('utf-8', errors='replace').rstrip()
+                logger.info(f"[{stream_name}] {decoded}")
+
+        # Read both streams concurrently
+        await asyncio.gather(
+            read_stream(process.stdout, "stdout") if process.stdout else asyncio.sleep(0),
+            read_stream(process.stderr, "stderr") if process.stderr else asyncio.sleep(0)
+        )
+
+        # Wait for process to complete
+        exit_code = await process.wait()
+        logger.info(f"Process completed with exit code: {exit_code}")
+
+    except Exception as e:
+        logger.error(f"Error in broadcast_output: {e}")
 
 @router.get("/health")
 async def speckit_health():
@@ -132,29 +158,49 @@ async def run_speckit_command(
         prompt_path = os.path.join(cwd, prompt_file)
         if not os.path.exists(prompt_path):
              raise FileNotFoundError(f"Prompt file not found: {prompt_path}")
-             
+
         with open(prompt_path, "r") as f:
             template = f.read()
-            full_prompt = template.replace("$ARGUMENTS", args if args else "")
+
+        # Strip frontmatter (YAML between --- delimiters) to avoid CLI parsing issues
+        # Frontmatter causes "unknown option '---'" error when passed to claude -p
+        if template.startswith("---"):
+            parts = template.split("---", 2)
+            if len(parts) >= 3:
+                # parts[0] = empty, parts[1] = frontmatter, parts[2] = content
+                template = parts[2].strip()
+
+        full_prompt = template.replace("$ARGUMENTS", args if args else "")
     except Exception as e:
         logger.error(f"Error reading prompt: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to load prompt: {e}")
 
-    # Construct Claude Command
-    # Use full path to ensure it is found (especially if run via service/cron)
-    claude_bin = "/Users/dlybeck/.local/bin/claude"
-    if not os.path.exists(claude_bin):
-        # Fallback to "claude" if specific path doesn't exist (e.g. different environment)
-        claude_bin = "claude"
+    # Construct AI Command (supports both Claude and Gemini)
+    if ai_model == "gemini":
+        # Gemini uses positional argument (no -p flag)
+        gemini_bin = "/opt/homebrew/bin/gemini"
+        if not os.path.exists(gemini_bin):
+            gemini_bin = "gemini"  # Fallback to PATH
 
-    cmd_list = [
-        claude_bin,
-        "-p", 
-        full_prompt,
-        "--dangerously-skip-permissions"
-    ]
+        cmd_list = [
+            gemini_bin,
+            "--yolo",  # Auto-approve actions (like Claude's --dangerously-skip-permissions)
+            full_prompt
+        ]
+    else:
+        # Claude (default)
+        claude_bin = "/Users/dlybeck/.local/bin/claude"
+        if not os.path.exists(claude_bin):
+            claude_bin = "claude"  # Fallback to PATH
 
-    logger.info(f"Starting Speckit Agent ({action}) in {cwd}")
+        cmd_list = [
+            claude_bin,
+            "-p",
+            full_prompt,
+            "--dangerously-skip-permissions"
+        ]
+
+    logger.info(f"Starting Speckit Agent ({action}) with {ai_model} in {cwd}")
 
     try:
         env = os.environ.copy()
@@ -170,10 +216,42 @@ async def run_speckit_command(
         
         ACTIVE_PROCESS = process
         asyncio.create_task(broadcast_output(process))
-        
-        return {"status": "started", "cwd": cwd, "agent": "claude"}
+
+        return {"status": "started", "cwd": cwd, "agent": ai_model}
         
     except Exception as e:
         logger.error(f"Failed to start agent: {e}")
         raise HTTPException(status_code=500, detail=f"Agent start failed: {str(e)}")
+
+@router.get("/artifacts/{artifact_type}")
+async def get_artifact(
+    artifact_type: str,
+    user: dict = Depends(get_session_user)
+):
+    """Get a generated artifact (spec.md, plan.md, tasks.md)"""
+    # Simple implementation - look in current directory for specs folder
+    cwd = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+    # Try to get current git branch to find feature directory
+    try:
+        result = subprocess.run(
+            ["git", "branch", "--show-current"],
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        branch = result.stdout.strip()
+
+        if branch:
+            # Try specs/branch-name/artifact.md
+            artifact_path = os.path.join(cwd, "specs", branch, f"{artifact_type}.md")
+            if os.path.exists(artifact_path):
+                with open(artifact_path, "r") as f:
+                    return PlainTextResponse(content=f.read(), media_type="text/markdown")
+    except:
+        pass
+
+    # Not found
+    raise HTTPException(status_code=404, detail=f"{artifact_type} not found")
 

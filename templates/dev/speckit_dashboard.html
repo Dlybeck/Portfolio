@@ -248,7 +248,10 @@
             
             <!-- Dashboard Header -->
             <div class="dashboard-header">
-                <div style="font-weight: 600; font-size: 1.1em;">Speckit Agent</div>
+                <div>
+                    <div style="font-weight: 600; font-size: 1.1em;">Speckit Agent</div>
+                    <div id="cwd-display" style="font-size: 0.8em; color: #888; margin-top: 4px; font-family: monospace;">...</div>
+                </div>
                 <div class="model-toggle">
                     <button class="model-btn active" onclick="setModel('claude')">Claude</button>
                     <button class="model-btn" onclick="setModel('gemini')">Gemini</button>

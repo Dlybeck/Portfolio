@@ -21,12 +21,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('main-input').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleAction();
     });
+    
+    // Initial check to get CWD
+    runCommand('check', '');
 });
 
 function setModel(model) {
+    // Prevent switching during execution
+    if (isRunning) {
+        log('Cannot switch models during execution', 'stderr');
+        return;
+    }
+
     currentModel = model;
     localStorage.setItem('speckit_model', model);
-    
+
     document.querySelectorAll('.model-btn').forEach(btn => {
         btn.classList.toggle('active', btn.innerText.toLowerCase() === model);
     });
@@ -143,12 +152,15 @@ function log(text, type) {
 }
 
 async function runCommand(action, args) {
-    isRunning = true;
-    log(`>>> Starting ${action}...`, 'info');
+    // If not 'check', set running state
+    if (action !== 'check') {
+        isRunning = true;
+        log(`>>> Starting ${action}...`, 'info');
+    }
     
     try {
         const token = localStorage.getItem('access_token');
-        await fetch('/api/speckit/run', {
+        const res = await fetch('/api/speckit/run', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
@@ -160,6 +172,13 @@ async function runCommand(action, args) {
                 ai_model: currentModel
             })
         });
+        
+        const data = await res.json();
+        
+        if (data.cwd) {
+            document.getElementById('cwd-display').textContent = data.cwd;
+        }
+        
     } catch (e) {
         log(`Error: ${e.message}`, 'stderr');
         isRunning = false;

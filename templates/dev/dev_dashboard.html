@@ -7,6 +7,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Dev Dashboard</title>
+    <!-- Inherit Portfolio Styles -->
+    <link rel="stylesheet" href="/static/css/base.css">
     <link rel="stylesheet" href="/static/dev/css/variables.css">
     <link rel="stylesheet" href="/static/dev/css/dashboard.css">
     <style>
@@ -23,82 +25,32 @@
             display: flex !important;
             flex-direction: column !important;
             height: 100vh;
-            height: 100dvh; /* Dynamic viewport height for mobile */
+            height: 100dvh;
             width: 100vw;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #1a1a1a;
+            /* Match Speckit Dashboard Background */
+            background-color: #121212;
+            background-image: url("/static/images/sand2048.webp");
+            background-size: cover;
+            background-position: center;
             position: fixed !important;
             top: 0;
             left: 0;
         }
-        .header {
-            display: flex !important;
-            justify-content: space-between;
-            align-items: center;
-            padding: 6px 16px;
-            background: linear-gradient(135deg, #006699, #005588);
-            height: 40px !important;
-            min-height: 40px !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            position: relative !important;
-            z-index: 9999 !important;
-            flex-shrink: 0 !important;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 1.1em;
-            font-weight: 600;
-            color: white;
-            letter-spacing: 0.3px;
-        }
-        .switcher-buttons {
-            display: flex;
-            gap: 8px;
-        }
-        .switcher-buttons button {
-            padding: 6px 14px;
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 6px;
-            background-color: rgba(255,255,255,0.1);
-            color: white;
-            cursor: pointer;
-            font-size: 0.9em;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-        .switcher-buttons button:hover {
-            background-color: rgba(255,255,255,0.2);
-            border-color: rgba(255,255,255,0.4);
-        }
-        .switcher-buttons button.active {
-            background-color: rgba(255,255,255,0.25);
-            border-color: rgba(255,255,255,0.5);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .logout-btn {
-            padding: 6px 14px;
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 6px;
-            background-color: rgba(220, 53, 69, 0.8);
-            color: white;
-            cursor: pointer;
-            font-size: 0.85em;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-        .logout-btn:hover {
-            background-color: rgba(220, 53, 69, 1);
-            border-color: rgba(255,255,255,0.5);
-        }
+        
+        /* Main Container - similar to Glass Card but full width/height for VS Code */
         .content-container {
             flex-grow: 1;
             position: relative;
-            background: #1a1a1a;
+            background: rgba(30, 30, 30, 0.85);
+            backdrop-filter: blur(12px);
             overflow: hidden;
+            margin-top: 50px; /* Offset for navbar */
             /* Mobile-specific: prevent any scrolling or bouncing */
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: none;
         }
+
         iframe {
             width: 100%;
             height: 100%;
@@ -114,19 +66,33 @@
             visibility: visible;
             opacity: 1;
         }
+
+        /* Navbar Override for this page if needed */
+        .navbar {
+            position: absolute; /* Keep it at top */
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, 0);
+            width: fit-content;
+            z-index: 9999;
+            border-radius: 0px 0px 10px 10px;
+        }
     </style>
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <!-- Auth Service for Token Refresh -->
     <script src="/static/js/auth-service.js"></script>
 </head>
 <body>
-    <header class="header">
-        <h1>Dev Environment</h1>
-        <div style="display: flex; gap: 10px;">
-            <a href="/dev/speckit" class="logout-btn" style="text-decoration:none; background:rgba(255,255,255,0.15);">Speckit</a>
-            <button class="logout-btn" onclick="logout()" title="Logout">Logout</button>
-        </div>
-    </header>
+    <!-- Consistent Navbar -->
+    <nav class="navbar">
+      <div class="navbar-content">
+        <img src="/static/images/Logo.webp" alt="Logo" class="navbar-logo">
+        <div class="navbar-title">Dev Dashboard</div>
+        <a href="/dev/speckit" style="margin-left: 10px; text-decoration: none; color: white; font-weight: 500; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 4px; font-size: 0.9em;">
+            Speckit Agent
+        </a>
+      </div>
+    </nav>
 
     <div class="content-container">
         <!-- VS Code Iframe -->

@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from core.config import settings
 from fastapi.staticfiles import StaticFiles
 from apis.route_general import general_router
@@ -148,6 +148,13 @@ def start_application():
 		# Start Tailscale health monitor (only in Cloud Run)
 		asyncio.create_task(start_health_monitor())
 		logger.info("Tailscale health monitor started")
+
+	@app.middleware("http")
+	async def log_requests(request: Request, call_next):
+		logger.info(f"INCOMING REQUEST: {request.method} {request.url.path}")
+		response = await call_next(request)
+		logger.info(f"RESPONSE STATUS: {response.status_code} for {request.url.path}")
+		return response
 
 	return app 
 

@@ -1,55 +1,159 @@
-# Debugging Journey: VS Code WebSocket Connection in Cloud Run
+# Debugging Journey: Speckit Dashboard Connectivity (405/Connection Refused)
 
-## Objective
-Fix the "Workbench failed to connect to the server (Error: WebSocket close with status code 1006)" error when accessing VS Code through the Cloud Run proxy.
+**Status:** Critical Block. Dashboard fails with `405 Method Not Allowed` on POST `/api/speckit/run` and WebSocket connection failures.
 
-## Timeline & Attempts
+## Symptoms
+1.  **Frontend:** 
+    - `POST /api/speckit/run` returns `405 Method Not Allowed`.
+    - `GET /api/speckit/artifacts/*` returns `404 Not Found`.
+    - `WS /api/speckit/ws` connection fails immediately.
+2.  **Cloud Run:** 
+    - `/api/speckit/health` returns `{"status":"ok", "mode":"proxy"}` (Router IS registered).
+    - `/debug/tailscale/full-diagnostic` confirms Tailscale is up, but connectivity to Mac is suspect.
+3.  **Local Mac Server:**
+    - Server is running (`ps aux` confirms PID).
+    - Logs (`server.log`) show startup success.
+    - **CRITICAL:** Logs show **ZERO** incoming requests from Cloud Run.
 
-### 1. Initial State
-- **Symptoms:** VS Code loads UI but fails to connect to backend. Console shows WebSocket handshake timeouts and 1006 errors.
-- **Configuration:** `aiohttp` used for both HTTP and WebSocket proxying.
-- **Suspect:** `aiohttp` might be mishandling the SOCKS5 proxy handshake or headers for WebSockets.
+## Root Cause Analysis
 
-### 2. Attempt 1: Manual Socket Handshake (Commit: `bd9e8dd`)
-- **Hypothesis:** `aiohttp`'s WebSocket implementation via SOCKS5 is flaky.
-- **Action:** Implemented a manual socket creation and SOCKS5 handshake using Python's standard `socket` library, then passed this socket to `websockets.connect`.
-- **Result:** **FAILED**.
-- **Logs:** `Error: Time limit reached` and `socks5: client connection failed: could not read packet header`.
-- **Analysis:** The manual socket code used blocking calls (`sock.connect`, `sock.recv`) inside an async function, freezing the event loop and causing timeouts.
+### 1. The "405 Method Not Allowed" Mystery
+- **Fact:** The router is registered (`/health` works).
+- **Fact:** The code defines `@router.post("/run")`.
+- **Observation:** Hitting it returns 405.
+- **Deduction:** The request is NOT reaching the FastAPI route handler for `POST /run`.
+- **Hypothesis A (Disproven):** Router missing? No, `health` works.
+- **Hypothesis B (Likely):** Something *upstream* of FastAPI (Cloud Run Ingress, Load Balancer, or Middleware) is rewriting the request or rejecting POST.
+    - *Check:* Trailing slash? `/run` vs `/run/`. Browser sends `/run`. FastAPI expects `/run`. Match.
+    - *Check:* HTTP vs HTTPS? Client uses HTTPS. Cloud Run terminates SSL. App sees HTTP. POST should be preserved.
+- **Hypothesis C:** The request is hitting a *different* router that captures `/api/speckit/run` via a wildcard?
+    - Checked `dev_proxy_router` (`/dev/vscode/{path:path}`). No overlap.
 
-### 3. Attempt 2: Use `python-socks` Library (Commit: `ca64420`)
-- **Hypothesis:** The manual socket implementation was buggy and blocking. Using the robust `python-socks` library (async-native) would fix the handshake.
-- **Action:** Replaced manual socket code with `python_socks.async_.asyncio.Proxy.from_url(...).connect(...)`.
-- **Result:** **FAILED**.
-- **Logs:** `failed to connect to SOCKS proxy` (Application) and `socks5: client connection failed: could not read packet header` (Tailscale).
-- **Analysis:** The library failed to connect to the proxy server itself.
+### 2. The Connection Gap (Cloud Run -> Mac)
+- **Observation:** Local logs show no activity.
+- **Implication:** The SOCKS5 tunnel from Cloud Run to Mac is not establishing, OR it connects to the wrong target.
+- **Diagnostic:** `/api/speckit/debug_proxy` was added to test this. (Pending result).
 
-### 4. Attempt 3: Change `127.0.0.1` to `localhost` (Commit: `1e08c6d`)
-- **Hypothesis:** `tailscaled` in Cloud Run binds to `localhost` (IPv6 `::1`) but not IPv4 `127.0.0.1`. The health check used `localhost` and worked, while the app used `127.0.0.1` and failed.
-- **Action:** Updated `core/config.py` to use `socks5://localhost:1055`.
-- **Result:** **PENDING/FAILED** (User reports "Same thing at least on the ui end").
-- **Analysis:** Need to check logs. If it still fails with "connection refused", then `localhost` might not be resolving correctly in the container or `tailscaled` is binding to something else entirely.
+### 3. The Code mismatch?
+- Cloud Run is confirmed updated (`/health` exists).
+- Local Mac is confirmed updated and running.
 
-## Current Status
-- **SOCKS5 Proxy:** Reported as "listening" by health check.
-- **WebSocket Connection:** Consistently failing to establish a tunnel through the SOCKS5 proxy.
-- **Error Pattern:** The app tries to connect to the SOCKS proxy, fails, and the VS Code client times out.
+## Actions Taken
+1.  **Implemented Proxy Logic:** Rewrote `route_speckit.py` to forward requests from Cloud Run to Mac via SOCKS5.
+2.  **Fixed Dependencies:** Updated Dockerfile to remove heavy deps (`claude`, `node`) and keep it lightweight.
+3.  **Added Diagnostics:** Created `/debug/tailscale` and `/api/speckit/debug_proxy`.
+4.  **Verified Local:** Restarted Mac server multiple times, verified process and logs.
+5.  **Verified Route:** Added `GET /run` handler to test path existence.
 
 ## Next Steps
-1.  **Analyze Logs:** detailed check of the latest failure after the `localhost` change.
-2.  **Verify Connectivity:** Can we even `curl` the SOCKS proxy port from within Python?
-3.  **Consider Alternatives:**
-    - Is `ws://100.84.184.84:8888` actually reachable? (HTTP works, so yes).
-    - Is `python-socks` compatible with `tailscaled`'s SOCKS implementation?
-    - Should we revert to `aiohttp` but fix the configuration?
+1.  **Isolate the 405:** Use `curl` from a local machine against the Cloud Run URL to precisely control headers/path and see raw response.
+    - `curl -X POST -v https://davidlybeck.com/api/speckit/run`
+2.  **Verify SOCKS Tunnel:** Use the `/debug/tailscale/test-http-socks5` endpoint to confirm Cloud Run can actually "see" the Mac.
+3.  **Bypass Domain:** Test against the raw `run.app` URL to rule out domain mapping issues.
 
-## Resolution (Successful)
-The final working configuration required three specific fixes combined:
-1.  **Bypass `websockets` Proxy:** We manually created the SOCKS5 tunnel using `python-socks` (async) and passed the connected socket to `websockets.connect(sock=...)`. This bypassed the flaky native proxy implementation in the `websockets` library.
-2.  **Use `localhost`:** We changed the SOCKS5 proxy URL to `socks5://localhost:1055` because `tailscaled` in Cloud Run binds to `localhost` (likely IPv6 `::1`) and not the hardcoded `127.0.0.1`.
-3.  **Fix Argument Conflict:** We removed `extra_headers` from the `websockets.connect` call when using `sock`. This resolved a `TypeError` in `websockets` v15+ where passing headers alongside a pre-connected socket caused a crash in the underlying loop factory.
+**Current Theory:** The `405` is a red herring caused by a failure in the SOCKS proxy handshake that is bubbling up as a generic error, OR a mismatch in how `httpx` forwards headers (Host header?) causing the Mac to reject it. But since logs show *no* request on Mac, the SOCKS failure is most likely.
 
-### Cleanup & Polish
-After connectivity was restored, we addressed console noise:
--   **Mocked `vsda` Files:** `vsda.js` and `vsda_bg.wasm` (Microsoft proprietary components) were 404ing. We implemented a mock handler in `apis/route_dev_proxy.py` to return empty 200 OK responses for these specific files. This prevents client-side errors for components that are legitimately missing from the open-source `code-server` build.
+---
 
+## Session 2: AI Hot-Swapping Implementation (2025-12-01/02)
+
+### Goal
+Implement hot-swapping between Claude Code and Gemini CLI for Speckit workflows.
+
+### Implementation Summary
+
+**Changes Made:**
+1. **route_speckit.py (lines 143-166):** Added simple if/else for Claude vs Gemini CLI
+   - Gemini: `gemini --yolo "prompt"` (positional argument)
+   - Claude: `claude -p "prompt" --dangerously-skip-permissions"` (flag-based)
+   - Backend now honors `ai_model` parameter from frontend
+
+2. **route_speckit.py (lines 26-49):** Implemented `broadcast_output()` function
+   - Initially only captured stdout
+   - Updated to capture BOTH stdout and stderr using `asyncio.gather`
+   - Logs to server logs (WebSocket streaming not yet implemented)
+
+3. **speckit.js (lines 29-42):** Added model lock during execution
+   - Prevents switching models while `isRunning = true`
+   - Shows error message if attempted
+
+4. **route_speckit.py (lines 190-220):** Added `/artifacts/{type}` endpoint
+   - Retrieves spec.md, plan.md, tasks.md from `specs/branch-name/`
+   - Uses git branch to find feature directory
+
+### Critical Findings
+
+**✅ Slash Commands Don't Work with `-p` Flag:**
+- `claude -p "content"` treats input as plain text, ignores frontmatter/handoffs
+- Solution: Load template files (`.claude/commands/speckit.*.md`), replace `$ARGUMENTS`, pass full content
+- Both CLIs now use symmetric approach (Approach B from plan)
+
+**✅ Stateless One-Shot Execution:**
+- Each Speckit command is a fresh CLI invocation
+- No persistent sessions needed
+- File-based state enables seamless hot-swapping
+- Both CLIs use subscription login (no API keys)
+
+### Issues Encountered
+
+**🔴 Issue #1: Server Restart Failure (2025-12-02)**
+- **Problem:** Attempted to restart local Mac server to pick up stderr capture changes
+- **Action:** Killed PIDs 682, 29207, 29326 (running on port 8080)
+- **Result:** Server failed to restart due to missing dependencies (`aiohttp`, `pydantic_settings`)
+- **Root Cause:** Wrong Python environment (venv not activated, or dependencies not installed)
+- **Impact:** Local testing blocked
+- **Note:** User's original server was likely started differently (Cloud Run proxy setup?)
+
+**✅ Issue #2: Claude CLI Exiting with Code 1 (RESOLVED)**
+- **Symptom:** Process starts but immediately fails
+  ```
+  Starting Speckit Agent (specify) with claude in /Users/dlybeck/Documents/Portfolio
+  Process completed with exit code: 1
+  ```
+- **Root Cause:** Frontmatter YAML delimiters (`---`) in template files were being passed to `claude -p`, causing CLI to interpret them as command-line options
+- **Error Message:** `error: unknown option '---`
+- **Fix Applied:** Strip frontmatter before passing to CLI (lines 165-171 of route_speckit.py)
+  ```python
+  if template.startswith("---"):
+      parts = template.split("---", 2)
+      if len(parts) >= 3:
+          template = parts[2].strip()  # Keep only content after frontmatter
+  ```
+- **Status:** Fixed, ready for testing
+
+**⚠️ Issue #3: WebSocket Endpoint Missing**
+- **Symptom:** `WebSocket connection to 'ws://localhost:8080/api/speckit/ws' failed: 403`
+- **Status:** Endpoint not implemented yet
+- **Impact:** Frontend can't receive real-time updates
+
+**✅ Issue #4: Artifacts 404 (Expected)**
+- **Symptom:** `/api/speckit/artifacts/spec` returns 404
+- **Status:** Expected behavior when no artifacts generated yet
+- **Resolution:** Endpoint implemented correctly
+
+### Key Lessons
+
+1. **Always capture stderr in subprocess execution** - Without it, debugging failures is impossible
+2. **Server restart requires proper environment** - Need to find correct startup method
+3. **Cloud Run proxy complicates local testing** - User might be testing via `davidlybeck.com` (Cloud Run) → SOCKS proxy → Mac
+4. **Document everything** - User explicitly requested: "Document document document and use that documentation to learn"
+
+### Recovery from Server Restart Issue
+
+**Problem:** Killed running server (PIDs 682, 29207, 29326), couldn't restart due to missing dependencies.
+
+**Root Cause:** The startup script `scripts/start-local-dev.sh` creates a venv in `scripts/.venv`, but dependencies weren't installed in that venv (script checks for fastapi but doesn't ensure ALL dependencies are present).
+
+**Solution:**
+1. Manually installed requirements: `cd scripts && source .venv/bin/activate && pip install -r ../requirements.txt`
+2. Re-ran startup script: `scripts/start-local-dev.sh`
+3. Server now running on port 8080 (PID 30733)
+
+**Lesson:** The venv check in start-local-dev.sh is incomplete - it only checks if fastapi is importable, not if ALL requirements are installed.
+
+### Next Steps
+
+1. **Test Speckit command via web UI** - Server is running, need to trigger a command to capture stderr
+2. **Diagnose Claude CLI exit code 1** - Check logs for [stderr] output
+3. **Fix Claude CLI execution issue** - Once we see the error
+4. **Implement WebSocket endpoint** - Pattern exists in `route_dev_proxy.py`

@@ -1,8 +1,8 @@
 """
-AgentBridge - AI-Agnostic Coding Orchestrator Routes
+AgentBridge V2 - AI-Agnostic Coding Orchestrator Routes
 
-Enables hot-swapping between AI coding tools (Claude, Gemini) while maintaining
-project context in external files.
+Chat-first interface for spec-driven development with hot-swapping between
+AI coding tools (Claude, Gemini).
 """
 
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, Request
@@ -16,6 +16,8 @@ import logging
 import json
 import yaml
 import httpx
+from pathlib import Path
+from typing import Optional, List
 
 logger = logging.getLogger(__name__)
 
@@ -31,12 +33,38 @@ CURRENT_CWD = None
 # Path to config file (relative to cwd)
 CONFIG_PATH = ".agentbridge/config.yaml"
 
+# Recent projects file
+RECENT_PROJECTS_FILE = os.path.expanduser("~/.agentbridge_recent.json")
+
+# Code-server workspace file
+CODE_SERVER_JSON = os.path.expanduser("~/.local/share/code-server/coder.json")
+
+
+def get_code_server_workspace() -> Optional[str]:
+    """Get the current workspace from code-server if available"""
+    try:
+        if os.path.exists(CODE_SERVER_JSON):
+            with open(CODE_SERVER_JSON, "r") as f:
+                data = json.load(f)
+                folder = data.get("query", {}).get("folder")
+                if folder and os.path.isdir(folder):
+                    return folder
+    except Exception as e:
+        logger.warning(f"Could not read code-server workspace: {e}")
+    return None
+
 
 def get_project_root():
     """Get the current working directory for AgentBridge"""
     global CURRENT_CWD
     if CURRENT_CWD and os.path.isdir(CURRENT_CWD):
         return CURRENT_CWD
+
+    # Try code-server workspace first
+    cs_workspace = get_code_server_workspace()
+    if cs_workspace:
+        return cs_workspace
+
     # Default to Portfolio project
     return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -65,6 +93,48 @@ def save_config(config):
     config_path = os.path.join(get_project_root(), CONFIG_PATH)
     with open(config_path, "w") as f:
         yaml.dump(config, f, default_flow_style=False)
+
+
+def load_recent_projects() -> List[str]:
+    """Load recent projects list"""
+    try:
+        if os.path.exists(RECENT_PROJECTS_FILE):
+            with open(RECENT_PROJECTS_FILE, "r") as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return []
+
+
+def save_recent_projects(projects: List[str]):
+    """Save recent projects list"""
+    try:
+        with open(RECENT_PROJECTS_FILE, "w") as f:
+            json.dump(projects[:10], f)  # Keep only 10 most recent
+    except Exception as e:
+        logger.warning(f"Could not save recent projects: {e}")
+
+
+def add_to_recent_projects(path: str):
+    """Add a project to recent projects list"""
+    projects = load_recent_projects()
+    # Remove if already exists, then add to front
+    if path in projects:
+        projects.remove(path)
+    projects.insert(0, path)
+    save_recent_projects(projects[:10])
+
+
+async def cleanup_prompt_file(file_path, process):
+    """Clean up temporary prompt file after process completes"""
+    try:
+        await process.wait()
+        import os
+        if os.path.exists(file_path):
+            os.unlink(file_path)
+            logger.info(f"Cleaned up temp prompt file: {file_path}")
+    except Exception as e:
+        logger.warning(f"Failed to clean up temp file: {e}")
 
 
 async def broadcast_output(process, provider="claude"):
@@ -171,12 +241,108 @@ async def set_cwd(
     # Check if SpecKit is initialized in this directory
     has_speckit = os.path.exists(os.path.join(new_cwd, ".specify"))
 
+    # Add to recent projects
+    add_to_recent_projects(new_cwd)
+
     return {
         "status": "changed",
         "cwd": new_cwd,
         "has_agentbridge": has_speckit,  # Keeping same key for backwards compat
         "message": f"Working directory set to {new_cwd}" + (" (SpecKit not initialized)" if not has_speckit else "")
     }
+
+
+@router.get("/browse")
+async def browse_directory(
+    path: str = None,
+    user: dict = Depends(get_session_user)
+):
+    """Browse filesystem for directory selection (Windows Explorer style)"""
+    # Default to home directory if no path specified
+    if not path:
+        path = os.path.expanduser("~")
+    else:
+        path = os.path.expanduser(path)
+
+    if not os.path.isdir(path):
+        raise HTTPException(status_code=400, detail=f"Not a directory: {path}")
+
+    try:
+        entries = []
+        for name in sorted(os.listdir(path)):
+            full_path = os.path.join(path, name)
+            try:
+                is_dir = os.path.isdir(full_path)
+                # Check if it's a git repo or has .specify (SpecKit project)
+                is_git = is_dir and os.path.exists(os.path.join(full_path, ".git"))
+                is_speckit = is_dir and os.path.exists(os.path.join(full_path, ".specify"))
+
+                entries.append({
+                    "name": name,
+                    "path": full_path,
+                    "is_dir": is_dir,
+                    "is_git": is_git,
+                    "is_speckit": is_speckit,
+                    "hidden": name.startswith(".")
+                })
+            except PermissionError:
+                continue  # Skip files we can't access
+
+        # Get parent directory
+        parent = os.path.dirname(path)
+        if parent == path:
+            parent = None  # We're at root
+
+        # Build breadcrumbs
+        breadcrumbs = []
+        current = path
+        while current and current != os.path.dirname(current):
+            breadcrumbs.insert(0, {"name": os.path.basename(current) or current, "path": current})
+            current = os.path.dirname(current)
+        if current:
+            breadcrumbs.insert(0, {"name": current, "path": current})
+
+        return {
+            "path": path,
+            "parent": parent,
+            "breadcrumbs": breadcrumbs,
+            "entries": entries
+        }
+
+    except PermissionError:
+        raise HTTPException(status_code=403, detail=f"Permission denied: {path}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/recent-projects")
+async def get_recent_projects(user: dict = Depends(get_session_user)):
+    """Get list of recent projects"""
+    projects = load_recent_projects()
+
+    # Filter out non-existent directories and add metadata
+    valid_projects = []
+    for path in projects:
+        if os.path.isdir(path):
+            valid_projects.append({
+                "path": path,
+                "name": os.path.basename(path),
+                "is_git": os.path.exists(os.path.join(path, ".git")),
+                "is_speckit": os.path.exists(os.path.join(path, ".specify"))
+            })
+
+    # Also include code-server workspace if not in list
+    cs_workspace = get_code_server_workspace()
+    if cs_workspace and cs_workspace not in projects:
+        valid_projects.insert(0, {
+            "path": cs_workspace,
+            "name": os.path.basename(cs_workspace),
+            "is_git": os.path.exists(os.path.join(cs_workspace, ".git")),
+            "is_speckit": os.path.exists(os.path.join(cs_workspace, ".specify")),
+            "is_current_workspace": True
+        })
+
+    return {"projects": valid_projects}
 
 
 @router.post("/init")
@@ -243,6 +409,43 @@ async def init_agentbridge(
             )
 
         logger.info(f"SpecKit initialized successfully: {result.stdout}")
+
+        # Copy spec-kit command files from Portfolio to new project
+        portfolio_commands = os.path.join(os.path.dirname(__file__), "..", ".claude", "commands")
+        target_commands_dir = os.path.join(cwd, ".claude", "commands")
+
+        logger.info(f"Copying command files from {portfolio_commands} to {target_commands_dir}")
+
+        try:
+            if not os.path.exists(portfolio_commands):
+                logger.error(f"Portfolio commands directory not found: {portfolio_commands}")
+                raise Exception(f"Command files source not found: {portfolio_commands}")
+
+            os.makedirs(target_commands_dir, exist_ok=True)
+            logger.info(f"Created target directory: {target_commands_dir}")
+
+            # Copy all speckit.*.md files
+            import shutil
+            copied_count = 0
+            for filename in os.listdir(portfolio_commands):
+                if filename.startswith("speckit.") and filename.endswith(".md"):
+                    src = os.path.join(portfolio_commands, filename)
+                    dst = os.path.join(target_commands_dir, filename)
+                    shutil.copy2(src, dst)
+                    logger.info(f"Copied command file: {filename}")
+                    copied_count += 1
+
+            logger.info(f"Successfully copied {copied_count} command files")
+
+            if copied_count == 0:
+                logger.warning("No command files were copied!")
+
+        except Exception as e:
+            logger.error(f"Failed to copy command files: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=500,
+                detail=f"SpecKit initialized but failed to copy command files: {str(e)}"
+            )
 
         return {
             "status": "initialized",
@@ -412,27 +615,50 @@ async def run_agentbridge_command(
         provider_config = {
             "binary": "/Users/dlybeck/.local/bin/claude" if provider == "claude" else "/opt/homebrew/bin/gemini",
             "args": ["-p", "{prompt}", "--dangerously-skip-permissions"] if provider == "claude" else ["{prompt}"],
-            "env": {"CI": "true"}
+            "env": {}
         }
 
     if not provider_config:
         raise HTTPException(status_code=400, detail=f"Provider '{provider}' not configured")
 
-    # Map actions to slash commands - use official speckit commands
+    # Map actions to slash commands - all official speckit commands
     command_files = {
+        # Core workflow (linear stepper)
+        "constitution": ".claude/commands/speckit.constitution.md",
         "specify": ".claude/commands/speckit.specify.md",
         "plan": ".claude/commands/speckit.plan.md",
         "tasks": ".claude/commands/speckit.tasks.md",
         "implement": ".claude/commands/speckit.implement.md",
-        "status": ".claude/commands/speckit.status.md" if os.path.exists(os.path.join(cwd, ".claude/commands/speckit.status.md")) else None,
-        "check": None  # Special action - just return status
+        # Optional/utility commands (slash commands in chat)
+        "clarify": ".claude/commands/speckit.clarify.md",
+        "analyze": ".claude/commands/speckit.analyze.md",
+        "checklist": ".claude/commands/speckit.checklist.md",
+        "taskstoissues": ".claude/commands/speckit.taskstoissues.md",
+        # Special actions
+        "check": None,  # Just return status
+        "chat": None,   # Send user message to ongoing conversation
     }
 
     if action == "check":
         return {"status": "ready", "provider": provider, "cwd": cwd}
 
+    if action == "chat":
+        # Chat action sends user input to the running process stdin
+        user_input = args
+        if not user_input:
+            raise HTTPException(status_code=400, detail="No message provided for chat")
+        if ACTIVE_PROCESS is None or ACTIVE_PROCESS.returncode is not None:
+            raise HTTPException(status_code=400, detail="No active AI process to chat with")
+        # Send to stdin - this enables back-and-forth conversation
+        try:
+            ACTIVE_PROCESS.stdin.write((user_input + "\n").encode())
+            await ACTIVE_PROCESS.stdin.drain()
+            return {"status": "sent", "message": user_input}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to send message: {e}")
+
     if action not in command_files:
-        raise HTTPException(status_code=400, detail=f"Invalid action: {action}")
+        raise HTTPException(status_code=400, detail=f"Invalid action: {action}. Valid: {list(command_files.keys())}")
 
     prompt_file = command_files[action]
     prompt_path = os.path.join(cwd, prompt_file)
@@ -455,6 +681,16 @@ async def run_agentbridge_command(
         full_prompt = template.replace("$ARGUMENTS", args if args else "")
         full_prompt = full_prompt.replace("$FEATURE", feature if feature else "")
 
+        # Prepend execution directive for Claude CLI
+        # This ensures Claude executes the instructions rather than analyzing them
+        if provider == "claude":
+            execution_directive = """IMPORTANT: You are in execution mode for a spec-kit command. Follow the instructions below EXACTLY as written. Do not analyze, describe, or explain the prompt itself - EXECUTE the instructions it contains.
+
+---
+
+"""
+            full_prompt = execution_directive + full_prompt
+
     except Exception as e:
         logger.error(f"Error loading prompt: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to load prompt: {e}")
@@ -465,13 +701,23 @@ async def run_agentbridge_command(
         # Try PATH fallback
         binary = provider
 
+    #  For large prompts, write to temp file and use -p @file syntax
+    import tempfile
+    prompt_file = None
+
     if provider == "gemini":
         cmd_list = [binary, full_prompt]
     else:
-        # Claude (default)
-        cmd_list = [binary, "-p", full_prompt, "--dangerously-skip-permissions"]
+        # Claude - use temp file for large prompts to avoid command-line length limits
+        prompt_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt')
+        prompt_file.write(full_prompt)
+        prompt_file.close()
+
+        cmd_list = [binary, "-p", f"@{prompt_file.name}", "--dangerously-skip-permissions"]
 
     logger.info(f"Starting AgentBridge ({action}) with {provider} in {cwd}")
+    logger.info(f"Command: {' '.join(cmd_list[:3])}...")  # Don't log full prompt path
+    logger.info(f"Prompt length: {len(full_prompt)} chars")
 
     try:
         env = os.environ.copy()
@@ -479,6 +725,7 @@ async def run_agentbridge_command(
 
         process = await asyncio.create_subprocess_exec(
             *cmd_list,
+            stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             cwd=cwd,
@@ -486,7 +733,12 @@ async def run_agentbridge_command(
         )
 
         ACTIVE_PROCESS = process
+
         asyncio.create_task(broadcast_output(process, provider))
+
+        # Clean up temp file after process completes
+        if prompt_file:
+            asyncio.create_task(cleanup_prompt_file(prompt_file.name, process))
 
         return {
             "status": "started",

@@ -1,44 +1,109 @@
 /**
- * AgentBridge Dashboard Controller
- * AI-Agnostic Coding Orchestrator
+ * AgentBridge V2 - Chat-First SpecKit Dashboard
+ * AI-Agnostic Coding Orchestrator with hot-swapping between Claude/Gemini
  */
 
-// State
-let currentPhase = 'specify';
-let currentProvider = localStorage.getItem('agentbridge_provider') || 'claude';
-let currentFeature = '';
-let currentCwd = '';
-let hasAgentBridge = false;
-let isRunning = false;
-let ws = null;
+// =============================================================================
+// STATE
+// =============================================================================
+let state = {
+    currentStep: 'specify',
+    currentTab: 'chat',
+    currentProvider: localStorage.getItem('agentbridge_provider') || 'claude',  // Default to Claude
+    currentProject: '',
+    currentFeature: '',
+    isRunning: false,
+    hasSpecKit: false,
+    chatHistory: [],  // Per-step chat history
+    stepArtifacts: {}, // Cached artifacts per step
+    completedSteps: new Set(),
+    browsePath: '',
+    selectedBrowsePath: '',
+    ws: null
+};
 
-// Initialize
+// Ensure localStorage is set to claude if not present
+if (!localStorage.getItem('agentbridge_provider')) {
+    localStorage.setItem('agentbridge_provider', 'claude');
+}
+
+// Step configuration
+const STEPS = ['constitution', 'specify', 'plan', 'tasks', 'implement'];
+const STEP_ARTIFACTS = {
+    constitution: { file: 'constitution.md', name: 'Constitution' },
+    specify: { file: 'spec.md', name: 'Specification' },
+    plan: { file: 'plan.md', name: 'Plan' },
+    tasks: { file: 'tasks.md', name: 'Tasks' },
+    implement: { file: null, name: 'Implementation' }
+};
+
+const SLASH_COMMANDS = [
+    { cmd: '/clarify', desc: 'Ask clarifying questions', steps: ['specify', 'plan'] },
+    { cmd: '/analyze', desc: 'Check artifact consistency', steps: ['tasks', 'implement'] },
+    { cmd: '/checklist', desc: 'Generate review checklist', steps: ['plan', 'tasks', 'implement'] }
+];
+
+// =============================================================================
+// INITIALIZATION
+// =============================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    setProviderUI(currentProvider);
+    initializeUI();
+    loadProject();
     connectWebSocket();
-    loadCwd();  // Load current working directory first
-
-    // Handle enter key in input
-    document.getElementById('main-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleAction();
-    });
-
-    // Handle enter key in cwd input
-    document.getElementById('cwd-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') changeCwd();
-    });
-
-    // Feature selector change
-    document.getElementById('feature-select').addEventListener('change', (e) => {
-        currentFeature = e.target.value;
-        if (currentFeature) {
-            loadFeatureArtifacts(currentFeature);
-        }
-    });
+    setupEventListeners();
 });
 
-// Working Directory Functions
-async function loadCwd() {
+function initializeUI() {
+    setProviderUI(state.currentProvider);
+    setStep(state.currentStep);
+    setTab(state.currentTab);
+    updateStatus('ready');
+}
+
+function setupEventListeners() {
+    const input = document.getElementById('chat-input');
+
+    // Multi-line input: Enter sends, Shift+Enter for newline
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    // Auto-resize textarea
+    input.addEventListener('input', () => {
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+
+        // Show/hide slash command hints
+        const value = input.value;
+        if (value.startsWith('/')) {
+            showSlashHint(value);
+        } else {
+            hideSlashHint();
+        }
+    });
+
+    // Close modal on overlay click
+    document.getElementById('file-browser-modal').addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-overlay')) {
+            closeFileBrowser();
+        }
+    });
+
+    // Escape key closes modal
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeFileBrowser();
+        }
+    });
+}
+
+// =============================================================================
+// PROJECT & CWD MANAGEMENT
+// =============================================================================
+async function loadProject() {
     try {
         const token = localStorage.getItem('access_token');
         const res = await fetch('/api/agentbridge/cwd', {
@@ -47,33 +112,175 @@ async function loadCwd() {
 
         if (res.ok) {
             const data = await res.json();
-            currentCwd = data.cwd;
-            hasAgentBridge = data.has_agentbridge;
-            document.getElementById('cwd-input').value = currentCwd;
-            updateCwdUI();
+            state.currentProject = data.cwd;
+            state.hasSpecKit = data.has_agentbridge;
+            updateProjectUI();
 
-            // Load config and features after cwd is set
-            if (hasAgentBridge) {
-                loadConfig();
+            if (state.hasSpecKit) {
                 loadFeatures();
             }
         }
     } catch (e) {
-        console.error('Failed to load cwd', e);
+        console.error('Failed to load project:', e);
+        addChatMessage('error', 'Failed to load project. Check console for details.');
     }
 }
 
-async function changeCwd() {
-    if (isRunning) {
-        log('Cannot change directory during execution', 'stderr');
-        return;
+function updateProjectUI() {
+    const name = state.currentProject.split('/').pop() || state.currentProject;
+    document.getElementById('project-name').textContent = name;
+    document.getElementById('project-path').textContent = state.currentProject;
+
+    // Show/hide init banner based on SpecKit initialization
+    const initBanner = document.getElementById('init-banner');
+    if (initBanner) {
+        initBanner.style.display = state.hasSpecKit ? 'none' : 'block';
     }
 
-    const newCwd = document.getElementById('cwd-input').value.trim();
-    if (!newCwd) {
-        alert('Please enter a directory path');
-        return;
+    // Update status based on SpecKit initialization
+    if (!state.hasSpecKit && state.currentProject) {
+        addChatMessage('system', `Project loaded: ${name}. SpecKit not initialized - click "Init SpecKit" to get started.`);
     }
+}
+
+// =============================================================================
+// FILE BROWSER
+// =============================================================================
+async function openFileBrowser() {
+    document.getElementById('file-browser-modal').classList.add('visible');
+    await loadRecentProjects();
+    await browseDirectory(state.currentProject || null);
+}
+
+function closeFileBrowser() {
+    document.getElementById('file-browser-modal').classList.remove('visible');
+    state.selectedBrowsePath = '';
+}
+
+async function loadRecentProjects() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch('/api/agentbridge/recent-projects', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            const container = document.getElementById('recent-list');
+            container.innerHTML = '';
+
+            if (data.projects.length === 0) {
+                document.getElementById('recent-projects').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('recent-projects').style.display = 'block';
+
+            data.projects.forEach(project => {
+                const item = document.createElement('div');
+                item.className = 'file-item' + (project.is_speckit ? ' is-speckit' : project.is_git ? ' is-git' : '');
+                item.innerHTML = `
+                    <i class="bi ${project.is_speckit ? 'bi-check-circle-fill' : project.is_git ? 'bi-git' : 'bi-folder'}"></i>
+                    <span>${project.name}</span>
+                    <span style="color: #666; font-size: 11px; margin-left: 8px;">${project.path}</span>
+                    ${project.is_current_workspace ? '<span class="badge" style="background: var(--primary-color);">Workspace</span>' : ''}
+                `;
+                item.onclick = () => selectBrowsePath(project.path, true);
+                container.appendChild(item);
+            });
+        }
+    } catch (e) {
+        console.error('Failed to load recent projects:', e);
+    }
+}
+
+async function browseDirectory(path) {
+    try {
+        const token = localStorage.getItem('access_token');
+        const url = path ? `/api/agentbridge/browse?path=${encodeURIComponent(path)}` : '/api/agentbridge/browse';
+        console.log('Browsing:', url, 'Token:', token ? 'present' : 'MISSING');
+
+        const res = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        console.log('Browse response:', res.status);
+
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            console.error('Browse failed:', res.status, errData);
+            const fileListEl = document.getElementById('file-list');
+            fileListEl.innerHTML = `<div class="empty-state"><p style="color: var(--error-color);">Error: ${errData.detail || res.statusText}</p></div>`;
+            return;
+        }
+
+        if (res.ok) {
+            const data = await res.json();
+            state.browsePath = data.path;
+
+            // Render breadcrumbs
+            const breadcrumbsEl = document.getElementById('breadcrumbs');
+            breadcrumbsEl.innerHTML = data.breadcrumbs.map((b, i) =>
+                `<span class="breadcrumb" onclick="browseDirectory('${b.path.replace(/'/g, "\\'")}')">${b.name}</span>` +
+                (i < data.breadcrumbs.length - 1 ? '<span class="breadcrumb-sep">/</span>' : '')
+            ).join('');
+
+            // Render file list
+            const fileListEl = document.getElementById('file-list');
+
+            // Filter: show directories only, hide hidden by default
+            const dirs = data.entries.filter(e => e.is_dir && !e.hidden);
+
+            fileListEl.innerHTML = dirs.map(entry => `
+                <div class="file-item ${entry.is_speckit ? 'is-speckit' : entry.is_git ? 'is-git' : ''} ${entry.path === state.selectedBrowsePath ? 'selected' : ''}"
+                     onclick="handleFileClick(event, '${entry.path.replace(/'/g, "\\'")}')"
+                     ondblclick="browseDirectory('${entry.path.replace(/'/g, "\\'")}')">
+                    <i class="bi ${entry.is_speckit ? 'bi-check-circle-fill' : entry.is_git ? 'bi-git' : 'bi-folder'}"></i>
+                    <span>${entry.name}</span>
+                    <div class="badges">
+                        ${entry.is_speckit ? '<span class="badge" style="background: var(--success-color);">SpecKit</span>' : ''}
+                        ${entry.is_git && !entry.is_speckit ? '<span class="badge">Git</span>' : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            if (dirs.length === 0) {
+                fileListEl.innerHTML = '<div class="empty-state"><p>No subdirectories</p></div>';
+            }
+        }
+    } catch (e) {
+        console.error('Failed to browse directory:', e);
+    }
+}
+
+function handleFileClick(event, path) {
+    event.stopPropagation();
+    selectBrowsePath(path, false);
+}
+
+function selectBrowsePath(path, immediate = false) {
+    state.selectedBrowsePath = path;
+
+    // Update UI to show selection
+    document.querySelectorAll('.file-list .file-item').forEach(el => {
+        el.classList.remove('selected');
+    });
+
+    const items = document.querySelectorAll('.file-list .file-item');
+    items.forEach(item => {
+        if (item.querySelector('span')?.nextSibling?.textContent?.includes(path.split('/').pop())) {
+            item.classList.add('selected');
+        }
+    });
+
+    if (immediate) {
+        selectProject();
+    }
+}
+
+async function selectProject() {
+    const path = state.selectedBrowsePath || state.browsePath;
+    if (!path) return;
 
     try {
         const token = localStorage.getItem('access_token');
@@ -83,277 +290,35 @@ async function changeCwd() {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ cwd: newCwd })
+            body: JSON.stringify({ cwd: path })
         });
 
         const data = await res.json();
         if (res.ok) {
-            currentCwd = data.cwd;
-            hasAgentBridge = data.has_agentbridge;
-            document.getElementById('cwd-input').value = currentCwd;
-            updateCwdUI();
-            log(data.message, 'status');
+            state.currentProject = data.cwd;
+            state.hasSpecKit = data.has_agentbridge;
+            updateProjectUI();
+            closeFileBrowser();
 
-            // Reload config and features
-            if (hasAgentBridge) {
-                loadConfig();
+            // Clear chat and reload
+            clearChat();
+            addChatMessage('system', data.message);
+
+            if (state.hasSpecKit) {
                 loadFeatures();
-            } else {
-                // Clear features since AgentBridge not initialized
-                const select = document.getElementById('feature-select');
-                while (select.options.length > 1) {
-                    select.remove(1);
-                }
+                loadCurrentArtifact();
             }
         } else {
-            log(`Failed: ${data.detail}`, 'stderr');
+            addChatMessage('error', data.detail || 'Failed to change project');
         }
     } catch (e) {
-        log(`Error: ${e.message}`, 'stderr');
+        addChatMessage('error', `Error: ${e.message}`);
     }
 }
 
-async function initAgentBridge() {
-    try {
-        const token = localStorage.getItem('access_token');
-        log(`Initializing SpecKit with ${currentProvider}...`, 'status');
-
-        const res = await fetch('/api/agentbridge/init', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ provider: currentProvider })
-        });
-
-        const data = await res.json();
-        if (res.ok) {
-            hasAgentBridge = true;
-            updateCwdUI();
-            log(data.message, 'status');
-            loadConfig();
-            loadFeatures();
-        } else {
-            log(`Failed: ${data.detail}`, 'stderr');
-        }
-    } catch (e) {
-        log(`Error: ${e.message}`, 'stderr');
-    }
-}
-
-function updateCwdUI() {
-    const initBtn = document.getElementById('init-btn');
-    const statusBadge = document.getElementById('status-badge');
-
-    if (hasAgentBridge) {
-        initBtn.style.display = 'none';
-        setStatus('ready');
-    } else {
-        initBtn.style.display = 'inline-block';
-        statusBadge.className = 'status-badge warning';
-        statusBadge.textContent = 'Not Initialized';
-    }
-}
-
-function setProviderUI(provider) {
-    currentProvider = provider;
-    localStorage.setItem('agentbridge_provider', provider);
-
-    document.querySelectorAll('.provider-btn').forEach(btn => {
-        const isActive = btn.classList.contains(provider);
-        btn.classList.toggle('active', isActive);
-    });
-}
-
-async function switchProvider(provider) {
-    if (isRunning) {
-        log('Cannot switch providers during execution', 'stderr');
-        return;
-    }
-
-    try {
-        const token = localStorage.getItem('access_token');
-        const res = await fetch('/api/agentbridge/switch', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ provider })
-        });
-
-        const data = await res.json();
-        if (res.ok) {
-            setProviderUI(provider);
-            log(`Switched to ${provider}`, 'status');
-        } else {
-            log(`Switch failed: ${data.detail}`, 'stderr');
-        }
-    } catch (e) {
-        log(`Error: ${e.message}`, 'stderr');
-    }
-}
-
-function setPhase(phase) {
-    currentPhase = phase;
-
-    const steps = ['specify', 'plan', 'tasks', 'implement', 'status'];
-    let activeFound = false;
-
-    steps.forEach((s) => {
-        const el = document.getElementById(`step-${s}`);
-        if (!el) return;
-        el.classList.remove('active', 'completed');
-
-        if (s === phase) {
-            el.classList.add('active');
-            activeFound = true;
-        } else if (!activeFound) {
-            el.classList.add('completed');
-        }
-    });
-
-    // Update view visibility
-    document.querySelectorAll('.phase-view').forEach(el => el.classList.remove('active'));
-    const view = document.getElementById(`view-${phase}`);
-    if (view) view.classList.add('active');
-
-    updateActionBar(phase);
-}
-
-function updateActionBar(phase) {
-    const input = document.getElementById('main-input');
-    const btnText = document.getElementById('action-text');
-
-    switch (phase) {
-        case 'specify':
-            input.style.display = 'block';
-            input.placeholder = "Describe your feature...";
-            btnText.innerText = "Specify";
-            break;
-        case 'plan':
-            input.style.display = 'none';
-            btnText.innerText = "Generate Plan";
-            break;
-        case 'tasks':
-            input.style.display = 'none';
-            btnText.innerText = "Generate Tasks";
-            break;
-        case 'implement':
-            input.style.display = 'none';
-            btnText.innerText = "Implement Next";
-            break;
-        case 'status':
-            input.style.display = 'none';
-            btnText.innerText = "Refresh Status";
-            break;
-    }
-}
-
-async function handleAction() {
-    if (isRunning) return;
-
-    const input = document.getElementById('main-input');
-    let args = "";
-
-    if (currentPhase === 'specify') {
-        if (!input.value.trim()) {
-            alert("Please describe your feature.");
-            return;
-        }
-        args = input.value.trim();
-    }
-
-    // Open logs panel
-    document.getElementById('logs-panel').classList.add('open');
-
-    await runCommand(currentPhase, args);
-}
-
-function toggleLogs() {
-    document.getElementById('logs-panel').classList.toggle('open');
-}
-
-// WebSocket connection
-function connectWebSocket() {
-    const token = localStorage.getItem('access_token');
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/api/agentbridge/ws?token=${token}`;
-
-    ws = new WebSocket(wsUrl);
-
-    ws.onopen = () => {
-        log('Connected to AgentBridge', 'status');
-    };
-
-    ws.onmessage = (e) => {
-        const msg = JSON.parse(e.data);
-
-        if (msg.type === 'status' && msg.data === 'completed') {
-            isRunning = false;
-            setStatus('ready');
-            log(`Process finished (Exit: ${msg.exit_code})`, 'status');
-
-            // Refresh artifacts after completion
-            setTimeout(() => {
-                if (currentFeature) {
-                    loadFeatureArtifacts(currentFeature);
-                }
-                loadFeatures();
-
-                if (msg.exit_code === 0) {
-                    setTimeout(() => {
-                        document.getElementById('logs-panel').classList.remove('open');
-                    }, 2000);
-                }
-            }, 500);
-        } else {
-            log(msg.data, msg.type);
-        }
-    };
-
-    ws.onclose = () => {
-        log('Disconnected. Reconnecting...', 'stderr');
-        setTimeout(connectWebSocket, 3000);
-    };
-
-    ws.onerror = () => {
-        log('WebSocket error', 'stderr');
-    };
-}
-
-function log(text, type) {
-    const container = document.getElementById('logs-content');
-    const div = document.createElement('div');
-    div.className = type || 'stdout';
-    div.textContent = text;
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
-}
-
-function setStatus(status) {
-    const badge = document.getElementById('status-badge');
-    badge.className = 'status-badge ' + status;
-    badge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-}
-
-async function loadConfig() {
-    try {
-        const token = localStorage.getItem('access_token');
-        const res = await fetch('/api/agentbridge/config', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (res.ok) {
-            const config = await res.json();
-            setProviderUI(config.provider);
-        }
-    } catch (e) {
-        console.error('Failed to load config', e);
-    }
-}
-
+// =============================================================================
+// FEATURE MANAGEMENT
+// =============================================================================
 async function loadFeatures() {
     try {
         const token = localStorage.getItem('access_token');
@@ -379,50 +344,152 @@ async function loadFeatures() {
             });
 
             // Select current feature if set
-            if (currentFeature) {
-                select.value = currentFeature;
+            if (state.currentFeature) {
+                select.value = state.currentFeature;
             }
         }
     } catch (e) {
-        console.error('Failed to load features', e);
+        console.error('Failed to load features:', e);
     }
 }
 
-async function loadFeatureArtifacts(feature) {
-    const artifacts = ['spec', 'plan', 'tasks'];
+function selectFeature(feature) {
+    state.currentFeature = feature;
+    if (feature) {
+        loadCurrentArtifact();
+        addChatMessage('system', `Loaded feature: ${feature}`);
+    }
+}
 
-    for (const artifact of artifacts) {
-        try {
-            const token = localStorage.getItem('access_token');
-            const res = await fetch(`/api/agentbridge/features/${feature}/artifacts/${artifact}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+// =============================================================================
+// STEP NAVIGATION
+// =============================================================================
+function setStep(step) {
+    state.currentStep = step;
 
-            if (res.ok) {
-                const text = await res.text();
-                displayArtifact(artifact, text);
-            } else if (res.status === 404) {
-                // Artifact doesn't exist yet - this is expected, show placeholder
-                displayArtifact(artifact, null);
-            }
-        } catch (e) {
-            console.error(`Failed to load ${artifact}`, e);
+    // Update stepper UI
+    const stepOrder = STEPS;
+    const currentIndex = stepOrder.indexOf(step);
+
+    stepOrder.forEach((s, i) => {
+        const el = document.getElementById(`step-${s}`);
+        if (!el) return;
+
+        el.classList.remove('active', 'completed', 'ready');
+
+        if (s === step) {
+            el.classList.add('active');
+        } else if (state.completedSteps.has(s)) {
+            el.classList.add('completed');
+        } else if (i === currentIndex + 1 && state.completedSteps.has(step)) {
+            el.classList.add('ready');
         }
+    });
+
+    // Update artifact tab name
+    const artifactName = STEP_ARTIFACTS[step]?.name || 'Artifact';
+    document.getElementById('artifact-tab-name').textContent = artifactName;
+
+    // Update action button
+    const actionText = document.getElementById('step-action-text');
+
+    switch (step) {
+        case 'constitution':
+            actionText.textContent = 'Create Constitution';
+            break;
+        case 'specify':
+            actionText.textContent = 'Specify';
+            break;
+        case 'plan':
+            actionText.textContent = 'Generate Plan';
+            break;
+        case 'tasks':
+            actionText.textContent = 'Generate Tasks';
+            break;
+        case 'implement':
+            actionText.textContent = 'Implement';
+            break;
+    }
+
+    // Update slash command hints based on step
+    updateSlashHints(step);
+
+    // Load artifact for this step
+    loadCurrentArtifact();
+}
+
+function setTab(tab) {
+    state.currentTab = tab;
+
+    // Update tab UI
+    document.querySelectorAll('.content-tab').forEach(el => {
+        el.classList.toggle('active', el.dataset.tab === tab);
+    });
+
+    document.querySelectorAll('.tab-content').forEach(el => {
+        el.classList.toggle('active', el.id === `tab-${tab}`);
+    });
+}
+
+// =============================================================================
+// ARTIFACT LOADING
+// =============================================================================
+async function loadCurrentArtifact() {
+    if (!state.currentFeature) {
+        showEmptyArtifact();
+        return;
+    }
+
+    const artifactConfig = STEP_ARTIFACTS[state.currentStep];
+    if (!artifactConfig?.file) {
+        showEmptyArtifact();
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch(`/api/agentbridge/features/${state.currentFeature}/artifacts/${artifactConfig.file.replace('.md', '')}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+            const text = await res.text();
+            state.stepArtifacts[state.currentStep] = text;
+            displayArtifact(text);
+
+            // Mark step as completed if artifact exists
+            state.completedSteps.add(state.currentStep);
+            setStep(state.currentStep); // Refresh UI
+        } else if (res.status === 404) {
+            showEmptyArtifact();
+        }
+    } catch (e) {
+        console.error(`Failed to load artifact:`, e);
+        showEmptyArtifact();
     }
 }
 
-function displayArtifact(type, text) {
-    const placeholderHtml = `<div style="color: #888; font-style: italic; padding: 20px; text-align: center;">
-        Not generated yet. Click the "${type === 'plan' ? 'Generate Plan' : 'Generate Tasks'}" button above to create this artifact.
-    </div>`;
+function displayArtifact(text) {
+    const container = document.getElementById('artifact-container');
 
-    if (type === 'plan') {
-        const el = document.getElementById('plan-display');
-        el.innerHTML = text ? marked.parse(text) : placeholderHtml;
-    } else if (type === 'tasks') {
-        const el = document.getElementById('tasks-display');
-        el.innerHTML = text ? renderTasks(text) : placeholderHtml;
+    if (state.currentStep === 'tasks') {
+        container.innerHTML = `<div class="markdown-body">${renderTasks(text)}</div>`;
+    } else {
+        container.innerHTML = `<div class="markdown-body">${marked.parse(text)}</div>`;
     }
+}
+
+function showEmptyArtifact() {
+    const container = document.getElementById('artifact-container');
+    const stepName = STEP_ARTIFACTS[state.currentStep]?.name || 'Artifact';
+
+    container.innerHTML = `
+        <div class="empty-state">
+            <i class="bi bi-file-earmark-text"></i>
+            <p>No ${stepName.toLowerCase()} generated yet</p>
+            <p style="font-size: 12px; color: #555;">Complete the ${state.currentStep} step to generate content</p>
+        </div>
+    `;
 }
 
 function renderTasks(text) {
@@ -439,8 +506,8 @@ function renderTasks(text) {
             if (checked) completedCount++;
 
             html += `
-                <div class="task-item" style="opacity: ${checked ? 0.5 : 1}; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
-                    <input type="checkbox" ${checked ? 'checked' : ''} disabled style="width: 18px; height: 18px; accent-color: #238636;">
+                <div style="opacity: ${checked ? 0.6 : 1}; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
+                    <input type="checkbox" ${checked ? 'checked' : ''} disabled style="width: 18px; height: 18px; accent-color: var(--success-color);">
                     <span style="${checked ? 'text-decoration: line-through; color: #888;' : ''}">${match[2]}</span>
                 </div>
             `;
@@ -450,10 +517,13 @@ function renderTasks(text) {
     if (taskCount > 0) {
         const pct = Math.round((completedCount / taskCount) * 100);
         html = `
-            <div style="margin-bottom: 16px; padding: 12px; background: rgba(0,102,153,0.2); border-radius: 8px;">
-                <strong>Progress:</strong> ${completedCount}/${taskCount} tasks (${pct}%)
-                <div style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 8px;">
-                    <div style="height: 100%; width: ${pct}%; background: #238636; border-radius: 2px;"></div>
+            <div style="margin-bottom: 20px; padding: 16px; background: rgba(0,102,153,0.15); border: 1px solid rgba(0,102,153,0.3); border-radius: 12px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <strong>Progress</strong>
+                    <span>${completedCount}/${taskCount} tasks (${pct}%)</span>
+                </div>
+                <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px;">
+                    <div style="height: 100%; width: ${pct}%; background: var(--success-color); border-radius: 3px; transition: width 0.3s;"></div>
                 </div>
             </div>
         ` + html;
@@ -462,12 +532,152 @@ function renderTasks(text) {
     return html || marked.parse(text);
 }
 
-async function runCommand(action, args) {
-    if (action === 'check') return;
+// =============================================================================
+// CHAT INTERFACE
+// =============================================================================
+function addChatMessage(type, content, sender = null) {
+    const container = document.getElementById('chat-container');
+    const msg = document.createElement('div');
+    msg.className = `chat-message ${type}`;
 
-    isRunning = true;
-    setStatus('running');
-    log(`>>> Running ${action}...`, 'status');
+    let senderLabel = '';
+    if (type === 'ai') {
+        senderLabel = `<div class="sender">${state.currentProvider === 'claude' ? 'Claude' : 'Gemini'}</div>`;
+    } else if (type === 'user') {
+        senderLabel = '<div class="sender">You</div>';
+    }
+
+    // Parse markdown for AI messages
+    const renderedContent = (type === 'ai') ? marked.parse(content) : escapeHtml(content);
+
+    msg.innerHTML = senderLabel + renderedContent;
+    container.appendChild(msg);
+    container.scrollTop = container.scrollHeight;
+
+    // Store in history
+    state.chatHistory.push({ type, content, sender, step: state.currentStep });
+}
+
+function clearChat() {
+    const container = document.getElementById('chat-container');
+    container.innerHTML = '';
+    state.chatHistory = [];
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// =============================================================================
+// SLASH COMMANDS
+// =============================================================================
+function updateSlashHints(step) {
+    const hintContainer = document.getElementById('slash-hint');
+    const relevant = SLASH_COMMANDS.filter(c => c.steps.includes(step));
+
+    hintContainer.innerHTML = relevant.map(c => `
+        <div class="slash-hint-item" onclick="insertSlashCommand('${c.cmd}')">
+            <span class="cmd">${c.cmd}</span>
+            <span class="desc">${c.desc}</span>
+        </div>
+    `).join('');
+}
+
+function showSlashHint(value) {
+    const hintContainer = document.getElementById('slash-hint');
+    const query = value.toLowerCase();
+
+    const items = hintContainer.querySelectorAll('.slash-hint-item');
+    let hasVisible = false;
+
+    items.forEach(item => {
+        const cmd = item.querySelector('.cmd').textContent.toLowerCase();
+        const match = cmd.startsWith(query);
+        item.style.display = match ? 'flex' : 'none';
+        if (match) hasVisible = true;
+    });
+
+    hintContainer.classList.toggle('visible', hasVisible);
+}
+
+function hideSlashHint() {
+    document.getElementById('slash-hint').classList.remove('visible');
+}
+
+function insertSlashCommand(cmd) {
+    const input = document.getElementById('chat-input');
+    input.value = cmd + ' ';
+    input.focus();
+    hideSlashHint();
+}
+
+// =============================================================================
+// MESSAGE SENDING & ACTIONS
+// =============================================================================
+async function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+
+    if (!text || state.isRunning) return;
+
+    // Clear input
+    input.value = '';
+    input.style.height = 'auto';
+    hideSlashHint();
+
+    // Check for slash commands
+    if (text.startsWith('/')) {
+        const parts = text.split(' ');
+        const cmd = parts[0].substring(1); // Remove leading /
+        const args = parts.slice(1).join(' ');
+
+        if (['clarify', 'analyze', 'checklist'].includes(cmd)) {
+            addChatMessage('user', text);
+            await runCommand(cmd, args);
+            return;
+        }
+    }
+
+    // Regular message - either starts a new step action or chats with running process
+    addChatMessage('user', text);
+
+    if (state.isRunning) {
+        // Send to running process (chat action)
+        await runCommand('chat', text);
+    } else {
+        // Start the current step with this input
+        await runCommand(state.currentStep, text);
+    }
+}
+
+async function runStepAction() {
+    if (state.isRunning) return;
+
+    const input = document.getElementById('chat-input');
+    let args = input.value.trim();
+
+    // For specify step, require input
+    if (state.currentStep === 'specify' && !args) {
+        addChatMessage('error', 'Please describe your feature first.');
+        input.focus();
+        return;
+    }
+
+    if (args) {
+        addChatMessage('user', args);
+        input.value = '';
+        input.style.height = 'auto';
+    }
+
+    await runCommand(state.currentStep, args);
+}
+
+async function runCommand(action, args = '') {
+    state.isRunning = true;
+    updateStatus('running');
+    document.getElementById('send-btn').disabled = true;
 
     try {
         const token = localStorage.getItem('access_token');
@@ -480,21 +690,234 @@ async function runCommand(action, args) {
             body: JSON.stringify({
                 action: action,
                 args: args,
-                feature: currentFeature,
-                provider: currentProvider
+                feature: state.currentFeature,
+                provider: state.currentProvider
             })
         });
 
         const data = await res.json();
 
-        if (data.feature) {
-            currentFeature = data.feature;
-            document.getElementById('feature-select').value = currentFeature;
-        }
+        if (res.ok) {
+            if (data.feature) {
+                state.currentFeature = data.feature;
+                document.getElementById('feature-select').value = state.currentFeature;
+            }
 
+            if (action === 'chat') {
+                // Message was sent to stdin, output will come via WebSocket
+            } else {
+                // Command started, output will stream via WebSocket
+            }
+        } else {
+            addChatMessage('error', data.detail || 'Command failed');
+            state.isRunning = false;
+            updateStatus('error');
+        }
     } catch (e) {
-        log(`Error: ${e.message}`, 'stderr');
-        isRunning = false;
-        setStatus('error');
+        addChatMessage('error', `Error: ${e.message}`);
+        state.isRunning = false;
+        updateStatus('error');
     }
+
+    document.getElementById('send-btn').disabled = false;
+}
+
+// =============================================================================
+// PROVIDER SWITCHING
+// =============================================================================
+function setProviderUI(provider) {
+    state.currentProvider = provider;
+    localStorage.setItem('agentbridge_provider', provider);
+
+    document.querySelectorAll('.provider-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.classList.contains(provider));
+    });
+}
+
+async function switchProvider(provider) {
+    if (state.isRunning) {
+        addChatMessage('error', 'Cannot switch providers while a command is running.');
+        return;
+    }
+
+    if (provider === state.currentProvider) return;
+
+    try {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch('/api/agentbridge/switch', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ provider })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+            setProviderUI(provider);
+
+            // Show warning banner
+            document.getElementById('new-provider-name').textContent = provider === 'claude' ? 'Claude' : 'Gemini';
+            const warning = document.getElementById('provider-warning');
+            warning.classList.add('visible');
+
+            // Hide after 5 seconds
+            setTimeout(() => {
+                warning.classList.remove('visible');
+            }, 5000);
+
+            addChatMessage('system', `Switched to ${provider === 'claude' ? 'Claude' : 'Gemini'}. Note: Previous AI context was not carried over.`);
+        } else {
+            addChatMessage('error', data.detail || 'Failed to switch provider');
+        }
+    } catch (e) {
+        addChatMessage('error', `Error: ${e.message}`);
+    }
+}
+
+// =============================================================================
+// WEBSOCKET
+// =============================================================================
+function connectWebSocket() {
+    const token = localStorage.getItem('access_token');
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/api/agentbridge/ws?token=${token}`;
+
+    state.ws = new WebSocket(wsUrl);
+
+    state.ws.onopen = () => {
+        console.log('WebSocket connected');
+    };
+
+    state.ws.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
+
+        if (msg.type === 'status' && msg.data === 'completed') {
+            state.isRunning = false;
+
+            if (msg.exit_code === 0) {
+                updateStatus('ready');
+
+                // Mark current step as completed
+                state.completedSteps.add(state.currentStep);
+                setStep(state.currentStep); // Refresh UI
+
+                // Reload artifact and switch to artifact tab to show result
+                setTimeout(() => {
+                    loadCurrentArtifact();
+                    loadFeatures();
+                    // Auto-switch to artifact tab if there's an artifact for this step
+                    if (STEP_ARTIFACTS[state.currentStep]?.file) {
+                        setTab('artifact');
+                    }
+                }, 500);
+
+                // Suggest next step
+                const stepIndex = STEPS.indexOf(state.currentStep);
+                const stepName = capitalizeFirst(state.currentStep);
+                if (stepIndex < STEPS.length - 1) {
+                    const nextStep = STEPS[stepIndex + 1];
+                    const nextStepName = capitalizeFirst(nextStep);
+                    addChatMessage('system', `${stepName} complete! Ready to proceed to ${nextStepName}.`);
+                } else {
+                    addChatMessage('system', 'Implementation complete!');
+                }
+            } else {
+                updateStatus('error');
+                addChatMessage('error', `Process exited with code ${msg.exit_code}`);
+            }
+        } else if (msg.type === 'stdout' || msg.type === 'stderr') {
+            // Stream AI output to chat
+            addChatMessage('ai', msg.data);
+        } else if (msg.type === 'status') {
+            addChatMessage('system', msg.data);
+        }
+    };
+
+    state.ws.onclose = () => {
+        console.log('WebSocket disconnected, reconnecting...');
+        setTimeout(connectWebSocket, 3000);
+    };
+
+    state.ws.onerror = (e) => {
+        console.error('WebSocket error:', e);
+    };
+}
+
+// =============================================================================
+// STATUS
+// =============================================================================
+function updateStatus(status) {
+    const dot = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+    const actionBtn = document.getElementById('step-action-btn');
+
+    dot.className = 'status-dot ' + status;
+
+    switch (status) {
+        case 'ready':
+            text.textContent = 'Ready';
+            actionBtn.disabled = false;
+            break;
+        case 'running':
+            text.textContent = 'Running...';
+            actionBtn.disabled = true;
+            break;
+        case 'error':
+            text.textContent = 'Error';
+            actionBtn.disabled = false;
+            break;
+        default:
+            text.textContent = status;
+    }
+}
+
+// =============================================================================
+// HELPERS
+// =============================================================================
+function capitalizeFirst(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// =============================================================================
+// INIT SPECKIT
+// =============================================================================
+async function initSpecKit() {
+    if (state.isRunning) {
+        addChatMessage('error', 'Cannot initialize while a command is running.');
+        return;
+    }
+
+    state.isRunning = true;
+    updateStatus('running');
+    addChatMessage('system', `Initializing SpecKit with ${state.currentProvider}...`);
+
+    try {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch('/api/agentbridge/init', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ provider: state.currentProvider })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            state.hasSpecKit = true;
+            updateProjectUI();
+            addChatMessage('system', data.message || 'SpecKit initialized successfully!');
+            loadFeatures();
+        } else {
+            addChatMessage('error', data.detail || 'Failed to initialize SpecKit');
+        }
+    } catch (e) {
+        addChatMessage('error', `Error: ${e.message}`);
+    }
+
+    state.isRunning = false;
+    updateStatus('ready');
 }

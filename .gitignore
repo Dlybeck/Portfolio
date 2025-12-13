@@ -1,6 +1,35 @@
+# Python
 __pycache__
-.env
-env
-test_db.db
+*.pyc
+*.pyo
 venv
 .venv
+env
+
+# Environment & Secrets
+.env
+*.key
+*.pem
+
+# Database
+test_db.db
+*.db
+
+# Logs
+*.log
+logs/
+
+# Runtime directories
+.agentbridge/
+specs/
+generated/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

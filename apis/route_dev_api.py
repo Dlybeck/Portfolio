@@ -30,31 +30,6 @@ class DirectoryRequest(BaseModel):
     path: str
 
 
-@dev_api_router.post("/chat")
-async def chat_with_claude(
-    req: Request,
-    user: dict = Depends(get_current_user)
-):
-    """Proxy chat requests to Mac server via connection manager with auto-retry"""
-    try:
-        body = await req.body()
-        # Forward the Authorization header from the original request
-        auth_header = req.headers.get("Authorization", "")
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": auth_header
-        }
-        response = await proxy_request(
-            "POST",
-            f"http://{settings.MAC_SERVER_IP}:{settings.MAC_SERVER_PORT}/dev/api/chat",
-            content=body,
-            headers=headers
-        )
-        return JSONResponse(content=response.json(), status_code=response.status_code)
-    except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
-
-
 @dev_api_router.post("/list-directory")
 async def list_directory(
     req: Request,

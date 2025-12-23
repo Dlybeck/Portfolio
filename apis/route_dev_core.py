@@ -68,15 +68,6 @@ async def terminal_dashboard(request: Request):
     return templates.TemplateResponse("dev/dev_dashboard.html", {"request": request, "token": token})
 
 
-@dev_core_router.get("/raw-terminal", response_class=HTMLResponse)
-async def raw_terminal_dashboard(request: Request, user: dict = Depends(get_current_user)):
-    """
-    Serve the original terminal dashboard (dashboard_old.html).
-    This is used as an iframe source in the new dev_dashboard.html.
-    """
-    return templates.TemplateResponse("dev/dashboard_old.html", {"request": request, "user": user})
-
-
 @dev_core_router.get("/speckit", response_class=HTMLResponse)
 async def speckit_dashboard(request: Request):
     """

@@ -75,7 +75,7 @@ async def speckit_dashboard(request: Request):
     """
     # Extract token for the template
     token = request.cookies.get("session_token") or request.query_params.get("tkn")
-    
+
     if not token:
         # Try Authorization header
         auth = request.headers.get("Authorization", "")
@@ -86,3 +86,23 @@ async def speckit_dashboard(request: Request):
         return RedirectResponse(url="/dev/login", status_code=302)
 
     return templates.TemplateResponse("dev/speckit_dashboard.html", {"request": request, "token": token})
+
+
+@dev_core_router.get("/agentbridge", response_class=HTMLResponse)
+async def agentbridge_dashboard(request: Request):
+    """
+    Serve the AgentBridge Dashboard.
+    """
+    # Extract token for the template
+    token = request.cookies.get("session_token") or request.query_params.get("tkn")
+
+    if not token:
+        # Try Authorization header
+        auth = request.headers.get("Authorization", "")
+        if auth.startswith("Bearer "):
+            token = auth.replace("Bearer ", "")
+
+    if not token:
+        return RedirectResponse(url="/dev/login", status_code=302)
+
+    return templates.TemplateResponse("dev/agentbridge_dashboard.html", {"request": request, "token": token})

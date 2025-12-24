@@ -9,6 +9,7 @@ from apis.route_projects import project_router
 from apis.route_auth import auth_router
 from apis.route_dev import dev_router
 from apis.route_speckit import router as speckit_router
+from apis.route_agentbridge import router as agentbridge_router
 from core.security import validate_security_config
 import asyncio
 import logging
@@ -102,6 +103,7 @@ def include_router(app):
       app.include_router(auth_router)
       app.include_router(dev_router)
       app.include_router(speckit_router)
+      app.include_router(agentbridge_router)
 
  
 from pathlib import Path

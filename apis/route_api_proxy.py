@@ -61,6 +61,9 @@ async def agentbridge_api_proxy(
                 content=body if body else None
             )
 
+            # Log response status
+            logger.info(f"[API Proxy] Response from {target_url}: {response.status_code}")
+
             # Return response
             return Response(
                 content=response.content,

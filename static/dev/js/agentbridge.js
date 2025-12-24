@@ -106,8 +106,45 @@ function setupEventListeners() {
 async function loadProject() {
     try {
         const token = localStorage.getItem('access_token');
+        console.log('[AgentBridge] Fetching project path from /api/agentbridge/cwd');
+
         const res = await fetch('/api/agentbridge/cwd', {
             headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        console.log('[AgentBridge] Response status:', res.status);
+
+        if (res.ok) {
+            const data = await res.json();
+            console.log('[AgentBridge] Received data:', data);
+
+            state.currentProject = data.cwd;
+            state.hasSpecKit = data.has_agentbridge;
+            updateProjectUI();
+
+            if (state.hasSpecKit) {
+                loadFeatures();
+            }
+        } else {
+            const errorText = await res.text();
+            console.error('[AgentBridge] API call failed:', res.status, errorText);
+            addChatMessage('error', `Failed to load project (${res.status}): ${errorText}`);
+            
+            // Fallback: Use portfolio directory as default
+            state.currentProject = '/home/dlybeck/Documents/portfolio';
+            updateProjectUI();
+            addChatMessage('warning', 'Using default project: ' + state.currentProject);
+        }
+    } catch (e) {
+        console.error('[AgentBridge] Exception in loadProject:', e);
+        
+        // Fallback: Use portfolio directory as default
+        state.currentProject = '/home/dlybeck/Documents/portfolio';
+        updateProjectUI();
+        addChatMessage('warning', `Could not load project from server. Using default: ${state.currentProject}`);
+    }
+}
+
         });
 
         if (res.ok) {

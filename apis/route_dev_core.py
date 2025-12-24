@@ -106,3 +106,16 @@ async def agentbridge_dashboard(request: Request):
         return RedirectResponse(url="/dev/login", status_code=302)
 
     return templates.TemplateResponse("dev/agentbridge_dashboard.html", {"request": request, "token": token})
+
+
+@dev_core_router.get("/agentbridge/debug", response_class=HTMLResponse)
+async def agentbridge_debug():
+    """
+    Serve the AgentBridge debug tool (no auth required for debugging)
+    """
+    import os
+    debug_file = Path(__file__).parent.parent / "test_file_browser.html"
+    if os.path.exists(debug_file):
+        with open(debug_file, 'r') as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="<h1>Debug file not found</h1>", status_code=404)

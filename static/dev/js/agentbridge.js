@@ -145,23 +145,6 @@ async function loadProject() {
     }
 }
 
-        });
-
-        if (res.ok) {
-            const data = await res.json();
-            state.currentProject = data.cwd;
-            state.hasSpecKit = data.has_agentbridge;
-            updateProjectUI();
-
-            if (state.hasSpecKit) {
-                loadFeatures();
-            }
-        }
-    } catch (e) {
-        console.error('Failed to load project:', e);
-        addChatMessage('error', 'Failed to load project. Check console for details.');
-    }
-}
 
 function updateProjectUI() {
     const name = state.currentProject.split('/').pop() || state.currentProject;
@@ -197,9 +180,18 @@ function closeFileBrowser() {
 async function loadRecentProjects() {
     try {
         const token = localStorage.getItem('access_token');
+
+        if (!token) {
+            console.warn('[FileBrowser] No token for recent projects');
+            document.getElementById('recent-projects').style.display = 'none';
+            return;
+        }
+
         const res = await fetch('/api/agentbridge/recent-projects', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+
+        console.log('[FileBrowser] Recent projects response:', res.status);
 
         if (res.ok) {
             const data = await res.json();
@@ -208,10 +200,12 @@ async function loadRecentProjects() {
 
             if (data.projects.length === 0) {
                 document.getElementById('recent-projects').style.display = 'none';
+                console.log('[FileBrowser] No recent projects found');
                 return;
             }
 
             document.getElementById('recent-projects').style.display = 'block';
+            console.log('[FileBrowser] Loaded', data.projects.length, 'recent projects');
 
             data.projects.forEach(project => {
                 const item = document.createElement('div');
@@ -225,68 +219,86 @@ async function loadRecentProjects() {
                 item.onclick = () => selectBrowsePath(project.path, true);
                 container.appendChild(item);
             });
+        } else {
+            console.error('[FileBrowser] Failed to load recent projects:', res.status);
+            document.getElementById('recent-projects').style.display = 'none';
         }
     } catch (e) {
-        console.error('Failed to load recent projects:', e);
+        console.error('[FileBrowser] Exception loading recent projects:', e);
+        document.getElementById('recent-projects').style.display = 'none';
     }
 }
 
 async function browseDirectory(path) {
+    const fileListEl = document.getElementById('file-list');
+
     try {
         const token = localStorage.getItem('access_token');
         const url = path ? `/api/agentbridge/browse?path=${encodeURIComponent(path)}` : '/api/agentbridge/browse';
-        console.log('Browsing:', url, 'Token:', token ? 'present' : 'MISSING');
+        console.log('[FileBrowser] Browsing:', url, 'Token:', token ? 'present' : 'MISSING');
+
+        if (!token) {
+            console.error('[FileBrowser] No access token found');
+            fileListEl.innerHTML = `<div class="empty-state"><p style="color: var(--error-color);">Authentication required. Please login first.</p></div>`;
+            return;
+        }
+
+        // Show loading state
+        fileListEl.innerHTML = '<div class="empty-state"><p>Loading directories...</p></div>';
 
         const res = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        console.log('Browse response:', res.status);
+        console.log('[FileBrowser] Response status:', res.status);
 
         if (!res.ok) {
             const errData = await res.json().catch(() => ({}));
-            console.error('Browse failed:', res.status, errData);
-            const fileListEl = document.getElementById('file-list');
-            fileListEl.innerHTML = `<div class="empty-state"><p style="color: var(--error-color);">Error: ${errData.detail || res.statusText}</p></div>`;
+            console.error('[FileBrowser] Browse failed:', res.status, errData);
+            fileListEl.innerHTML = `<div class="empty-state"><p style="color: var(--error-color);">Error ${res.status}: ${errData.detail || res.statusText}</p><p style="font-size: 12px; margin-top: 8px;">Path: ${path || 'home'}</p></div>`;
             return;
         }
 
-        if (res.ok) {
-            const data = await res.json();
-            state.browsePath = data.path;
+        const data = await res.json();
+        console.log('[FileBrowser] Received data:', data);
 
-            // Render breadcrumbs
-            const breadcrumbsEl = document.getElementById('breadcrumbs');
-            breadcrumbsEl.innerHTML = data.breadcrumbs.map((b, i) =>
-                `<span class="breadcrumb" onclick="browseDirectory('${b.path.replace(/'/g, "\\'")}')">${b.name}</span>` +
-                (i < data.breadcrumbs.length - 1 ? '<span class="breadcrumb-sep">/</span>' : '')
-            ).join('');
+        state.browsePath = data.path;
 
-            // Render file list
-            const fileListEl = document.getElementById('file-list');
+        // Render breadcrumbs
+        const breadcrumbsEl = document.getElementById('breadcrumbs');
+        breadcrumbsEl.innerHTML = data.breadcrumbs.map((b, i) =>
+            `<span class="breadcrumb" onclick="browseDirectory('${b.path.replace(/'/g, "\\'")}')">${b.name}</span>` +
+            (i < data.breadcrumbs.length - 1 ? '<span class="breadcrumb-sep">/</span>' : '')
+        ).join('');
 
-            // Filter: show directories only, hide hidden by default
-            const dirs = data.entries.filter(e => e.is_dir && !e.hidden);
+        // Render file list
+        // Filter: show directories only, hide hidden by default
+        const dirs = data.entries.filter(e => e.is_dir && !e.hidden);
 
-            fileListEl.innerHTML = dirs.map(entry => `
-                <div class="file-item ${entry.is_speckit ? 'is-speckit' : entry.is_git ? 'is-git' : ''} ${entry.path === state.selectedBrowsePath ? 'selected' : ''}"
-                     onclick="handleFileClick(event, '${entry.path.replace(/'/g, "\\'")}')"
-                     ondblclick="browseDirectory('${entry.path.replace(/'/g, "\\'")}')">
-                    <i class="bi ${entry.is_speckit ? 'bi-check-circle-fill' : entry.is_git ? 'bi-git' : 'bi-folder'}"></i>
-                    <span>${entry.name}</span>
-                    <div class="badges">
-                        ${entry.is_speckit ? '<span class="badge" style="background: var(--success-color);">SpecKit</span>' : ''}
-                        ${entry.is_git && !entry.is_speckit ? '<span class="badge">Git</span>' : ''}
-                    </div>
-                </div>
-            `).join('');
+        console.log('[FileBrowser] Found', dirs.length, 'directories');
 
-            if (dirs.length === 0) {
-                fileListEl.innerHTML = '<div class="empty-state"><p>No subdirectories</p></div>';
-            }
+        if (dirs.length === 0) {
+            fileListEl.innerHTML = '<div class="empty-state"><p>No subdirectories</p><p style="font-size: 12px; margin-top: 8px;">Current path: ' + data.path + '</p></div>';
+            return;
         }
+
+        fileListEl.innerHTML = dirs.map(entry => `
+            <div class="file-item ${entry.is_speckit ? 'is-speckit' : entry.is_git ? 'is-git' : ''} ${entry.path === state.selectedBrowsePath ? 'selected' : ''}"
+                 onclick="handleFileClick(event, '${entry.path.replace(/'/g, "\\'")}')"
+                 ondblclick="browseDirectory('${entry.path.replace(/'/g, "\\'")}')">
+                <i class="bi ${entry.is_speckit ? 'bi-check-circle-fill' : entry.is_git ? 'bi-git' : 'bi-folder'}"></i>
+                <span>${entry.name}</span>
+                <div class="badges">
+                    ${entry.is_speckit ? '<span class="badge" style="background: var(--success-color);">SpecKit</span>' : ''}
+                    ${entry.is_git && !entry.is_speckit ? '<span class="badge">Git</span>' : ''}
+                </div>
+            </div>
+        `).join('');
+
+        console.log('[FileBrowser] Rendered', dirs.length, 'directory items');
     } catch (e) {
-        console.error('Failed to browse directory:', e);
+        console.error('[FileBrowser] Exception in browseDirectory:', e);
+        fileListEl.innerHTML = `<div class="empty-state"><p style="color: var(--error-color);">Failed to load directories</p><p style="font-size: 12px; margin-top: 8px;">${e.message}</p></div>`;
     }
 }
 

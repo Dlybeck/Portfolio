@@ -9,7 +9,13 @@ from apis.route_projects import project_router
 from apis.route_auth import auth_router
 from apis.route_dev import dev_router
 from apis.route_speckit import router as speckit_router
-from apis.route_api_proxy import api_proxy_router
+try:
+    from apis.route_api_proxy import api_proxy_router
+    HAS_API_PROXY = True
+except Exception as e:
+    logging.error(f"Failed to import API proxy router: {e}")
+    HAS_API_PROXY = False
+    api_proxy_router = None
 try:
     from apis.route_agentbridge import router as agentbridge_router
     HAS_AGENTBRIDGE = True
@@ -110,8 +116,9 @@ def include_router(app):
       app.include_router(auth_router)
       app.include_router(dev_router)
       app.include_router(speckit_router)
-      # Include API proxy for Cloud Run (always)
-      app.include_router(api_proxy_router)
+      # Include API proxy for Cloud Run (conditional)
+      if HAS_API_PROXY:
+          app.include_router(api_proxy_router)
       # Include AgentBridge router for local/Ubuntu (conditional)
       if HAS_AGENTBRIDGE:
           app.include_router(agentbridge_router)

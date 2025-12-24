@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     K_SERVICE: Optional[str] = None # Set by Cloud Run, if None, assume local
     HTTPS: bool = False # Used to determine if the application is running under HTTPS
     MAC_SERVER_IP: str = "100.82.216.64"
-    MAC_SERVER_PORT: int = 8888
+    MAC_SERVER_PORT: int = 8080  # FastAPI server port (8888 is code-server)
     CODE_SERVER_PORT: int = 8888
     SOCKS5_PROXY: str = "socks5://localhost:1055"  # Use localhost to match tailscaled listening behavior
     SOCKS5_PORT: int = 1055

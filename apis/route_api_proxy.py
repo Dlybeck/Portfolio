@@ -75,14 +75,16 @@ async def agentbridge_api_proxy(
     except httpx.ConnectError as e:
         logger.error(f"Failed to connect to backend: {e}")
         return Response(
-            content=f"Backend server unavailable",
-            status_code=503
+            content=json.dumps({"detail": "Backend server unavailable", "error": str(e)}),
+            status_code=503,
+            media_type="application/json"
         )
     except Exception as e:
         logger.error(f"AgentBridge API proxy error: {e}")
         return Response(
-            content=f"Proxy error: {str(e)}",
-            status_code=500
+            content=json.dumps({"detail": f"Proxy error: {str(e)}", "error_type": type(e).__name__}),
+            status_code=500,
+            media_type="application/json"
         )
 
 

@@ -7,6 +7,7 @@ from core.security import get_session_user
 from core.config import settings
 import httpx
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -43,14 +44,20 @@ async def agentbridge_api_proxy(
             # Get request body if any
             body = await request.body()
 
+            # Forward headers, but replace Authorization with internal auth
+            # since Cloud Run already validated the user
+            forward_headers = {
+                key: value
+                for key, value in request.headers.items()
+                if key.lower() not in ["host", "content-length", "authorization"]
+            }
+            # Add internal proxy header with user info
+            forward_headers["X-Proxy-User"] = json.dumps(user)
+
             response = await client.request(
                 method=request.method,
                 url=target_url,
-                headers={
-                    key: value
-                    for key, value in request.headers.items()
-                    if key.lower() not in ["host", "content-length"]
-                },
+                headers=forward_headers,
                 content=body if body else None
             )
 

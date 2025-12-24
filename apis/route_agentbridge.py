@@ -189,6 +189,29 @@ async def broadcast_output(process, provider="claude"):
         logger.error(f"Error in broadcast_output: {e}")
 
 
+
+
+def get_user_or_proxy(request: Request) -> dict:
+    """
+    Get user from either:
+    1. X-Proxy-User header (from Cloud Run proxy)
+    2. Regular authentication
+    """
+    # Check for proxy header first
+    proxy_user = request.headers.get("X-Proxy-User")
+    if proxy_user:
+        try:
+            return json.loads(proxy_user)
+        except Exception as e:
+            logger.warning(f"Invalid X-Proxy-User header: {e}")
+    
+    # Fall back to regular authentication
+    try:
+        return get_session_user(request)
+    except Exception:
+        raise HTTPException(status_code=401, detail="Not authenticated. Please login first.")
+
+
 @router.get("/health")
 async def agentbridge_health():
     """Health check endpoint"""
@@ -200,7 +223,7 @@ async def agentbridge_health():
 
 
 @router.get("/cwd")
-async def get_cwd(user: dict = Depends(get_session_user)):
+async def get_cwd(user: dict = Depends(get_user_or_proxy)):
     """Get current working directory"""
     cwd = get_project_root()
     # Check for .specify directory (official spec-kit) as initialization indicator
@@ -214,7 +237,7 @@ async def get_cwd(user: dict = Depends(get_session_user)):
 @router.post("/cwd")
 async def set_cwd(
     request_body: dict,
-    user: dict = Depends(get_session_user)
+    user: dict = Depends(get_user_or_proxy)
 ):
     """Set working directory for AgentBridge"""
     global ACTIVE_PROCESS
@@ -255,7 +278,7 @@ async def set_cwd(
 @router.get("/browse")
 async def browse_directory(
     path: str = None,
-    user: dict = Depends(get_session_user)
+    user: dict = Depends(get_user_or_proxy)
 ):
     """Browse filesystem for directory selection (Windows Explorer style)"""
     # Default to home directory if no path specified
@@ -316,7 +339,7 @@ async def browse_directory(
 
 
 @router.get("/recent-projects")
-async def get_recent_projects(user: dict = Depends(get_session_user)):
+async def get_recent_projects(user: dict = Depends(get_user_or_proxy)):
     """Get list of recent projects"""
     projects = load_recent_projects()
 
@@ -348,7 +371,7 @@ async def get_recent_projects(user: dict = Depends(get_session_user)):
 @router.post("/init")
 async def init_agentbridge(
     request_body: dict = None,
-    user: dict = Depends(get_session_user)
+    user: dict = Depends(get_user_or_proxy)
 ):
     """
     Initialize SpecKit in current working directory using official spec-kit command.
@@ -469,7 +492,7 @@ async def init_agentbridge(
 
 
 @router.get("/config")
-async def get_config(user: dict = Depends(get_session_user)):
+async def get_config(user: dict = Depends(get_user_or_proxy)):
     """Get current AgentBridge configuration"""
     cwd = get_project_root()
 
@@ -510,7 +533,7 @@ CURRENT_PROVIDER = "claude"
 @router.post("/switch")
 async def switch_provider(
     request_body: dict,
-    user: dict = Depends(get_session_user)
+    user: dict = Depends(get_user_or_proxy)
 ):
     """Switch the active AI provider"""
     global ACTIVE_PROCESS, CURRENT_PROVIDER
@@ -557,7 +580,7 @@ async def switch_provider(
 async def run_agentbridge_command(
     command: dict,
     request: Request,
-    user: dict = Depends(get_session_user)
+    user: dict = Depends(get_user_or_proxy)
 ):
     """
     Run an AgentBridge command (specify, plan, tasks, implement, status).
@@ -801,7 +824,7 @@ async def agentbridge_websocket(websocket: WebSocket, token: str = None):
 
 
 @router.get("/features")
-async def list_features(user: dict = Depends(get_session_user)):
+async def list_features(user: dict = Depends(get_user_or_proxy)):
     """List all features in AgentBridge (reads from specs/ directory for official spec-kit)"""
     cwd = get_project_root()
 
@@ -844,7 +867,7 @@ async def list_features(user: dict = Depends(get_session_user)):
 async def get_feature_artifact(
     feature: str,
     artifact_type: str,
-    user: dict = Depends(get_session_user)
+    user: dict = Depends(get_user_or_proxy)
 ):
     """Get a specific artifact for a feature"""
     cwd = get_project_root()

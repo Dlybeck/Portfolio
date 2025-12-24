@@ -24,3 +24,4 @@ anthropic==0.69.0
 
 # Utilities
 qrcode[pil]==8.2
+PyYAML==6.0.2

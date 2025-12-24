@@ -9,6 +9,17 @@ from apis.route_projects import project_router
 from apis.route_auth import auth_router
 from apis.route_dev import dev_router
 from apis.route_speckit import router as speckit_router
+from core.security import validate_security_config
+import asyncio
+import logging
+import subprocess
+import socket
+import httpx
+
+# Configure logging early
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 try:
     from apis.route_api_proxy import api_proxy_router
     HAS_API_PROXY = True
@@ -23,16 +34,6 @@ except Exception as e:
     logging.error(f"Failed to import AgentBridge router: {e}")
     HAS_AGENTBRIDGE = False
     agentbridge_router = None
-from core.security import validate_security_config
-import asyncio
-import logging
-import subprocess
-import socket
-import httpx
-
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
 
 
 async def run_startup_diagnostics():

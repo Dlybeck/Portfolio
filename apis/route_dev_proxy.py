@@ -303,7 +303,7 @@ async def vscode_websocket_proxy(
             # Construct code-server WebSocket URL (code-server runs at root, not /dev/vscode/)
             # CRITICAL: websockets library expects ws://hostname:port/path
             # We must use the IP address to avoid DNS resolution issues in SOCKS proxy
-            ws_url = f"ws://{settings.MAC_SERVER_IP}:{settings.MAC_SERVER_PORT}/{path}"
+            ws_url = f"ws://{settings.MAC_SERVER_IP}:{settings.CODE_SERVER_PORT}/{path}"
 
             # Preserve query parameters (critical for reconnectionToken)
             if websocket.url.query:
@@ -322,8 +322,8 @@ async def vscode_websocket_proxy(
             # Connect to the proxy, then tunnel to the destination
             # dest_host must be the IP address (100.x.y.z) to ensure SOCKS5 uses it directly
             sock = await proxy.connect(
-                dest_host=settings.MAC_SERVER_IP, 
-                dest_port=settings.MAC_SERVER_PORT
+                dest_host=settings.MAC_SERVER_IP,
+                dest_port=settings.CODE_SERVER_PORT
             )
             logger.info("Code-server WS: SOCKS5 tunnel established successfully")
 

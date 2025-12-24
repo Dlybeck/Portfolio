@@ -27,6 +27,7 @@ IS_CLOUD_RUN = settings.K_SERVICE is not None
 SOCKS5_PROXY = settings.SOCKS5_PROXY
 MAC_SERVER_IP = settings.MAC_SERVER_IP
 MAC_SERVER_PORT = settings.MAC_SERVER_PORT
+CODE_SERVER_PORT = settings.CODE_SERVER_PORT
 
 class BaseProxy:
     def __init__(self, base_url: str):

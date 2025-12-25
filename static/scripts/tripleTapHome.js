@@ -1,76 +1,85 @@
 // Triple-tap to reveal Dev tile functionality
-// Detects 3 quick taps on Home tile to toggle secret Dev tile with flip animation
+// Intercepts Home tile clicks to detect triple-tap pattern
 
-window.addEventListener('load', function() {
+// State management
+window.tripleTapState = {
+    tapCount: 0,
+    tapTimer: null,
+    isRevealed: false
+};
+
+// Override handleTileClick for Home tile to add triple-tap detection
+document.addEventListener('DOMContentLoaded', function() {
     console.log('[TripleTap] Initializing triple-tap detection...');
 
-    const homeContainer = document.querySelector('[data-title="Home"]');
-    const devContainer = document.querySelector('[data-title="Dev"]');
+    // Store original handleTileClick
+    const originalHandleTileClick = window.handleTileClick;
 
-    if (!homeContainer || !devContainer) {
-        console.error('[TripleTap] Home or Dev tile not found!');
-        return;
-    }
+    // Override with triple-tap detection
+    window.handleTileClick = function(e, container) {
+        const title = container.dataset.title;
 
-    const homeTile = homeContainer.querySelector('.tile');
-
-    if (!homeTile) {
-        console.error('[TripleTap] Home .tile element not found!');
-        return;
-    }
-
-    console.log('[TripleTap] Attached to:', homeTile);
-
-    let tapCount = 0;
-    let tapTimer = null;
-    let isRevealed = false;
-
-    // Triple-tap detection
-    homeTile.addEventListener('click', (e) => {
-        tapCount++;
-        console.log('[TripleTap] Tap count:', tapCount);
-
-        // Clear existing timer
-        if (tapTimer) {
-            clearTimeout(tapTimer);
+        // Only intercept Home and Dev tile clicks
+        if (title !== 'Home' && title !== 'Dev') {
+            return originalHandleTileClick(e, container);
         }
 
-        // If this is the third tap
-        if (tapCount === 3) {
-            console.log('[TripleTap] ✅ TRIPLE TAP DETECTED!');
+        // Dev tile click should also toggle (triple-tap back to Home)
+        const isDevTile = (title === 'Dev');
 
-            // Prevent normal tile click
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
+        // Prevent default tile click behavior for Home
+        e.preventDefault();
+
+        // Increment tap count
+        window.tripleTapState.tapCount++;
+        console.log('[TripleTap] Tap count:', window.tripleTapState.tapCount);
+
+        // Clear existing timer
+        if (window.tripleTapState.tapTimer) {
+            clearTimeout(window.tripleTapState.tapTimer);
+        }
+
+        // Check for triple tap
+        if (window.tripleTapState.tapCount === 3) {
+            console.log('[TripleTap] ✅ TRIPLE TAP DETECTED on', title);
+
+            const homeContainer = document.querySelector('[data-title="Home"]');
+            const devContainer = document.querySelector('[data-title="Dev"]');
 
             // Toggle reveal state
-            isRevealed = !isRevealed;
+            window.tripleTapState.isRevealed = !window.tripleTapState.isRevealed;
 
-            if (isRevealed) {
-                console.log('[TripleTap] Revealing Dev tile with flip');
+            if (window.tripleTapState.isRevealed) {
+                console.log('[TripleTap] Flipping to Dev tile');
                 homeContainer.classList.add('flipped-out');
                 devContainer.classList.add('flipped-in');
             } else {
-                console.log('[TripleTap] Hiding Dev tile with flip');
+                console.log('[TripleTap] Flipping back to Home tile');
                 homeContainer.classList.remove('flipped-out');
                 devContainer.classList.remove('flipped-in');
             }
 
-            // Reset
-            tapCount = 0;
-            tapTimer = null;
+            // Reset tap count
+            window.tripleTapState.tapCount = 0;
+            window.tripleTapState.tapTimer = null;
 
-            return false;
+            return; // Don't proceed with normal tile click
         }
 
         // Reset tap count after 600ms if not triple-tapped
-        tapTimer = setTimeout(() => {
+        window.tripleTapState.tapTimer = setTimeout(() => {
             console.log('[TripleTap] Timer expired, resetting tap count');
-            tapCount = 0;
-            tapTimer = null;
+
+            // If only 1 or 2 taps, treat as normal click
+            if (window.tripleTapState.tapCount === 1) {
+                console.log('[TripleTap] Single tap detected, executing normal tile click');
+                originalHandleTileClick(e, container);
+            }
+
+            window.tripleTapState.tapCount = 0;
+            window.tripleTapState.tapTimer = null;
         }, 600);
-    }, { capture: true });
+    };
 
     console.log('[TripleTap] ✅ Triple-tap detection initialized');
     console.log('[TripleTap] Try triple-tapping the Home tile!');

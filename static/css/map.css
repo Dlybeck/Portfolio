@@ -184,11 +184,12 @@
 
 /* Secret Dev Tile - Triple-Tap Flip Animation */
 /* Follows existing transition pattern (0.4s ease) with 3D transform */
+/* !important needed to override inline styles from positionTile() */
 
 .tile-container[data-title="Dev"] {
     z-index: 0 !important; /* Behind Home */
     opacity: 0;
-    transform: translate(-50%, -50%) rotateY(-180deg);
+    transform: translate(-50%, -50%) rotateY(-180deg) !important;
     transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
                 opacity 0.3s ease,
                 z-index 0s 0.6s; /* Delay z-index change until flip completes */
@@ -199,7 +200,7 @@
 
 .tile-container[data-title="Home"] {
     z-index: 10 !important; /* Above Dev */
-    transform: translate(-50%, -50%) rotateY(0deg);
+    transform: translate(-50%, -50%) rotateY(0deg) !important;
     transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
                 opacity 0.3s ease,
                 z-index 0s 0.6s;
@@ -209,7 +210,7 @@
 
 /* Flip Home out (rotate forward) */
 .tile-container[data-title="Home"].flipped-out {
-    transform: translate(-50%, -50%) rotateY(180deg);
+    transform: translate(-50%, -50%) rotateY(180deg) !important;
     opacity: 0;
     pointer-events: none;
     z-index: 0 !important; /* Send to back after flip */
@@ -217,7 +218,7 @@
 
 /* Flip Dev in (rotate to front) */
 .tile-container[data-title="Dev"].flipped-in {
-    transform: translate(-50%, -50%) rotateY(0deg);
+    transform: translate(-50%, -50%) rotateY(0deg) !important;
     opacity: 1;
     z-index: 10 !important; /* Bring to front */
     pointer-events: auto;
@@ -226,10 +227,17 @@
                 z-index 0s 0s; /* Immediate z-index change when flipping in */
 }
 
-/* Disable hover effect on Home when performing triple-tap */
-.tile-container[data-title="Home"]:active {
+/* Disable hover effect on Home and Dev when tapping */
+.tile-container[data-title="Home"]:active,
+.tile-container[data-title="Dev"]:active {
     width: 150px !important;
     height: 150px !important;
+}
+
+/* Ensure expanded state works on both tiles */
+.tile-container[data-title="Dev"].expanded {
+    width: 300px;
+    height: 400px;
 }
 
 

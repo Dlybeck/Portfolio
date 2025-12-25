@@ -227,6 +227,13 @@
                 z-index 0s 0s; /* Immediate z-index change when flipping in */
 }
 
+/* Visual feedback during long-press (added by devTileReveal.js) */
+.tile.is-pressing {
+    opacity: 0.7;
+    transform: scale(0.95);
+    transition: opacity 0.1s ease, transform 0.1s ease;
+}
+
 /* Disable hover effect on Home and Dev when tapping */
 .tile-container[data-title="Home"]:active,
 .tile-container[data-title="Dev"]:active {

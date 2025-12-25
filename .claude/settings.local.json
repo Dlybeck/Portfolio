@@ -83,7 +83,8 @@
       "Read(//home/dlybeck/.local/share/code-server/**)",
       "Bash(git pull:*)",
       "Bash(git stash push:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(gemini \"I''m working on a portfolio website with a tile-based navigation system. I need to add a SECRET 6th tile (Dev tools) that''s hidden from public visitors but accessible to the owner. The constraints are:\n\n1. Must be mobile-friendly (touchscreen)\n2. Must be truly hidden (no visible UI hints)\n3. Must not interfere with existing tile navigation/clicking\n4. Tiles use click to navigate/expand\n5. Current attempt (triple-tap) is failing - it only works once, shows illegible text on first tap, then reverts after 0.5 seconds\n\nWhat are the BEST practices for hidden easter egg triggers on mobile web? Please search for proven patterns that work reliably on touchscreens. Consider:\n- Long press (how long is ideal?)\n- Tap patterns (corners? specific sequence?)\n- Multi-touch gestures\n- Time-based interactions\n- URL parameters or keyboard shortcuts\n\nWhich approach is most reliable and won''t conflict with normal click/tap interactions?\")"
     ],
     "deny": [],
     "ask": []

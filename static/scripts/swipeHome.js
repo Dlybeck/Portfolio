@@ -1,11 +1,23 @@
 // Swipe-to-reveal Dev tile functionality
 // Detects vertical swipe on Home tile to reveal/hide secret Dev tile
 
-document.addEventListener('DOMContentLoaded', function() {
+// Wait for tiles to be created, not just DOM ready
+window.addEventListener('load', function() {
+    console.log('[SwipeHome] Initializing swipe detection...');
+
     const homeTile = document.querySelector('[data-title="Home"]');
+    const devTile = document.querySelector('[data-title="Dev"]');
+
+    console.log('[SwipeHome] Home tile:', homeTile);
+    console.log('[SwipeHome] Dev tile:', devTile);
 
     if (!homeTile) {
-        console.warn('[SwipeHome] Home tile not found');
+        console.error('[SwipeHome] Home tile not found!');
+        return;
+    }
+
+    if (!devTile) {
+        console.error('[SwipeHome] Dev tile not found!');
         return;
     }
 
@@ -15,10 +27,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Touch start - record starting position
     homeTile.addEventListener('touchstart', (e) => {
+        console.log('[SwipeHome] Touch start detected');
         startY = e.touches[0].clientY;
         startTime = Date.now();
         isDragging = false;
-    });
+    }, { passive: true });
 
     // Touch move - detect if user is dragging
     homeTile.addEventListener('touchmove', (e) => {
@@ -37,17 +50,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const swipeDistance = startY - endY; // Positive = swipe up
         const swipeTime = Date.now() - startTime;
 
+        console.log('[SwipeHome] Touch end - distance:', swipeDistance, 'time:', swipeTime);
+
         // Swipe up to reveal Dev (must swipe at least 50px)
         if (swipeDistance > 50 && swipeTime < 500) {
-            console.log('[SwipeHome] Swiped up - revealing Dev tile');
+            console.log('[SwipeHome] ✅ Swiped up - revealing Dev tile');
             homeTile.classList.add('swiped-up');
             e.preventDefault(); // Prevent click event
         }
         // Swipe down to hide Dev
         else if (swipeDistance < -50 && swipeTime < 500) {
-            console.log('[SwipeHome] Swiped down - hiding Dev tile');
+            console.log('[SwipeHome] ✅ Swiped down - hiding Dev tile');
             homeTile.classList.remove('swiped-up');
             e.preventDefault();
+        } else {
+            console.log('[SwipeHome] ❌ Not a valid swipe (threshold not met)');
         }
 
         // Reset for next swipe
@@ -112,5 +129,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, true); // Use capture phase to catch before other handlers
 
-    console.log('[SwipeHome] Swipe detection initialized');
+    console.log('[SwipeHome] ✅ Swipe detection initialized successfully');
+    console.log('[SwipeHome] Try swiping up on the Home tile!');
 });

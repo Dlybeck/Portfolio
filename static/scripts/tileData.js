@@ -21,8 +21,22 @@ window.tileInfo = {
         Check out the neighboring tiles to explore aspects of David's life.
         <br><br>
         Come back here if you ever get lost!
+        <br><br>
+        <small style="opacity: 0.6;">💡 Swipe up for dev tools</small>
         `,
         ``
+    ],
+
+    "Dev": [
+        [0, 0],  // Same position as Home (underneath)
+        `
+        🔓 Secret Unlocked!
+        <br><br>
+        Development Tools
+        <br><br>
+        Click below to access
+        `,
+        `/dev`  // Opens dev hub
     ],
 
     //Home

@@ -4,7 +4,7 @@ Code-server HTTP and WebSocket Proxy
 Inherits from BaseProxy to reuse connection logic
 """
 
-from .base_proxy import BaseProxy, IS_CLOUD_RUN, MAC_SERVER_IP, MAC_SERVER_PORT
+from .base_proxy import BaseProxy, IS_CLOUD_RUN, MAC_SERVER_IP, CODE_SERVER_PORT
 from fastapi import Request
 
 class CodeServerProxy(BaseProxy):
@@ -13,7 +13,7 @@ class CodeServerProxy(BaseProxy):
     def __init__(self, code_server_url: str = None):
         if not code_server_url:
             if IS_CLOUD_RUN:
-                code_server_url = f"http://{MAC_SERVER_IP}:{MAC_SERVER_PORT}"
+                code_server_url = f"http://{MAC_SERVER_IP}:{CODE_SERVER_PORT}"
             else:
                 code_server_url = "http://127.0.0.1:8888"
         

@@ -74,6 +74,7 @@
         <div class="dev-tools-grid">
             <!-- VS Code Card -->
             <a href="/dev/vscode/?folder=/home/dlybeck/Documents/portfolio"
+               id="vscode-link"
                target="vscode_window"
                class="dev-tool-card">
                 <div class="dev-tool-icon">⌨️</div>
@@ -83,6 +84,7 @@
 
             <!-- AgentBridge Card -->
             <a href="/dev/agentbridge"
+               id="agentbridge-link"
                target="_blank"
                class="dev-tool-card">
                 <div class="dev-tool-icon">🌉</div>
@@ -93,4 +95,33 @@
 
         <p class="back-hint">Click the home button above to return to the portfolio</p>
     </div>
+
+    <script>
+        // Add authentication token to links on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('access_token');
+
+            if (token) {
+                // Add token to VS Code link
+                const vscodeLink = document.getElementById('vscode-link');
+                if (vscodeLink) {
+                    const url = new URL(vscodeLink.href);
+                    url.searchParams.set('tkn', token);
+                    vscodeLink.href = url.toString();
+                    console.log('[DevHub] Added token to VS Code link');
+                }
+
+                // Add token to AgentBridge link
+                const agentbridgeLink = document.getElementById('agentbridge-link');
+                if (agentbridgeLink) {
+                    const url = new URL(agentbridgeLink.href, window.location.origin);
+                    url.searchParams.set('tkn', token);
+                    agentbridgeLink.href = url.toString();
+                    console.log('[DevHub] Added token to AgentBridge link');
+                }
+            } else {
+                console.warn('[DevHub] No access token found in localStorage');
+            }
+        });
+    </script>
 {% endblock %}

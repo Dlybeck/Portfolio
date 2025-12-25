@@ -96,7 +96,11 @@
         <p class="back-hint">Click the home button above to return to the portfolio</p>
     </div>
 
+    <script src="/static/js/auth-service.js"></script>
     <script>
+        // Start automatic token refresh to keep session alive
+        window.authService.startAutoRefresh();
+
         // Add authentication token to links on page load
         document.addEventListener('DOMContentLoaded', function() {
             const token = localStorage.getItem('access_token');

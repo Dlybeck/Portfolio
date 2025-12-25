@@ -33,11 +33,82 @@
             color: white;
         }
 
+        /* Dracula Navbar */
+        .dev-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 35px;
+            background: #21222c;
+            border-bottom: 1px solid #44475a;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            height: 100%;
+        }
+
+        .navbar-logo {
+            height: 20px;
+            width: auto;
+            border-radius: 3px;
+        }
+
+        .navbar-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: #f8f8f2;
+            letter-spacing: 0.3px;
+        }
+
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            font-size: 13px;
+            color: #f8f8f2;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+        }
+
+        .nav-item:hover {
+            background: #44475a;
+            color: #bd93f9;
+        }
+
+        .nav-item.active {
+            background: #282a36;
+            color: #bd93f9;
+            border-bottom: 2px solid #bd93f9;
+        }
+
         .main-container {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            padding: 70px 16px 16px 16px;
+            padding: 45px 16px 16px 16px;
             max-width: 1100px;
             margin: 0 auto;
             width: 100%;
@@ -539,13 +610,33 @@
 </head>
 <body>
 
-    <nav class="navbar">
+    <!-- Dracula Navbar -->
+    <nav class="dev-navbar">
       <div class="navbar-content">
         <img src="/static/images/Logo.webp" alt="Logo" class="navbar-logo">
         <div class="navbar-title">AgentBridge</div>
-        <a href="/dev/terminal">
-            <img src="/static/images/home.webp" class="home-button visible" style="filter: invert(1);">
+      </div>
+      <div class="navbar-links">
+        <a href="/dev" class="nav-item" title="Dev Hub">
+          <span>🏠</span>
+          <span>Hub</span>
         </a>
+        <a href="http://localhost:8888/?folder=/home/dlybeck/Documents/portfolio"
+           target="vscode_window"
+           class="nav-item"
+           title="VS Code Editor"
+           onclick="appendToken(event, this)">
+          <span>⌨️</span>
+          <span>Editor</span>
+        </a>
+        <a href="/dev/agentbridge" class="nav-item active" title="Agent Bridge">
+          <span>🌉</span>
+          <span>Bridge</span>
+        </a>
+        <button class="nav-item" onclick="logout()" title="Logout">
+          <span>🚪</span>
+          <span>Logout</span>
+        </button>
       </div>
     </nav>
 
@@ -715,5 +806,23 @@
     </div>
 
     <script src="/static/dev/js/agentbridge.js"></script>
+    <script>
+        // Logout function
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('agentbridge_provider');
+            window.location.href = '/dev/login';
+        }
+
+        // Append token to VS Code link
+        function appendToken(event, element) {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                const url = new URL(element.href);
+                url.searchParams.set('tkn', token);
+                element.href = url.toString();
+            }
+        }
+    </script>
 </body>
 </html>

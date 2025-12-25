@@ -21,12 +21,23 @@ async def login_page(request: Request):
 
 
 @dev_core_router.get("", response_class=HTMLResponse)
-async def dev_dashboard_redirect(request: Request):
+async def dev_hub(request: Request):
     """
-    Redirect /dev to /dev/terminal (VS Code)
-    Works in both Cloud Run (proxies to Mac) and local environments
+    Dev Hub - central dashboard for choosing development tools
     """
-    return RedirectResponse(url="/dev/terminal", status_code=302)
+    # Extract token for the template
+    token = request.cookies.get("session_token") or request.query_params.get("tkn")
+
+    if not token:
+        # Try Authorization header
+        auth = request.headers.get("Authorization", "")
+        if auth.startswith("Bearer "):
+            token = auth.replace("Bearer ", "")
+
+    if not token:
+        return RedirectResponse(url="/dev/login", status_code=302)
+
+    return templates.TemplateResponse("dev/hub.html", {"request": request, "token": token})
 
 
 @dev_core_router.get("/terminal", response_class=HTMLResponse)

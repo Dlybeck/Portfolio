@@ -182,19 +182,39 @@
     transform: scale(1.1);
 }
 
-/* Secret Dev Tile - Layering System */
+/* Secret Dev Tile - Triple-Tap Flip Animation */
 .tile-container[data-title="Dev"] {
     z-index: 0 !important; /* Behind Home */
+    opacity: 0;
+    transform: translate(-50%, -50%) rotateY(-180deg);
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s ease;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
 }
 
 .tile-container[data-title="Home"] {
     z-index: 10 !important; /* Above Dev */
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), all 0.4s ease;
+    transform: translate(-50%, -50%) rotateY(0deg);
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s ease;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
 }
 
-/* When Home is swiped up, reveal Dev underneath */
-.tile-container[data-title="Home"].swiped-up {
-    transform: translate(-50%, -50%) translateY(-34vh); /* Slide up one grid unit */
+/* Flip Home out (rotate forward) */
+.tile-container[data-title="Home"].flipped-out {
+    transform: translate(-50%, -50%) rotateY(180deg);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Flip Dev in (rotate to front) */
+.tile-container[data-title="Dev"].flipped-in {
+    transform: translate(-50%, -50%) rotateY(0deg);
+    opacity: 1;
+    z-index: 10 !important; /* Bring to front */
+    pointer-events: auto;
 }
 
 

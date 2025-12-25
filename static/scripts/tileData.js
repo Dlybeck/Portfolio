@@ -21,8 +21,6 @@ window.tileInfo = {
         Check out the neighboring tiles to explore aspects of David's life.
         <br><br>
         Come back here if you ever get lost!
-        <br><br>
-        <small style="opacity: 0.6;">💡 Swipe up for dev tools</small>
         `,
         ``
     ],

@@ -7,6 +7,7 @@ Inherits from BaseProxy to reuse connection logic
 from .base_proxy import BaseProxy, IS_CLOUD_RUN, MAC_SERVER_IP, CODE_SERVER_PORT
 from fastapi import Request
 import re
+import gzip
 
 class CodeServerProxy(BaseProxy):
     """Reverse proxy for code-server"""
@@ -33,6 +34,15 @@ class CodeServerProxy(BaseProxy):
         # Only inject into HTML responses
         if not content_type.startswith('text/html'):
             return body, {}
+
+        # Decompress if gzipped
+        content_encoding = headers.get('content-encoding', '').lower()
+        if content_encoding == 'gzip':
+            try:
+                body = gzip.decompress(body)
+            except Exception as e:
+                # If decompression fails, return original body
+                return body, {}
 
         # Decode body
         try:
@@ -141,6 +151,8 @@ class CodeServerProxy(BaseProxy):
         new_headers = {
             'content-length': str(len(new_body)),
             'content-type': 'text/html; charset=utf-8'
+            # Note: content-encoding is intentionally omitted since we return uncompressed HTML
+            # BaseProxy already excludes it from response_headers, so it won't be included
         }
 
         return new_body, new_headers

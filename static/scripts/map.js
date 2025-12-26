@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
             window.createTile(title);
             createdTiles.add(title);
         }
-        
+
         window.tilesData[title].forEach(childTitle => {
             if (!createdTiles.has(childTitle)) {
                 window.createTile(childTitle);
@@ -22,6 +22,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Create Dev tile (not in tilesData, but needs to be created before centering)
+    if (!createdTiles.has('Dev')) {
+        window.createTile('Dev');
+        createdTiles.add('Dev');
+    }
 
     // Add click handlers
     const tileContainers = document.querySelectorAll('.tile-container');

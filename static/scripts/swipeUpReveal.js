@@ -112,23 +112,7 @@ function addSwipeUpDetector(element, callback, shouldActivate) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[SwipeUp] Initializing swipe-up gesture...');
 
-    // Create the Dev tile (not in tilesData hierarchy)
-    if (!document.querySelector('[data-title="Dev"]')) {
-        console.log('[SwipeUp] Creating Dev tile...');
-        const devTile = window.createTile('Dev');
-
-        // Initialize Dev in hidden/flipped-out state (CSS handles initial styling)
-        // Don't add any state classes - CSS .tile-container[data-title="Dev"] handles it
-
-        // Add click handler to Dev tile for navigation
-        const devContainer = document.querySelector('[data-title="Dev"]');
-        const devTileElement = devContainer.querySelector('.tile');
-        devTileElement.addEventListener('click', function(e) {
-            window.handleTileClick(e, devContainer);
-        });
-    }
-
-    // Get tiles
+    // Get tiles (Dev is already created by map.js)
     const homeContainer = document.querySelector('[data-title="Home"]');
     const devContainer = document.querySelector('[data-title="Dev"]');
 
@@ -186,6 +170,22 @@ document.addEventListener('DOMContentLoaded', function() {
             return window.devTileState.isFlipped;
         }
     );
+
+    // If user navigates away from Home while Dev is flipped, flip back automatically
+    // Listen for hash changes (navigation events)
+    const originalCheckUrlHash = window.checkUrlHash;
+    window.checkUrlHash = function() {
+        const hash = decodeURIComponent(window.location.hash.slice(1));
+
+        // If navigating away from Home/Dev and Dev is flipped, flip back
+        if (hash && hash !== 'Home' && hash !== 'Dev' && window.devTileState.isFlipped) {
+            console.log('[SwipeUp] Navigation detected, flipping back to Home');
+            flipTile(false);
+        }
+
+        // Call original function
+        return originalCheckUrlHash();
+    };
 
     console.log('[SwipeUp] ✅ Swipe-up gesture initialized');
     console.log('[SwipeUp] 🔐 Swipe up on Home to reveal Dev tools!');

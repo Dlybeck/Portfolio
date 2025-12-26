@@ -115,7 +115,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Create the Dev tile (not in tilesData hierarchy)
     if (!document.querySelector('[data-title="Dev"]')) {
         console.log('[SwipeUp] Creating Dev tile...');
-        window.createTile('Dev');
+        const devTile = window.createTile('Dev');
+
+        // Initialize Dev in hidden/flipped-out state (CSS handles initial styling)
+        // Don't add any state classes - CSS .tile-container[data-title="Dev"] handles it
 
         // Add click handler to Dev tile for navigation
         const devContainer = document.querySelector('[data-title="Dev"]');

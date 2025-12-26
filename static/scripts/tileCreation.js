@@ -113,12 +113,18 @@ window.updateVisibility = function(centerTitle) {
     tiles.forEach(tile => {
         const tileTitle = tile.dataset.title;
 
+        // Skip Dev tile - it's managed separately by swipe gesture (swipeUpReveal.js)
+        if (tileTitle === 'Dev') {
+            return;
+        }
+
         // Reset all states first
         tile.classList.remove('expanded', 'connected', 'dimmed');
 
         if (tileTitle === centerTitle) {
             // Center tile is expanded
             tile.classList.add('expanded');
+            console.log(`[updateVisibility] Expanding tile: ${tileTitle}`);
         } else if (visibleTiles.includes(tileTitle)) {
             // Connected tiles show title only
             tile.classList.add('connected');

@@ -1,5 +1,5 @@
 // Dev Tile Reveal - Swipe Up Gesture
-// Reveals hidden Dev tile when user swipes up on Home tile
+// Reveals hidden Dev tile when user swipes up on expanded Home tile
 
 // State management
 window.devTileState = {
@@ -7,26 +7,53 @@ window.devTileState = {
 };
 
 /**
- * Simple swipe-up detector
- * Detects vertical swipe gesture on an element
+ * Robust swipe-up detector that works with tile click handlers
+ * Uses event capture and proper gesture detection
  */
-function addSwipeUpDetector(element, callback) {
+function addSwipeUpDetector(element, callback, shouldActivate) {
     let startY = 0;
     let startX = 0;
     let startTime = 0;
+    let isSwiping = false;
 
-    const MIN_DISTANCE = 50; // Minimum swipe distance in pixels
-    const MAX_TIME = 300; // Maximum time for swipe in ms
-    const MAX_HORIZONTAL_DRIFT = 50; // Maximum horizontal movement allowed
+    const MIN_DISTANCE = 80; // Minimum swipe distance (increased for reliability)
+    const MAX_TIME = 400; // Maximum time for swipe in ms
+    const MAX_HORIZONTAL_DRIFT = 60; // Maximum horizontal movement
+    const MOVE_THRESHOLD = 10; // Threshold to detect intentional swipe vs click
 
     const handleStart = (e) => {
+        // Only proceed if the activation condition is met
+        if (!shouldActivate()) {
+            return;
+        }
+
         const touch = e.touches ? e.touches[0] : e;
         startY = touch.clientY;
         startX = touch.clientX;
         startTime = Date.now();
+        isSwiping = false;
+    };
+
+    const handleMove = (e) => {
+        if (!startTime) return;
+
+        const touch = e.touches ? e.touches[0] : e;
+        const currentY = touch.clientY;
+        const deltaY = startY - currentY;
+
+        // If moved vertically more than threshold, it's a swipe (not a click)
+        if (Math.abs(deltaY) > MOVE_THRESHOLD) {
+            isSwiping = true;
+            // Prevent scrolling during swipe
+            if (e.cancelable) {
+                e.preventDefault();
+            }
+        }
     };
 
     const handleEnd = (e) => {
+        if (!startTime) return;
+
         const touch = e.changedTouches ? e.changedTouches[0] : e;
         const endY = touch.clientY;
         const endX = touch.clientX;
@@ -36,30 +63,49 @@ function addSwipeUpDetector(element, callback) {
         const deltaX = Math.abs(endX - startX);
         const deltaTime = endTime - startTime;
 
+        // Reset state
+        startTime = 0;
+
         // Check if it's a valid upward swipe
-        if (deltaY > MIN_DISTANCE &&
+        if (isSwiping &&
+            deltaY > MIN_DISTANCE &&
             deltaX < MAX_HORIZONTAL_DRIFT &&
             deltaTime < MAX_TIME) {
 
             console.log('[SwipeUp] ✅ Swipe up detected!', {
                 distance: deltaY,
-                time: deltaTime
+                time: deltaTime,
+                horizontal: deltaX
             });
+
+            // Prevent the click event from firing
+            e.preventDefault();
+            e.stopPropagation();
 
             // Haptic feedback
             if (navigator.vibrate) navigator.vibrate(50);
 
             callback();
         }
+
+        isSwiping = false;
     };
 
-    // Touch events
-    element.addEventListener('touchstart', handleStart, { passive: true });
-    element.addEventListener('touchend', handleEnd);
+    const handleCancel = () => {
+        startTime = 0;
+        isSwiping = false;
+    };
+
+    // Touch events (use capture phase to get events before click handlers)
+    element.addEventListener('touchstart', handleStart, { passive: true, capture: true });
+    element.addEventListener('touchmove', handleMove, { passive: false, capture: true });
+    element.addEventListener('touchend', handleEnd, { capture: true });
+    element.addEventListener('touchcancel', handleCancel, { capture: true });
 
     // Mouse events (for desktop testing)
-    element.addEventListener('mousedown', handleStart);
-    element.addEventListener('mouseup', handleEnd);
+    element.addEventListener('mousedown', handleStart, { capture: true });
+    element.addEventListener('mousemove', handleMove, { capture: true });
+    element.addEventListener('mouseup', handleEnd, { capture: true });
 }
 
 // Initialize after DOM is ready
@@ -99,36 +145,44 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('[SwipeUp] ✨ Revealing Dev tile');
             homeContainer.classList.add('flipped-out');
             devContainer.classList.add('flipped-in');
-            // Make Dev the centered tile
-            devContainer.classList.add('connected'); // Use 'connected' style like Home
+            // Transfer expanded state from Home to Dev
+            homeContainer.classList.remove('expanded');
+            devContainer.classList.add('expanded'); // Dev takes same size as Home
         } else {
             console.log('[SwipeUp] ✨ Hiding Dev tile');
             homeContainer.classList.remove('flipped-out');
             devContainer.classList.remove('flipped-in');
-            devContainer.classList.remove('connected');
+            // Restore expanded state to Home
+            devContainer.classList.remove('expanded');
+            homeContainer.classList.add('expanded');
         }
     }
 
-    // Add swipe-up to Home tile (only when Home is centered)
-    addSwipeUpDetector(homeTile, () => {
-        // Only trigger when on Home view (URL hash is empty or #Home)
-        const currentHash = decodeURIComponent(window.location.hash.slice(1));
-        if (currentHash !== '' && currentHash !== 'Home') {
-            console.log('[SwipeUp] Not on Home view, ignoring swipe');
-            return;
+    // Add swipe-up to Home tile (only when Home is expanded)
+    addSwipeUpDetector(
+        homeTile,
+        () => {
+            console.log('[SwipeUp] 🔓 Revealing Dev tile!');
+            flipTile(true);
+        },
+        () => {
+            // Only activate when Home is expanded (centered) and not already flipped
+            return homeContainer.classList.contains('expanded') && !window.devTileState.isFlipped;
         }
+    );
 
-        console.log('[SwipeUp] 🔓 Revealing Dev tile!');
-        flipTile(true);
-    });
-
-    // Add swipe-up to Dev tile to flip back
-    addSwipeUpDetector(devTile, () => {
-        if (window.devTileState.isFlipped) {
+    // Add swipe-up to Dev tile to flip back (only when Dev is visible)
+    addSwipeUpDetector(
+        devTile,
+        () => {
             console.log('[SwipeUp] 🔒 Hiding Dev tile!');
             flipTile(false);
+        },
+        () => {
+            // Only activate when Dev is flipped in
+            return window.devTileState.isFlipped;
         }
-    });
+    );
 
     console.log('[SwipeUp] ✅ Swipe-up gesture initialized');
     console.log('[SwipeUp] 🔐 Swipe up on Home to reveal Dev tools!');

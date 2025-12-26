@@ -117,12 +117,8 @@ window.updateVisibility = function(centerTitle) {
         tile.classList.remove('expanded', 'connected', 'dimmed');
 
         if (tileTitle === centerTitle) {
-            // Center tile is expanded (except Home - it stays simple for swipe gesture)
-            if (tileTitle !== 'Home') {
-                tile.classList.add('expanded');
-            } else {
-                tile.classList.add('connected'); // Home shows as "connected" instead
-            }
+            // Center tile is expanded
+            tile.classList.add('expanded');
         } else if (visibleTiles.includes(tileTitle)) {
             // Connected tiles show title only
             tile.classList.add('connected');

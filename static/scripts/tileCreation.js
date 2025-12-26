@@ -124,7 +124,6 @@ window.updateVisibility = function(centerTitle) {
         if (tileTitle === centerTitle) {
             // Center tile is expanded
             tile.classList.add('expanded');
-            console.log(`[updateVisibility] Expanding tile: ${tileTitle}`);
         } else if (visibleTiles.includes(tileTitle)) {
             // Connected tiles show title only
             tile.classList.add('connected');

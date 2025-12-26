@@ -140,22 +140,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const homeTile = homeContainer.querySelector('.tile');
     const devTile = devContainer.querySelector('.tile');
 
-    // Helper function to flip tiles - uses existing navigation system
+    // Helper function to flip tiles - purely visual swap, no navigation
     function flipTile(showDev) {
         window.devTileState.isFlipped = showDev;
 
         if (showDev) {
             console.log('[SwipeUp] ✨ Revealing Dev tile');
+            // Swap visual states
             homeContainer.classList.add('flipped-out');
+            homeContainer.classList.remove('expanded');
             devContainer.classList.add('flipped-in');
-            // Use the existing navigation system to handle expansion/state
-            window.centerOnTile('Dev');
+            devContainer.classList.add('expanded');
         } else {
             console.log('[SwipeUp] ✨ Hiding Dev tile');
+            // Restore to Home
             homeContainer.classList.remove('flipped-out');
+            homeContainer.classList.add('expanded');
             devContainer.classList.remove('flipped-in');
-            // Use the existing navigation system to handle expansion/state
-            window.centerOnTile('Home');
+            devContainer.classList.remove('expanded');
         }
     }
 

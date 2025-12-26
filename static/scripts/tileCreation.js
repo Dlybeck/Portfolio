@@ -63,6 +63,11 @@ window.createTile = function(title) {
         tile.style.background = "linear-gradient(135deg, #004477, #002255)";
     }
 
+    // Make Dev match Home styling (they're at the same position)
+    if (title === "Dev") {
+        tile.style.background = "linear-gradient(135deg, #004477, #002255)";
+    }
+
     return tileWrapper;
 }
 
@@ -112,6 +117,12 @@ window.updateVisibility = function(centerTitle) {
     const tiles = document.querySelectorAll('.tile-container');
     tiles.forEach(tile => {
         const tileTitle = tile.dataset.title;
+
+        // Skip Dev tile - it overlaps with Home at [0,0] and is managed by swipeUpReveal.js
+        // Including it here causes conflicts when flipped (it gets dimmed incorrectly)
+        if (tileTitle === 'Dev') {
+            return;
+        }
 
         // Reset all states first
         tile.classList.remove('expanded', 'connected', 'dimmed');

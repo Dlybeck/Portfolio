@@ -234,14 +234,15 @@
     transition: opacity 0.1s ease, transform 0.1s ease;
 }
 
-/* Disable hover effect on Home and Dev when tapping */
-.tile-container[data-title="Home"]:active,
-.tile-container[data-title="Dev"]:active {
+/* Disable hover effect on Home and Dev when tapping (but not when expanded) */
+.tile-container[data-title="Home"]:not(.expanded):active,
+.tile-container[data-title="Dev"]:not(.expanded):active {
     width: 150px !important;
     height: 150px !important;
 }
 
 /* Ensure expanded state works on both tiles */
+.tile-container[data-title="Home"].expanded,
 .tile-container[data-title="Dev"].expanded {
     width: 300px;
     height: 400px;

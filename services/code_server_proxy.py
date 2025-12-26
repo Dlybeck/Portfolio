@@ -55,24 +55,25 @@ class CodeServerProxy(BaseProxy):
             return body, {}
 
         # Create the injection script
+        # Note: The parent page (dev_dashboard.html) runs auth-service.js which handles
+        # automatic token refresh. Since iframe and parent share localStorage (same origin),
+        # this script only needs to sync the initial token - the parent handles refresh.
         injection = '''
 <script>
-// Store token from query parameter for code-server session persistence
+// Sync authentication token from query parameter
+// The parent window's auth-service.js handles automatic refresh
 (function() {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('tkn');
 
     if (token) {
-        // Store token and metadata in localStorage
-        localStorage.setItem('access_token', token);
-        localStorage.setItem('expires_in', '1800'); // 30 minutes in seconds
-        localStorage.setItem('login_time', Math.floor(Date.now() / 1000).toString());
-        console.log('[CodeServer] Stored authentication token from URL');
-
-        // Create a dummy refresh token (not used for refresh in code-server context)
-        // This prevents the auth service from skipping refresh checks
-        if (!localStorage.getItem('refresh_token')) {
-            localStorage.setItem('refresh_token', token);
+        // Only update access token if it's different (avoid overwriting during refresh)
+        const currentToken = localStorage.getItem('access_token');
+        if (currentToken !== token) {
+            localStorage.setItem('access_token', token);
+            // Update login time to match the new token
+            localStorage.setItem('login_time', Math.floor(Date.now() / 1000).toString());
+            console.log('[CodeServer] Synced authentication token from URL');
         }
 
         // Clean URL to remove token from history
@@ -82,64 +83,18 @@ class CodeServerProxy(BaseProxy):
         }
     }
 
-    // Simple token refresh service for code-server context
-    // Checks every 5 minutes and refreshes 5 minutes before expiry
-    setInterval(async function() {
+    // Monitor token expiration and redirect to login if session expires
+    // The parent's auth-service.js handles refresh, we just monitor for failures
+    setInterval(function() {
         const accessToken = localStorage.getItem('access_token');
-        const expiresIn = localStorage.getItem('expires_in');
-        const loginTime = localStorage.getItem('login_time');
+        const refreshToken = localStorage.getItem('refresh_token');
 
-        if (!accessToken || !expiresIn || !loginTime) {
-            return;
+        // If both tokens are missing, session has expired
+        if (!accessToken && !refreshToken) {
+            console.log('[CodeServer] Session expired, redirecting to login...');
+            window.location.href = window.location.origin + '/dev/login';
         }
-
-        const now = Math.floor(Date.now() / 1000);
-        const tokenAge = now - parseInt(loginTime);
-        const expiresInSeconds = parseInt(expiresIn);
-        const timeUntilExpiry = expiresInSeconds - tokenAge;
-
-        console.log('[CodeServer] Token age:', tokenAge, 's, expires in:', timeUntilExpiry, 's');
-
-        // Refresh if less than 5 minutes until expiry
-        if (timeUntilExpiry <= 300) {
-            console.log('[CodeServer] Token expiring soon, refreshing...');
-
-            try {
-                // Get the current origin (portfolio server, not code-server)
-                // Code-server is served at /dev/vscode, so we go up to the root
-                const portfolioOrigin = window.location.origin;
-                const refreshToken = localStorage.getItem('refresh_token');
-
-                const response = await fetch(portfolioOrigin + '/auth/refresh', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        refresh_token: refreshToken
-                    })
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    localStorage.setItem('access_token', data.access_token);
-                    localStorage.setItem('refresh_token', data.refresh_token);
-                    localStorage.setItem('expires_in', data.expires_in.toString());
-                    localStorage.setItem('login_time', Math.floor(Date.now() / 1000).toString());
-                    console.log('[CodeServer] Token refreshed successfully');
-                } else {
-                    console.error('[CodeServer] Token refresh failed:', response.status);
-                    if (response.status === 401) {
-                        // Refresh token expired, redirect to login
-                        console.log('[CodeServer] Session expired, redirecting to login...');
-                        window.location.href = portfolioOrigin + '/dev/login';
-                    }
-                }
-            } catch (error) {
-                console.error('[CodeServer] Token refresh error:', error);
-            }
-        }
-    }, 5 * 60 * 1000); // Check every 5 minutes
+    }, 60 * 1000); // Check every minute
 })();
 </script>
 '''

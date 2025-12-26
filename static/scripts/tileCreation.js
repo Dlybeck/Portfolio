@@ -113,11 +113,6 @@ window.updateVisibility = function(centerTitle) {
     tiles.forEach(tile => {
         const tileTitle = tile.dataset.title;
 
-        // Skip Dev tile - it's managed separately by swipe gesture (swipeUpReveal.js)
-        if (tileTitle === 'Dev') {
-            return;
-        }
-
         // Reset all states first
         tile.classList.remove('expanded', 'connected', 'dimmed');
 

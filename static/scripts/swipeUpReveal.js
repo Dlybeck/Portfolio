@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const homeTile = homeContainer.querySelector('.tile');
     const devTile = devContainer.querySelector('.tile');
 
-    // Helper function to flip tiles
+    // Helper function to flip tiles - uses existing navigation system
     function flipTile(showDev) {
         window.devTileState.isFlipped = showDev;
 
@@ -148,16 +148,14 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('[SwipeUp] ✨ Revealing Dev tile');
             homeContainer.classList.add('flipped-out');
             devContainer.classList.add('flipped-in');
-            // Transfer expanded state from Home to Dev
-            homeContainer.classList.remove('expanded');
-            devContainer.classList.add('expanded'); // Dev takes same size as Home
+            // Use the existing navigation system to handle expansion/state
+            window.centerOnTile('Dev');
         } else {
             console.log('[SwipeUp] ✨ Hiding Dev tile');
             homeContainer.classList.remove('flipped-out');
             devContainer.classList.remove('flipped-in');
-            // Restore expanded state to Home
-            devContainer.classList.remove('expanded');
-            homeContainer.classList.add('expanded');
+            // Use the existing navigation system to handle expansion/state
+            window.centerOnTile('Home');
         }
     }
 

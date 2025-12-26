@@ -112,13 +112,17 @@ window.updateVisibility = function(centerTitle) {
     const tiles = document.querySelectorAll('.tile-container');
     tiles.forEach(tile => {
         const tileTitle = tile.dataset.title;
-        
+
         // Reset all states first
         tile.classList.remove('expanded', 'connected', 'dimmed');
-        
+
         if (tileTitle === centerTitle) {
-            // Center tile is expanded
-            tile.classList.add('expanded');
+            // Center tile is expanded (except Home - it stays simple for swipe gesture)
+            if (tileTitle !== 'Home') {
+                tile.classList.add('expanded');
+            } else {
+                tile.classList.add('connected'); // Home shows as "connected" instead
+            }
         } else if (visibleTiles.includes(tileTitle)) {
             // Connected tiles show title only
             tile.classList.add('connected');

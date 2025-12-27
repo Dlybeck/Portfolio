@@ -1,24 +1,56 @@
-{% extends "shared/base.html" %}
-
-{% block title %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dev Hub</title>
-{% endblock %}
-
-{% block content %}
-    <link rel="stylesheet" href="/static/css/map.css">
     <style>
-        /* Full-screen dev hub with blue theme */
-        .dev-hub-container {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Navbar styling - replicate minimal navbar */
+        .navbar {
+            width: 100%;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
             position: fixed;
-            top: 60px; /* Below navbar */
+            top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
+            z-index: 1000;
+        }
+
+        .navbar-title {
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* Full-screen dev hub with clean background */
+        .dev-hub-container {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            margin-top: 60px; /* Account for fixed navbar */
         }
 
         .dev-tools-grid {
@@ -68,7 +100,21 @@
             opacity: 0.6;
             font-size: 14px;
         }
+
+        .back-hint a {
+            color: #66b3ff;
+            text-decoration: none;
+        }
+
+        .back-hint a:hover {
+            text-decoration: underline;
+        }
     </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-title">Dev Hub</div>
+    </nav>
 
     <div class="dev-hub-container">
         <div class="dev-tools-grid">
@@ -93,7 +139,7 @@
             </a>
         </div>
 
-        <p class="back-hint">Click the home button above to return to the portfolio</p>
+        <p class="back-hint"><a href="/">← Return to portfolio homepage</a></p>
     </div>
 
     <script src="/static/js/auth-service.js"></script>
@@ -128,4 +174,5 @@
             }
         });
     </script>
-{% endblock %}
+</body>
+</html>

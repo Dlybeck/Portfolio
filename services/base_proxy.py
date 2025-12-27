@@ -130,6 +130,12 @@ class BaseProxy:
                 if k.lower() not in excluded_resp_headers:
                     response_headers[k] = v
 
+            # Add Service-Worker-Allowed header for service worker scripts
+            # This allows service workers to control scopes outside their directory
+            if 'service-worker' in path.lower() and path.endswith('.js'):
+                response_headers['Service-Worker-Allowed'] = '/'
+                logger.info(f"[{self.__class__.__name__}] Added Service-Worker-Allowed header for {path}")
+
             # Decide whether to stream or buffer & rewrite
             if rewrite_body_callback:
                 try:

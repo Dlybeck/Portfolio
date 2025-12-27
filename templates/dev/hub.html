@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dev Hub</title>
+    <link rel="stylesheet" href="/static/css/map.css">
     <style>
         * {
             margin: 0;
@@ -13,57 +14,83 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: url('/static/imgs/sand_texture.jpg');
+            background-size: cover;
+            background-position: center;
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
-        /* Navbar styling - replicate minimal navbar */
-        .navbar {
-            width: 100%;
-            height: 60px;
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
+        /* Dev hub styled like mini-window */
+        .dev-hub-window {
+            width: 90%;
+            max-width: 900px;
+            height: 86vh;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 15px 10px 5px #444;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Back button matching existing close/back button style */
+        .back-button {
+            position: absolute;
+            top: 30px;
+            left: 10px;
+            width: 50px;
+            height: 50px;
+            background: #eee;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 30px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1000;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10;
+            transition: all 0.4s ease;
+            text-decoration: none;
         }
 
-        .navbar-title {
-            color: white;
-            font-size: 20px;
-            font-weight: bold;
+        .back-button:hover {
+            background: #ddd;
+            transform: scale(1.1);
         }
 
-        /* Full-screen dev hub with clean background */
+        /* Content area */
         .dev-hub-container {
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-            margin-top: 60px; /* Account for fixed navbar */
+            padding: 40px 20px;
+            overflow-y: auto;
+        }
+
+        .dev-hub-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 40px;
         }
 
         .dev-tools-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 30px;
-            max-width: 800px;
+            max-width: 700px;
             width: 100%;
         }
 
         .dev-tool-card {
             background: linear-gradient(135deg, #0077AA, #004477);
-            border-radius: 20px;
+            border-radius: 15px;
             padding: 40px;
             text-align: center;
             cursor: pointer;
@@ -71,11 +98,13 @@
             color: white;
             text-decoration: none;
             display: block;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
 
         .dev-tool-card:hover {
-            transform: scale(1.05);
+            transform: translateY(-5px);
             background: linear-gradient(135deg, #0088BB, #005588);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
         }
 
         .dev-tool-icon {
@@ -91,55 +120,49 @@
 
         .dev-tool-desc {
             font-size: 14px;
-            color: #DDD;
-        }
-
-        .back-hint {
-            margin-top: 30px;
-            color: white;
-            opacity: 0.6;
-            font-size: 14px;
-        }
-
-        .back-hint a {
-            color: #66b3ff;
-            text-decoration: none;
-        }
-
-        .back-hint a:hover {
-            text-decoration: underline;
+            color: rgba(255, 255, 255, 0.9);
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="navbar-title">Dev Hub</div>
-    </nav>
+    <div class="dev-hub-window">
+        <!-- Back button matching existing mini-window style -->
+        <a href="/" class="back-button">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      fill="none"/>
+            </svg>
+        </a>
 
-    <div class="dev-hub-container">
-        <div class="dev-tools-grid">
-            <!-- VS Code Card -->
-            <a href="/dev/vscode/?folder=/home/dlybeck/Documents/portfolio"
-               id="vscode-link"
-               target="vscode_window"
-               class="dev-tool-card">
-                <div class="dev-tool-icon">⌨️</div>
-                <div class="dev-tool-name">VS Code</div>
-                <div class="dev-tool-desc">Full IDE with Portfolio workspace</div>
-            </a>
+        <div class="dev-hub-container">
+            <h1 class="dev-hub-title">Developer Tools</h1>
 
-            <!-- AgentBridge Card -->
-            <a href="/dev/agentbridge"
-               id="agentbridge-link"
-               target="_blank"
-               class="dev-tool-card">
-                <div class="dev-tool-icon">🌉</div>
-                <div class="dev-tool-name">AgentBridge</div>
-                <div class="dev-tool-desc">AI-powered spec-driven development</div>
-            </a>
+            <div class="dev-tools-grid">
+                <!-- VS Code Card -->
+                <a href="/dev/vscode/?folder=/home/dlybeck/Documents/portfolio"
+                   id="vscode-link"
+                   target="vscode_window"
+                   class="dev-tool-card">
+                    <div class="dev-tool-icon">⌨️</div>
+                    <div class="dev-tool-name">VS Code</div>
+                    <div class="dev-tool-desc">Full IDE with Portfolio workspace</div>
+                </a>
+
+                <!-- AgentBridge Card -->
+                <a href="/dev/agentbridge"
+                   id="agentbridge-link"
+                   target="_blank"
+                   class="dev-tool-card">
+                    <div class="dev-tool-icon">🌉</div>
+                    <div class="dev-tool-name">AgentBridge</div>
+                    <div class="dev-tool-desc">AI-powered spec-driven development</div>
+                </a>
+            </div>
         </div>
-
-        <p class="back-hint"><a href="/">← Return to portfolio homepage</a></p>
     </div>
 
     <script src="/static/js/auth-service.js"></script>

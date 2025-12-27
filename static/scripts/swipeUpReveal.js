@@ -67,15 +67,17 @@ function addSwipeUpDetector(element, callback, shouldActivate) {
         startTime = 0;
 
         // Check if it's a valid upward swipe
-        if (isSwiping &&
-            deltaY > MIN_DISTANCE &&
+        // Note: Don't require isSwiping - fast swipes might not trigger enough move events
+        // The distance check itself is enough to distinguish from clicks
+        if (deltaY > MIN_DISTANCE &&
             deltaX < MAX_HORIZONTAL_DRIFT &&
             deltaTime < MAX_TIME) {
 
             console.log('[SwipeUp] ✅ Swipe up detected!', {
                 distance: deltaY,
                 time: deltaTime,
-                horizontal: deltaX
+                horizontal: deltaX,
+                triggeredMoveEvents: isSwiping
             });
 
             // Prevent the click event from firing

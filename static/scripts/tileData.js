@@ -28,9 +28,7 @@ window.tileInfo = {
     "Dev": [
         [0, 0],  // Same position as Home (underneath)
         `
-        Developer Tools & Admin Panel
-        <br><br>
-        Site management, analytics, and experimental features
+        My personal remote development hub
         `,
         `/dev`  // Opens dev hub
     ],

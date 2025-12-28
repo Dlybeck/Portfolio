@@ -28,11 +28,9 @@ window.tileInfo = {
     "Dev": [
         [0, 0],  // Same position as Home (underneath)
         `
-        🔓 Secret Unlocked!
+        Developer Tools & Admin Panel
         <br><br>
-        Development Tools
-        <br><br>
-        Click below to access
+        Site management, analytics, and experimental features
         `,
         `/dev`  // Opens dev hub
     ],

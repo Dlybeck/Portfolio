@@ -8,7 +8,7 @@ const SWIPE_CONFIG = {
     MAX_TIME: 800,               // Maximum time for gesture (ms)
     MAX_HORIZONTAL_DRIFT: 60,    // Maximum horizontal movement allowed
     MIN_MOVE_THRESHOLD: 5,       // Minimum movement to start tracking
-    ANIMATION_DURATION: 300      // Snap animation duration (ms)
+    ANIMATION_DURATION: 250      // Snap animation duration (ms)
 };
 
 // Haptic patterns
@@ -88,8 +88,11 @@ function animateSnap(currentProgress, targetProgress, homeContainer, devContaine
         const elapsed = currentTime - startTime;
         const t = Math.min(elapsed / SWIPE_CONFIG.ANIMATION_DURATION, 1);
 
-        // Ease-out cubic for smooth deceleration
-        const eased = 1 - Math.pow(1 - t, 3);
+        // Ease-out-back for snappy spring-like feel
+        // More aggressive than cubic - starts fast, overshoots slightly, settles
+        const c1 = 1.70158;
+        const c3 = c1 + 1;
+        const eased = 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
         const progress = startProgress + (delta * eased);
 
         applyFlipTransform(progress, homeContainer, devContainer);
@@ -218,6 +221,14 @@ function addDynamicSwipeDetector(element, onFlipComplete, onFlipRevert, shouldAc
         const deltaY = startY - endY;
         const deltaX = Math.abs(endX - startX);
         const deltaTime = endTime - startTime;
+
+        // Recalculate final progress using exact end position (touchmove might be stale)
+        const distanceRatio = deltaY / SWIPE_CONFIG.MAX_DISTANCE;
+        if (window.devTileState.isFlipped) {
+            currentProgress = Math.max(0, Math.min(1, 1 - distanceRatio));
+        } else {
+            currentProgress = Math.max(0, Math.min(1, distanceRatio));
+        }
 
         // Clean up
         startTime = 0;

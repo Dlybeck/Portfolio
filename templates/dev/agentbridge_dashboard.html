@@ -1,828 +1,818 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AgentBridge V2</title>
-    <link rel="stylesheet" href="/static/css/base.css">
-    <link rel="stylesheet" href="/static/dev/css/variables.css">
-    <link rel="stylesheet" href="/static/dev/css/dashboard.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <style>
-        :root {
-            --claude-color: #d4845e;
-            --gemini-color: #4285f4;
-            --primary-color: #006699;
-            --success-color: #238636;
-            --warning-color: #d29922;
-            --error-color: #f85149;
-            --bg-dark: #121212;
-            --bg-card: rgba(30, 30, 30, 0.92);
-            --border-color: rgba(255, 255, 255, 0.1);
-        }
+{% extends "shared/page.html" %}
 
-        body {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-            background-color: var(--bg-dark);
-            background-image: url("/static/images/sand2048.webp");
-            background-size: cover;
-            background-position: center;
-            color: white;
-        }
+{% block title %}
+    <title>SpecKit | David Lybeck</title>
+{% endblock %}
 
-        /* Dracula Navbar */
-        .dev-navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            width: 100%;
-            height: 35px;
-            background: #21222c;
-            border-bottom: 1px solid #44475a;
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+<style>
+    /* Override page.css defaults for full-height layout */
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+    }
 
-        .navbar-content {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            height: 100%;
-        }
+    .container {
+        max-width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        box-sizing: border-box;
+    }
 
-        .navbar-logo {
-            height: 20px;
-            width: auto;
-            border-radius: 3px;
-        }
+    #location {
+        margin: 0 0 20px 0;
+    }
 
-        .navbar-title {
-            font-size: 13px;
-            font-weight: 500;
-            color: #f8f8f2;
-            letter-spacing: 0.3px;
-        }
+    :root {
+        --claude-color: #d4845e;
+        --gemini-color: #4285f4;
+        --primary-color: #006699;
+        --success-color: #238636;
+        --warning-color: #d29922;
+        --error-color: #f85149;
+    }
 
-        .navbar-links {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
+    .main-card {
+        background: #EEE;
+        border: 3px solid black;
+        border-radius: 40px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        overflow: hidden;
+        min-height: 0;
+    }
 
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            font-size: 13px;
-            color: #f8f8f2;
-            text-decoration: none;
-            border-radius: 4px;
-            transition: all 0.15s ease;
-            cursor: pointer;
-            background: transparent;
-            border: none;
-            font-family: inherit;
-        }
+    /* Header with project selector and provider toggle */
+    .dashboard-header {
+        padding: 16px 20px;
+        border-bottom: 3px solid #DDD;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
 
-        .nav-item:hover {
-            background: #44475a;
-            color: #bd93f9;
-        }
+    .project-selector {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        min-width: 200px;
+    }
 
-        .nav-item.active {
-            background: #282a36;
-            color: #bd93f9;
-            border-bottom: 2px solid #bd93f9;
-        }
+    .project-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        border: 2px solid #ccc;
+        color: #333;
+        padding: 10px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        flex: 1;
+        max-width: 400px;
+        text-align: left;
+        transition: all 0.2s ease;
+    }
+    .project-btn:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-1px);
+    }
+    .project-btn .path {
+        color: #666;
+        font-family: monospace;
+        font-size: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .project-btn .name { font-weight: 600; color: var(--primary-color); }
 
-        .main-container {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 45px 16px 16px 16px;
-            max-width: 1100px;
-            margin: 0 auto;
-            width: 100%;
-            box-sizing: border-box;
-            overflow: hidden;
-        }
+    .provider-toggle {
+        background: white;
+        border: 2px solid #ccc;
+        border-radius: 10px;
+        padding: 4px;
+        display: flex;
+        gap: 4px;
+    }
 
-        .glass-card {
-            background: var(--bg-card);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-        }
+    .provider-btn {
+        padding: 6px 14px;
+        border-radius: 6px;
+        border: none;
+        background: transparent;
+        color: #666;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .provider-btn.active { color: white; }
+    .provider-btn.claude.active { background: var(--claude-color); }
+    .provider-btn.gemini.active { background: var(--gemini-color); }
 
-        /* Header with project selector and provider toggle */
-        .dashboard-header {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
+    /* Provider switch warning banner */
+    .provider-warning {
+        background: #fff3cd;
+        border-bottom: 2px solid var(--warning-color);
+        padding: 10px 20px;
+        font-size: 13px;
+        color: #856404;
+        display: none;
+    }
+    .provider-warning.visible { display: block; }
 
-        .project-selector {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-            min-width: 200px;
-        }
+    /* Stepper */
+    .stepper {
+        display: flex;
+        justify-content: space-between;
+        padding: 20px 30px;
+        background: #f8f8f8;
+        border-bottom: 2px solid #DDD;
+        position: relative;
+    }
 
-        .project-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border-color);
-            color: white;
-            padding: 8px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 13px;
-            flex: 1;
-            max-width: 400px;
-            text-align: left;
-        }
-        .project-btn:hover { background: rgba(0,0,0,0.5); }
-        .project-btn .path { color: #888; font-family: monospace; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .project-btn .name { font-weight: 600; }
+    .stepper::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 60px;
+        right: 60px;
+        height: 2px;
+        background: #DDD;
+        z-index: 0;
+        transform: translateY(-50%);
+    }
 
-        .provider-toggle {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 20px;
-            padding: 4px;
-            display: flex;
-            gap: 4px;
-        }
+    .step {
+        position: relative;
+        z-index: 1;
+        background: white;
+        min-width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 3px solid #ccc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 14px;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .step:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+    .step.active {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+        box-shadow: 0 4px 8px rgba(0, 102, 153, 0.3);
+    }
+    .step.completed {
+        background: var(--success-color);
+        border-color: var(--success-color);
+        color: white;
+    }
+    .step.ready {
+        border-color: var(--success-color);
+        color: var(--success-color);
+    }
 
-        .provider-btn {
-            padding: 6px 14px;
-            border-radius: 16px;
-            border: none;
-            background: transparent;
-            color: #666;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .provider-btn.active { color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-        .provider-btn.claude.active { background: var(--claude-color); }
-        .provider-btn.gemini.active { background: var(--gemini-color); }
+    .step-label {
+        position: absolute;
+        bottom: -24px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 11px;
+        white-space: nowrap;
+        color: #666;
+        font-weight: 600;
+    }
+    .step.active .step-label { color: var(--primary-color); }
+    .step.completed .step-label { color: var(--success-color); }
 
-        /* Provider switch warning banner */
-        .provider-warning {
-            background: rgba(210, 153, 34, 0.15);
-            border-bottom: 1px solid var(--warning-color);
-            padding: 8px 16px;
-            font-size: 12px;
-            color: var(--warning-color);
-            display: none;
-        }
-        .provider-warning.visible { display: block; }
+    /* Main content area */
+    .content-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        min-height: 0;
+    }
 
-        /* Stepper */
-        .stepper {
-            display: flex;
-            justify-content: space-between;
-            padding: 16px 24px;
-            background: rgba(0,0,0,0.2);
-            border-bottom: 1px solid var(--border-color);
-            position: relative;
-        }
+    /* Tab bar for Chat/Artifact */
+    .content-tabs {
+        display: flex;
+        border-bottom: 2px solid #DDD;
+        background: #f8f8f8;
+    }
 
-        .stepper::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50px;
-            right: 50px;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.1);
-            z-index: 0;
-            transform: translateY(-50%);
-        }
+    .content-tab {
+        padding: 12px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #666;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s;
+        background: transparent;
+    }
+    .content-tab:hover { color: #333; background: white; }
+    .content-tab.active {
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+        background: white;
+    }
+    .content-tab i { margin-right: 6px; }
 
-        .step {
-            position: relative;
-            z-index: 1;
-            background: #1e1e1e;
-            min-width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: 2px solid #444;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 13px;
-            color: #666;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .step:hover { border-color: #666; }
-        .step.active { background: var(--primary-color); border-color: var(--primary-color); color: white; box-shadow: 0 0 0 3px rgba(0, 102, 153, 0.3); }
-        .step.completed { background: var(--success-color); border-color: var(--success-color); color: white; }
-        .step.ready { border-color: var(--success-color); color: var(--success-color); }
+    .content-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        min-height: 0;
+    }
 
-        .step-label {
-            position: absolute;
-            bottom: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 10px;
-            white-space: nowrap;
-            color: #666;
-            font-weight: normal;
-        }
-        .step.active .step-label { color: white; }
-        .step.completed .step-label { color: var(--success-color); }
+    .tab-content {
+        display: none;
+        flex: 1;
+        overflow: hidden;
+        min-height: 0;
+    }
+    .tab-content.active { display: flex; flex-direction: column; }
 
-        /* Main content area - split into chat and artifact */
-        .content-wrapper {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
-        }
+    /* Chat panel */
+    .chat-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: white;
+    }
 
-        /* Tab bar for Chat/Artifact */
-        .content-tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border-color);
-            background: rgba(0,0,0,0.2);
-        }
+    .chat-message {
+        max-width: 85%;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 14px;
+        line-height: 1.6;
+    }
 
-        .content-tab {
-            padding: 10px 20px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #666;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
-        }
-        .content-tab:hover { color: #999; }
-        .content-tab.active { color: white; border-color: var(--primary-color); }
-        .content-tab i { margin-right: 6px; }
+    .chat-message.ai {
+        background: #e3f2fd;
+        border: 2px solid var(--primary-color);
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+        color: #333;
+    }
 
-        .content-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+    .chat-message.user {
+        background: #f5f5f5;
+        border: 2px solid #ccc;
+        align-self: flex-end;
+        border-bottom-right-radius: 4px;
+        color: #333;
+    }
 
-        .tab-content {
-            display: none;
-            flex: 1;
-            overflow: hidden;
-        }
-        .tab-content.active { display: flex; flex-direction: column; }
+    .chat-message.system {
+        background: #d4edda;
+        border: 2px solid var(--success-color);
+        align-self: center;
+        text-align: center;
+        font-size: 13px;
+        color: #155724;
+    }
 
-        /* Chat panel */
-        .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+    .chat-message.error {
+        background: #f8d7da;
+        border: 2px solid var(--error-color);
+        color: #721c24;
+    }
 
-        .chat-message {
-            max-width: 85%;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 14px;
-            line-height: 1.5;
-        }
+    .chat-message .sender {
+        font-size: 11px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        opacity: 0.7;
+        text-transform: uppercase;
+    }
 
-        .chat-message.ai {
-            background: rgba(0, 102, 153, 0.15);
-            border: 1px solid rgba(0, 102, 153, 0.3);
-            align-self: flex-start;
-            border-bottom-left-radius: 4px;
-        }
+    .chat-message pre {
+        background: #f8f8f8;
+        padding: 10px;
+        border-radius: 6px;
+        overflow-x: auto;
+        margin: 8px 0;
+        font-size: 13px;
+        border: 1px solid #ddd;
+    }
 
-        .chat-message.user {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            align-self: flex-end;
-            border-bottom-right-radius: 4px;
-        }
+    /* Artifact panel */
+    .artifact-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px;
+        background: white;
+    }
 
-        .chat-message.system {
-            background: rgba(35, 134, 54, 0.15);
-            border: 1px solid rgba(35, 134, 54, 0.3);
-            align-self: center;
-            text-align: center;
-            font-size: 13px;
-            color: var(--success-color);
-        }
+    .markdown-body {
+        color: #333;
+        line-height: 1.6;
+        font-size: 14px;
+    }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+        color: var(--primary-color);
+        margin-top: 1em;
+        margin-bottom: 0.5em;
+    }
+    .markdown-body code {
+        background: #f5f5f5;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 13px;
+        border: 1px solid #ddd;
+    }
+    .markdown-body pre {
+        background: #f8f8f8;
+        padding: 12px;
+        border-radius: 8px;
+        overflow-x: auto;
+        border: 1px solid #ddd;
+    }
+    .markdown-body ul, .markdown-body ol { padding-left: 24px; }
+    .markdown-body li { margin: 6px 0; }
 
-        .chat-message.error {
-            background: rgba(248, 81, 73, 0.15);
-            border: 1px solid rgba(248, 81, 73, 0.3);
-            color: var(--error-color);
-        }
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+    .empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state p { margin: 8px 0; font-size: 14px; }
 
-        .chat-message .sender {
-            font-size: 11px;
-            font-weight: 600;
-            margin-bottom: 4px;
-            opacity: 0.7;
-        }
+    /* Input area */
+    .input-area {
+        padding: 16px 20px;
+        background: #f8f8f8;
+        border-top: 2px solid #DDD;
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+    }
 
-        .chat-message pre {
-            background: rgba(0,0,0,0.3);
-            padding: 8px 12px;
-            border-radius: 6px;
-            overflow-x: auto;
-            margin: 8px 0;
-            font-size: 12px;
-        }
+    .chat-input-wrapper {
+        flex: 1;
+        position: relative;
+    }
 
-        /* Artifact panel */
-        .artifact-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-        }
+    .chat-input {
+        width: 100%;
+        background: white;
+        border: 2px solid #ccc;
+        color: #333;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 14px;
+        resize: none;
+        min-height: 44px;
+        max-height: 120px;
+        line-height: 1.4;
+        font-family: inherit;
+    }
+    .chat-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+    .chat-input::placeholder { color: #999; }
 
-        .markdown-body {
-            color: #ddd;
-            line-height: 1.6;
-            font-size: 14px;
-        }
-        .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: white; margin-top: 0.5em; }
-        .markdown-body code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
-        .markdown-body pre { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; overflow-x: auto; }
-        .markdown-body ul, .markdown-body ol { padding-left: 24px; }
-        .markdown-body li { margin: 4px 0; }
+    .slash-hint {
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        background: white;
+        border: 2px solid #ccc;
+        border-radius: 10px;
+        padding: 8px 0;
+        margin-bottom: 8px;
+        display: none;
+        min-width: 240px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .slash-hint.visible { display: block; }
+    .slash-hint-item {
+        padding: 10px 16px;
+        font-size: 13px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .slash-hint-item:hover { background: #f5f5f5; }
+    .slash-hint-item .cmd {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+    .slash-hint-item .desc { color: #666; font-size: 12px; }
 
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #666;
-        }
-        .empty-state i { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
-        .empty-state p { margin: 8px 0; }
+    .send-btn {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        width: 46px;
+        height: 46px;
+        border-radius: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .send-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 102, 153, 0.3);
+    }
+    .send-btn:active { transform: translateY(0); }
+    .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* Input area */
-        .input-area {
-            padding: 12px 16px;
-            background: rgba(0,0,0,0.3);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-        }
+    .action-btn {
+        background: white;
+        color: #333;
+        border: 2px solid #ccc;
+        padding: 10px 18px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+    .action-btn:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-1px);
+    }
+    .action-btn.primary {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+    .action-btn.primary:hover {
+        box-shadow: 0 4px 8px rgba(0, 102, 153, 0.3);
+    }
+    .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .chat-input-wrapper {
-            flex: 1;
-            position: relative;
-        }
+    /* Feature selector in header */
+    .feature-selector {
+        background: white;
+        border: 2px solid #ccc;
+        color: #333;
+        padding: 10px 12px;
+        border-radius: 10px;
+        font-size: 13px;
+        cursor: pointer;
+    }
 
-        .chat-input {
-            width: 100%;
-            background: rgba(0,0,0,0.4);
-            border: 1px solid var(--border-color);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 14px;
-            resize: none;
-            min-height: 44px;
-            max-height: 120px;
-            line-height: 1.4;
-            font-family: inherit;
-        }
-        .chat-input:focus { outline: none; border-color: var(--primary-color); }
-        .chat-input::placeholder { color: #666; }
+    /* Status indicator */
+    .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: #666;
+        font-weight: 600;
+    }
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #ccc;
+    }
+    .status-dot.ready { background: var(--success-color); }
+    .status-dot.running {
+        background: var(--primary-color);
+        animation: pulse 1s infinite;
+    }
+    .status-dot.error { background: var(--error-color); }
 
-        .slash-hint {
-            position: absolute;
-            bottom: 100%;
-            left: 0;
-            background: #1e1e1e;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 8px 0;
-            margin-bottom: 4px;
-            display: none;
-            min-width: 200px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-        .slash-hint.visible { display: block; }
-        .slash-hint-item {
-            padding: 8px 16px;
-            font-size: 13px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .slash-hint-item:hover { background: rgba(255,255,255,0.1); }
-        .slash-hint-item .cmd { color: var(--primary-color); font-weight: 600; }
-        .slash-hint-item .desc { color: #888; font-size: 12px; }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
 
-        .send-btn {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            transition: transform 0.1s, opacity 0.2s;
-        }
-        .send-btn:hover { transform: scale(1.05); }
-        .send-btn:active { transform: scale(0.95); }
-        .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    /* File browser modal */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    .modal-overlay.visible { display: flex; }
 
-        .action-btn {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 1px solid var(--border-color);
-            padding: 10px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-        .action-btn:hover { background: rgba(255,255,255,0.15); }
-        .action-btn.primary { background: var(--primary-color); border-color: var(--primary-color); }
-        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .file-browser {
+        background: white;
+        border: 3px solid black;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 700px;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
 
-        /* Feature selector in header */
-        .feature-selector {
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border-color);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 13px;
-            cursor: pointer;
-        }
+    .file-browser-header {
+        padding: 20px;
+        border-bottom: 2px solid #DDD;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f8f8f8;
+    }
 
-        /* Status indicator */
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: #888;
-        }
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #666;
-        }
-        .status-dot.ready { background: var(--success-color); }
-        .status-dot.running { background: var(--primary-color); animation: pulse 1s infinite; }
-        .status-dot.error { background: var(--error-color); }
+    .file-browser-header h3 {
+        margin: 0;
+        font-size: 18px;
+        color: var(--primary-color);
+    }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
+    .breadcrumbs {
+        display: flex;
+        gap: 6px;
+        padding: 12px 20px;
+        background: #f5f5f5;
+        font-size: 13px;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        border-bottom: 1px solid #ddd;
+    }
+    .breadcrumb {
+        color: #666;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    .breadcrumb:hover { color: var(--primary-color); }
+    .breadcrumb:last-child { color: #333; font-weight: 600; }
+    .breadcrumb-sep { color: #999; }
 
-        /* File browser modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .modal-overlay.visible { display: flex; }
+    .file-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px;
+    }
 
-        .file-browser {
-            background: #1e1e1e;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+    .file-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
+    .file-item:hover { background: #f5f5f5; }
+    .file-item.selected {
+        background: #e3f2fd;
+        border: 2px solid var(--primary-color);
+    }
+    .file-item i { color: #666; width: 20px; text-align: center; }
+    .file-item.is-git i { color: #f14e32; }
+    .file-item.is-speckit i { color: var(--success-color); }
+    .file-item .badges { display: flex; gap: 6px; margin-left: auto; }
+    .file-item .badge {
+        font-size: 10px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: #e0e0e0;
+        font-weight: 600;
+        color: #666;
+    }
 
-        .file-browser-header {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .file-browser-footer {
+        padding: 16px 20px;
+        border-top: 2px solid #DDD;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        background: #f8f8f8;
+    }
 
-        .file-browser-header h3 { margin: 0; font-size: 16px; }
+    .recent-projects {
+        padding: 16px 20px;
+        border-bottom: 2px solid #DDD;
+        background: #fafafa;
+    }
+    .recent-projects h4 {
+        margin: 0 0 12px 0;
+        font-size: 13px;
+        color: #666;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .recent-list { display: flex; flex-direction: column; gap: 6px; }
 
-        .breadcrumbs {
-            display: flex;
-            gap: 4px;
-            padding: 12px 16px;
-            background: rgba(0,0,0,0.2);
-            font-size: 13px;
-            overflow-x: auto;
-            flex-wrap: nowrap;
-        }
-        .breadcrumb {
-            color: #888;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .breadcrumb:hover { color: white; }
-        .breadcrumb:last-child { color: white; }
-        .breadcrumb-sep { color: #444; }
+    .init-banner {
+        background: #fff3cd;
+        border-bottom: 2px solid var(--warning-color);
+        padding: 16px 20px;
+        display: none;
+    }
+    .init-banner.visible { display: flex; }
+</style>
 
-        .file-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 8px;
-        }
+<div class="container">
+    <h2 id="location">SpecKit</h2>
 
-        .file-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .file-item:hover { background: rgba(255,255,255,0.05); }
-        .file-item.selected { background: rgba(0, 102, 153, 0.2); }
-        .file-item i { color: #888; width: 20px; text-align: center; }
-        .file-item.is-git i { color: #f14e32; }
-        .file-item.is-speckit i { color: var(--success-color); }
-        .file-item .badges { display: flex; gap: 6px; margin-left: auto; }
-        .file-item .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.1); }
-
-        .file-browser-footer {
-            padding: 12px 16px;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-        }
-
-        .recent-projects {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .recent-projects h4 { margin: 0 0 8px 0; font-size: 12px; color: #888; font-weight: normal; }
-        .recent-list { display: flex; flex-direction: column; gap: 4px; }
-    </style>
-    <script src="/static/js/auth-service.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-</head>
-<body>
-
-    <!-- Dracula Navbar -->
-    <nav class="dev-navbar">
-      <div class="navbar-content">
-        <img src="/static/images/Logo.webp" alt="Logo" class="navbar-logo">
-        <div class="navbar-title">AgentBridge</div>
-      </div>
-      <div class="navbar-links">
-        <a href="/dev" class="nav-item" title="Dev Hub">
-          <span>🏠</span>
-          <span>Hub</span>
-        </a>
-        <a href="http://localhost:8888/?folder=/home/dlybeck/Documents/portfolio"
-           target="vscode_window"
-           class="nav-item"
-           title="VS Code Editor"
-           onclick="appendToken(event, this)">
-          <span>⌨️</span>
-          <span>Editor</span>
-        </a>
-        <a href="/dev/agentbridge" class="nav-item active" title="Agent Bridge">
-          <span>🌉</span>
-          <span>Bridge</span>
-        </a>
-        <button class="nav-item" onclick="logout()" title="Logout">
-          <span>🚪</span>
-          <span>Logout</span>
-        </button>
-      </div>
-    </nav>
-
-    <div class="main-container">
-        <div class="glass-card">
-
-            <!-- Header: Project selector and provider toggle -->
-            <div class="dashboard-header">
-                <div class="project-selector">
-                    <button class="project-btn" onclick="openFileBrowser()">
-                        <i class="bi bi-folder2-open"></i>
-                        <div>
-                            <div class="name" id="project-name">Loading...</div>
-                            <div class="path" id="project-path">/path/to/project</div>
-                        </div>
-                        <i class="bi bi-chevron-down" style="margin-left: auto; opacity: 0.5;"></i>
-                    </button>
-                    <select id="feature-select" class="feature-selector" onchange="selectFeature(this.value)">
-                        <option value="">New Feature...</option>
-                    </select>
-                </div>
-
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div class="status-indicator">
-                        <div class="status-dot" id="status-dot"></div>
-                        <span id="status-text">Ready</span>
-                    </div>
-                    <div class="provider-toggle">
-                        <button class="provider-btn claude active" onclick="switchProvider('claude')">Claude</button>
-                        <button class="provider-btn gemini" onclick="switchProvider('gemini')">Gemini</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Provider switch warning -->
-            <div class="provider-warning" id="provider-warning">
-                <i class="bi bi-exclamation-triangle"></i>
-                Switched to <span id="new-provider-name">Gemini</span> — AI context was not carried over
-            </div>
-
-            <!-- Init SpecKit banner (shown when not initialized) -->
-            <div class="init-banner" id="init-banner" style="display: none;">
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(210, 153, 34, 0.15); border-bottom: 1px solid var(--warning-color);">
+    <div class="main-card">
+        <!-- Header: Project selector and provider toggle -->
+        <div class="dashboard-header">
+            <div class="project-selector">
+                <button class="project-btn" onclick="openFileBrowser()">
+                    <i class="bi bi-folder2-open"></i>
                     <div>
-                        <i class="bi bi-exclamation-triangle" style="color: var(--warning-color); margin-right: 8px;"></i>
-                        <span style="color: var(--warning-color);">SpecKit not initialized in this project</span>
+                        <div class="name" id="project-name">Loading...</div>
+                        <div class="path" id="project-path">/path/to/project</div>
                     </div>
-                    <button class="action-btn primary" onclick="initSpecKit()" id="init-btn">
-                        <i class="bi bi-play-fill"></i> Init SpecKit
-                    </button>
-                </div>
+                    <i class="bi bi-chevron-down" style="margin-left: auto; opacity: 0.5;"></i>
+                </button>
+                <select id="feature-select" class="feature-selector" onchange="selectFeature(this.value)">
+                    <option value="">New Feature...</option>
+                </select>
             </div>
 
-            <!-- Stepper -->
-            <div class="stepper">
-                <div class="step" data-step="constitution" onclick="setStep('constitution')" id="step-constitution">
-                    <i class="bi bi-book"></i>
-                    <span class="step-label">Constitution</span>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="status-indicator">
+                    <div class="status-dot" id="status-dot"></div>
+                    <span id="status-text">Ready</span>
                 </div>
-                <div class="step active" data-step="specify" onclick="setStep('specify')" id="step-specify">
-                    1
-                    <span class="step-label">Specify</span>
-                </div>
-                <div class="step" data-step="plan" onclick="setStep('plan')" id="step-plan">
-                    2
-                    <span class="step-label">Plan</span>
-                </div>
-                <div class="step" data-step="tasks" onclick="setStep('tasks')" id="step-tasks">
-                    3
-                    <span class="step-label">Tasks</span>
-                </div>
-                <div class="step" data-step="implement" onclick="setStep('implement')" id="step-implement">
-                    4
-                    <span class="step-label">Implement</span>
+                <div class="provider-toggle">
+                    <button class="provider-btn claude active" onclick="switchProvider('claude')">Claude</button>
+                    <button class="provider-btn gemini" onclick="switchProvider('gemini')">Gemini</button>
                 </div>
             </div>
-
-            <!-- Content area with tabs -->
-            <div class="content-wrapper">
-                <div class="content-panel">
-                    <div class="content-tabs">
-                        <div class="content-tab active" data-tab="chat" onclick="setTab('chat')">
-                            <i class="bi bi-chat-dots"></i> Chat
-                        </div>
-                        <div class="content-tab" data-tab="artifact" onclick="setTab('artifact')">
-                            <i class="bi bi-file-text"></i> <span id="artifact-tab-name">Artifact</span>
-                        </div>
-                    </div>
-
-                    <!-- Chat tab -->
-                    <div class="tab-content active" id="tab-chat">
-                        <div class="chat-container" id="chat-container">
-                            <div class="chat-message system">
-                                <i class="bi bi-info-circle"></i> Ready to start. Describe your feature or select a step above.
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Artifact tab -->
-                    <div class="tab-content" id="tab-artifact">
-                        <div class="artifact-container" id="artifact-container">
-                            <div class="empty-state">
-                                <i class="bi bi-file-earmark-text"></i>
-                                <p>No artifact generated yet</p>
-                                <p style="font-size: 12px; color: #555;">Complete the current step to generate content</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Input area -->
-                    <div class="input-area">
-                        <div class="chat-input-wrapper">
-                            <div class="slash-hint" id="slash-hint">
-                                <div class="slash-hint-item" onclick="insertSlashCommand('/clarify')">
-                                    <span class="cmd">/clarify</span>
-                                    <span class="desc">Ask clarifying questions</span>
-                                </div>
-                                <div class="slash-hint-item" onclick="insertSlashCommand('/analyze')">
-                                    <span class="cmd">/analyze</span>
-                                    <span class="desc">Check consistency</span>
-                                </div>
-                                <div class="slash-hint-item" onclick="insertSlashCommand('/checklist')">
-                                    <span class="cmd">/checklist</span>
-                                    <span class="desc">Generate checklist</span>
-                                </div>
-                            </div>
-                            <textarea
-                                id="chat-input"
-                                class="chat-input"
-                                placeholder="Type a message or /command... (Shift+Enter for new line)"
-                                rows="1"
-                            ></textarea>
-                        </div>
-                        <button class="action-btn primary" id="step-action-btn" onclick="runStepAction()">
-                            <i class="bi bi-play-fill"></i> <span id="step-action-text">Specify</span>
-                        </button>
-                        <button class="send-btn" onclick="sendMessage()" id="send-btn">
-                            <i class="bi bi-send"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
         </div>
-    </div>
 
-    <!-- File Browser Modal -->
-    <div class="modal-overlay" id="file-browser-modal">
-        <div class="file-browser">
-            <div class="file-browser-header">
-                <h3><i class="bi bi-folder2-open"></i> Select Project</h3>
-                <button onclick="closeFileBrowser()" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">
-                    <i class="bi bi-x"></i>
+        <!-- Provider switch warning -->
+        <div class="provider-warning" id="provider-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            Switched to <span id="new-provider-name">Gemini</span> — AI context was not carried over
+        </div>
+
+        <!-- Init SpecKit banner (shown when not initialized) -->
+        <div class="init-banner" id="init-banner">
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <div>
+                    <i class="bi bi-exclamation-triangle" style="color: var(--warning-color); margin-right: 8px;"></i>
+                    <span style="color: #856404;">SpecKit not initialized in this project</span>
+                </div>
+                <button class="action-btn primary" onclick="initSpecKit()" id="init-btn">
+                    <i class="bi bi-play-fill"></i> Init SpecKit
                 </button>
             </div>
-            <div class="recent-projects" id="recent-projects">
-                <h4>Recent Projects</h4>
-                <div class="recent-list" id="recent-list"></div>
+        </div>
+
+        <!-- Stepper -->
+        <div class="stepper">
+            <div class="step" data-step="constitution" onclick="setStep('constitution')" id="step-constitution">
+                <i class="bi bi-book"></i>
+                <span class="step-label">Constitution</span>
             </div>
-            <div class="breadcrumbs" id="breadcrumbs"></div>
-            <div class="file-list" id="file-list"></div>
-            <div class="file-browser-footer">
-                <button class="action-btn" onclick="closeFileBrowser()">Cancel</button>
-                <button class="action-btn primary" onclick="selectProject()" id="select-project-btn">Select</button>
+            <div class="step active" data-step="specify" onclick="setStep('specify')" id="step-specify">
+                1
+                <span class="step-label">Specify</span>
+            </div>
+            <div class="step" data-step="plan" onclick="setStep('plan')" id="step-plan">
+                2
+                <span class="step-label">Plan</span>
+            </div>
+            <div class="step" data-step="tasks" onclick="setStep('tasks')" id="step-tasks">
+                3
+                <span class="step-label">Tasks</span>
+            </div>
+            <div class="step" data-step="implement" onclick="setStep('implement')" id="step-implement">
+                4
+                <span class="step-label">Implement</span>
+            </div>
+        </div>
+
+        <!-- Content area with tabs -->
+        <div class="content-wrapper">
+            <div class="content-panel">
+                <div class="content-tabs">
+                    <div class="content-tab active" data-tab="chat" onclick="setTab('chat')">
+                        <i class="bi bi-chat-dots"></i> Chat
+                    </div>
+                    <div class="content-tab" data-tab="artifact" onclick="setTab('artifact')">
+                        <i class="bi bi-file-text"></i> <span id="artifact-tab-name">Artifact</span>
+                    </div>
+                </div>
+
+                <!-- Chat tab -->
+                <div class="tab-content active" id="tab-chat">
+                    <div class="chat-container" id="chat-container">
+                        <div class="chat-message system">
+                            <i class="bi bi-info-circle"></i> Ready to start. Describe your feature or select a step above.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Artifact tab -->
+                <div class="tab-content" id="tab-artifact">
+                    <div class="artifact-container" id="artifact-container">
+                        <div class="empty-state">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <p>No artifact generated yet</p>
+                            <p style="font-size: 12px; color: #999;">Complete the current step to generate content</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input area -->
+                <div class="input-area">
+                    <div class="chat-input-wrapper">
+                        <div class="slash-hint" id="slash-hint">
+                            <div class="slash-hint-item" onclick="insertSlashCommand('/clarify')">
+                                <span class="cmd">/clarify</span>
+                                <span class="desc">Ask clarifying questions</span>
+                            </div>
+                            <div class="slash-hint-item" onclick="insertSlashCommand('/analyze')">
+                                <span class="cmd">/analyze</span>
+                                <span class="desc">Check consistency</span>
+                            </div>
+                            <div class="slash-hint-item" onclick="insertSlashCommand('/checklist')">
+                                <span class="cmd">/checklist</span>
+                                <span class="desc">Generate checklist</span>
+                            </div>
+                        </div>
+                        <textarea
+                            id="chat-input"
+                            class="chat-input"
+                            placeholder="Type a message or /command... (Shift+Enter for new line)"
+                            rows="1"
+                        ></textarea>
+                    </div>
+                    <button class="action-btn primary" id="step-action-btn" onclick="runStepAction()">
+                        <i class="bi bi-play-fill"></i> <span id="step-action-text">Specify</span>
+                    </button>
+                    <button class="send-btn" onclick="sendMessage()" id="send-btn">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="/static/dev/js/agentbridge.js"></script>
-    <script>
-        // Logout function
-        function logout() {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('agentbridge_provider');
-            window.location.href = '/dev/login';
-        }
+<!-- File Browser Modal -->
+<div class="modal-overlay" id="file-browser-modal">
+    <div class="file-browser">
+        <div class="file-browser-header">
+            <h3><i class="bi bi-folder2-open"></i> Select Project</h3>
+            <button onclick="closeFileBrowser()" style="background: none; border: none; color: #333; font-size: 24px; cursor: pointer;">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="recent-projects" id="recent-projects">
+            <h4>Recent Projects</h4>
+            <div class="recent-list" id="recent-list"></div>
+        </div>
+        <div class="breadcrumbs" id="breadcrumbs"></div>
+        <div class="file-list" id="file-list"></div>
+        <div class="file-browser-footer">
+            <button class="action-btn" onclick="closeFileBrowser()">Cancel</button>
+            <button class="action-btn primary" onclick="selectProject()" id="select-project-btn">Select</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-        // Append token to VS Code link
-        function appendToken(event, element) {
-            const token = localStorage.getItem('access_token');
-            if (token) {
-                const url = new URL(element.href);
-                url.searchParams.set('tkn', token);
-                element.href = url.toString();
-            }
-        }
-    </script>
-</body>
-</html>
+{% block scripts %}
+<script src="/static/js/auth-service.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="/static/dev/js/agentbridge.js"></script>
+<script>
+    // Start automatic token refresh to keep session alive
+    window.authService.startAutoRefresh();
+</script>
+{% endblock %}

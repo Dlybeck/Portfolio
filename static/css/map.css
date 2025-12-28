@@ -182,55 +182,32 @@
     transform: scale(1.1);
 }
 
-/* Secret Dev Tile - Triple-Tap Flip Animation */
-/* Follows existing transition pattern (0.4s ease) with 3D transform */
-/* !important needed to override inline styles from positionTile() */
+/* Secret Dev Tile - Dynamic Swipe Flip Animation */
+/* Transforms are applied dynamically via JS during drag */
+/* CSS only provides 3D context and initial state */
 
 .tile-container[data-title="Dev"] {
-    z-index: 0 !important; /* Behind Home */
+    z-index: 0 !important; /* Behind Home initially */
     opacity: 0;
     transform: translate(-50%, -50%) rotateY(180deg);
-    transition: all 0.4s ease; /* Match normal tile transitions */
     transform-style: preserve-3d;
     backface-visibility: hidden;
     pointer-events: none;
 }
 
 .tile-container[data-title="Home"] {
-    z-index: 10 !important; /* Above Dev */
-    /* No !important on transform - let navigation system control positioning */
-    transition: all 0.4s ease; /* Match normal tile transitions */
+    z-index: 10 !important; /* Above Dev initially */
     transform-style: preserve-3d;
     backface-visibility: hidden;
 }
 
-/* Flip Home out (rotate backward) - creates smooth card-flip effect */
+/* State classes for proper state management (classes set after animation completes) */
 .tile-container[data-title="Home"].flipped-out {
-    transform: translate(-50%, -50%) rotateY(-180deg) !important;
-    opacity: 0;
     pointer-events: none;
-    z-index: 0 !important; /* Send to back after flip */
-    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
-                opacity 0.25s ease 0.15s,
-                z-index 0s 0.25s; /* Swap z-index mid-animation */
 }
 
-/* Flip Dev in (rotate backward to reveal) - mirrors Home animation */
 .tile-container[data-title="Dev"].flipped-in {
-    transform: translate(-50%, -50%) rotateY(0deg) !important;
-    opacity: 1;
-    z-index: 10 !important; /* Bring to front */
     pointer-events: auto;
-    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
-                opacity 0.25s ease 0.15s,
-                z-index 0s 0.25s; /* Swap z-index mid-animation */
-}
-
-/* Visual feedback during long-press (added by devTileReveal.js) */
-.tile.is-pressing {
-    opacity: 0.7;
-    transform: scale(0.95);
-    transition: opacity 0.1s ease, transform 0.1s ease;
 }
 
 /* Disable hover effect when tapping (mobile) - but not when expanded */

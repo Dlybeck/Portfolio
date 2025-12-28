@@ -28,11 +28,7 @@ window.tileInfo = {
     "Dev": [
         [0, 0],  // Same position as Home (underneath)
         `
-        🔓 Secret Unlocked!
-        <br><br>
-        Development Tools
-        <br><br>
-        Click below to access
+        My personal remote development hub
         `,
         `/dev`  // Opens dev hub
     ],

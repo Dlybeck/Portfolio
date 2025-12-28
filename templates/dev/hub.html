@@ -6,63 +6,144 @@
 
 {% block content %}
   <style>
+    .container {
+      max-width: 70%;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .intro-section {
+      background-color: #EEE;
+      border: 3px solid black;
+      border-radius: 40px;
+      padding: 30px;
+      margin: 20px auto;
+      text-align: center;
+    }
+
+    .intro-section p {
+      color: #333;
+      font-size: 16px;
+      line-height: 1.6;
+      margin: 10px 0;
+    }
+
     .dev-tools-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 30px;
-      max-width: 70%;
       margin: 40px auto;
     }
 
     .dev-tool-card {
-      background: linear-gradient(135deg, #0077AA, #004477);
-      border-radius: 15px;
-      padding: 40px;
+      background: #EEE;
+      border: 3px solid black;
+      border-radius: 40px;
+      padding: 50px 40px;
       text-align: center;
       cursor: pointer;
-      transition: all 0.4s ease;
-      color: white;
+      transition: all 0.3s ease;
+      color: #333;
       text-decoration: none;
-      display: block;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dev-tool-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: linear-gradient(135deg, #006699, #004477);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
     }
 
     .dev-tool-card:hover {
       transform: translateY(-5px);
-      background: linear-gradient(135deg, #0088BB, #005588);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      box-shadow: 0 8px 20px rgba(0, 102, 153, 0.3);
+      border-color: #006699;
+    }
+
+    .dev-tool-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .dev-tool-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      filter: grayscale(0.2);
     }
 
     .dev-tool-name {
-      font-size: 24px;
+      font-size: 28px;
       font-weight: bold;
-      margin-bottom: 8px;
+      color: #006699;
+      margin-bottom: 12px;
     }
 
     .dev-tool-desc {
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.9);
+      font-size: 15px;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        max-width: 95%;
+      }
+
+      .dev-tools-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .dev-tool-card {
+        padding: 40px 30px;
+        min-height: 180px;
+      }
+
+      .dev-tool-icon {
+        font-size: 52px;
+      }
+
+      .dev-tool-name {
+        font-size: 24px;
+      }
     }
   </style>
 
   <div class="container">
-    <h2 id="location">Development</h2>
+    <h2 id="location">Development Hub</h2>
+
+    <div class="intro-section">
+      <p>Remote development environment for personal projects</p>
+    </div>
 
     <div class="dev-tools-grid">
       <a href="/dev/vscode/?folder=/home/dlybeck/Documents/portfolio"
          id="vscode-link"
          target="vscode_window"
          class="dev-tool-card">
+        <div class="dev-tool-icon">💻</div>
         <div class="dev-tool-name">VS Code</div>
-        <div class="dev-tool-desc">Personal remote dev server</div>
+        <div class="dev-tool-desc">Full-featured code editor with terminal access</div>
       </a>
 
       <a href="/dev/agentbridge"
          id="agentbridge-link"
          target="_blank"
          class="dev-tool-card">
+        <div class="dev-tool-icon">🛠️</div>
         <div class="dev-tool-name">SpecKit</div>
-        <div class="dev-tool-desc">Spec-driven development tool</div>
+        <div class="dev-tool-desc">Specification-driven development workflow tool</div>
       </a>
     </div>
   </div>

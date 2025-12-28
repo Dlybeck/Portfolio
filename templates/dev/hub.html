@@ -50,20 +50,6 @@
       align-items: center;
       justify-content: center;
       min-height: 200px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .dev-tool-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 8px;
-      background: linear-gradient(135deg, #006699, #004477);
-      transform: scaleX(0);
-      transition: transform 0.3s ease;
     }
 
     .dev-tool-card:hover {
@@ -72,8 +58,9 @@
       border-color: #006699;
     }
 
-    .dev-tool-card:hover::before {
-      transform: scaleX(1);
+    .dev-tool-card:active {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 102, 153, 0.2);
     }
 
     .dev-tool-icon {

@@ -210,11 +210,6 @@
     pointer-events: auto;
 }
 
-/* Hide redundant title on Dev tile (button already says "Dev") */
-.tile-container[data-title="Dev"] .tile-title {
-    display: none;
-}
-
 /* Disable hover effect when tapping (mobile) - but not when expanded */
 .tile-container:not(.expanded):active {
     width: 150px !important;

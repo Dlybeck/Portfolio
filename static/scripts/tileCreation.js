@@ -28,7 +28,7 @@ window.createTile = function(title) {
     const button = document.createElement('a');
     button.className = 'button';
     button.href = routes[title];
-    button.textContent = `${title}`;
+    button.textContent = title === 'Dev' ? 'Dev Hub' : title;
 
     // Attach event listener to handle iframe behavior
     button.addEventListener('click', (event) => {

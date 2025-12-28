@@ -5,7 +5,6 @@
 const SWIPE_CONFIG = {
     MAX_DISTANCE: 200,           // Full flip distance in pixels (50% = 100px)
     SNAP_THRESHOLD: 0.5,         // 50% = snap to complete, <50% = revert
-    MAX_TIME: 1000,              // Maximum time for gesture (ms)
     MAX_HORIZONTAL_DRIFT: 60,    // Maximum horizontal movement allowed
     MIN_MOVE_THRESHOLD: 5,       // Minimum movement to start tracking
     ANIMATION_DURATION: 250      // Snap animation duration (ms)
@@ -216,11 +215,9 @@ function addDynamicSwipeDetector(element, onFlipComplete, onFlipRevert, shouldAc
         const touch = e.changedTouches ? e.changedTouches[0] : e;
         const endY = touch.clientY;
         const endX = touch.clientX;
-        const endTime = Date.now();
 
         const deltaY = startY - endY;
         const deltaX = Math.abs(endX - startX);
-        const deltaTime = endTime - startTime;
 
         // Recalculate final progress using exact end position (touchmove might be stale)
         const distanceRatio = deltaY / SWIPE_CONFIG.MAX_DISTANCE;
@@ -246,13 +243,12 @@ function addDynamicSwipeDetector(element, onFlipComplete, onFlipRevert, shouldAc
         console.log('[SwipeUp] 📊 Drag ended', {
             progress: (currentProgress * 100).toFixed(1) + '%',
             distance: deltaY,
-            time: deltaTime,
             horizontalDrift: deltaX
         });
 
-        // Check if gesture was too slow or too horizontal
-        if (deltaTime > SWIPE_CONFIG.MAX_TIME || deltaX > SWIPE_CONFIG.MAX_HORIZONTAL_DRIFT) {
-            console.log('[SwipeUp] ❌ Gesture rejected (too slow or horizontal), reverting');
+        // Reject gesture if too horizontal (likely scroll attempt)
+        if (deltaX > SWIPE_CONFIG.MAX_HORIZONTAL_DRIFT) {
+            console.log('[SwipeUp] ❌ Gesture rejected (too horizontal), reverting');
 
             // Snap back to current state
             const targetProgress = window.devTileState.isFlipped ? 1 : 0;

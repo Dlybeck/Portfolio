@@ -174,20 +174,43 @@ document.addEventListener('DOMContentLoaded', function() {
     );
 
     // If user navigates away from Home while Dev is flipped, flip back automatically
-    // Listen for hash changes (navigation events)
+    // Watch for Home tile losing its expanded class (happens when navigating to other tiles)
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                const isExpanded = homeContainer.classList.contains('expanded');
+
+                // If Home lost expanded class and Dev is flipped, flip back
+                if (!isExpanded && window.devTileState.isFlipped) {
+                    console.log('[SwipeUp] Home lost focus, flipping back to normal');
+                    flipTile(false);
+                }
+            }
+        });
+    });
+
+    // Start observing Home container for class changes
+    observer.observe(homeContainer, {
+        attributes: true,
+        attributeFilter: ['class']
+    });
+
+    // Also listen for hash changes as backup
     const originalCheckUrlHash = window.checkUrlHash;
-    window.checkUrlHash = function() {
-        const hash = decodeURIComponent(window.location.hash.slice(1));
+    if (originalCheckUrlHash) {
+        window.checkUrlHash = function() {
+            const hash = decodeURIComponent(window.location.hash.slice(1));
 
-        // If navigating away from Home/Dev and Dev is flipped, flip back
-        if (hash && hash !== 'Home' && hash !== 'Dev' && window.devTileState.isFlipped) {
-            console.log('[SwipeUp] Navigation detected, flipping back to Home');
-            flipTile(false);
-        }
+            // If navigating away from Home/Dev and Dev is flipped, flip back
+            if (hash && hash !== 'Home' && hash !== 'Dev' && window.devTileState.isFlipped) {
+                console.log('[SwipeUp] Navigation detected, flipping back to Home');
+                flipTile(false);
+            }
 
-        // Call original function
-        return originalCheckUrlHash();
-    };
+            // Call original function
+            return originalCheckUrlHash();
+        };
+    }
 
     console.log('[SwipeUp] ✅ Swipe-up gesture initialized');
     console.log('[SwipeUp] 🔐 Swipe up on Home to reveal Dev tools!');

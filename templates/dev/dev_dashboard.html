@@ -7,12 +7,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Dev Dashboard</title>
-    <!-- Inherit Portfolio Styles -->
-    <link rel="stylesheet" href="/static/css/base.css">
-    <link rel="stylesheet" href="/static/dev/css/variables.css">
-    <link rel="stylesheet" href="/static/dev/css/dashboard.css">
+    <!-- Match iframe page styles -->
+    <link rel="stylesheet" href="/static/css/page.css">
     <style>
         html {
+            background-color: #FFFFFF;
             height: 100%;
             overflow: hidden;
             position: fixed;
@@ -28,24 +27,20 @@
             height: 100dvh;
             width: 100vw;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            /* Match Speckit Dashboard Background */
-            background-color: #121212;
-            background-image: url("/static/images/sand2048.webp");
-            background-size: cover;
-            background-position: center;
+            background-color: #FFFFFF; /* Clean white like iframe pages */
             position: fixed !important;
             top: 0;
             left: 0;
         }
-        
-        /* Main Container - similar to Glass Card but full width/height for VS Code */
+
+        /* Main Container - clean white with subtle border */
         .content-container {
             flex-grow: 1;
             position: relative;
-            background: rgba(30, 30, 30, 0.85);
-            backdrop-filter: blur(12px);
+            background: #FFFFFF;
             overflow: hidden;
-            margin-top: 35px; /* Offset for thin navbar */
+            margin-top: 50px; /* Offset for navbar */
+            border-top: 3px solid #EEE;
             /* Mobile-specific: prevent any scrolling or bouncing */
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: none;
@@ -67,44 +62,44 @@
             opacity: 1;
         }
 
-        /* Sleek VS Code-style Navbar (Dracula Theme) */
+        /* Clean navbar matching main site blue theme */
         .dev-navbar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             width: 100%;
-            height: 35px;
-            background: #21222c;
-            border-bottom: 1px solid #44475a;
+            height: 50px;
+            background: linear-gradient(135deg, #006699, #004477);
+            border-bottom: none;
             z-index: 9999;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            padding: 0 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
 
         .navbar-content {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             height: 100%;
             padding: 0;
         }
 
         .navbar-logo {
-            height: 20px;
+            height: 30px;
             width: auto;
-            border-radius: 3px;
+            border-radius: 5px;
             border: none;
             margin: 0;
         }
 
         .navbar-title {
-            font-size: 13px;
-            font-weight: 500;
-            color: #f8f8f2;
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
             letter-spacing: 0.3px;
             margin: 0;
         }
@@ -112,39 +107,39 @@
         .navbar-links {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 8px;
             margin-left: auto;
         }
 
         .nav-item {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            font-size: 13px;
-            color: #f8f8f2;
+            gap: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            color: white;
             text-decoration: none;
-            border-radius: 4px;
-            transition: all 0.15s ease;
+            border-radius: 8px;
+            transition: all 0.2s ease;
             cursor: pointer;
-            background: transparent;
+            background: rgba(255, 255, 255, 0.1);
             border: none;
             font-family: inherit;
+            font-weight: 500;
         }
 
         .nav-item:hover {
-            background: #44475a;
-            color: #bd93f9;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
         }
 
         .nav-item.active {
-            background: #282a36;
-            color: #bd93f9;
-            border-bottom: 2px solid #bd93f9;
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .nav-icon {
-            font-size: 14px;
+            font-size: 16px;
         }
     </style>
     <link rel="icon" href="/favicon.ico" type="image/x-icon">

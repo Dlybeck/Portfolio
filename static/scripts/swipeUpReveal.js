@@ -126,8 +126,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const homeTile = homeContainer.querySelector('.tile');
     const devTile = devContainer.querySelector('.tile');
 
+    // Flag to prevent observer from interfering during flip
+    let isFlipping = false;
+
     // Helper function to flip tiles - purely visual swap, no navigation
     function flipTile(showDev) {
+        isFlipping = true; // Disable observer during flip
         window.devTileState.isFlipped = showDev;
 
         if (showDev) {
@@ -145,6 +149,11 @@ document.addEventListener('DOMContentLoaded', function() {
             devContainer.classList.remove('flipped-in');
             devContainer.classList.remove('expanded');
         }
+
+        // Re-enable observer after flip completes
+        setTimeout(() => {
+            isFlipping = false;
+        }, 100);
     }
 
     // Add swipe-up to Home tile (only when Home is expanded)
@@ -174,25 +183,32 @@ document.addEventListener('DOMContentLoaded', function() {
     );
 
     // If user navigates away from Home while Dev is flipped, flip back automatically
-    // Watch for Home tile losing its expanded class (happens when navigating to other tiles)
+    // Watch for when another tile gets the expanded class (navigation happened)
     const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                const isExpanded = homeContainer.classList.contains('expanded');
+        // Skip observer during flip operations
+        if (isFlipping) return;
 
-                // If Home lost expanded class and Dev is flipped, flip back
-                if (!isExpanded && window.devTileState.isFlipped) {
-                    console.log('[SwipeUp] Home lost focus, flipping back to normal');
-                    flipTile(false);
-                }
-            }
+        // Check if any OTHER tile (not Home, not Dev) has expanded class
+        const allTiles = document.querySelectorAll('.tile-container');
+        const otherTileExpanded = Array.from(allTiles).some(tile => {
+            const title = tile.getAttribute('data-title');
+            return title !== 'Home' && title !== 'Dev' && tile.classList.contains('expanded');
         });
+
+        // If another tile is expanded and Dev is visible, flip back to Home
+        if (otherTileExpanded && window.devTileState.isFlipped) {
+            console.log('[SwipeUp] Navigation to other tile detected, flipping back to Home');
+            flipTile(false);
+        }
     });
 
-    // Start observing Home container for class changes
-    observer.observe(homeContainer, {
-        attributes: true,
-        attributeFilter: ['class']
+    // Observe all tile containers for class changes
+    const allTileContainers = document.querySelectorAll('.tile-container');
+    allTileContainers.forEach(tile => {
+        observer.observe(tile, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
     });
 
     // Also listen for hash changes as backup

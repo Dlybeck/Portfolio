@@ -125,14 +125,20 @@ window.handleTileClick = function(e, container) {
     if (e.target.classList.contains('button')) {
         return;
     }
+
+    // Don't handle tile click if already expanded (tile should be inert when centered)
+    if (container.classList.contains('expanded')) {
+        return;
+    }
+
     e.preventDefault();
 
     // Grab the title
     const title = container.dataset.title;
-    
+
     // Update URL hash
     window.location.hash = encodeURIComponent(title);
-    
+
     //Move to tile
     centerOnTile(title);
 }

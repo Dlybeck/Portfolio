@@ -16,10 +16,10 @@ function addSwipeUpDetector(element, callback, shouldActivate) {
     let startTime = 0;
     let isSwiping = false;
 
-    const MIN_DISTANCE = 50; // Minimum swipe distance - easier to trigger
-    const MAX_TIME = 600; // Maximum time for swipe in ms - more forgiving
-    const MAX_HORIZONTAL_DRIFT = 80; // Maximum horizontal movement - allow more drift
-    const MOVE_THRESHOLD = 8; // Threshold to detect intentional swipe vs click
+    const MIN_DISTANCE = 70; // Minimum swipe distance in pixels
+    const MAX_TIME = 500; // Maximum time for swipe in ms
+    const MAX_HORIZONTAL_DRIFT = 60; // Maximum horizontal movement allowed
+    const MOVE_THRESHOLD = 10; // Threshold to detect intentional swipe vs click
 
     const handleStart = (e) => {
         // Only proceed if the activation condition is met
@@ -150,10 +150,10 @@ document.addEventListener('DOMContentLoaded', function() {
             devContainer.classList.remove('expanded');
         }
 
-        // Re-enable observer after flip completes
+        // Re-enable observer after flip animation completes
         setTimeout(() => {
             isFlipping = false;
-        }, 100);
+        }, 550); // Slightly longer than 0.5s animation
     }
 
     // Add swipe-up to Home tile (only when Home is expanded)

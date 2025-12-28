@@ -3,9 +3,9 @@
 
 // Constants
 const SWIPE_CONFIG = {
-    MAX_DISTANCE: 500,           // Full flip distance in pixels
+    MAX_DISTANCE: 200,           // Full flip distance in pixels (50% = 100px)
     SNAP_THRESHOLD: 0.5,         // 50% = snap to complete, <50% = revert
-    MAX_TIME: 800,               // Maximum time for gesture (ms)
+    MAX_TIME: 1000,              // Maximum time for gesture (ms)
     MAX_HORIZONTAL_DRIFT: 60,    // Maximum horizontal movement allowed
     MIN_MOVE_THRESHOLD: 5,       // Minimum movement to start tracking
     ANIMATION_DURATION: 250      // Snap animation duration (ms)

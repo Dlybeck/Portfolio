@@ -90,6 +90,25 @@ else
     echo -e "${GREEN}✓ code-server already configured on port 8888${NC}"
 fi
 
+# Configure VS Code to use persistent shell wrapper
+echo -e "${YELLOW}Configuring persistent terminal sessions...${NC}"
+VSCODE_SETTINGS_DIR="$HOME/.local/share/code-server/User"
+mkdir -p "$VSCODE_SETTINGS_DIR"
+
+# Update VS Code settings to use persistent shell
+cat > "$VSCODE_SETTINGS_DIR/settings.json" << EOF
+{
+  "terminal.integrated.shell.linux": "$PROJECT_DIR/scripts/persistent-shell.sh",
+  "terminal.integrated.shell.osx": "$PROJECT_DIR/scripts/persistent-shell.sh",
+  "terminal.integrated.shellArgs.linux": [],
+  "terminal.integrated.shellArgs.osx": [],
+  "workbench.startupEditor": "none",
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000
+}
+EOF
+echo -e "${GREEN}✓ Persistent terminal configured${NC}"
+
 # Check if code-server is running
 if lsof -i :8888 >/dev/null 2>&1; then
     echo -e "${GREEN}✓ code-server is running on port 8888${NC}"

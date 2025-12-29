@@ -138,7 +138,7 @@ class BaseProxy:
                 logger.info(f"[{self.__class__.__name__}] Added Service-Worker-Allowed header for {path}")
 
             # Ensure correct MIME type for all JavaScript files
-            if path.endswith('.js') and 'content-type' not in [k.lower() for k in response_headers.keys()]:
+            if path.endswith('.js') and not any(k.lower() == 'content-type' for k in response_headers):
                 response_headers['Content-Type'] = 'application/javascript; charset=utf-8'
 
             # Add CSP headers to allow service workers

@@ -24,6 +24,43 @@ window.devTileState = {
 };
 
 /**
+ * Calculate progress based on swipe distance and current state
+ * @param {number} deltaY - Vertical swipe distance (positive = upward)
+ * @param {boolean} isFlipped - Whether currently showing Dev tile
+ * @returns {number} Progress from 0 to 1
+ */
+function calculateProgress(deltaY, isFlipped) {
+    const distanceRatio = deltaY / SWIPE_CONFIG.MAX_DISTANCE;
+    // If showing Home, swipe up increases progress (0→1)
+    // If showing Dev, swipe up decreases progress (1→0)
+    if (isFlipped) {
+        return Math.max(0, Math.min(1, 1 - distanceRatio));
+    } else {
+        return Math.max(0, Math.min(1, distanceRatio));
+    }
+}
+
+/**
+ * Update tile classes based on flip state
+ * @param {HTMLElement} homeContainer - Home tile container
+ * @param {HTMLElement} devContainer - Dev tile container
+ * @param {boolean} showDev - True to show Dev, false to show Home
+ */
+function updateTileClasses(homeContainer, devContainer, showDev) {
+    if (showDev) {
+        homeContainer.classList.add('flipped-out');
+        homeContainer.classList.remove('expanded');
+        devContainer.classList.add('flipped-in');
+        devContainer.classList.add('expanded');
+    } else {
+        homeContainer.classList.remove('flipped-out');
+        homeContainer.classList.add('expanded');
+        devContainer.classList.remove('flipped-in');
+        devContainer.classList.remove('expanded');
+    }
+}
+
+/**
  * Trigger haptic feedback if available
  * @param {number} duration - Vibration duration in ms
  */
@@ -180,15 +217,7 @@ function addDynamicSwipeDetector(element, onFlipComplete, onFlipRevert, shouldAc
             }
 
             // Calculate progress based on swipe distance
-            const distanceRatio = deltaY / SWIPE_CONFIG.MAX_DISTANCE;
-
-            // If currently showing Home, deltaY increases progress (0→1)
-            // If currently showing Dev, deltaY decreases progress (1→0)
-            if (window.devTileState.isFlipped) {
-                currentProgress = Math.max(0, Math.min(1, 1 - distanceRatio));
-            } else {
-                currentProgress = Math.max(0, Math.min(1, distanceRatio));
-            }
+            currentProgress = calculateProgress(deltaY, window.devTileState.isFlipped);
 
             // Haptic feedback when crossing 50% threshold
             if (!hasPassedThreshold && currentProgress >= SWIPE_CONFIG.SNAP_THRESHOLD) {
@@ -220,12 +249,7 @@ function addDynamicSwipeDetector(element, onFlipComplete, onFlipRevert, shouldAc
         const deltaX = Math.abs(endX - startX);
 
         // Recalculate final progress using exact end position (touchmove might be stale)
-        const distanceRatio = deltaY / SWIPE_CONFIG.MAX_DISTANCE;
-        if (window.devTileState.isFlipped) {
-            currentProgress = Math.max(0, Math.min(1, 1 - distanceRatio));
-        } else {
-            currentProgress = Math.max(0, Math.min(1, distanceRatio));
-        }
+        currentProgress = calculateProgress(deltaY, window.devTileState.isFlipped);
 
         // Clean up
         startTime = 0;
@@ -268,13 +292,7 @@ function addDynamicSwipeDetector(element, onFlipComplete, onFlipRevert, shouldAc
 
             animateSnap(currentProgress, 1, homeContainer, devContainer, () => {
                 window.devTileState.isFlipped = true;
-
-                // Update classes for proper state management
-                homeContainer.classList.add('flipped-out');
-                homeContainer.classList.remove('expanded');
-                devContainer.classList.add('flipped-in');
-                devContainer.classList.add('expanded');
-
+                updateTileClasses(homeContainer, devContainer, true);
                 onFlipComplete();
                 console.log('[SwipeUp] ✨ Flip to Dev complete');
             });
@@ -284,13 +302,7 @@ function addDynamicSwipeDetector(element, onFlipComplete, onFlipRevert, shouldAc
 
             animateSnap(currentProgress, 0, homeContainer, devContainer, () => {
                 window.devTileState.isFlipped = false;
-
-                // Update classes for proper state management
-                homeContainer.classList.remove('flipped-out');
-                homeContainer.classList.add('expanded');
-                devContainer.classList.remove('flipped-in');
-                devContainer.classList.remove('expanded');
-
+                updateTileClasses(homeContainer, devContainer, false);
                 onFlipRevert();
                 console.log('[SwipeUp] ✨ Reverted to Home');
             });
@@ -365,19 +377,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         animateSnap(currentProgress, targetProgress, homeContainer, devContainer, () => {
             window.devTileState.isFlipped = showDev;
-
-            if (showDev) {
-                homeContainer.classList.add('flipped-out');
-                homeContainer.classList.remove('expanded');
-                devContainer.classList.add('flipped-in');
-                devContainer.classList.add('expanded');
-            } else {
-                homeContainer.classList.remove('flipped-out');
-                homeContainer.classList.add('expanded');
-                devContainer.classList.remove('flipped-in');
-                devContainer.classList.remove('expanded');
-            }
-
+            updateTileClasses(homeContainer, devContainer, showDev);
             isFlipping = false;
         });
     }

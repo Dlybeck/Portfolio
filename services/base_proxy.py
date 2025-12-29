@@ -134,7 +134,28 @@ class BaseProxy:
             # This allows service workers to control scopes outside their directory
             if 'service-worker' in path.lower() and path.endswith('.js'):
                 response_headers['Service-Worker-Allowed'] = '/'
+                response_headers['Content-Type'] = 'application/javascript; charset=utf-8'
                 logger.info(f"[{self.__class__.__name__}] Added Service-Worker-Allowed header for {path}")
+
+            # Ensure correct MIME type for all JavaScript files
+            if path.endswith('.js') and 'content-type' not in [k.lower() for k in response_headers.keys()]:
+                response_headers['Content-Type'] = 'application/javascript; charset=utf-8'
+
+            # Add CSP headers to allow service workers
+            if 'service-worker' in path.lower() or path.endswith('.html'):
+                # Permissive CSP for VS Code webviews and service workers
+                csp_directives = [
+                    "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:",
+                    "script-src * 'unsafe-inline' 'unsafe-eval'",
+                    "worker-src * blob:",
+                    "child-src * blob:",
+                    "frame-src * blob:",
+                    "connect-src * ws: wss:",
+                    "img-src * data: blob:",
+                    "style-src * 'unsafe-inline'"
+                ]
+                response_headers['Content-Security-Policy'] = '; '.join(csp_directives)
+                logger.debug(f"[{self.__class__.__name__}] Added CSP headers for {path}")
 
             # Decide whether to stream or buffer & rewrite
             if rewrite_body_callback:

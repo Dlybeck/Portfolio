@@ -272,11 +272,14 @@ class BaseProxy:
 
             # Connect via websockets
             # If sock is provided, it uses that existing connection
+            # Enable keepalive: ping every 20s, timeout after 60s with no pong
             async with websockets.connect(
                 ws_url,
                 extra_headers=client_ws.headers,
                 sock=sock,
-                open_timeout=20
+                open_timeout=20,
+                ping_interval=20,  # Send ping every 20 seconds
+                ping_timeout=60    # Close if no pong received for 60 seconds
             ) as server_ws:
                 logger.info(f"[{self.__class__.__name__}] ✅ Connected! Subprotocol selected: {server_ws.subprotocol}")
 

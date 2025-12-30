@@ -55,9 +55,9 @@ class CodeServerProxy(BaseProxy):
             return body, {}
 
         # Create the injection script
-        # Note: The parent page (dev_dashboard.html) runs auth-service.js which handles
-        # automatic token refresh. Since iframe and parent share localStorage (same origin),
-        # this script only needs to sync the initial token - the parent handles refresh.
+        # Note: The parent page's auth-service.js handles automatic token refresh.
+        # Since iframe and parent share localStorage (same origin), this script only
+        # needs to sync the initial token - the parent handles refresh.
         injection = '''
 <script>
 // Sync authentication token from query parameter

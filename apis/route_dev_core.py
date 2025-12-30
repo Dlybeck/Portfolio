@@ -40,45 +40,6 @@ async def dev_hub(request: Request):
     return templates.TemplateResponse("dev/hub.html", {"request": request, "token": token})
 
 
-@dev_core_router.get("/terminal", response_class=HTMLResponse)
-async def terminal_dashboard(request: Request):
-    """
-    Serve the new dev dashboard with switchable views for VS Code, Agor, and the original terminal.
-    Extracts token from cookie/header/query and passes it to the template.
-    """
-    # Extract token from multiple sources (same logic as get_session_user)
-    token = None
-
-    # Try session cookie first
-    token = request.cookies.get("session_token")
-
-    # Try Authorization header
-    if not token:
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            token = auth_header.replace("Bearer ", "")
-
-    # Try query parameter
-    if not token:
-        token = request.query_params.get("tkn")
-
-    if not token:
-        # No authentication found, redirect to login
-        return RedirectResponse(url="/dev/login", status_code=302)
-
-    # Validate token
-    try:
-        from core.security import verify_token
-        payload = verify_token(token)
-        if payload.get("type") != "access":
-            return RedirectResponse(url="/dev/login", status_code=302)
-    except:
-        return RedirectResponse(url="/dev/login", status_code=302)
-
-    # Render the new dev_dashboard.html, passing the token for iframes
-    return templates.TemplateResponse("dev/dev_dashboard.html", {"request": request, "token": token})
-
-
 @dev_core_router.get("/speckit", response_class=HTMLResponse)
 async def speckit_dashboard(request: Request):
     """

@@ -113,8 +113,20 @@ class CodeServerProxy(BaseProxy):
         return new_body, new_headers
 
     async def proxy_request(self, request: Request, path: str):
-        # Inject auth service into HTML responses
-        return await super().proxy_request(request, path, rewrite_body_callback=self._inject_auth_service)
+        # Only inject auth service into HTML responses (skip callback for JS/CSS/images)
+        # This avoids buffering non-HTML files and preserves their content-encoding headers
+
+        # Check if this is likely a non-HTML file by extension
+        # Skip callback for JS, CSS, images, fonts, WASM, etc. to preserve compression headers
+        skip_extensions = ('.js', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.woff', '.woff2', '.ttf', '.eot', '.ico', '.wasm', '.map')
+        is_static_asset = any(path.lower().endswith(ext) for ext in skip_extensions)
+
+        if is_static_asset:
+            # Stream without callback to preserve content-encoding headers
+            return await super().proxy_request(request, path)
+        else:
+            # Use callback for HTML pages and other content
+            return await super().proxy_request(request, path, rewrite_body_callback=self._inject_auth_service)
 
 # Global instance logic
 _proxy_instance = None

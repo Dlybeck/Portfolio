@@ -1,13 +1,3 @@
-"""
-Base Proxy Service for Tailscale/SOCKS5 Connections
-Centralizes logic for:
-- aiohttp session management
-- SOCKS5 proxy negotiation (for Cloud Run)
-- Header filtering/normalization
-- Streaming responses
-- WebSocket tunneling (using websockets library)
-"""
-
 import aiohttp
 import asyncio
 import os
@@ -19,10 +9,8 @@ from fastapi.responses import StreamingResponse
 from aiohttp_socks import ProxyConnector
 from core.config import settings
 
-# Configure logging
 logger = logging.getLogger(__name__)
 
-# Detect if running in Cloud Run (proxy mode) or locally (direct mode)
 IS_CLOUD_RUN = settings.K_SERVICE is not None
 SOCKS5_PROXY = settings.SOCKS5_PROXY
 MAC_SERVER_IP = settings.MAC_SERVER_IP
@@ -36,42 +24,34 @@ class BaseProxy:
         logger.info(f"[{self.__class__.__name__}] Initialized for {self.base_url}")
 
     async def get_session(self) -> aiohttp.ClientSession:
-        """Get or create aiohttp ClientSession with SOCKS5 proxy if in Cloud Run"""
         if self.session is None:
             connector = None
             if IS_CLOUD_RUN:
-                # Use aiohttp-socks for SOCKS5 proxy
                 connector = ProxyConnector.from_url(
                     SOCKS5_PROXY,
                     limit=20,
                     limit_per_host=20,
-                    force_close=False # Enable keep-alive for performance
+                    force_close=False
                 )
                 logger.info(f"[{self.__class__.__name__}] Using SOCKS5 proxy: {SOCKS5_PROXY}")
             else:
                 connector = aiohttp.TCPConnector(limit=20, force_close=False)
 
-            # Create session with timeouts
-            # 300s (5min) total timeout to match Cloud Run limits, 10s connect timeout
             timeout = aiohttp.ClientTimeout(total=300.0, connect=10.0)
             self.session = aiohttp.ClientSession(
                 connector=connector,
                 timeout=timeout,
-                auto_decompress=False # Stream raw bytes
+                auto_decompress=False
             )
         return self.session
 
     def _prepare_headers(self, request: Request) -> Dict[str, str]:
-        """Prepare headers for proxying, filtering out hop-by-hop headers"""
-        # Normalize and filter headers
-        # Case-insensitive filtering
         excluded_headers = {
             'host', 
             'connection', 
             'content-length', 
             'transfer-encoding', 
             'upgrade',
-            # 'accept-encoding' # We preserve this to allow Gzip/Brotli if supported
         }
         
         headers = {}
@@ -79,10 +59,6 @@ class BaseProxy:
             if k.lower() not in excluded_headers:
                 headers[k] = v
 
-        # Force Gzip if we suspect Brotli issues (can be overridden by subclasses)
-        # headers['accept-encoding'] = 'gzip'
-
-        # Add X-Forwarded headers
         x_forwarded_for = request.headers.get("x-forwarded-for")
         if x_forwarded_for:
             headers["x-forwarded-for"] = f"{x_forwarded_for}, {request.client.host}"
@@ -99,17 +75,8 @@ class BaseProxy:
         path: str,
         rewrite_body_callback=None
     ) -> StreamingResponse:
-        """
-        Generic proxy request handler.
-        
-        Args:
-            request: The incoming FastAPI request
-            path: The path to proxy to
-            rewrite_body_callback: Optional async function to process the body (requires buffering)
-        """
         session = await self.get_session()
         
-        # Build target URL
         url = f"{self.base_url}/{path}"
         if request.url.query:
             url += f"?{request.url.query}"
@@ -119,35 +86,38 @@ class BaseProxy:
         data = request.stream()
 
         try:
-            # Create request context
             req_ctx = session.request(method, url, headers=headers, data=data)
             resp = await req_ctx.__aenter__()
 
-            # Prepare response headers
             excluded_resp_headers = {'content-length', 'transfer-encoding', 'connection', 'content-encoding'}
             response_headers = {}
             for k, v in resp.headers.items():
                 if k.lower() not in excluded_resp_headers:
                     response_headers[k] = v
 
-            # Add Service-Worker-Allowed header for service worker scripts
-            # This allows service workers to control scopes outside their directory
             if 'service-worker' in path.lower() and path.endswith('.js'):
                 response_headers['Service-Worker-Allowed'] = '/'
-                logger.info(f"[{self.__class__.__name__}] Added Service-Worker-Allowed header for {path}")
 
-            # Decide whether to stream or buffer & rewrite
             if rewrite_body_callback:
                 try:
-                    # Buffer full response for rewriting
-                    body = await resp.read()
+                    try:
+                        body = await resp.read()
+                    except aiohttp.ClientPayloadError as e:
+                        logger.warning(f"[{self.__class__.__name__}] Incomplete payload read: {e}")
+                        if hasattr(resp.content, '_buffer'):
+                            body = b"".join(resp.content._buffer)
+                        else:
+                            body = b"" 
                 finally:
                     await req_ctx.__aexit__(None, None, None)
                 
-                # Perform rewriting
                 new_body, new_headers = await rewrite_body_callback(body, resp.headers, path)
                 
-                # Merge new headers
+                new_headers_lower = {k.lower() for k in new_headers.keys()}
+                for key in list(response_headers.keys()):
+                    if key.lower() in new_headers_lower:
+                        del response_headers[key]
+
                 response_headers.update(new_headers)
                 
                 return StreamingResponse(
@@ -156,8 +126,6 @@ class BaseProxy:
                     headers=response_headers
                 )
             else:
-                # Pure Streaming
-                # Re-add content-encoding if we are streaming raw compressed data
                 if 'Content-Encoding' in resp.headers:
                     response_headers['content-encoding'] = resp.headers['Content-Encoding']
 
@@ -165,6 +133,8 @@ class BaseProxy:
                     try:
                         async for chunk in resp.content.iter_chunked(4096):
                             yield chunk
+                    except aiohttp.ClientPayloadError as e:
+                        logger.warning(f"[{self.__class__.__name__}] Incomplete payload from upstream: {e}")
                     finally:
                         await req_ctx.__aexit__(None, None, None)
 
@@ -183,18 +153,9 @@ class BaseProxy:
             raise HTTPException(status_code=500, detail=str(e))
 
     async def proxy_websocket(self, client_ws: WebSocket, path: str):
-        """Generic WebSocket proxy with SOCKS5 support using websockets library
-
-        NOTE: The WebSocket must be accepted by the caller BEFORE calling this function.
-        This is already done in the route handlers (route_dev_proxy.py).
-        """
-        # WebSocket already accepted in route handler - do NOT accept again
-
-        # Construct WebSocket URL
         ws_base = self.base_url.replace("http://", "ws://").replace("https://", "wss://")
         ws_url = f"{ws_base}/{path}"
 
-        # CRITICAL: Preserve query parameters (e.g., reconnectionToken for VS Code)
         if client_ws.query_params:
             query_string = str(client_ws.url.query)
             if query_string:
@@ -206,24 +167,20 @@ class BaseProxy:
         logger.info(f"[{self.__class__.__name__}] Target URL: {ws_url}")
         logger.info(f"[{self.__class__.__name__}] Path param: {path}")
         logger.info(f"[{self.__class__.__name__}] Query params: {client_ws.query_params}")
-        # Removed headers type logging - it was hanging
         logger.info(f"[{self.__class__.__name__}] About to configure proxy...")
         logger.info(f"[{self.__class__.__name__}] ==============================")
 
-        # Configure Proxy for websockets library
         proxy_url = None
         if IS_CLOUD_RUN:
             proxy_url = SOCKS5_PROXY
             logger.info(f"[{self.__class__.__name__}] Using websockets proxy: {proxy_url}")
 
-            # TEST: Try direct SOCKS5 connection first
             try:
                 import socket
                 test_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 test_sock.settimeout(2)
                 test_sock.connect(('127.0.0.1', 1055))
-                # SOCKS5 handshake: version + num_methods + methods
-                test_sock.send(b'\x05\x01\x00')  # SOCKS5, 1 method, no auth
+                test_sock.send(b'\x05\x01\x00')
                 response = test_sock.recv(2)
                 test_sock.close()
                 logger.info(f"[{self.__class__.__name__}] SOCKS5 handshake test: sent=\\x05\\x01\\x00, received={response.hex()}")
@@ -237,15 +194,6 @@ class BaseProxy:
         try:
             logger.info(f"[{self.__class__.__name__}] Connecting to upstream WebSocket...")
 
-            # Initialize proxy object if in Cloud Run
-            # We use python-socks which is compatible with websockets library
-            # Note: We avoid the 'proxy' argument in websockets.connect because recent versions 
-            # recommend passing the connector or sock, but python-socks provides a create_connection
-            # factory we can use.
-            
-            # Actually, websockets 14+ doesn't have a 'proxy' argument.
-            # We need to create the connection manually using python-socks and pass it as 'sock'.
-            
             sock = None
             if IS_CLOUD_RUN:
                 try:
@@ -254,7 +202,6 @@ class BaseProxy:
                     logger.info(f"[{self.__class__.__name__}] Connecting to proxy: {SOCKS5_PROXY}")
                     proxy = Proxy.from_url(SOCKS5_PROXY)
                     
-                    # Parse target URL
                     from urllib.parse import urlparse
                     parsed = urlparse(ws_url)
                     target_host = parsed.hostname
@@ -262,7 +209,6 @@ class BaseProxy:
                     
                     logger.info(f"[{self.__class__.__name__}] Establish tunnel to {target_host}:{target_port}")
                     
-                    # Create connection through proxy
                     sock = await proxy.connect(dest_host=target_host, dest_port=target_port)
                     logger.info(f"[{self.__class__.__name__}] ✅ SOCKS5 tunnel established")
                     
@@ -270,20 +216,52 @@ class BaseProxy:
                     logger.error(f"[{self.__class__.__name__}] ❌ Failed to create proxy tunnel: {e}")
                     raise
 
-            # Connect via websockets
-            # If sock is provided, it uses that existing connection
-            # Enable keepalive: ping every 20s, timeout after 60s with no pong
-            async with websockets.connect(
-                ws_url,
-                extra_headers=client_ws.headers,
-                sock=sock,
-                open_timeout=20,
-                ping_interval=20,  # Send ping every 20 seconds
-                ping_timeout=60    # Close if no pong received for 60 seconds
-            ) as server_ws:
-                logger.info(f"[{self.__class__.__name__}] ✅ Connected! Subprotocol selected: {server_ws.subprotocol}")
+            ws_kwargs = {"open_timeout": 20}
+            if sock:
+                ws_kwargs["sock"] = sock
+                logger.info(f"[{self.__class__.__name__}] Connecting via SOCKS5 tunnel")
+            else:
+                headers = dict(client_ws.headers.items())
+                from urllib.parse import urlparse
+                parsed = urlparse(ws_url)
+                
+                for key in list(headers.keys()):
+                    if key.lower() in ['host', 'origin']:
+                        del headers[key]
+                
+                headers['Host'] = f"{parsed.hostname}:{parsed.port}"
+                
+                scheme = "https" if parsed.scheme == "wss" else "http"
+                headers['Origin'] = f"{scheme}://{parsed.hostname}:{parsed.port}"
+                
+                subprotocol_header = None
+                for key, val in client_ws.headers.items():
+                    if key.lower() == 'sec-websocket-protocol':
+                        subprotocol_header = val
+                        break
 
-                # Bidirectional forwarding
+                subprotocols = []
+                if subprotocol_header:
+                    subprotocols = [p.strip() for p in subprotocol_header.split(',')]
+                    logger.info(f"[{self.__class__.__name__}] Extracted subprotocols: {subprotocols}")
+                else:
+                    logger.warning(f"[{self.__class__.__name__}] No sec-websocket-protocol in headers: {list(client_ws.headers.keys())}")
+                
+                for key in list(headers.keys()):
+                    if key.lower() in ['connection', 'upgrade', 'sec-websocket-key', 'sec-websocket-version', 'sec-websocket-extensions', 'sec-websocket-protocol']:
+                        del headers[key]
+                        
+                ws_kwargs["additional_headers"] = headers
+                if subprotocols:
+                    ws_kwargs["subprotocols"] = subprotocols
+                logger.info(f"[{self.__class__.__name__}] Rewrote headers. Host: {headers.get('Host')}, Origin: {headers.get('Origin')}, Subprotocols: {subprotocols}")
+
+            async with websockets.connect(ws_url, **ws_kwargs) as server_ws:
+                logger.info(f"[{self.__class__.__name__}] ✅ Connected! Subprotocol selected: {server_ws.subprotocol}")
+                
+                await client_ws.accept(subprotocol=server_ws.subprotocol)
+                logger.info(f"[{self.__class__.__name__}] ✅ Client WebSocket accepted with subprotocol: {server_ws.subprotocol}")
+
                 message_count = {"client_to_server": 0, "server_to_client": 0}
 
                 async def forward_client_to_server():

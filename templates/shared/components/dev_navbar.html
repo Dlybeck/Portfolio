@@ -1,0 +1,18 @@
+<nav class="dev-navbar">
+    <div class="navbar-content">
+        <img src="/static/images/Logo.webp" alt="Logo" class="navbar-logo">
+        <div class="navbar-title">{% block title %}Dev Environment{% endblock %}</div>
+    </div>
+    <div class="navbar-links">
+        {% block nav_links %}
+        <a href="/dev" class="nav-item" title="Hub">
+            <span>🏠</span>
+            <span class="desktop-only">Hub</span>
+        </a>
+        {% endblock %}
+        <button class="nav-item" onclick="DevUtils.logout()" title="Logout">
+            <span>🚪</span>
+            <span class="desktop-only">Logout</span>
+        </button>
+    </div>
+</nav>

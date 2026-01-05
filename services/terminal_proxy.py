@@ -1,12 +1,18 @@
-from .base_proxy import BaseProxy
+from .base_proxy import BaseProxy, IS_CLOUD_RUN, MAC_SERVER_IP
 from fastapi import Request
 import logging
 
 logger = logging.getLogger(__name__)
 
 class TerminalProxy(BaseProxy):
-    def __init__(self):
-        super().__init__("http://127.0.0.1:7681/dev/terminal-proxy")
+    def __init__(self, terminal_url: str = None):
+        if not terminal_url:
+            if IS_CLOUD_RUN:
+                terminal_url = f"http://{MAC_SERVER_IP}:7681/dev/terminal-proxy"
+            else:
+                terminal_url = "http://127.0.0.1:7681/dev/terminal-proxy"
+        
+        super().__init__(terminal_url)
 
     def _prepare_headers(self, request: Request):
         headers = super()._prepare_headers(request)

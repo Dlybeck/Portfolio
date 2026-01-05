@@ -7,52 +7,70 @@
 <style>
     .hub-container {
         max-width: 900px;
-        margin: 0 auto;
-        padding: 40px 20px;
+        margin: 60px auto 40px;
+        padding: 0 20px;
         text-align: center;
+    }
+    
+    .section-header {
+        background: white;
+        border: 3px solid black;
+        border-radius: 40px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .section-header h1 {
+        color: var(--accent-blue);
+        font-size: 36px;
+        font-weight: 700;
+        margin: 0 0 10px 0;
+    }
+    
+    .subtitle {
+        color: var(--text-secondary);
+        font-size: 16px;
+        margin: 0;
     }
     
     .tools-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         gap: 30px;
-        margin-top: 40px;
     }
     
     .tool-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius);
+        background: white;
+        border: 3px solid black;
+        border-radius: 40px;
         padding: 30px;
         cursor: pointer;
-        transition: transform 0.2s, border-color 0.2s;
+        transition: all 0.3s ease;
         text-align: left;
-        position: relative;
-        overflow: hidden;
     }
     
     .tool-card:hover {
-        transform: translateY(-4px);
-        border-color: var(--accent-purple);
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     }
     
     .tool-icon {
         font-size: 48px;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
     }
     
     .tool-name {
         font-size: 24px;
-        font-weight: 600;
+        font-weight: 700;
         margin: 0 0 10px 0;
-        color: var(--text-primary);
+        color: var(--accent-blue);
     }
     
     .tool-desc {
         color: var(--text-secondary);
         margin: 0 0 20px 0;
-        font-size: 14px;
-        line-height: 1.5;
+        font-size: 15px;
+        line-height: 1.6;
     }
     
     .tool-features {
@@ -63,40 +81,30 @@
     }
     
     .feature-tag {
-        background: rgba(189, 147, 249, 0.1);
-        color: var(--accent-purple);
-        padding: 4px 8px;
-        border-radius: 4px;
+        background: rgba(0, 102, 153, 0.1);
+        color: var(--accent-blue);
+        padding: 5px 10px;
+        border-radius: 12px;
         font-size: 12px;
-        font-weight: 500;
+        font-weight: 600;
     }
     
     .tool-btn {
-        background: var(--accent-purple);
-        color: var(--bg-card);
+        background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-dark));
+        color: white;
         border: none;
         padding: 12px 24px;
-        border-radius: 6px;
+        border-radius: 25px;
         font-weight: 600;
         cursor: pointer;
-        transition: background 0.2s;
+        transition: all 0.2s;
         width: 100%;
         font-size: 15px;
     }
     
     .tool-btn:hover {
-        background: #d6bcfa;
-    }
-    
-    h1 {
-        font-size: 32px;
-        font-weight: 700;
-        margin-bottom: 10px;
-    }
-    
-    .subtitle {
-        color: var(--text-secondary);
-        font-size: 16px;
+        background: linear-gradient(135deg, var(--accent-blue-dark), var(--accent-blue-darker));
+        transform: scale(1.05);
     }
 </style>
 {% endblock %}
@@ -105,8 +113,10 @@
 
 {% block content %}
 <div class="hub-container">
-    <h1>Dev Environment</h1>
-    <p class="subtitle">Choose your workspace tool</p>
+    <div class="section-header">
+        <h1>Dev Environment</h1>
+        <p class="subtitle">Choose your workspace tool</p>
+    </div>
     
     <div class="tools-grid">
         <!-- VS Code Card -->

@@ -1,33 +1,27 @@
-/* CSS Custom Properties - Theme Variables */
-
 :root {
-    /* Dark theme (default) */
-    --bg-primary: #1a1a1a;
-    --bg-secondary: #2d2d2d;
-    --bg-tertiary: #383838;
-    --border-color: #404040;
-    --text-primary: #ffffff;
-    --text-secondary: #cccccc;
-    --text-muted: #888888;
-    --accent-color: #4d9fcc; /* Blue instead of purple */
-    --accent-hover: #5dafdc;
-    --success-color: #00ff00;
-    --danger-color: #dc3545;
-    --warning-color: #ffa500;
-}
-
-body.light-theme {
-    /* Light theme */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f5f5f5;
-    --bg-tertiary: #e0c8ab; /* Beige/tan like main site */
+    --bg-dark: #e0c8ab;
+    --bg-card: #ffffff;
+    --bg-hover: rgba(0, 102, 153, 0.1);
     --border-color: #d0d0d0;
+    --border-radius: 40px;
+    
     --text-primary: #000000;
-    --text-secondary: #333333;
-    --text-muted: #666666;
-    --accent-color: #006699; /* Blue from main site */
-    --accent-hover: #004477;
-    --success-color: #00aa00;
-    --danger-color: #dc3545;
-    --warning-color: #ff8800;
+    --text-secondary: #666666;
+    --text-muted: #999999;
+    
+    --accent-blue: #006699;
+    --accent-blue-dark: #005588;
+    --accent-blue-darker: #004477;
+    --accent-purple: #bd93f9;
+    
+    --navbar-height: 50px;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    
+    --success-color: #5ea702;
+    --danger-color: #d81e00;
+    --warning-color: #cfae00;
 }

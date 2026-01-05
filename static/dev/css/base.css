@@ -1,4 +1,3 @@
-/* Shared Dev Styles */
 @import 'variables.css';
 
 body {
@@ -7,18 +6,19 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: var(--bg-dark);
     background-image: url("/static/images/sand2048.webp");
-    background-size: cover;
-    background-position: center;
+    background-size: 100%;
+    background-repeat: repeat;
     color: var(--text-primary);
     height: 100vh;
+    width: 100vw;
     overflow: hidden;
+    position: fixed;
 }
 
-/* Navbar */
 .dev-navbar {
     height: var(--navbar-height);
-    background: var(--bg-card);
-    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-dark));
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -41,9 +41,10 @@ body {
     border-radius: 3px;
 }
 
-.navbar-title {
-    font-size: 13px;
-    font-weight: 500;
+navbar-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
 }
 
 .navbar-links {
@@ -54,31 +55,39 @@ body {
 .nav-item {
     background: transparent;
     border: none;
-    color: var(--text-primary);
-    font-size: 13px;
-    padding: 4px 8px;
-    border-radius: 4px;
+    color: white;
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 6px;
     cursor: pointer;
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 4px;
-    transition: background 0.2s;
+    gap: 6px;
+    transition: all 0.2s;
+    font-weight: 500;
 }
 
 .nav-item:hover {
-    background: var(--bg-hover);
-    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
 }
 
 .content-container {
-    margin-top: var(--navbar-height);
-    height: calc(100vh - var(--navbar-height));
-    width: 100%;
+    position: fixed;
+    top: var(--navbar-height);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
 }
 
 iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     border: none;
+    display: block;
 }

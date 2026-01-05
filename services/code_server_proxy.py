@@ -103,9 +103,15 @@ class CodeServerProxy(BaseProxy):
         html = html.replace('</head>', f'{injection}</head>', 1)
 
         new_body = html.encode('utf-8')
+        
+        # Permissive CSP to allow inline scripts and all external resources
+        # This overrides any restrictive CSP from upstream code-server
+        permissive_csp = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http: wss: ws:;"
+        
         new_headers = {
             'content-length': str(len(new_body)),
-            'content-type': 'text/html; charset=utf-8'
+            'content-type': 'text/html; charset=utf-8',
+            'content-security-policy': permissive_csp
             # Note: content-encoding is intentionally omitted since we return uncompressed HTML
             # BaseProxy already excludes it from response_headers, so it won't be included
         }

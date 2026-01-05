@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>{% block page_title %}Dev Environment{% endblock %}</title>
+    <link rel="stylesheet" href="/static/dev/css/base.css">
+    {% block extra_css %}{% endblock %}
+    <script src="/static/dev/js/utils.js"></script>
+    <style>
+        @media (max-width: 768px) {
+            .desktop-only { display: none; }
+        }
+    </style>
+</head>
+<body>
+    {% include "shared/components/dev_navbar.html" %}
+
+    <div class="content-container">
+        {% block content %}{% endblock %}
+    </div>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

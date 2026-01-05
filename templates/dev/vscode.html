@@ -1,0 +1,19 @@
+{% extends "shared/dev_base.html" %}
+
+{% block page_title %}VS Code - Dev Env{% endblock %}
+{% block title %}VS Code Editor{% endblock %}
+
+{% block nav_links %}
+<a href="/dev" class="nav-item">
+    <span>🏠</span>
+    <span class="desktop-only">Hub</span>
+</a>
+<a href="/dev/terminal" class="nav-item" onclick="event.preventDefault(); DevUtils.navigateTo('/dev/terminal')">
+    <span>⌨️</span>
+    <span class="desktop-only">Terminal</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<iframe id="vscode-iframe" src="/dev/vscode-proxy/?folder={{ workspace }}&tkn={{ token }}"></iframe>
+{% endblock %}

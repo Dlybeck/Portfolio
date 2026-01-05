@@ -1,172 +1,139 @@
-{% extends "shared/page.html" %}
+{% extends "shared/dev_base.html" %}
 
-{% block title %}
-    <title>Dev Hub | David Lybeck</title>
+{% block page_title %}Dev Hub{% endblock %}
+{% block title %}Dev Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hub-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        text-align: center;
+    }
+    
+    .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-top: 40px;
+    }
+    
+    .tool-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 30px;
+        cursor: pointer;
+        transition: transform 0.2s, border-color 0.2s;
+        text-align: left;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .tool-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--accent-purple);
+    }
+    
+    .tool-icon {
+        font-size: 48px;
+        margin-bottom: 20px;
+    }
+    
+    .tool-name {
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0 0 10px 0;
+        color: var(--text-primary);
+    }
+    
+    .tool-desc {
+        color: var(--text-secondary);
+        margin: 0 0 20px 0;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    
+    .tool-features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 25px;
+    }
+    
+    .feature-tag {
+        background: rgba(189, 147, 249, 0.1);
+        color: var(--accent-purple);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    
+    .tool-btn {
+        background: var(--accent-purple);
+        color: var(--bg-card);
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+        width: 100%;
+        font-size: 15px;
+    }
+    
+    .tool-btn:hover {
+        background: #d6bcfa;
+    }
+    
+    h1 {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .subtitle {
+        color: var(--text-secondary);
+        font-size: 16px;
+    }
+</style>
 {% endblock %}
+
+{% block nav_links %}{% endblock %}
 
 {% block content %}
-  <style>
-    .container {
-      max-width: 70%;
-      margin: 0 auto;
-      padding: 20px;
-    }
+<div class="hub-container">
+    <h1>Dev Environment</h1>
+    <p class="subtitle">Choose your workspace tool</p>
+    
+    <div class="tools-grid">
+        <!-- VS Code Card -->
+        <div class="tool-card" onclick="DevUtils.navigateTo('/dev/vscode')">
+            <div class="tool-icon">📁</div>
+            <h2 class="tool-name">VS Code</h2>
+            <p class="tool-desc">Full persistent IDE for file editing, code browsing, and AI assistance with OpenCode.</p>
+            <div class="tool-features">
+                <span class="feature-tag">File Editor</span>
+                <span class="feature-tag">OpenCode</span>
+                <span class="feature-tag">Extensions</span>
+            </div>
+            <button class="tool-btn">Open Editor →</button>
+        </div>
 
-    .intro-section {
-      background-color: #EEE;
-      border: 3px solid black;
-      border-radius: 40px;
-      padding: 30px;
-      margin: 20px auto;
-      text-align: center;
-    }
-
-    .intro-section p {
-      color: #333;
-      font-size: 16px;
-      line-height: 1.6;
-      margin: 10px 0;
-    }
-
-    .dev-tools-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 30px;
-      margin: 40px auto;
-    }
-
-    .dev-tool-card {
-      background: #EEE;
-      border: 3px solid black;
-      border-radius: 40px;
-      padding: 50px 40px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      color: #333;
-      text-decoration: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 200px;
-    }
-
-    .dev-tool-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(0, 102, 153, 0.3);
-      border-color: #006699;
-    }
-
-    .dev-tool-card:active {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 10px rgba(0, 102, 153, 0.2);
-    }
-
-    .dev-tool-icon {
-      font-size: 64px;
-      margin-bottom: 20px;
-      filter: grayscale(0.2);
-    }
-
-    .dev-tool-name {
-      font-size: 28px;
-      font-weight: bold;
-      color: #006699;
-      margin-bottom: 12px;
-    }
-
-    .dev-tool-desc {
-      font-size: 15px;
-      color: #666;
-      line-height: 1.5;
-    }
-
-    @media (max-width: 600px) {
-      .container {
-        max-width: 95%;
-      }
-
-      .dev-tools-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-
-      .dev-tool-card {
-        padding: 40px 30px;
-        min-height: 180px;
-      }
-
-      .dev-tool-icon {
-        font-size: 52px;
-      }
-
-      .dev-tool-name {
-        font-size: 24px;
-      }
-    }
-  </style>
-
-  <div class="container">
-    <h2 id="location">Development Hub</h2>
-
-    <div class="intro-section">
-      <p>Remote development environment for personal projects</p>
+        <!-- Terminal Card -->
+        <div class="tool-card" onclick="DevUtils.navigateTo('/dev/terminal')">
+            <div class="tool-icon">⌨️</div>
+            <h2 class="tool-name">Terminal</h2>
+            <p class="tool-desc">Persistent tmux sessions for long-running tasks, servers, and builds.</p>
+            <div class="tool-features">
+                <span class="feature-tag">tmux Sessions</span>
+                <span class="feature-tag">Always Running</span>
+                <span class="feature-tag">Mobile Keyboard</span>
+            </div>
+            <button class="tool-btn">Open Terminal →</button>
+        </div>
     </div>
-
-    <div class="dev-tools-grid">
-      <a href="/dev/vscode/?folder=/home/dlybeck/Documents/portfolio"
-         id="vscode-link"
-         target="vscode_window"
-         class="dev-tool-card">
-        <div class="dev-tool-icon">💻</div>
-        <div class="dev-tool-name">VS Code</div>
-        <div class="dev-tool-desc">Full-featured code editor with terminal access</div>
-      </a>
-
-      <a href="/dev/agentbridge"
-         id="agentbridge-link"
-         target="_blank"
-         class="dev-tool-card">
-        <div class="dev-tool-icon">🛠️</div>
-        <div class="dev-tool-name">SpecKit</div>
-        <div class="dev-tool-desc">Specification-driven development workflow tool</div>
-      </a>
-    </div>
-  </div>
-{% endblock %}
-
-{% block scripts %}
-  <script src="/static/js/auth-service.js"></script>
-  <script>
-    // Start automatic token refresh to keep session alive
-    window.authService.startAutoRefresh();
-
-    // Add authentication token to links on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      const token = localStorage.getItem('access_token');
-
-      if (token) {
-        // Add token to VS Code link
-        const vscodeLink = document.getElementById('vscode-link');
-        if (vscodeLink) {
-          const url = new URL(vscodeLink.href);
-          url.searchParams.set('tkn', token);
-          vscodeLink.href = url.toString();
-          console.log('[DevHub] Added token to VS Code link');
-        }
-
-        // Add token to AgentBridge link
-        const agentbridgeLink = document.getElementById('agentbridge-link');
-        if (agentbridgeLink) {
-          const url = new URL(agentbridgeLink.href, window.location.origin);
-          url.searchParams.set('tkn', token);
-          agentbridgeLink.href = url.toString();
-          console.log('[DevHub] Added token to AgentBridge link');
-        }
-      } else {
-        console.warn('[DevHub] No access token found in localStorage');
-      }
-    });
-  </script>
+</div>
 {% endblock %}

@@ -1,149 +1,33 @@
-{% extends "shared/dev_base.html" %}
+{% extends "shared/page.html" %}
 
-{% block page_title %}Dev Hub{% endblock %}
-{% block title %}Dev Hub{% endblock %}
-
-{% block extra_css %}
-<style>
-    .hub-container {
-        max-width: 900px;
-        margin: 60px auto 40px;
-        padding: 0 20px;
-        text-align: center;
-    }
-    
-    .section-header {
-        background: white;
-        border: 3px solid black;
-        border-radius: 40px;
-        padding: 30px;
-        margin-bottom: 30px;
-    }
-    
-    .section-header h1 {
-        color: var(--accent-blue);
-        font-size: 36px;
-        font-weight: 700;
-        margin: 0 0 10px 0;
-    }
-    
-    .subtitle {
-        color: var(--text-secondary);
-        font-size: 16px;
-        margin: 0;
-    }
-    
-    .tools-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 30px;
-    }
-    
-    .tool-card {
-        background: white;
-        border: 3px solid black;
-        border-radius: 40px;
-        padding: 30px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-align: left;
-    }
-    
-    .tool-card:hover {
-        transform: translateY(-5px) scale(1.02);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    }
-    
-    .tool-icon {
-        font-size: 48px;
-        margin-bottom: 15px;
-    }
-    
-    .tool-name {
-        font-size: 24px;
-        font-weight: 700;
-        margin: 0 0 10px 0;
-        color: var(--accent-blue);
-    }
-    
-    .tool-desc {
-        color: var(--text-secondary);
-        margin: 0 0 20px 0;
-        font-size: 15px;
-        line-height: 1.6;
-    }
-    
-    .tool-features {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 25px;
-    }
-    
-    .feature-tag {
-        background: rgba(0, 102, 153, 0.1);
-        color: var(--accent-blue);
-        padding: 5px 10px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-    
-    .tool-btn {
-        background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-dark));
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 25px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-        width: 100%;
-        font-size: 15px;
-    }
-    
-    .tool-btn:hover {
-        background: linear-gradient(135deg, var(--accent-blue-dark), var(--accent-blue-darker));
-        transform: scale(1.05);
-    }
-</style>
+{% block title %}
+    <title>Dev | David Lybeck</title>
 {% endblock %}
 
-{% block nav_links %}{% endblock %}
-
 {% block content %}
-<div class="hub-container">
-    <div class="section-header">
-        <h1>Dev Environment</h1>
-        <p class="subtitle">Choose your workspace tool</p>
-    </div>
-    
-    <div class="tools-grid">
-        <!-- VS Code Card -->
-        <div class="tool-card" onclick="DevUtils.navigateTo('/dev/vscode')">
-            <div class="tool-icon">📁</div>
-            <h2 class="tool-name">VS Code</h2>
-            <p class="tool-desc">Full persistent IDE for file editing, code browsing, and AI assistance with OpenCode.</p>
-            <div class="tool-features">
-                <span class="feature-tag">File Editor</span>
-                <span class="feature-tag">OpenCode</span>
-                <span class="feature-tag">Extensions</span>
-            </div>
-            <button class="tool-btn">Open Editor →</button>
-        </div>
+<div class="container">
+    <h2 id="location">Dev Environment</h2>
 
-        <!-- Terminal Card -->
-        <div class="tool-card" onclick="DevUtils.navigateTo('/dev/terminal')">
-            <div class="tool-icon">⌨️</div>
-            <h2 class="tool-name">Terminal</h2>
-            <p class="tool-desc">Persistent tmux sessions for long-running tasks, servers, and builds.</p>
-            <div class="tool-features">
-                <span class="feature-tag">tmux Sessions</span>
-                <span class="feature-tag">Always Running</span>
-                <span class="feature-tag">Mobile Keyboard</span>
-            </div>
-            <button class="tool-btn">Open Terminal →</button>
-        </div>
+    <div class="section">
+        <p>Remote development environment with secure access to VS Code, Terminal, and AI coding tools.</p>
+    </div>
+
+    <div class="section">
+        <h3>📁 VS Code</h3>
+        <p>Full persistent IDE for file editing, code browsing, and AI assistance with OpenCode extensions.</p>
+        <a class="link internal-link" href="/dev/vscode">Open VS Code Editor →</a>
+    </div>
+
+    <div class="section">
+        <h3>⌨️ Terminal</h3>
+        <p>Persistent tmux sessions for long-running tasks, servers, and builds. Mobile keyboard support included.</p>
+        <a class="link internal-link" href="/dev/terminal">Open Terminal →</a>
+    </div>
+
+    <div class="section">
+        <h3>🤖 AI Tools</h3>
+        <p>Speckit and AgentBridge for AI-assisted development workflows.</p>
+        <a class="link internal-link" href="/dev/speckit">Open Speckit →</a>
     </div>
 </div>
 {% endblock %}

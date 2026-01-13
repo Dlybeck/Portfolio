@@ -31,20 +31,28 @@ class MiniWindow {
      * @returns {String} - normalized URL
      */
     normalizeUrl(url) {
-        // If it's a relative URL, just return it (browser will use same protocol)
+        // For relative URLs, construct absolute HTTPS URL explicitly
+        // This prevents mixed content issues if browser somehow uses HTTP origin
         if (url.startsWith('/')) {
+            // Force HTTPS for absolute URLs on davidlybeck.com
+            if (window.location.hostname === 'davidlybeck.com') {
+                const httpsUrl = 'https://davidlybeck.com' + url;
+                console.log('[MiniWindow] Converting relative to absolute HTTPS:', url, '->', httpsUrl);
+                return httpsUrl;
+            }
+            // For localhost/dev, use same protocol as parent
             return url;
         }
 
-        // If it has a protocol, ensure it matches current page
-        if (url.startsWith('http://') && window.location.protocol === 'https:') {
+        // If it has a protocol, ensure it's HTTPS
+        if (url.startsWith('http://')) {
             console.warn('[MiniWindow] Converting HTTP to HTTPS:', url);
             return url.replace('http://', 'https://');
         }
 
         // If it's a protocol-relative URL (//domain.com/path)
         if (url.startsWith('//')) {
-            return window.location.protocol + url;
+            return 'https:' + url; // Force HTTPS
         }
 
         return url;

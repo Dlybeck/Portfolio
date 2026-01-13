@@ -146,11 +146,6 @@ function addDynamicSwipeDetector(element, onFlipComplete, onFlipRevert, shouldAc
         currentProgress = window.devTileState.isFlipped ? 1 : 0;
         isMouseDown = !e.touches; // Track mouse button state
 
-        // Prevent text selection and default drag behavior on desktop
-        if (!e.touches && e.preventDefault) {
-            e.preventDefault();
-        }
-
         // Disable CSS transitions during drag
         homeContainer.style.transition = 'none';
         devContainer.style.transition = 'none';
@@ -162,8 +157,8 @@ function addDynamicSwipeDetector(element, onFlipComplete, onFlipRevert, shouldAc
         // For mouse events, check if button is still pressed
         if (!e.touches && !isMouseDown) return;
         if (!e.touches && e.buttons !== undefined && e.buttons !== 1) {
-            // Left button not pressed, treat as end
-            handleEnd(e);
+            // Left button not pressed, cancel gesture
+            handleCancel();
             return;
         }
 
@@ -189,8 +184,8 @@ function addDynamicSwipeDetector(element, onFlipComplete, onFlipRevert, shouldAc
                 return;
             }
 
-            // Prevent scrolling during vertical swipe
-            if (e.cancelable) {
+            // Prevent scrolling/selection during swipe
+            if (e.cancelable || (!e.touches && e.preventDefault)) {
                 e.preventDefault();
             }
 

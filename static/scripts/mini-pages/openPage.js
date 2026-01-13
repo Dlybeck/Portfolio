@@ -17,9 +17,37 @@ class MiniWindow {
     open(route) {
         this.initialRoute = route;
         this.navigationHistory = [route];
-        this.page.setAttribute("src", route);
+
+        // Ensure route uses same protocol as parent page
+        const normalizedRoute = this.normalizeUrl(route);
+        this.page.setAttribute("src", normalizedRoute);
         this.show();
         this.updateBackButtonState();
+    }
+
+    /**
+     * Normalize URL to ensure it uses the correct protocol
+     * @param {String} url - the URL to normalize
+     * @returns {String} - normalized URL
+     */
+    normalizeUrl(url) {
+        // If it's a relative URL, just return it (browser will use same protocol)
+        if (url.startsWith('/')) {
+            return url;
+        }
+
+        // If it has a protocol, ensure it matches current page
+        if (url.startsWith('http://') && window.location.protocol === 'https:') {
+            console.warn('[MiniWindow] Converting HTTP to HTTPS:', url);
+            return url.replace('http://', 'https://');
+        }
+
+        // If it's a protocol-relative URL (//domain.com/path)
+        if (url.startsWith('//')) {
+            return window.location.protocol + url;
+        }
+
+        return url;
     }
 
     /**
@@ -107,8 +135,9 @@ class MiniWindow {
      * @param {String} route - the route to navigate to
      */
     navigateTo(route) {
-        this.navigationHistory.push(route);
-        this.page.setAttribute("src", route);
+        const normalizedRoute = this.normalizeUrl(route);
+        this.navigationHistory.push(normalizedRoute);
+        this.page.setAttribute("src", normalizedRoute);
         this.updateBackButtonState();
     }
 }

@@ -123,6 +123,7 @@ function addDynamicSwipeDetector(element, onFlipComplete, onFlipRevert, shouldAc
     let currentProgress = 0;
     let hasPassedThreshold = false;
     let animationFrameId = null;
+    let isMouseDown = false;
 
     const handleStart = (e) => {
         // Only proceed if activation condition is met
@@ -143,6 +144,12 @@ function addDynamicSwipeDetector(element, onFlipComplete, onFlipRevert, shouldAc
         hasStartedDrag = false;
         hasPassedThreshold = false;
         currentProgress = window.devTileState.isFlipped ? 1 : 0;
+        isMouseDown = !e.touches; // Track mouse button state
+
+        // Prevent text selection and default drag behavior on desktop
+        if (!e.touches && e.preventDefault) {
+            e.preventDefault();
+        }
 
         // Disable CSS transitions during drag
         homeContainer.style.transition = 'none';
@@ -151,6 +158,14 @@ function addDynamicSwipeDetector(element, onFlipComplete, onFlipRevert, shouldAc
 
     const handleMove = (e) => {
         if (!startTime) return;
+
+        // For mouse events, check if button is still pressed
+        if (!e.touches && !isMouseDown) return;
+        if (!e.touches && e.buttons !== undefined && e.buttons !== 1) {
+            // Left button not pressed, treat as end
+            handleEnd(e);
+            return;
+        }
 
         const touch = e.touches ? e.touches[0] : e;
         const currentY = touch.clientY;
@@ -229,6 +244,7 @@ function addDynamicSwipeDetector(element, onFlipComplete, onFlipRevert, shouldAc
 
         // Clean up
         startTime = 0;
+        isMouseDown = false;
         window.devTileState.isDragging = false;
 
         // Re-enable CSS transitions for snap animation
@@ -305,6 +321,7 @@ function addDynamicSwipeDetector(element, onFlipComplete, onFlipRevert, shouldAc
         }
 
         startTime = 0;
+        isMouseDown = false;
         hasStartedDrag = false;
         window.devTileState.isDragging = false;
 
@@ -319,10 +336,16 @@ function addDynamicSwipeDetector(element, onFlipComplete, onFlipRevert, shouldAc
     element.addEventListener('touchend', handleEnd, { capture: true });
     element.addEventListener('touchcancel', handleCancel, { capture: true });
 
-    // Mouse events for desktop testing
+    // Mouse events for desktop
     element.addEventListener('mousedown', handleStart, { capture: true });
     element.addEventListener('mousemove', handleMove, { capture: true });
     element.addEventListener('mouseup', handleEnd, { capture: true });
+    element.addEventListener('mouseleave', (e) => {
+        // If mouse leaves while dragging, treat as end
+        if (isMouseDown && hasStartedDrag) {
+            handleEnd(e);
+        }
+    }, { capture: true });
 }
 
 // Initialize after DOM is ready

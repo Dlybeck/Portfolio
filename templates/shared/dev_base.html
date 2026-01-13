@@ -6,6 +6,7 @@
     <title>{% block page_title %}Dev Environment{% endblock %}</title>
     <link rel="stylesheet" href="/static/dev/css/base.css">
     {% block extra_css %}{% endblock %}
+    <script src="/static/js/auth-service.js"></script>
     <script src="/static/dev/js/utils.js"></script>
     <style>
         @media (max-width: 768px) {
@@ -20,6 +21,13 @@
         {% block content %}{% endblock %}
     </div>
 
+    <script>
+        // Start automatic token refresh when page loads
+        if (window.authService) {
+            window.authService.startAutoRefresh();
+            console.log('[DevBase] Auth service started');
+        }
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

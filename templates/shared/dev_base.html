@@ -15,7 +15,9 @@
     </style>
 </head>
 <body>
-    {% include "shared/components/dev_navbar.html" %}
+    {% block navbar %}
+        {% include "shared/components/dev_navbar.html" %}
+    {% endblock %}
 
     <div class="content-container">
         {% block content %}{% endblock %}

@@ -16,40 +16,54 @@ body {
 }
 
 .dev-navbar {
-    height: var(--navbar-height);
-    background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-dark));
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+    width: fit-content;
+    max-width: 90%;
+    height: 40px;
+    background: linear-gradient(135deg, #006699, #005588);
+    border-radius: 0px 0px 10px 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 var(--spacing-md);
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
+    padding: 5px 12px;
+    z-index: 9999999999;
 }
 
 .navbar-content {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
+    height: 40px;
+    gap: 8px;
+    flex-wrap: nowrap;
+    max-width: 1200px;
+    width: 100%;
+    justify-content: space-between;
 }
 
 .navbar-logo {
-    height: 20px;
-    border-radius: 3px;
+    height: 2rem;
+    width: auto;
+    object-fit: contain;
+    border: 2px solid #FFFFFF;
 }
 
-navbar-title {
-    font-size: 15px;
-    font-weight: 600;
+.navbar-title {
+    font-size: 1.5em;
+    font-weight: bold;
     color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .navbar-links {
     display: flex;
     gap: var(--spacing-sm);
+    margin-left: auto;
 }
 
 .nav-item {
@@ -75,7 +89,7 @@ navbar-title {
 
 .content-container {
     position: fixed;
-    top: var(--navbar-height);
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;

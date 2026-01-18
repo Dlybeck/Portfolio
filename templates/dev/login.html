@@ -250,8 +250,8 @@
                     // Start automatic token refresh
                     window.authService.startAutoRefresh();
 
-                    // Redirect to dashboard
-                    window.location.href = '/dev';
+                    // Redirect to dashboard with token in URL (for iframe compatibility)
+                    window.location.href = `/dev?tkn=${data.access_token}`;
                 } else {
                     showError(data.detail || 'Login failed. Please check your 2FA code.');
                     setLoading(false);

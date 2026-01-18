@@ -1,4 +1,4 @@
-{% extends "shared/page.html" %}
+{% extends "shared/dev_authenticated.html" %}
 
 {% block title %}
     <title>Dev | David Lybeck</title>
@@ -15,13 +15,13 @@
     <div class="section">
         <h3>📁 VS Code</h3>
         <p>Full persistent IDE for file editing, code browsing, and AI assistance with OpenCode extensions.</p>
-        <a class="link internal-link" href="/dev/vscode">Open VS Code Editor →</a>
+        <a class="link" href="/dev/vscode" target="_blank">Open VS Code Editor →</a>
     </div>
 
     <div class="section">
         <h3>⌨️ Terminal</h3>
         <p>Persistent tmux sessions for long-running tasks, servers, and builds. Mobile keyboard support included.</p>
-        <a class="link internal-link" href="/dev/terminal">Open Terminal →</a>
+        <a class="link" href="/dev/terminal" target="_blank">Open Terminal →</a>
     </div>
 </div>
 {% endblock %}

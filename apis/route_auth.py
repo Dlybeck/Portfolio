@@ -88,7 +88,7 @@ async def login(request: LoginRequest, response: Response):
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         httponly=True,  # Prevent JavaScript access
         secure=is_https,    # Only require HTTPS in production/cloud
-        samesite="lax" if not is_https else "none"  # Lax for local, None for cross-domain
+        samesite="lax"  # Lax works for same-origin and top-level navigation
     )
 
     return TokenResponse(

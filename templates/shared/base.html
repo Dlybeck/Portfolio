@@ -3,7 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% if request.url.hostname not in ['localhost', '127.0.0.1'] and not request.url.hostname.startswith('192.168.') %}
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    {% endif %}
     <meta
     name="description"
     content="A place to explore aspects of David Lybeck's Life">
@@ -17,14 +19,14 @@
     {% endblock %}
 
 
-    <script src="/static/scripts/homeButton.js"></script>
-    <script src="/static/scripts/mini-pages/openPage.js"></script>
-    <script src="/static/scripts/tileData.js"></script>
-    <script src="/static/scripts/tileCreation.js"></script>
-    <script src="/static/scripts/tileMovement.js"></script>
-    <script src="/static/scripts/urlHandler.js"></script>
-    <script src="/static/scripts/map.js"></script>
-    <script src="/static/scripts/swipeUpReveal.js"></script>
+    <script src="/static/scripts/homeButton.js?v=2"></script>
+    <script src="/static/scripts/mini-pages/openPage.js?v=2"></script>
+    <script src="/static/scripts/tileData.js?v=2"></script>
+    <script src="/static/scripts/tileCreation.js?v=2"></script>
+    <script src="/static/scripts/tileMovement.js?v=2"></script>
+    <script src="/static/scripts/urlHandler.js?v=2"></script>
+    <script src="/static/scripts/map.js?v=2"></script>
+    <script src="/static/scripts/swipeUpReveal.js?v=2"></script>
     {% block scripts %}
     {% endblock %}
   </body>

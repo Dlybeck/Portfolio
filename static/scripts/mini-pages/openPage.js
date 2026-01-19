@@ -34,13 +34,18 @@ class MiniWindow {
         // For relative URLs, construct absolute HTTPS URL explicitly
         // This prevents mixed content issues if browser somehow uses HTTP origin
         if (url.startsWith('/')) {
-            // Force HTTPS for absolute URLs on davidlybeck.com
-            if (window.location.hostname === 'davidlybeck.com') {
-                const httpsUrl = 'https://davidlybeck.com' + url;
+            // Use protocol detection (matches pattern in agentbridge.js, speckit.js, websocket.js, tabs.js)
+            const protocol = window.location.protocol; // 'https:' or 'http:'
+            const hostname = window.location.hostname;
+
+            // If parent page is HTTPS, construct absolute HTTPS URL
+            if (protocol === 'https:') {
+                const httpsUrl = `https://${hostname}${url}`;
                 console.log('[MiniWindow] Converting relative to absolute HTTPS:', url, '->', httpsUrl);
                 return httpsUrl;
             }
-            // For localhost/dev, use same protocol as parent
+
+            // For http (localhost/dev), return as-is
             return url;
         }
 

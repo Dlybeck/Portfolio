@@ -18,5 +18,5 @@
 {% endblock %}
 
 {% block content %}
-<iframe id="vscode-iframe" src="{{ request.url.scheme }}://{{ request.url.netloc }}/dev/vscode-proxy/?folder={{ workspace }}&tkn={{ token }}"></iframe>
+<iframe id="vscode-iframe" src="/dev/vscode-proxy/?folder={{ workspace }}&tkn={{ token }}"></iframe>
 {% endblock %}

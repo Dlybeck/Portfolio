@@ -1,6 +1,14 @@
 (function() {
-    if (window.innerWidth > 768) return;
+    console.log('[mobile-keyboard] Script loaded, innerWidth:', window.innerWidth);
 
+    // Show on screens up to 1024px (tablets too), or force show with ?mobilekeys in URL
+    const forceShow = window.location.search.includes('mobilekeys');
+    if (window.innerWidth > 1024 && !forceShow) {
+        console.log('[mobile-keyboard] Screen too wide, not showing toolbar');
+        return;
+    }
+
+    console.log('[mobile-keyboard] Creating toolbar...');
     const toolbar = document.createElement('div');
     toolbar.className = 'mobile-keyboard-toolbar';
     toolbar.style.cssText = `

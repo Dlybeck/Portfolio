@@ -27,6 +27,16 @@
     iframe {
         background: #000;
     }
+    /* Offset for mobile keyboard toolbar at top */
+    @media (max-width: 768px) {
+        .terminal-container {
+            padding-top: 60px;
+            height: calc(100% - 60px);
+        }
+        iframe {
+            height: 100%;
+        }
+    }
 </style>
 <div class="terminal-container">
     <iframe id="terminal-iframe" src="/dev/terminal-proxy/?tkn={{ token }}"></iframe>

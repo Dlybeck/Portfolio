@@ -5,11 +5,11 @@
     toolbar.className = 'mobile-keyboard-toolbar';
     toolbar.style.cssText = `
         position: fixed;
-        bottom: 0;
+        top: 0;
         left: 0;
         right: 0;
         background: #21222c;
-        border-top: 1px solid #44475a;
+        border-bottom: 1px solid #44475a;
         padding: 8px;
         display: flex;
         gap: 8px;
@@ -19,10 +19,10 @@
     `;
 
     const keys = [
+        { label: 'C-c', key: 'c', ctrl: true },  // Dedicated Ctrl+C button
         { label: 'Esc', key: 'Escape' },
         { label: 'Tab', key: 'Tab' },
         { label: 'Ctrl', key: 'Control', toggle: true },
-        { label: 'Alt', key: 'Alt', toggle: true },
         { label: '↑', key: 'ArrowUp' },
         { label: '↓', key: 'ArrowDown' },
         { label: '←', key: 'ArrowLeft' },
@@ -30,7 +30,19 @@
     ];
 
     let ctrlPressed = false;
-    let altPressed = false;
+
+    // Flash feedback function
+    function flashButton(btn) {
+        const originalBg = btn.style.background;
+        btn.style.background = '#50fa7b';  // Green flash
+        setTimeout(() => {
+            btn.style.background = originalBg;
+        }, 100);
+        // Haptic feedback if available
+        if (navigator.vibrate) {
+            navigator.vibrate(10);
+        }
+    }
 
     keys.forEach(k => {
         const btn = document.createElement('button');
@@ -39,43 +51,58 @@
             flex: 1;
             min-width: 44px;
             height: 44px;
-            background: #282a36;
+            background: ${k.ctrl ? '#ff5555' : '#282a36'};
             border: 1px solid #44475a;
             color: #f8f8f2;
             font-size: 14px;
+            font-weight: ${k.ctrl ? 'bold' : 'normal'};
             border-radius: 4px;
             touch-action: manipulation;
+            transition: background 0.1s ease;
         `;
 
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
 
+            const iframe = document.getElementById('terminal-iframe');
+
             if (k.toggle) {
-                btn.style.background = btn.style.background === 'rgb(189, 147, 249)' ? '#282a36' : '#bd93f9';
-                btn.style.color = btn.style.background === 'rgb(189, 147, 249)' ? '#282a36' : '#f8f8f2';
-                
-                if (k.key === 'Control') ctrlPressed = !ctrlPressed;
-                if (k.key === 'Alt') altPressed = !altPressed;
+                // Toggle button (Ctrl)
+                ctrlPressed = !ctrlPressed;
+                btn.style.background = ctrlPressed ? '#bd93f9' : '#282a36';
+            } else if (k.ctrl) {
+                // Dedicated Ctrl+key button (like C-c)
+                flashButton(btn);
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage({
+                        type: 'keyboard-event',
+                        key: k.key,
+                        ctrlKey: true,
+                        altKey: false
+                    }, '*');
+                }
             } else {
-                const iframe = document.getElementById('terminal-iframe');
+                // Regular key button
+                flashButton(btn);
                 if (iframe && iframe.contentWindow) {
                     iframe.contentWindow.postMessage({
                         type: 'keyboard-event',
                         key: k.key,
                         ctrlKey: ctrlPressed,
-                        altKey: altPressed
+                        altKey: false
                     }, '*');
                 }
 
-                ctrlPressed = false;
-                altPressed = false;
-                Array.from(toolbar.children).forEach(b => {
-                    if (b.textContent === 'Ctrl' || b.textContent === 'Alt') {
-                        b.style.background = '#282a36';
-                        b.style.color = '#f8f8f2';
-                    }
-                });
+                // Reset Ctrl toggle after sending
+                if (ctrlPressed) {
+                    ctrlPressed = false;
+                    Array.from(toolbar.children).forEach(b => {
+                        if (b.textContent === 'Ctrl') {
+                            b.style.background = '#282a36';
+                        }
+                    });
+                }
             }
         });
 

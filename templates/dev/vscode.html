@@ -18,5 +18,18 @@
 {% endblock %}
 
 {% block content %}
+<style>
+    /* Offset for mobile keyboard toolbar at top */
+    @media (max-width: 768px) {
+        #vscode-iframe {
+            top: 60px !important;
+            height: calc(100% - 60px) !important;
+        }
+    }
+</style>
 <iframe id="vscode-iframe" src="/dev/vscode-proxy/?folder={{ workspace }}&tkn={{ token }}"></iframe>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/dev/js/mobile-keyboard.js"></script>
 {% endblock %}

@@ -9,6 +9,75 @@ from fastapi import Request
 import re
 import gzip
 
+# Keyboard bridge script for code-server terminal
+# Listens for postMessage and dispatches keyboard events to VS Code
+KEYBOARD_BRIDGE_SCRIPT = '''
+<script>
+(function() {
+    // Map key events to ANSI escape sequences
+    function mapKeyToSequence(key, ctrlKey) {
+        if (ctrlKey && key.length === 1) {
+            const code = key.toLowerCase().charCodeAt(0) - 96;
+            if (code >= 1 && code <= 26) {
+                return String.fromCharCode(code);
+            }
+        }
+        const keyMap = {
+            'Escape': '\\x1b',
+            'Tab': '\\t',
+            'ArrowUp': '\\x1b[A',
+            'ArrowDown': '\\x1b[B',
+            'ArrowRight': '\\x1b[C',
+            'ArrowLeft': '\\x1b[D',
+            'Enter': '\\r',
+            'Backspace': '\\x7f'
+        };
+        return keyMap[key] || null;
+    }
+
+    // Try to find and write to the terminal
+    function sendToTerminal(sequence) {
+        // Method 1: Try xterm.js terminals in VS Code
+        const xtermElements = document.querySelectorAll('.xterm');
+        for (const el of xtermElements) {
+            if (el._xterm) {
+                el._xterm.write(sequence);
+                return true;
+            }
+        }
+
+        // Method 2: Dispatch keyboard event to focused element
+        const activeEl = document.activeElement;
+        if (activeEl && activeEl.closest('.xterm')) {
+            // Create and dispatch a custom input event
+            const inputEvent = new InputEvent('input', {
+                data: sequence,
+                inputType: 'insertText',
+                bubbles: true
+            });
+            activeEl.dispatchEvent(inputEvent);
+            return true;
+        }
+
+        return false;
+    }
+
+    window.addEventListener('message', function(event) {
+        if (!event.data || event.data.type !== 'keyboard-event') return;
+
+        const { key, ctrlKey } = event.data;
+        const sequence = mapKeyToSequence(key, ctrlKey);
+
+        if (sequence) {
+            sendToTerminal(sequence);
+        }
+    });
+
+    console.log('[keyboard-bridge] Code-server keyboard bridge initialized');
+})();
+</script>
+'''
+
 class CodeServerProxy(BaseProxy):
     """Reverse proxy for code-server"""
 
@@ -48,7 +117,7 @@ class CodeServerProxy(BaseProxy):
         permissive_csp = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http: wss: ws:;"
 
         if '</head>' in html and '</body>' in html:
-            injection = '''
+            auth_injection = '''
 <script>
 (function() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -80,7 +149,9 @@ class CodeServerProxy(BaseProxy):
 })();
 </script>
 '''
-            html = html.replace('</head>', f'{injection}</head>', 1)
+            html = html.replace('</head>', f'{auth_injection}</head>', 1)
+            # Inject keyboard bridge before </body>
+            html = html.replace('</body>', f'{KEYBOARD_BRIDGE_SCRIPT}</body>', 1)
 
         new_body = html.encode('utf-8')
         

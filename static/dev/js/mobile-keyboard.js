@@ -65,7 +65,8 @@
             e.preventDefault();
             e.stopPropagation();
 
-            const iframe = document.getElementById('terminal-iframe');
+            // Find whichever iframe exists (terminal or vscode)
+            const iframe = document.getElementById('terminal-iframe') || document.getElementById('vscode-iframe');
 
             if (k.toggle) {
                 // Toggle button (Ctrl)

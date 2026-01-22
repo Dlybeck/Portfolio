@@ -1,14 +1,17 @@
 (function() {
-    console.log('[mobile-keyboard] Script loaded, innerWidth:', window.innerWidth);
-
-    // Show on screens up to 1024px (tablets too), or force show with ?mobilekeys in URL
+    // Detect touch device (mobile/tablet)
+    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     const forceShow = window.location.search.includes('mobilekeys');
-    if (window.innerWidth > 1024 && !forceShow) {
-        console.log('[mobile-keyboard] Screen too wide, not showing toolbar');
+
+    console.log('[mobile-keyboard] Touch device:', isTouchDevice, '| Width:', window.innerWidth);
+
+    // Only show on touch devices (or force with ?mobilekeys)
+    if (!isTouchDevice && !forceShow) {
+        console.log('[mobile-keyboard] Not a touch device, skipping toolbar');
         return;
     }
 
-    console.log('[mobile-keyboard] Creating toolbar...');
+    console.log('[mobile-keyboard] Creating toolbar for touch device...');
     const toolbar = document.createElement('div');
     toolbar.className = 'mobile-keyboard-toolbar';
     toolbar.style.cssText = `

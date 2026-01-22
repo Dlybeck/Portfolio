@@ -5,26 +5,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Keyboard bridge script to inject into ttyd HTML
-# This listens for postMessage events from the parent page and converts them to terminal input
+# This listens for postMessage events from the parent page and sends input to the terminal
 KEYBOARD_BRIDGE_SCRIPT = '''
 <script>
 (function() {
-    // Wait for terminal to be ready
-    function waitForTerminal(callback, maxAttempts) {
-        let attempts = 0;
-        const check = function() {
-            attempts++;
-            // ttyd exposes terminal as window.term
-            const term = window.term;
-            if (term) {
-                callback(term);
-            } else if (attempts < maxAttempts) {
-                setTimeout(check, 100);
-            }
-        };
-        check();
-    }
-
     // Map key events to ANSI escape sequences
     function mapKeyToSequence(key, ctrlKey) {
         // Handle Ctrl+letter combinations (Ctrl+A=1, Ctrl+B=2, ... Ctrl+Z=26)
@@ -50,22 +34,52 @@ KEYBOARD_BRIDGE_SCRIPT = '''
         return keyMap[key] || null;
     }
 
+    // Send data to terminal via ttyd's socket
+    function sendToTerminal(data) {
+        // Method 1: Use ttyd's global socket (preferred)
+        if (window.socket && window.socket.readyState === WebSocket.OPEN) {
+            // ttyd protocol: first byte is message type (0 = input)
+            const encoder = new TextEncoder();
+            const payload = encoder.encode(data);
+            const message = new Uint8Array(payload.length + 1);
+            message[0] = 0; // Input message type
+            message.set(payload, 1);
+            window.socket.send(message);
+            console.log('[keyboard-bridge] Sent via socket:', JSON.stringify(data));
+            return true;
+        }
+
+        // Method 2: Try xterm's internal API
+        if (window.term && window.term._core) {
+            try {
+                window.term._core.coreService.triggerDataEvent(data);
+                console.log('[keyboard-bridge] Sent via xterm internal API');
+                return true;
+            } catch (e) {
+                console.log('[keyboard-bridge] xterm internal API failed:', e);
+            }
+        }
+
+        console.log('[keyboard-bridge] No send method available');
+        return false;
+    }
+
     // Listen for keyboard events from parent window
     window.addEventListener('message', function(event) {
         if (!event.data || event.data.type !== 'keyboard-event') return;
 
-        const { key, ctrlKey, altKey } = event.data;
+        const { key, ctrlKey } = event.data;
+        const sequence = mapKeyToSequence(key, ctrlKey);
 
-        waitForTerminal(function(term) {
-            const sequence = mapKeyToSequence(key, ctrlKey);
-            if (sequence) {
-                // Send to terminal
-                term.write(sequence);
-            }
-        }, 50);
+        console.log('[keyboard-bridge] Received:', key, 'ctrlKey:', ctrlKey, 'sequence:', JSON.stringify(sequence));
+
+        if (sequence) {
+            sendToTerminal(sequence);
+        }
     });
 
     console.log('[keyboard-bridge] Mobile keyboard bridge initialized');
+    console.log('[keyboard-bridge] Socket available:', !!window.socket);
 })();
 </script>
 '''

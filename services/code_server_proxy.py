@@ -9,94 +9,9 @@ from fastapi import Request
 import re
 import gzip
 
-# Keyboard bridge script for code-server terminal
-# Listens for postMessage and dispatches keyboard events to VS Code's terminal
-KEYBOARD_BRIDGE_SCRIPT = '''
-<script>
-(function() {
-    // Dispatch a keyboard event to the terminal
-    function sendKeyToTerminal(key, ctrlKey) {
-        // Find xterm's hidden textarea (this is where xterm receives keyboard input)
-        const textarea = document.querySelector('.xterm-helper-textarea') ||
-                        document.querySelector('textarea[aria-label*="Terminal"]') ||
-                        document.activeElement;
-
-        if (!textarea) {
-            console.log('[keyboard-bridge] No terminal textarea found');
-            return false;
-        }
-
-        // Map key names to proper KeyboardEvent properties
-        const keyMapping = {
-            'Escape': { key: 'Escape', code: 'Escape', keyCode: 27 },
-            'Tab': { key: 'Tab', code: 'Tab', keyCode: 9 },
-            'ArrowUp': { key: 'ArrowUp', code: 'ArrowUp', keyCode: 38 },
-            'ArrowDown': { key: 'ArrowDown', code: 'ArrowDown', keyCode: 40 },
-            'ArrowLeft': { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37 },
-            'ArrowRight': { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39 },
-            'Enter': { key: 'Enter', code: 'Enter', keyCode: 13 },
-            'Backspace': { key: 'Backspace', code: 'Backspace', keyCode: 8 }
-        };
-
-        let eventProps = keyMapping[key];
-        if (!eventProps && key.length === 1) {
-            // Single character
-            eventProps = {
-                key: ctrlKey ? key : key,
-                code: 'Key' + key.toUpperCase(),
-                keyCode: key.toUpperCase().charCodeAt(0)
-            };
-        }
-
-        if (!eventProps) {
-            console.log('[keyboard-bridge] Unknown key:', key);
-            return false;
-        }
-
-        // Create and dispatch keydown event
-        const keydownEvent = new KeyboardEvent('keydown', {
-            key: eventProps.key,
-            code: eventProps.code,
-            keyCode: eventProps.keyCode,
-            which: eventProps.keyCode,
-            ctrlKey: ctrlKey,
-            altKey: false,
-            shiftKey: false,
-            metaKey: false,
-            bubbles: true,
-            cancelable: true
-        });
-
-        console.log('[keyboard-bridge] Dispatching keydown:', eventProps.key, 'ctrlKey:', ctrlKey);
-        textarea.dispatchEvent(keydownEvent);
-
-        // Also dispatch keyup
-        const keyupEvent = new KeyboardEvent('keyup', {
-            key: eventProps.key,
-            code: eventProps.code,
-            keyCode: eventProps.keyCode,
-            which: eventProps.keyCode,
-            ctrlKey: ctrlKey,
-            bubbles: true,
-            cancelable: true
-        });
-        textarea.dispatchEvent(keyupEvent);
-
-        return true;
-    }
-
-    window.addEventListener('message', function(event) {
-        if (!event.data || event.data.type !== 'keyboard-event') return;
-
-        const { key, ctrlKey } = event.data;
-        console.log('[keyboard-bridge] Received message:', key, 'ctrlKey:', ctrlKey);
-        sendKeyToTerminal(key, ctrlKey);
-    });
-
-    console.log('[keyboard-bridge] Code-server keyboard bridge initialized');
-})();
-</script>
-'''
+# Keyboard bridge disabled for now - was causing terminal issues
+# TODO: Fix mobile keyboard bridge without breaking terminal
+KEYBOARD_BRIDGE_SCRIPT = ''
 
 class CodeServerProxy(BaseProxy):
     """Reverse proxy for code-server"""

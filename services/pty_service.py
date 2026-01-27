@@ -43,31 +43,43 @@ class PTYService:
                     data = await loop.run_in_executor(None, os.read, master_fd, 4096)
                     if not data:
                         break
-                    await websocket.send_bytes(data)
+                    import json
+                    import base64
+                    message = json.dumps({
+                        "type": "output",
+                        "data": base64.b64encode(data).decode('ascii')
+                    })
+                    await websocket.send_text(message)
                 except Exception as e:
                     logger.error(f"PTY read error: {e}")
                     break
         
         async def write_to_pty():
             try:
+                import json
+                import base64
                 while True:
                     message = await websocket.receive()
                     if message.get("type") == "websocket.disconnect":
                         break
                     
-                    if "bytes" in message:
-                        os.write(master_fd, message["bytes"])
-                    elif "text" in message:
-                        import json
+                    if "text" in message:
                         try:
                             data = json.loads(message["text"])
-                            if data.get("type") == "resize":
+                            msg_type = data.get("type")
+                            
+                            if msg_type == "input":
+                                input_data = base64.b64decode(data.get("data", ""))
+                                os.write(master_fd, input_data)
+                            elif msg_type == "resize":
                                 rows = data.get("rows", 24)
                                 cols = data.get("cols", 80)
                                 winsize = struct.pack("HHHH", rows, cols, 0, 0)
                                 fcntl.ioctl(master_fd, termios.TIOCSWINSZ, winsize)
-                        except:
+                        except json.JSONDecodeError:
                             os.write(master_fd, message["text"].encode())
+                    elif "bytes" in message:
+                        os.write(master_fd, message["bytes"])
             except WebSocketDisconnect:
                 pass
             except Exception as e:

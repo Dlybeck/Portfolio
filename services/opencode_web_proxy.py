@@ -34,9 +34,7 @@ class OpenCodeWebProxy(BaseProxy):
                 html = body.decode('utf-8', errors='ignore')
                 
                 lang_script = '''<script>
-if (!localStorage.getItem('oc-locale')) {
-  localStorage.setItem('oc-locale', 'en-US');
-}
+localStorage.setItem('oc-locale', 'en-US');
 </script>'''
                 
                 if '</head>' in html:

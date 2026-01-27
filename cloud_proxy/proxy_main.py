@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 # Target Mac server on Tailscale network
-MAC_SERVER_URL = "http://100.84.184.84:8080"
+MAC_SERVER_URL = "http://100.82.216.64:8080"
 
 # HTTP client for proxying requests
 # Use longer timeout for initial code-server/Agor loads via Tailscale
@@ -159,59 +159,59 @@ async def proxy_http(path: str, request: Request):
         )
 
 
-@app.websocket("/dev/ws/terminal")
-async def proxy_websocket(websocket: WebSocket):
+@app.websocket("/{path:path}")
+async def proxy_websocket_all(websocket: WebSocket, path: str):
     """
-    Proxy WebSocket connections for terminal
+    Proxy all WebSocket connections (OpenCode PTY, terminal, chat, etc)
     """
+    import websockets
+    
     await websocket.accept()
+    logger.info(f"WebSocket proxy: /{path}")
 
-    # Get query parameters (working directory)
+    # Build target URL
     query_params = dict(websocket.query_params)
     query_string = "&".join([f"{k}={v}" for k, v in query_params.items()])
-    target_url = f"ws://100.84.184.84:8080/dev/ws/terminal"
+    
+    ws_url = f"ws://100.82.216.64:8080/{path}"
     if query_string:
-        target_url += f"?{query_string}"
+        ws_url += f"?{query_string}"
+    
+    logger.info(f"Connecting to: {ws_url}")
 
     try:
-        # Connect to Mac WebSocket
-        async with httpx.AsyncClient() as ws_client:
-            async with ws_client.stream(
-                "GET",
-                target_url,
-                headers={
-                    "Upgrade": "websocket",
-                    "Connection": "Upgrade",
-                },
-            ) as mac_ws:
-                # Bi-directional proxying
-                async def forward_to_mac():
-                    """Forward messages from client to Mac"""
-                    try:
-                        while True:
-                            data = await websocket.receive_text()
-                            await mac_ws.send(data)
-                    except WebSocketDisconnect:
-                        pass
+        async with websockets.connect(ws_url) as backend_ws:
+            logger.info(f"Connected to backend WebSocket")
+            
+            async def forward_to_backend():
+                try:
+                    while True:
+                        msg = await websocket.receive()
+                        if msg.get("type") == "websocket.disconnect":
+                            break
+                        if "text" in msg:
+                            await backend_ws.send(msg["text"])
+                        elif "bytes" in msg:
+                            await backend_ws.send(msg["bytes"])
+                except Exception as e:
+                    logger.error(f"Forward to backend error: {e}")
 
-                async def forward_to_client():
-                    """Forward messages from Mac to client"""
-                    try:
-                        async for chunk in mac_ws.aiter_text():
-                            await websocket.send_text(chunk)
-                    except Exception:
-                        pass
+            async def forward_to_client():
+                try:
+                    async for msg in backend_ws:
+                        if isinstance(msg, str):
+                            await websocket.send_text(msg)
+                        else:
+                            await websocket.send_bytes(msg)
+                except Exception as e:
+                    logger.error(f"Forward to client error: {e}")
 
-                # Run both directions concurrently
-                await asyncio.gather(
-                    forward_to_mac(),
-                    forward_to_client(),
-                )
+            await asyncio.gather(forward_to_backend(), forward_to_client())
 
     except Exception as e:
         logger.error(f"WebSocket proxy error: {e}")
         try:
-            await websocket.close()
+            await websocket.close(code=1011, reason=str(e))
         except:
             pass
 

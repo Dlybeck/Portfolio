@@ -1,16 +1,11 @@
-"""
-OpenCode Web HTTP and WebSocket Proxy
-Inherits from BaseProxy to reuse connection logic
-"""
-
 from .base_proxy import BaseProxy, IS_CLOUD_RUN, MAC_SERVER_IP
+from fastapi import Request
+from fastapi.responses import StreamingResponse, Response
 import logging
 
 logger = logging.getLogger(__name__)
 
 class OpenCodeWebProxy(BaseProxy):
-    """Reverse proxy for OpenCode web interface"""
-
     def __init__(self, opencode_url: str = None):
         if not opencode_url:
             if IS_CLOUD_RUN:
@@ -20,6 +15,43 @@ class OpenCodeWebProxy(BaseProxy):
 
         super().__init__(opencode_url)
         logger.info(f"OpenCode Web Proxy initialized: {opencode_url}")
+    
+    async def proxy_request(self, request: Request, path: str) -> StreamingResponse:
+        response = await super().proxy_request(request, path)
+        
+        is_static_asset = any(path.endswith(ext) for ext in ['.js', '.css', '.woff', '.woff2', '.ttf', '.png', '.svg', '.ico', '.webp'])
+        
+        if is_static_asset:
+            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+        
+        if path == '' or path == '/':
+            content_type = response.headers.get('content-type', '')
+            if 'text/html' in content_type:
+                body = b''
+                async for chunk in response.body_iterator:
+                    body += chunk
+                
+                html = body.decode('utf-8', errors='ignore')
+                
+                lang_script = '''<script>
+if (!localStorage.getItem('oc-locale')) {
+  localStorage.setItem('oc-locale', 'en-US');
+}
+</script>'''
+                
+                if '</head>' in html:
+                    html = html.replace('</head>', f'{lang_script}</head>')
+                else:
+                    html = lang_script + html
+                
+                return Response(
+                    content=html.encode('utf-8'),
+                    status_code=response.status_code,
+                    headers=dict(response.headers),
+                    media_type='text/html'
+                )
+        
+        return response
 
 _proxy_instance = None
 

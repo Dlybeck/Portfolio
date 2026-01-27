@@ -29,6 +29,8 @@ steps:
       - '3600'
       - '--concurrency'
       - '80'
+      - '--min-instances'
+      - '1'
 
 images:
   - 'gcr.io/$PROJECT_ID/portfolio:$BUILD_ID'

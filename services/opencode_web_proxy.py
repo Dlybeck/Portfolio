@@ -35,10 +35,18 @@ class OpenCodeWebProxy(BaseProxy):
                 
                 lang_script = '''<script>
 localStorage.setItem('oc-locale', 'en-US');
+Object.defineProperty(navigator, 'language', {
+  get: function() { return 'en-US'; },
+  configurable: true
+});
+Object.defineProperty(navigator, 'languages', {
+  get: function() { return ['en-US', 'en']; },
+  configurable: true
+});
 </script>'''
                 
-                if '</head>' in html:
-                    html = html.replace('</head>', f'{lang_script}</head>')
+                if '<head>' in html:
+                    html = html.replace('<head>', f'<head>{lang_script}', 1)
                 else:
                     html = lang_script + html
                 

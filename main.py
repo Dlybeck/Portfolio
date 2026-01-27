@@ -9,7 +9,7 @@ from apis.route_projects import project_router
 from apis.route_auth import auth_router
 from apis.route_dev import dev_router
 from apis.route_speckit import router as speckit_router
-from apis.route_opencode_subdomain import opencode_subdomain_router
+from apis.route_opencode_subdomain import opencode_subdomain_middleware
 from core.security import validate_security_config
 import asyncio
 import logging
@@ -110,7 +110,6 @@ async def run_startup_diagnostics():
 
 
 def include_router(app):
-      app.include_router(opencode_subdomain_router)
       app.include_router(general_router)
       app.include_router(education_router)
       app.include_router(hobby_router)
@@ -145,6 +144,7 @@ def start_application():
 		sys.exit(1)
 
 	app = FastAPI(title=settings.PROJECT_NAME,version=settings.PROJECT_VERSION)
+	app.add_middleware(opencode_subdomain_middleware)
 	include_router(app)
 	configure_static(app)
 

@@ -57,13 +57,7 @@ class BaseProxy:
         headers = {}
         for k, v in request.headers.items():
             if k.lower() not in excluded_headers:
-                # Force English locale via Accept-Language header override
-                if k.lower() == 'accept-language':
-                    original_lang = v
-                    headers[k] = 'en-US,en;q=0.9'
-                    logger.info(f"[{self.__class__.__name__}] Accept-Language override: '{original_lang}' → 'en-US,en;q=0.9'")
-                else:
-                    headers[k] = v
+                headers[k] = v
 
         x_forwarded_for = request.headers.get("x-forwarded-for")
         if x_forwarded_for:

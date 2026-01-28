@@ -57,14 +57,20 @@ class BaseProxy:
         headers = {}
         for k, v in request.headers.items():
             if k.lower() not in excluded_headers:
-                headers[k] = v
+                # Force English locale via Accept-Language header override
+                if k.lower() == 'accept-language':
+                    original_lang = v
+                    headers[k] = 'en-US,en;q=0.9'
+                    logger.info(f"[{self.__class__.__name__}] Accept-Language override: '{original_lang}' → 'en-US,en;q=0.9'")
+                else:
+                    headers[k] = v
 
         x_forwarded_for = request.headers.get("x-forwarded-for")
         if x_forwarded_for:
             headers["x-forwarded-for"] = f"{x_forwarded_for}, {request.client.host}"
         else:
             headers["x-forwarded-for"] = request.client.host
-            
+
         headers['X-Forwarded-Proto'] = request.url.scheme
         
         return headers
@@ -291,13 +297,18 @@ class BaseProxy:
                         async for msg in server_ws:
                             message_count["server_to_client"] += 1
                             if isinstance(msg, str):
-                                if message_count["server_to_client"] <= 3:
-                                    logger.info(f"[{self.__class__.__name__}] S->C text msg #{message_count['server_to_client']}: {msg[:100]}")
+                                if message_count["server_to_client"] <= 10:
+                                    logger.info(f"[{self.__class__.__name__}] S->C TEXT msg #{message_count['server_to_client']}: len={len(msg)}, preview={msg[:100]}")
+                                    logger.info(f"[{self.__class__.__name__}] SOCKS5_active={IS_CLOUD_RUN}")
                                 await client_ws.send_text(msg)
                             elif isinstance(msg, bytes):
-                                if message_count["server_to_client"] <= 3:
-                                    logger.info(f"[{self.__class__.__name__}] S->C binary msg #{message_count['server_to_client']}: {len(msg)} bytes")
+                                if message_count["server_to_client"] <= 10:
+                                    logger.info(f"[{self.__class__.__name__}] S->C BINARY msg #{message_count['server_to_client']}: len={len(msg)}")
+                                    logger.info(f"[{self.__class__.__name__}] SOCKS5_active={IS_CLOUD_RUN}, first_50_bytes_hex={msg[:50].hex()}")
+                                # IMPORTANT: Ensure we send bytes as binary frame
                                 await client_ws.send_bytes(msg)
+                            else:
+                                logger.warning(f"[{self.__class__.__name__}] S->C unknown msg type: {type(msg)}")
                     except websockets.exceptions.ConnectionClosed as e:
                         logger.info(f"[{self.__class__.__name__}] Server WebSocket closed: {e}")
                     except Exception as e:

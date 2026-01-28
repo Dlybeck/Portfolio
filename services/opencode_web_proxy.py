@@ -69,9 +69,40 @@ class OpenCodeWebProxy(BaseProxy):
                 html = body.decode('utf-8', errors='ignore')
                 
                 lang_script = '''<script>
+// Locale Fix: Clear Service Workers and caches first
+console.log('[OpenCode Locale Fix] Starting locale enforcement');
+
+// Unregister all service workers
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        registrations.forEach(function(registration) {
+            console.log('[OpenCode Locale Fix] Unregistering Service Worker:', registration.scope);
+            registration.unregister();
+        });
+    });
+}
+
+// Clear all caches
+if ('caches' in window) {
+    caches.keys().then(function(keys) {
+        keys.forEach(function(key) {
+            console.log('[OpenCode Locale Fix] Clearing cache:', key);
+            caches.delete(key);
+        });
+    });
+}
+
+// Set locale in localStorage
 localStorage.setItem('vscode-nls-locale', 'en-US');
 localStorage.setItem('locale', 'en-US');
 localStorage.setItem('oc-locale', 'en-US');
+console.log('[OpenCode Locale Fix] localStorage set:', {
+    'vscode-nls-locale': localStorage.getItem('vscode-nls-locale'),
+    'locale': localStorage.getItem('locale'),
+    'oc-locale': localStorage.getItem('oc-locale')
+});
+
+// Override navigator.language
 Object.defineProperty(navigator, 'language', {
   get: function() { return 'en-US'; },
   configurable: true
@@ -80,12 +111,17 @@ Object.defineProperty(navigator, 'languages', {
   get: function() { return ['en-US', 'en']; },
   configurable: true
 });
+console.log('[OpenCode Locale Fix] navigator.language overridden to:', navigator.language);
 </script>'''
-                
+
+                logger.info(f"[OpenCodeWebProxy] Injecting locale enforcement script (len={len(lang_script)})")
+
                 if '<head>' in html:
                     html = html.replace('<head>', f'<head>{lang_script}', 1)
+                    logger.info(f"[OpenCodeWebProxy] Locale script injected into <head>")
                 else:
                     html = lang_script + html
+                    logger.info(f"[OpenCodeWebProxy] Locale script prepended to HTML (no <head> tag found)")
                 
                 return Response(
                     content=html.encode('utf-8'),

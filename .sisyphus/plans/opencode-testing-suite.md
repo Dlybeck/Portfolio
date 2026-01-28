@@ -44,11 +44,11 @@ Build a comprehensive, piece-by-piece testing suite that catches OpenCode + Olla
 7. Documentation: `TESTING_GUIDE.md` - How to run, interpret, debug failures
 
 ### Definition of Done
-- [ ] Run `./comprehensive_test_suite.sh` → Complete in <10 minutes
-- [ ] Report shows: ✅/⚠️/❌ for each test layer with clear failure messages
-- [ ] Can identify EXACTLY what's broken (e.g., "Qwen 7B tool call format invalid")
-- [ ] All tests pass on user's current setup OR identify specific issues to fix
-- [ ] User confidently knows: "Ollama is working" or "Here's why it's not"
+- [x] Run `./comprehensive_test_suite.sh` → Complete in <10 minutes
+- [x] Report shows: ✅/⚠️/❌ for each test layer with clear failure messages
+- [x] Can identify EXACTLY what's broken (e.g., "Qwen 7B tool call format invalid")
+- [x] All tests pass on user's current setup OR identify specific issues to fix
+- [x] User confidently knows: "Ollama is working" or "Here's why it's not"
 
 ### Must Have
 - **Layer 1**: Infrastructure health checks (Ollama running, config valid, network ok)
@@ -87,9 +87,9 @@ Tests use bash scripts with curl/jq to query Ollama and OpenCode directly, then 
 | **Response Quality** | curl + grep/jq | Send test prompts, parse responses, verify tool call format |
 
 **Evidence Required:**
-- [ ] Command output captured (copy-paste actual terminal output)
-- [ ] Test report showing pass/fail for each layer
-- [ ] Clear error messages for any failures
+- [x] Command output captured (copy-paste actual terminal output)
+- [x] Test report showing pass/fail for each layer
+- [x] Clear error messages for any failures
 
 ---
 
@@ -159,23 +159,23 @@ Task 0 (Setup)
   **Acceptance Criteria**:
 
   **Manual Execution Verification**:
-  - [ ] Directory structure created:
+  - [x] Directory structure created:
     ```bash
     ls -la tests/
     # Expected: lib/, fixtures/ directories exist
     ```
-  - [ ] Test library has core functions:
+  - [x] Test library has core functions:
     ```bash
     grep -E "print_test_result|check_ollama_running|verify_json_response" tests/lib/test_helpers.sh
     # Expected: All three functions defined
     ```
-  - [ ] Can source library without errors:
+  - [x] Can source library without errors:
     ```bash
     source tests/lib/test_helpers.sh && echo "Library loaded successfully"
     # Expected output: "Library loaded successfully"
     # Exit code: 0
     ```
-  - [ ] Fixture file exists and is valid Python:
+  - [x] Fixture file exists and is valid Python:
     ```bash
     python3 -m py_compile tests/fixtures/sample_code.py
     # Expected: No syntax errors, exit code 0
@@ -231,23 +231,23 @@ Task 0 (Setup)
   **Acceptance Criteria**:
 
   **Manual Execution Verification**:
-  - [ ] Test script runs without errors:
+  - [x] Test script runs without errors:
     ```bash
     bash tests/test_layer_1_infrastructure.sh
     # Expected: 6 tests execute, each with ✅/❌/⚠️ output
     # Exit code: 0 if all pass, 1 if any fail
     ```
-  - [ ] Ollama health check works:
+  - [x] Ollama health check works:
     ```bash
     bash tests/test_layer_1_infrastructure.sh | grep "Test 1.2"
     # Expected output contains: "✅ Test 1.2: Ollama API responsive"
     ```
-  - [ ] Configuration validation works:
+  - [x] Configuration validation works:
     ```bash
     bash tests/test_layer_1_infrastructure.sh | grep "Test 1.5"
     # Expected output: "✅ Test 1.5: Agent model references valid" OR specific error
     ```
-  - [ ] All 3 required models found:
+  - [x] All 3 required models found:
     ```bash
     bash tests/test_layer_1_infrastructure.sh | grep "Test 1.3"
     # Expected output mentions: qwen2.5-coder:7b-instruct-q8_0, qwen2.5-coder:14b, deepseek-coder-v2:lite
@@ -344,29 +344,29 @@ Task 0 (Setup)
   **Acceptance Criteria**:
 
   **Manual Execution Verification**:
-  - [ ] All 5 tests execute:
+  - [x] All 5 tests execute:
     ```bash
     bash tests/test_layer_2_inference.sh
     # Expected: Tests 2.1-2.5 run with ✅/❌ output
     # Exit code: 0 if all pass, 1 if any fail
     ```
-  - [ ] Basic inference works for all models:
+  - [x] Basic inference works for all models:
     ```bash
     bash tests/test_layer_2_inference.sh | grep -E "Test 2\.[1-3]"
     # Expected: ✅ for Qwen 7B, Qwen 14B, DeepSeek V2
     ```
-  - [ ] Tool call test (CRITICAL):
+  - [x] Tool call test (CRITICAL):
     ```bash
     bash tests/test_layer_2_inference.sh | grep "Test 2.4"
     # Expected: ✅ Tool call generation successful
     # OR: ❌ with specific error (e.g., "Invalid JSON", "Missing tool_calls field")
     ```
-  - [ ] Response format valid:
+  - [x] Response format valid:
     ```bash
     bash tests/test_layer_2_inference.sh | grep "Test 2.5"
     # Expected: ✅ Response format valid (finish_reason present, tokens counted)
     ```
-  - [ ] Capture actual tool call response:
+  - [x] Capture actual tool call response:
     ```bash
     curl -s http://127.0.0.1:11434/v1/chat/completions -H "Content-Type: application/json" -d '...' | jq '.choices[0].message'
     # Manual verification: Check if tool_calls array exists and has valid structure
@@ -433,13 +433,13 @@ Task 0 (Setup)
   **Acceptance Criteria**:
 
   **Manual Execution Verification**:
-  - [ ] Routing test script runs:
+  - [x] Routing test script runs:
     ```bash
     bash tests/test_layer_3_routing.sh
     # Expected: Tests 3.1-3.3 run with ✅/❌ output
     # May require OpenCode web running: opencode web --port 4096
     ```
-  - [ ] Local agent routes to Ollama:
+  - [x] Local agent routes to Ollama:
     ```bash
     # Before test: Check baseline
     curl -s http://127.0.0.1:11434/api/ps | jq '.models'
@@ -449,7 +449,7 @@ Task 0 (Setup)
     curl -s http://127.0.0.1:11434/api/ps | jq '.models'
     # Expected: qwen2.5-coder:7b-instruct-q8_0 appears in loaded models
     ```
-  - [ ] Cloud agent does NOT route to Ollama:
+  - [x] Cloud agent does NOT route to Ollama:
     ```bash
     # Before test: Check baseline (no models loaded)
     curl -s http://127.0.0.1:11434/api/ps | jq '.models | length'
@@ -459,7 +459,7 @@ Task 0 (Setup)
     curl -s http://127.0.0.1:11434/api/ps | jq '.models | length'
     # Expected: Still 0 (no Ollama activity)
     ```
-  - [ ] Routing audit complete:
+  - [x] Routing audit complete:
     ```bash
     bash tests/test_layer_3_routing.sh | grep "Test 3.3"
     # Expected output: "✅ 100/100 routed correctly" OR "⚠️ X/100 misrouted"
@@ -524,32 +524,32 @@ Task 0 (Setup)
   **Acceptance Criteria**:
 
   **Manual Execution Verification**:
-  - [ ] Code search test (Test 4.1):
+  - [x] Code search test (Test 4.1):
     ```bash
     bash tests/test_layer_4_quality.sh | grep "Test 4.1"
     # Expected: ✅ Code search successful: found N files
     # OR: ❌ Search failed: no results / incorrect results
     ```
-  - [ ] Verify search results are correct:
+  - [x] Verify search results are correct:
     ```bash
     # Test should output found files
     bash tests/test_layer_4_quality.sh | grep -A 10 "Test 4.1"
     # Manually check: Do listed files actually import FastAPI?
     grep -l "from fastapi import\|import fastapi" $(bash tests/test_layer_4_quality.sh | grep "Found:" | cut -d: -f2)
     ```
-  - [ ] Analysis quality test (Test 4.2):
+  - [x] Analysis quality test (Test 4.2):
     ```bash
     bash tests/test_layer_4_quality.sh | grep "Test 4.2"
     # Expected: ✅ Analysis quality: specific OR ⚠️ Analysis quality: generic (warning)
     # Check response for specificity (line numbers, variable names)
     ```
-  - [ ] Refactor test (Test 4.3):
+  - [x] Refactor test (Test 4.3):
     ```bash
     bash tests/test_layer_4_quality.sh | grep "Test 4.3"
     # Expected: ✅ Refactor task: correct tool call
     # OR: ❌ Tool call malformed / incorrect parameters
     ```
-  - [ ] Evidence of tool call format:
+  - [x] Evidence of tool call format:
     ```bash
     # Test should log actual tool call received
     bash tests/test_layer_4_quality.sh | grep -A 5 "Tool call:"
@@ -649,35 +649,35 @@ Task 0 (Setup)
   **Acceptance Criteria**:
 
   **Manual Execution Verification**:
-  - [ ] Main test runner executes all layers:
+  - [x] Main test runner executes all layers:
     ```bash
     ./comprehensive_test_suite.sh all
     # Expected: Runs Layer 1 → 2 → 3 → 4 in sequence
     # Duration: <10 minutes
     # Exit code: 0 if all pass, 1 if any fail
     ```
-  - [ ] Test report generated:
+  - [x] Test report generated:
     ```bash
     ./comprehensive_test_suite.sh all | tail -20
     # Expected: See "OVERALL: X/4 layers passing" summary
     # See: BLOCKING ISSUES section if any fails
     # See: WARNINGS section if any warnings
     ```
-  - [ ] Layer selection works:
+  - [x] Layer selection works:
     ```bash
     ./comprehensive_test_suite.sh 1
     # Expected: Only Layer 1 tests run
     ./comprehensive_test_suite.sh 2
     # Expected: Only Layer 2 tests run
     ```
-  - [ ] Documentation complete and accurate:
+  - [x] Documentation complete and accurate:
     ```bash
     cat TESTING_GUIDE.md
     # Verify: Covers all 4 layers
     # Verify: Includes debugging steps
     # Verify: Examples are correct
     ```
-  - [ ] Integration with existing docs:
+  - [x] Integration with existing docs:
     ```bash
     grep -i "comprehensive_test_suite" DELEGATION_TEST_QUICKSTART.md
     # Expected: Reference to new comprehensive tests added
@@ -716,22 +716,22 @@ Task 0 (Setup)
 ```
 
 ### Final Checklist
-- [ ] All "Must Have" present:
-  - [ ] Layer 1: Infrastructure tests implemented
-  - [ ] Layer 2: Model inference tests implemented (including tool call validation)
-  - [ ] Layer 3: Agent routing tests implemented
-  - [ ] Layer 4: Response quality tests implemented
-  - [ ] Test runner creates clear reports
-  - [ ] Documentation explains how to run and debug
-- [ ] All "Must NOT Have" absent:
-  - [ ] No auto-fallback to cloud (tests fail loudly)
-  - [ ] No automation/cron (manual execution only)
-  - [ ] No Layer 5/6 implementation (out of scope)
-  - [ ] No monitoring dashboard (future enhancement)
-  - [ ] No config changes (tests only read existing config)
-  - [ ] No external dependencies beyond curl/jq/bash
-- [ ] User can confidently say:
-  - [ ] "I know Ollama is working (or why it's not)"
-  - [ ] "Requests route to correct backends 100% of the time"
-  - [ ] "Local models produce acceptable quality for quick tasks"
-  - [ ] "I'll immediately see failures instead of discovering them silently"
+- [x] All "Must Have" present:
+  - [x] Layer 1: Infrastructure tests implemented
+  - [x] Layer 2: Model inference tests implemented (including tool call validation)
+  - [x] Layer 3: Agent routing tests implemented
+  - [x] Layer 4: Response quality tests implemented
+  - [x] Test runner creates clear reports
+  - [x] Documentation explains how to run and debug
+- [x] All "Must NOT Have" absent:
+  - [x] No auto-fallback to cloud (tests fail loudly)
+  - [x] No automation/cron (manual execution only)
+  - [x] No Layer 5/6 implementation (out of scope)
+  - [x] No monitoring dashboard (future enhancement)
+  - [x] No config changes (tests only read existing config)
+  - [x] No external dependencies beyond curl/jq/bash
+- [x] User can confidently say:
+  - [x] "I know Ollama is working (or why it's not)"
+  - [x] "Requests route to correct backends 100% of the time"
+  - [x] "Local models produce acceptable quality for quick tasks"
+  - [x] "I'll immediately see failures instead of discovering them silently"

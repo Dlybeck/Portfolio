@@ -1,4 +1,4 @@
-from .base_proxy import BaseProxy, IS_CLOUD_RUN, MAC_SERVER_IP
+from .base_proxy import BaseProxy, IS_CLOUD_RUN, MAC_SERVER_IP, CODE_SERVER_PORT
 from fastapi import Request
 from fastapi.responses import StreamingResponse, Response
 import logging
@@ -9,9 +9,9 @@ class OpenCodeWebProxy(BaseProxy):
     def __init__(self, opencode_url: str = None):
         if not opencode_url:
             if IS_CLOUD_RUN:
-                opencode_url = f"http://{MAC_SERVER_IP}:4096"
+                opencode_url = f"http://{MAC_SERVER_IP}:{CODE_SERVER_PORT}"
             else:
-                opencode_url = "http://127.0.0.1:4096"
+                opencode_url = f"http://127.0.0.1:{CODE_SERVER_PORT}"
 
         super().__init__(opencode_url)
         logger.info(f"OpenCode Web Proxy initialized: {opencode_url}")

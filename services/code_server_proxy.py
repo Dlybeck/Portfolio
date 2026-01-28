@@ -55,6 +55,17 @@ class CodeServerProxy(BaseProxy):
             auth_injection = '''
 <script>
 (function() {
+    localStorage.setItem('vscode-nls-locale', 'en-US');
+    localStorage.setItem('locale', 'en-US');
+    Object.defineProperty(navigator, 'language', {
+        get: function() { return 'en-US'; },
+        configurable: true
+    });
+    Object.defineProperty(navigator, 'languages', {
+        get: function() { return ['en-US', 'en']; },
+        configurable: true
+    });
+
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('tkn');
 

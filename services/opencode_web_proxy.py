@@ -69,6 +69,8 @@ class OpenCodeWebProxy(BaseProxy):
                 html = body.decode('utf-8', errors='ignore')
                 
                 lang_script = '''<script>
+localStorage.setItem('vscode-nls-locale', 'en-US');
+localStorage.setItem('locale', 'en-US');
 localStorage.setItem('oc-locale', 'en-US');
 Object.defineProperty(navigator, 'language', {
   get: function() { return 'en-US'; },

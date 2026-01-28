@@ -8,7 +8,7 @@ print_header "Layer 2: Model Inference Tests"
 FAILED=0
 
 # Test 2.1 - 2.3: Basic Inference
-for model in "qwen2.5-coder:7b-instruct-q8_0" "qwen2.5-coder:14b" "deepseek-coder-v2:lite"; do
+for model in "glm-4.7-flash"; do
     echo -n "Testing basic inference for $model... "
     
     RESPONSE=$(curl -s http://127.0.0.1:11434/v1/chat/completions \
@@ -31,10 +31,10 @@ for model in "qwen2.5-coder:7b-instruct-q8_0" "qwen2.5-coder:14b" "deepseek-code
 done
 
 # Test 2.4: Tool Call Generation (Critical)
-echo -n "Testing tool call generation for qwen2.5-coder:7b-instruct-q8_0... "
+echo -n "Testing tool call generation for glm-4.7-flash... "
 
 TOOL_PROMPT='{
-    "model": "qwen2.5-coder:7b-instruct-q8_0",
+    "model": "glm-4.7-flash",
     "messages": [
         {"role": "system", "content": "You have access to a tool called search_code that takes a query parameter. You must respond with a tool call."},
         {"role": "user", "content": "Find all Python files that import FastAPI"}

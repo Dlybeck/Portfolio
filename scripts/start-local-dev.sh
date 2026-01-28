@@ -140,6 +140,36 @@ echo -e "${GREEN}✓ Security configuration looks good${NC}"
 echo ""
 
 # ==============================================================================
+# 4. Start OpenCode Web Service
+# ==============================================================================
+echo -e "${YELLOW}[4/5] Starting OpenCode Web Interface...${NC}"
+
+# Check if opencode is installed
+OPENCODE_BIN="$HOME/.opencode/bin/opencode"
+if [ -f "$OPENCODE_BIN" ]; then
+    # Kill existing
+    pkill -f "opencode web" 2>/dev/null || true
+    sleep 1
+    
+    # Start in background
+    # Use 0.0.0.0 to ensure it's accessible (though proxy uses localhost)
+    nohup "$OPENCODE_BIN" web --port 4096 --hostname 0.0.0.0 > /tmp/opencode.log 2>&1 &
+    
+    # Wait for startup
+    sleep 2
+    if lsof -i :4096 >/dev/null 2>&1; then
+        echo -e "${GREEN}✓ opencode web started on port 4096${NC}"
+    else
+        echo -e "${RED}✗ Failed to start opencode web${NC}"
+        echo -e "${YELLOW}Check logs: /tmp/opencode.log${NC}"
+    fi
+else
+    echo -e "${YELLOW}⚠ opencode binary not found - skipping${NC}"
+fi
+
+echo ""
+
+# ==============================================================================
 # 5. Start FastAPI Server
 # ==============================================================================
 echo -e "${YELLOW}[5/5] Starting FastAPI server...${NC}"

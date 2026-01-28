@@ -23,6 +23,41 @@ class OpenCodeWebProxy(BaseProxy):
         
         if is_static_asset:
             response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+
+        # Relax Content Security Policy to allow connections to opencode.ai and data: URIs for media
+        for csp_header in ['content-security-policy', 'Content-Security-Policy']:
+            csp = response.headers.get(csp_header)
+            if csp:
+                directives = [d.strip() for d in csp.split(';') if d.strip()]
+                new_directives = []
+                found_connect = False
+                found_media = False
+                
+                for d in directives:
+                    # Allow opencode.ai for API calls
+                    if d.startswith('connect-src'):
+                        if 'https://opencode.ai' not in d:
+                            d = f"{d} https://opencode.ai"
+                        if 'data:' not in d:
+                            d = f"{d} data:"
+                        found_connect = True
+                    
+                    # Allow data: for audio/video (like notification sounds)
+                    if d.startswith('media-src'):
+                        if 'data:' not in d:
+                            d = f"{d} data:"
+                        if "'self'" not in d:
+                            d = f"{d} 'self'"
+                        found_media = True
+                        
+                    new_directives.append(d)
+                
+                if not found_connect:
+                    new_directives.append("connect-src 'self' data: https://opencode.ai")
+                if not found_media:
+                    new_directives.append("media-src 'self' data:")
+                
+                response.headers[csp_header] = "; ".join(new_directives)
         
         if path == '' or path == '/':
             content_type = response.headers.get('content-type', '')

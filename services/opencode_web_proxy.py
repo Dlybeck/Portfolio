@@ -30,7 +30,7 @@ class OpenCodeWebProxy(BaseProxy):
                 for d in directives:
                     if d.startswith('script-src'):
                         # Add hash for our locale script
-                        d = f"{d} 'sha256-BGsTYpR42e+MgCy/lAURzGJrGoBW7AgW2ntbkoRIvRQ='"
+                        d = f"{d} 'sha256-MzFpQjvsL09uOcRL2kA9B6SiPeQtKf481Pn3755rRs4='"
                     elif d.startswith('media-src'):
                         # Allow data URIs for notification sounds
                         d = f"{d} data:"
@@ -60,20 +60,9 @@ class OpenCodeWebProxy(BaseProxy):
             html = body.decode('utf-8', errors='ignore')
 
             # Minimal locale fix: set OpenCode language and theme preferences
-            # Run after DOM loads to ensure OpenCode doesn't overwrite
             locale_script = """<script>
-(function() {
-  function setDefaults() {
-    localStorage.setItem('opencode.global.dat:language','{"locale":"en"}');
-    localStorage.setItem('opencode-theme-id','nord');
-  }
-  // Try immediately
-  setDefaults();
-  // And on DOMContentLoaded in case OpenCode clears it
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setDefaults);
-  }
-})();
+localStorage.setItem('opencode.global.dat:language','{"locale":"en"}');
+localStorage.setItem('opencode-theme-id','nord');
 </script>"""
 
             if '<head>' in html:

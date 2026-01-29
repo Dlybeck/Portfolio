@@ -36,8 +36,8 @@ class OpenCodeWebProxy(BaseProxy):
 
                 html = body.decode('utf-8', errors='ignore')
 
-                # Minimal locale fix: just set localStorage on load
-                locale_script = "<script>localStorage.setItem('vscode-nls-locale','en-US');</script>"
+                # Minimal locale fix: set OpenCode language preference
+                locale_script = """<script>localStorage.setItem('opencode.global.dat:language','{"locale":"en"}');</script>"""
 
                 if '<head>' in html:
                     html = html.replace('<head>', f'<head>{locale_script}', 1)

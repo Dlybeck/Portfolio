@@ -29,8 +29,8 @@ class OpenCodeWebProxy(BaseProxy):
 
                 for d in directives:
                     if d.startswith('script-src'):
-                        # Add hash for our locale script
-                        d = f"{d} 'sha256-MzFpQjvsL09uOcRL2kA9B6SiPeQtKf481Pn3755rRs4='"
+                        # Add hash for our locale script (from browser CSP error)
+                        d = f"{d} 'sha256-aiwdTD0RUCPjAJ07Eo6k40KBcGjqlfz0OIKKTNjNedc='"
                     elif d.startswith('media-src'):
                         # Allow data URIs for notification sounds
                         d = f"{d} data:"
@@ -50,14 +50,17 @@ class OpenCodeWebProxy(BaseProxy):
 
         # Inject minimal locale fix for all HTML pages
         content_type = response.headers.get('content-type', '')
+        logger.info(f"[OpenCodeWebProxy] Processing path: {path}, content-type: {content_type}")
         if 'text/html' in content_type:
             from fastapi.responses import Response
+            logger.info(f"[OpenCodeWebProxy] Found HTML response, will inject locale script")
 
             body = b''
             async for chunk in response.body_iterator:
                 body += chunk
 
             html = body.decode('utf-8', errors='ignore')
+            logger.info(f"[OpenCodeWebProxy] HTML size: {len(html)} chars, has <head>: {'<head>' in html}")
 
             # Minimal locale fix: set OpenCode language and theme preferences
             locale_script = """<script>

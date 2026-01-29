@@ -19,6 +19,21 @@ class OpenCodeWebProxy(BaseProxy):
     async def proxy_request(self, request: Request, path: str) -> StreamingResponse:
         response = await super().proxy_request(request, path)
 
+        # Modify CSP to allow our locale-setting inline script
+        for csp_header in ['content-security-policy', 'Content-Security-Policy']:
+            csp = response.headers.get(csp_header)
+            if csp:
+                directives = [d.strip() for d in csp.split(';') if d.strip()]
+                new_directives = []
+
+                for d in directives:
+                    if d.startswith('script-src'):
+                        # Add hash for our locale script
+                        d = f"{d} 'sha256-i5d+0I2/yaOcdYao7o4JaPjHXqOhZhsQsQ5RA4Oxxk4='"
+                    new_directives.append(d)
+
+                response.headers[csp_header] = "; ".join(new_directives)
+
         is_static_asset = any(path.endswith(ext) for ext in ['.js', '.css', '.woff', '.woff2', '.ttf', '.png', '.svg', '.ico', '.webp'])
 
         if is_static_asset:

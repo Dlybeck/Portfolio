@@ -36,8 +36,11 @@ class OpenCodeWebProxy(BaseProxy):
 
                 html = body.decode('utf-8', errors='ignore')
 
-                # Minimal locale fix: set OpenCode language preference
-                locale_script = """<script>localStorage.setItem('opencode.global.dat:language','{"locale":"en"}');</script>"""
+                # Minimal locale fix: set OpenCode language and theme preferences
+                locale_script = """<script>
+localStorage.setItem('opencode.global.dat:language','{"locale":"en"}');
+localStorage.setItem('opencode-theme-id','nord');
+</script>"""
 
                 if '<head>' in html:
                     html = html.replace('<head>', f'<head>{locale_script}', 1)

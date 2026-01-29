@@ -29,8 +29,8 @@ class OpenCodeWebProxy(BaseProxy):
 
                 for d in directives:
                     if d.startswith('script-src'):
-                        # Add hash for our locale script (from browser CSP error)
-                        d = f"{d} 'sha256-aiwdTD0RUCPjAJ07Eo6k40KBcGjqlfz0OIKKTNjNedc='"
+                        # Allow inline scripts for locale injection
+                        d = f"{d} 'unsafe-inline'"
                     elif d.startswith('media-src'):
                         # Allow data URIs for notification sounds
                         d = f"{d} data:"

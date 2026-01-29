@@ -37,9 +37,20 @@ class OpenCodeWebProxy(BaseProxy):
                 html = body.decode('utf-8', errors='ignore')
 
                 # Minimal locale fix: set OpenCode language and theme preferences
+                # Run after DOM loads to ensure OpenCode doesn't overwrite
                 locale_script = """<script>
-localStorage.setItem('opencode.global.dat:language','{"locale":"en"}');
-localStorage.setItem('opencode-theme-id','nord');
+(function() {
+  function setDefaults() {
+    localStorage.setItem('opencode.global.dat:language','{"locale":"en"}');
+    localStorage.setItem('opencode-theme-id','nord');
+  }
+  // Try immediately
+  setDefaults();
+  // And on DOMContentLoaded in case OpenCode clears it
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setDefaults);
+  }
+})();
 </script>"""
 
                 if '<head>' in html:

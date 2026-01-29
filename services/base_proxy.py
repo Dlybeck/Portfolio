@@ -216,7 +216,11 @@ class BaseProxy:
                     logger.error(f"[{self.__class__.__name__}] ❌ Failed to create proxy tunnel: {e}")
                     raise
 
-            ws_kwargs = {"open_timeout": 20}
+            ws_kwargs = {
+                "open_timeout": 20,
+                "ping_interval": 20,      # Send ping every 20s to keep SOCKS5 tunnel alive
+                "ping_timeout": 60,        # Wait up to 60s for pong (generous for SOCKS5)
+            }
             if sock:
                 ws_kwargs["sock"] = sock
                 logger.info(f"[{self.__class__.__name__}] Connecting via SOCKS5 tunnel")
@@ -290,19 +294,26 @@ class BaseProxy:
                     try:
                         async for msg in server_ws:
                             message_count["server_to_client"] += 1
+
+                            # Enhanced logging to diagnose UI freeze issue
+                            msg_type = "TEXT" if isinstance(msg, str) else "BINARY" if isinstance(msg, bytes) else "UNKNOWN"
+                            msg_len = len(msg) if isinstance(msg, (str, bytes)) else 0
+                            logger.info(f"[{self.__class__.__name__}] S->C #{message_count['server_to_client']}: {msg_type} ({msg_len} bytes) received from server")
+
                             if isinstance(msg, str):
-                                if message_count["server_to_client"] <= 10:
-                                    logger.info(f"[{self.__class__.__name__}] S->C TEXT msg #{message_count['server_to_client']}: len={len(msg)}, preview={msg[:100]}")
-                                    logger.info(f"[{self.__class__.__name__}] SOCKS5_active={IS_CLOUD_RUN}")
                                 await client_ws.send_text(msg)
+                                logger.info(f"[{self.__class__.__name__}] S->C #{message_count['server_to_client']}: TEXT sent to client")
                             elif isinstance(msg, bytes):
-                                if message_count["server_to_client"] <= 10:
-                                    logger.info(f"[{self.__class__.__name__}] S->C BINARY msg #{message_count['server_to_client']}: len={len(msg)}")
-                                    logger.info(f"[{self.__class__.__name__}] SOCKS5_active={IS_CLOUD_RUN}, first_50_bytes_hex={msg[:50].hex()}")
                                 # IMPORTANT: Ensure we send bytes as binary frame
                                 await client_ws.send_bytes(msg)
+                                logger.info(f"[{self.__class__.__name__}] S->C #{message_count['server_to_client']}: BINARY sent to client")
                             else:
-                                logger.warning(f"[{self.__class__.__name__}] S->C unknown msg type: {type(msg)}")
+                                logger.warning(f"[{self.__class__.__name__}] S->C #{message_count['server_to_client']}: Unknown msg type: {type(msg)}")
+
+                            # Force event loop to process send before next message
+                            # Prevents message batching that could confuse OpenCode UI
+                            await asyncio.sleep(0)
+
                     except websockets.exceptions.ConnectionClosed as e:
                         logger.info(f"[{self.__class__.__name__}] Server WebSocket closed: {e}")
                     except Exception as e:

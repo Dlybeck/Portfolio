@@ -30,7 +30,7 @@ class OpenCodeWebProxy(BaseProxy):
                 for d in directives:
                     if d.startswith('script-src'):
                         # Add hash for our locale script
-                        d = f"{d} 'sha256-i5d+0I2/yaOcdYao7o4JaPjHXqOhZhsQsQ5RA4Oxxk4='"
+                        d = f"{d} 'sha256-BGsTYpR42e+MgCy/lAURzGJrGoBW7AgW2ntbkoRIvRQ='"
                     elif d.startswith('media-src'):
                         # Allow data URIs for notification sounds
                         d = f"{d} data:"

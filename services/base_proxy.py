@@ -37,7 +37,9 @@ class BaseProxy:
             else:
                 connector = aiohttp.TCPConnector(limit=20, force_close=False)
 
-            timeout = aiohttp.ClientTimeout(total=300.0, connect=10.0)
+            # Allow long-running streaming responses (24hr total, matches Uvicorn timeout_keep_alive)
+            # OpenCode uses HTTP streaming for /message endpoint, not WebSocket
+            timeout = aiohttp.ClientTimeout(total=86400.0, connect=10.0)
             self.session = aiohttp.ClientSession(
                 connector=connector,
                 timeout=timeout,

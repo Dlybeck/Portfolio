@@ -19,18 +19,27 @@ class OpenCodeWebProxy(BaseProxy):
     async def proxy_request(self, request: Request, path: str) -> StreamingResponse:
         response = await super().proxy_request(request, path)
 
-        # Modify CSP to allow our locale-setting inline script
+        # Modify CSP to allow our locale-setting inline script and notification sounds
         for csp_header in ['content-security-policy', 'Content-Security-Policy']:
             csp = response.headers.get(csp_header)
             if csp:
                 directives = [d.strip() for d in csp.split(';') if d.strip()]
                 new_directives = []
+                has_media_src = False
 
                 for d in directives:
                     if d.startswith('script-src'):
                         # Add hash for our locale script
                         d = f"{d} 'sha256-i5d+0I2/yaOcdYao7o4JaPjHXqOhZhsQsQ5RA4Oxxk4='"
+                    elif d.startswith('media-src'):
+                        # Allow data URIs for notification sounds
+                        d = f"{d} data:"
+                        has_media_src = True
                     new_directives.append(d)
+
+                # Add media-src if it doesn't exist
+                if not has_media_src:
+                    new_directives.append("media-src 'self' data:")
 
                 response.headers[csp_header] = "; ".join(new_directives)
 

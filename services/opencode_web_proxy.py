@@ -24,6 +24,33 @@ class OpenCodeWebProxy(BaseProxy):
         if is_static_asset:
             response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
 
+        # Inject minimal locale fix for root HTML page
+        if path == '' or path == '/':
+            content_type = response.headers.get('content-type', '')
+            if 'text/html' in content_type:
+                from fastapi.responses import Response
+
+                body = b''
+                async for chunk in response.body_iterator:
+                    body += chunk
+
+                html = body.decode('utf-8', errors='ignore')
+
+                # Minimal locale fix: just set localStorage on load
+                locale_script = "<script>localStorage.setItem('vscode-nls-locale','en-US');</script>"
+
+                if '<head>' in html:
+                    html = html.replace('<head>', f'<head>{locale_script}', 1)
+                else:
+                    html = locale_script + html
+
+                return Response(
+                    content=html.encode('utf-8'),
+                    status_code=response.status_code,
+                    headers=dict(response.headers),
+                    media_type='text/html'
+                )
+
         return response
 
 _proxy_instance = None

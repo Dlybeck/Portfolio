@@ -31,7 +31,32 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+### I. Simplicity Gate
+- [ ] Does this feature justify its complexity?
+- [ ] Are we removing any unused code/features?
+- [ ] Is the design YAGNI compliant?
+
+### II. TDD Gate
+- [ ] Are tests defined?
+- [ ] Can we ensure failure before implementation?
+
+### III. DRY Gate
+- [ ] Is shared logic extracted?
+- [ ] Are we reusing existing base classes?
+- [ ] No copy-pasted code?
+
+### IV. Observability Gate
+- [ ] Is logging defined for critical paths?
+- [ ] Are health checks included?
+
+### V. Documentation Gate
+- [ ] Are API docs updated?
+- [ ] Is the deployment guide current?
+
+### VI. Security Gate
+- [ ] Is authentication required?
+- [ ] Are secrets managed securely?
+- [ ] Is rate limiting considered?
 
 ## Project Structure
 

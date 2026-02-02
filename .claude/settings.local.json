@@ -116,7 +116,11 @@
       "Bash(~/.local/bin/opencode:*)",
       "Bash(specify --version:*)",
       "Bash(git log:*)",
-      "Bash(pipx --version)"
+      "Bash(pipx --version)",
+      "WebFetch(domain:opencode.ai)",
+      "WebFetch(domain:github.github.com)",
+      "Bash(ln:*)",
+      "Bash(netstat:*)"
     ],
     "deny": [],
     "ask": []

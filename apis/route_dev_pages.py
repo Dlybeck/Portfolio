@@ -28,8 +28,3 @@ async def hub_page(request: Request):
 @require_auth
 async def vscode_page(request: Request):
     return templates.TemplateResponse("dev/vscode.html", get_context(request))
-
-@dev_pages_router.get("/terminal", response_class=HTMLResponse)
-@require_auth
-async def terminal_page(request: Request):
-    return templates.TemplateResponse("dev/terminal.html", get_context(request))

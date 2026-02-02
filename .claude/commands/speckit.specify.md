@@ -1,6 +1,8 @@
 ---
 description: Create or update the feature specification from a natural language feature description.
-handoffs: 
+model: google/antigravity-claude-opus-4-5-thinking
+variant: low
+handoffs:
   - label: Build Technical Plan
     agent: speckit.plan
     prompt: Create a plan for the spec. I am building with...

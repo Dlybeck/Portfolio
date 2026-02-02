@@ -1,5 +1,6 @@
 ---
 description: Execute the implementation plan by processing and executing all tasks defined in tasks.md
+model: ollama/qwen2.5-coder:14b-instruct-q8_0
 ---
 
 ## User Input

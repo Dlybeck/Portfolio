@@ -90,6 +90,12 @@
 - **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
 - **FR-005**: System MUST [behavior, e.g., "log all security events"]
 
+### Non-Functional Requirements (Constitution Compliance)
+
+- **NFR-001 (Security)**: All endpoints MUST utilize [Auth Method].
+- **NFR-002 (Observability)**: Critical operations MUST be logged with [Trace ID].
+- **NFR-003 (DRY)**: Implementation MUST reuse [Existing Component/Base Class].
+
 *Example of marking unclear requirements:*
 
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]

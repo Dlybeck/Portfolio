@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Request, HTTPException, WebSocket, Response
 from core.dev_utils import require_auth
 from services.code_server_proxy import get_proxy as get_vscode_proxy
-from services.terminal_proxy import get_terminal_proxy
 from services.opencode_web_proxy import get_opencode_proxy
 
 dev_proxy_router = APIRouter(tags=["Dev Proxy"])
@@ -33,30 +32,6 @@ async def proxy_vscode_ws(websocket: WebSocket, path: str):
         return
         
     proxy = get_vscode_proxy()
-    await proxy.proxy_websocket(websocket, path)
-
-@dev_proxy_router.api_route("/terminal-proxy/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
-async def proxy_terminal(request: Request, path: str):
-    token = request.query_params.get("tkn") or request.cookies.get("session_token")
-    if not token:
-        auth = request.headers.get("Authorization", "")
-        if auth.startswith("Bearer "):
-            token = auth.replace("Bearer ", "")
-            
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    proxy = get_terminal_proxy()
-    return await proxy.proxy_request(request, path)
-
-@dev_proxy_router.websocket("/terminal-proxy/{path:path}")
-async def proxy_terminal_ws(websocket: WebSocket, path: str):
-    token = websocket.query_params.get("tkn") or websocket.cookies.get("session_token")
-    if not token:
-        await websocket.close(code=1008, reason="Missing authentication")
-        return
-        
-    proxy = get_terminal_proxy()
     await proxy.proxy_websocket(websocket, path)
 
 @dev_proxy_router.api_route("/opencode-proxy/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])

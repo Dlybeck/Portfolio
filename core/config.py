@@ -22,7 +22,6 @@ class Settings(BaseSettings):
     DASHBOARD_USERNAME: str = "admin"
     DASHBOARD_PASSWORD_HASH: Optional[str] = None  # Optional - supports 2FA-only mode
     TOTP_SECRET: str
-    ANTHROPIC_API_KEY: Optional[str] = None  # Not currently used, but kept for future features
 
     MAX_LOGIN_ATTEMPTS: int = 3
     LOCKOUT_DURATION_MINUTES: int = 15

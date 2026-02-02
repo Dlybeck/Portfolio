@@ -82,13 +82,17 @@ async def login(request: LoginRequest, response: Response):
     import os
     is_https = settings.HTTPS or settings.K_SERVICE is not None
 
+    # Set domain to .davidlybeck.com in production so cookie is accessible to all subdomains
+    cookie_domain = ".davidlybeck.com" if is_https else None
+
     response.set_cookie(
         key="session_token",
         value=access_token,
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         httponly=True,  # Prevent JavaScript access
         secure=is_https,    # Only require HTTPS in production/cloud
-        samesite="lax"  # Lax works for same-origin and top-level navigation
+        samesite="lax",  # Lax works for same-origin and top-level navigation
+        domain=cookie_domain  # Share cookie with all subdomains in production
     )
 
     return TokenResponse(
@@ -132,13 +136,17 @@ async def refresh_token(request: RefreshRequest, response: Response):
     import os
     is_https = settings.HTTPS or settings.K_SERVICE is not None
 
+    # Set domain to .davidlybeck.com in production so cookie is accessible to all subdomains
+    cookie_domain = ".davidlybeck.com" if is_https else None
+
     response.set_cookie(
         key="session_token",
         value=access_token,
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         httponly=True,
         secure=is_https,
-        samesite="lax" if not is_https else "none"
+        samesite="lax" if not is_https else "none",
+        domain=cookie_domain  # Share cookie with all subdomains in production
     )
 
     return TokenResponse(

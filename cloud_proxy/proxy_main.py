@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# Target Mac server on Tailscale network
-MAC_SERVER_URL = "http://100.82.216.64:8080"
+# Target Ubuntu server on Tailscale network
+MAC_SERVER_URL = "http://100.79.140.119:8080"
 
 # HTTP client for proxying requests
 # Use longer timeout for initial code-server/Agor loads via Tailscale
@@ -173,7 +173,7 @@ async def proxy_websocket_all(websocket: WebSocket, path: str):
     query_params = dict(websocket.query_params)
     query_string = "&".join([f"{k}={v}" for k, v in query_params.items()])
     
-    ws_url = f"ws://100.82.216.64:8080/{path}"
+    ws_url = f"ws://100.79.140.119:8080/{path}"
     if query_string:
         ws_url += f"?{query_string}"
     

@@ -85,10 +85,14 @@ async def login(request: LoginRequest, response: Response):
     # Set domain to .davidlybeck.com in production so cookie is accessible to all subdomains
     cookie_domain = ".davidlybeck.com" if is_https else None
 
+    # Extended to 7 days for better mobile UX (was 30 minutes)
+    # For personal dev tools, weekly re-auth is acceptable tradeoff
+    SESSION_COOKIE_MAX_AGE = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60  # 7 days
+
     response.set_cookie(
         key="session_token",
         value=access_token,
-        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        max_age=SESSION_COOKIE_MAX_AGE,
         httponly=True,  # Prevent JavaScript access
         secure=is_https,    # Only require HTTPS in production/cloud
         samesite="lax",  # Lax works for same-origin and top-level navigation
@@ -139,10 +143,13 @@ async def refresh_token(request: RefreshRequest, response: Response):
     # Set domain to .davidlybeck.com in production so cookie is accessible to all subdomains
     cookie_domain = ".davidlybeck.com" if is_https else None
 
+    # Extended to 7 days for better mobile UX (matches login endpoint)
+    SESSION_COOKIE_MAX_AGE = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60  # 7 days
+
     response.set_cookie(
         key="session_token",
         value=access_token,
-        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        max_age=SESSION_COOKIE_MAX_AGE,
         httponly=True,
         secure=is_https,
         samesite="lax" if not is_https else "none",

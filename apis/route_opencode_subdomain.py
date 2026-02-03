@@ -14,6 +14,8 @@ class OpenCodeSubdomainMiddleware(BaseHTTPMiddleware):
 
         if "opencode.davidlybeck.com" in host or "opencode." in host:
             # Bypass authentication for health check endpoint
+            # This is safe: /global/health only returns {"healthy":true,"version":"1.1.48"}
+            # Health checks are standard public endpoints (used by load balancers, monitoring)
             if request.url.path == "/global/health":
                 logger.debug(f"Health check bypass: {request.url.path}")
                 path = request.url.path.lstrip("/")

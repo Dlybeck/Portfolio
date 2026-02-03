@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from core.config import settings
 from core.dev_utils import require_auth, extract_token
 from pathlib import Path
 
@@ -12,7 +13,8 @@ def get_context(request: Request) -> dict:
     return {
         "request": request,
         "token": getattr(request.state, 'token', extract_token(request)),
-        "workspace": "/home/dlybeck/Documents/portfolio"
+        "workspace": "/home/dlybeck/Documents/portfolio",
+        "proxmox_url": settings.PROXMOX_URL,
     }
 
 @dev_pages_router.get("/login", response_class=HTMLResponse)

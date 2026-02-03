@@ -53,7 +53,7 @@ class OpenCodeWebProxy(BaseProxy):
         logger.info(f"[OpenCodeWebProxy] Processing path: {path}, content-type: {content_type}")
         if 'text/html' in content_type:
             from fastapi.responses import Response
-            logger.info(f"[OpenCodeWebProxy] Found HTML response, will inject locale script")
+            logger.info("[OpenCodeWebProxy] Found HTML response, will inject scripts")
 
             body = b''
             async for chunk in response.body_iterator:
@@ -62,16 +62,79 @@ class OpenCodeWebProxy(BaseProxy):
             html = body.decode('utf-8', errors='ignore')
             logger.info(f"[OpenCodeWebProxy] HTML size: {len(html)} chars, has <head>: {'<head>' in html}")
 
-            # Minimal locale fix: set OpenCode language and theme preferences
-            locale_script = """<script>
+            # Injected scripts for OpenCode web interface
+            # 1. Locale fix: Set language and theme preferences
+            # 2. Mobile health check: Auto-recover from background suspension on mobile Chrome
+            injected_scripts = """<script>
+// Locale fix: Set OpenCode language and theme preferences
 localStorage.setItem('opencode.global.dat:language','{"locale":"en"}');
 localStorage.setItem('opencode-theme-id','nord');
+
+// Mobile health check: Recover from background suspension
+(function() {
+  // Only run on mobile/touch devices
+  if (!('ontouchstart' in window || navigator.maxTouchPoints > 0)) return;
+  
+  const MIN_HIDDEN_TIME = 2000;      // 2s - skip brief tab switches
+  const DEBOUNCE_INTERVAL = 10000;   // 10s - no rapid-fire checks
+  const CHECK_DELAY = 500;           // 0.5s - stabilize before checking
+  const FETCH_TIMEOUT = 5000;        // 5s - health check timeout
+  
+  let lastHiddenTime = 0;
+  let lastCheckTime = 0;
+  
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+      const hiddenDuration = Date.now() - lastHiddenTime;
+      const timeSinceLastCheck = Date.now() - lastCheckTime;
+      
+      // Skip if brief tab away or checked recently
+      if (hiddenDuration < MIN_HIDDEN_TIME || timeSinceLastCheck < DEBOUNCE_INTERVAL) return;
+      
+      // Skip if user is actively typing
+      const active = document.activeElement;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || 
+          active.contentEditable === 'true')) return;
+      
+      setTimeout(checkConnectionHealth, CHECK_DELAY);
+    } else {
+      lastHiddenTime = Date.now();
+    }
+  });
+  
+  async function checkConnectionHealth() {
+    lastCheckTime = Date.now();
+    console.log('[MobileHealth] Checking connection...');
+    
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+      
+      const response = await fetch('/global/health', {
+        signal: controller.signal,
+        cache: 'no-store'
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        console.log('[MobileHealth] Connection OK');
+      } else {
+        console.log('[MobileHealth] Health check failed (status ' + response.status + '), reloading...');
+        window.location.reload();
+      }
+    } catch (error) {
+      console.log('[MobileHealth] Connection dead, reloading...');
+      window.location.reload();
+    }
+  }
+})();
 </script>"""
 
             if '<head>' in html:
-                html = html.replace('<head>', f'<head>{locale_script}', 1)
+                html = html.replace('<head>', f'<head>{injected_scripts}', 1)
             else:
-                html = locale_script + html
+                html = injected_scripts + html
 
             return Response(
                 content=html.encode('utf-8'),

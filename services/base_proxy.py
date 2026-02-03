@@ -132,10 +132,31 @@ class BaseProxy:
                 if 'Content-Encoding' in resp.headers:
                     response_headers['content-encoding'] = resp.headers['Content-Encoding']
 
+                is_sse = resp.headers.get('content-type', '').startswith('text/event-stream')
+                SSE_KEEPALIVE_INTERVAL = 15  # seconds
+
                 async def content_iterator():
                     try:
-                        async for chunk in resp.content.iter_chunked(4096):
-                            yield chunk
+                        if is_sse:
+                            # SSE-aware streaming with keepalive comments.
+                            # Prevents browser from closing idle stream during machine sleep,
+                            # which would kill OpenCode's /global/event subscription silently.
+                            # ": keepalive" is a valid SSE comment — clients ignore it but the stream stays alive.
+                            while True:
+                                try:
+                                    chunk = await asyncio.wait_for(
+                                        resp.content.readany(),
+                                        timeout=SSE_KEEPALIVE_INTERVAL
+                                    )
+                                    if not chunk:
+                                        break  # upstream closed normally
+                                    yield chunk
+                                except asyncio.TimeoutError:
+                                    logger.debug(f"[{self.__class__.__name__}] SSE keepalive sent on {url}")
+                                    yield b": keepalive\n\n"
+                        else:
+                            async for chunk in resp.content.iter_chunked(4096):
+                                yield chunk
                     except aiohttp.ClientPayloadError as e:
                         logger.warning(f"[{self.__class__.__name__}] Incomplete payload from upstream: {e}")
                     finally:

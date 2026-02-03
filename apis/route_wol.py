@@ -28,16 +28,20 @@ def build_magic_packet(mac: str) -> bytes:
     return b"\xff" * 6 + mac_bytes * 100
 
 
+def _wol_targets() -> list[tuple[str, int]]:
+    """Return the two UDP targets: LAN broadcast and Tailscale unicast."""
+    return [
+        ("255.255.255.255", WOL_PORT),     # LAN broadcast
+        (PROXMOX_TAILSCALE_IP, WOL_PORT),  # Tailscale unicast
+    ]
+
+
 async def _send_wol(mac: str) -> None:
     """Send the magic packet to both broadcast and the Proxmox Tailscale IP."""
     packet = build_magic_packet(mac)
-    targets = [
-        ("255.255.255.255", WOL_PORT),   # LAN broadcast
-        (PROXMOX_TAILSCALE_IP, WOL_PORT),  # Tailscale unicast
-    ]
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        for addr in targets:
+        for addr in _wol_targets():
             sock.sendto(packet, addr)
             logger.info("WoL magic packet sent to %s:%d", *addr)
 
@@ -52,3 +56,22 @@ async def wake_on_lan(request: Request):
     except Exception as e:
         logger.exception("WoL send failed")
         return JSONResponse({"status": "error", "detail": str(e)}, status_code=500)
+
+
+@wol_router.get("/wol-test")
+@require_auth
+async def wol_dry_run(request: Request):
+    """Dry-run: build the packet and return its hex dump. Nothing is sent."""
+    mac = settings.WOL_MAC_ADDRESS
+    packet = build_magic_packet(mac)
+    targets = _wol_targets()
+    return JSONResponse({
+        "status": "dry_run",
+        "mac": mac,
+        "packet_length": len(packet),
+        "header": packet[:6].hex(),
+        "mac_bytes": packet[6:12].hex(),
+        "mac_repetitions": 100,
+        "targets": [f"{host}:{port}" for host, port in targets],
+        "packet_hex": packet.hex(),
+    })

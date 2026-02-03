@@ -112,3 +112,35 @@ class TestWolEndpoint:
         assert res.status_code == 500
         assert res.json()["status"] == "error"
         assert "network unreachable" in res.json()["detail"]
+
+
+# ---------------------------------------------------------------------------
+# Dry-run endpoint — GET /wol-test (no socket, returns packet hex)
+# ---------------------------------------------------------------------------
+
+class TestWolDryRun:
+    @patch("apis.route_wol.settings")
+    def test_dry_run_returns_correct_structure(self, mock_settings):
+        mock_settings.WOL_MAC_ADDRESS = "18:60:24:93:97:57"
+        res = client.get("/wol-test")
+
+        assert res.status_code == 200
+        body = res.json()
+        assert body["status"] == "dry_run"
+        assert body["mac"] == "18:60:24:93:97:57"
+        assert body["packet_length"] == 606
+        assert body["header"] == "ffffffffffff"
+        assert body["mac_bytes"] == "186024939757"
+        assert body["mac_repetitions"] == 100
+        assert "255.255.255.255:7" in body["targets"]
+        assert "100.124.207.84:7" in body["targets"]
+
+    @patch("apis.route_wol.settings")
+    def test_dry_run_packet_hex_is_valid(self, mock_settings):
+        """The hex string must decode back to a byte-perfect magic packet."""
+        mock_settings.WOL_MAC_ADDRESS = "18:60:24:93:97:57"
+        res = client.get("/wol-test")
+        packet = bytes.fromhex(res.json()["packet_hex"])
+
+        expected = build_magic_packet("18:60:24:93:97:57")
+        assert packet == expected

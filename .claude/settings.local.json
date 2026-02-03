@@ -120,7 +120,8 @@
       "WebFetch(domain:opencode.ai)",
       "WebFetch(domain:github.github.com)",
       "Bash(ln:*)",
-      "Bash(netstat:*)"
+      "Bash(netstat:*)",
+      "Bash(journalctl:*)"
     ],
     "deny": [],
     "ask": []

@@ -16,8 +16,7 @@ class Settings(BaseSettings):
     SOCKS5_PROXY: str = "socks5://localhost:1055"  # Use localhost to match tailscaled listening behavior
     SOCKS5_PORT: int = 1055
 
-    # Proxmox host (bare-metal) — WoL target + debug console
-    WOL_MAC_ADDRESS: str = "18:60:24:93:97:57"
+    # Proxmox host debug console URL
     PROXMOX_URL: str = "https://100.124.207.84:8006"
 
     # Authentication & Security

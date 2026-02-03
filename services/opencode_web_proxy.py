@@ -91,10 +91,9 @@ localStorage.setItem('opencode-theme-id','nord');
       // Skip if brief tab away or checked recently
       if (hiddenDuration < MIN_HIDDEN_TIME || timeSinceLastCheck < DEBOUNCE_INTERVAL) return;
       
-      // Skip if user is actively typing
-      const active = document.activeElement;
-      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || 
-          active.contentEditable === 'true')) return;
+      // Note: Previously skipped if user was typing, but this prevented recovery
+      // when returning to a "failed to send" state. Health check is fast enough
+      // that it won't interrupt typing, and reload only happens if connection is dead.
       
       setTimeout(checkConnectionHealth, CHECK_DELAY);
     } else {

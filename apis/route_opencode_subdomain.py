@@ -13,6 +13,13 @@ class OpenCodeSubdomainMiddleware(BaseHTTPMiddleware):
         host = request.headers.get("host", "")
 
         if "opencode.davidlybeck.com" in host or "opencode." in host:
+            # Bypass authentication for health check endpoint
+            if request.url.path == "/global/health":
+                logger.debug(f"Health check bypass: {request.url.path}")
+                path = request.url.path.lstrip("/")
+                proxy = get_opencode_proxy()
+                return await proxy.proxy_request(request, path)
+
             # Check authentication before proxying
             token = extract_token(request)
 

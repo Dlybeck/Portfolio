@@ -65,16 +65,18 @@ start_opencode() {
 
 start_openhands() {
   local port="$OPENHANDS_PORT"
+  # 1) If the Docker container is already running, consider OpenHands up
+  if sg docker -c "docker ps --filter name=openhands-app --format '{{.Names}}'" | grep -q "openhands-app"; then
+    log "OpenHands docker container 'openhands-app' is already running"
+    return 0
+  fi
+  # 2) If port already listening (e.g., started elsewhere), short-circuit
   if is_port_listening "$port"; then
     log "OpenHands already listening on port $port"
     return 0
   fi
   local pid
-  pid=$(detect_pid_by_name 'openhands|OpenHands')
-  if [ -n "$pid" ]; then
-    log "OpenHands process detected (pid $pid)."
-    return 0
-  fi
+  # 3) Do not rely solely on a running process; prefer starting via script
   if command -v openhands >/dev/null 2>&1; then
     openhands &
     pid=$!
@@ -87,6 +89,7 @@ start_openhands() {
     log "OpenHands start command not found. OpenHands may not be installed locally."
     return 1
   fi
+  # 4) Keep existing port wait loop to confirm startup
   for i in {1..12}; do
     sleep 0.5
     if is_port_listening "$port"; then
@@ -117,21 +120,10 @@ stop_opencode() {
 }
 
 stop_openhands() {
-  local pids
-  pids=$(pgrep -f "openhands|OpenHands" 2>/dev/null || true)
-  if [ -n "$pids" ]; then
-    log "Stopping OpenHands (pids: $pids)"
-    kill -TERM $pids 2>/dev/null || true
-    for i in {1..12}; do
-      sleep 0.5
-      if ! pgrep -f "openhands|OpenHands" >/dev/null; then
-        log "OpenHands stopped gracefully"
-        break
-      fi
-    done
-  else
-    log "OpenHands not running."
-  fi
+  # Stop via Docker to ensure container-based lifecycle
+  sg docker -c "docker stop openhands-app 2>/dev/null || true" >/dev/null 2>&1 || true
+  sg docker -c "docker rm openhands-app 2>/dev/null || true" >/dev/null 2>&1 || true
+  log "OpenHands Docker container stop/removal issued (if existed)."
 }
 
 report_status() {
@@ -145,10 +137,16 @@ report_status() {
     log "OpenCode: port $oc_port not listening"
   fi
 
-  local oh_pid oh_port
-  oh_pid=$(pgrep -f "openhands|OpenHands" 2>/dev/null || true)
+  # Docker-based status for OpenHands
+  local oh_port
   oh_port="$OPENHANDS_PORT"
-  log "OpenHands: pid=${oh_pid:-none}, port=${oh_port}"
+  local container_status
+  container_status=$(sg docker -c "docker ps --filter name=openhands-app --format '{{.Status}}'" 2>/dev/null || true)
+  if [ -n "$container_status" ]; then
+    log "OpenHands: status=${container_status}"
+  else
+    log "OpenHands: status=not running"
+  fi
   if is_port_listening "$oh_port"; then
     log "OpenHands: port $oh_port listening"
   else

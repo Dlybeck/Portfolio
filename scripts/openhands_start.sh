@@ -4,7 +4,8 @@ set -e
 # Configuration
 WORKSPACE_BASE="${HOME}/workspace"
 CONTAINER_NAME="openhands-app"
-IMAGE_NAME="docker.all-hands.dev/all-hands-ai/openhands:0.11"
+IMAGE_NAME="ghcr.io/all-hands-ai/openhands:0.11"
+DOCKER_BINARY="/usr/bin/docker"
 
 # Ensure workspace exists
 mkdir -p "$WORKSPACE_BASE"
@@ -21,7 +22,6 @@ fi
 
 # Run OpenHands
 # We use --rm so it cleans up after itself when stopped
-# We map port 3000
 if command -v docker >/dev/null 2>&1; then
     docker run --rm \
         --name "$CONTAINER_NAME" \
@@ -30,6 +30,7 @@ if command -v docker >/dev/null 2>&1; then
         -e WORKSPACE_MOUNT_PATH="$WORKSPACE_BASE" \
         -v "$WORKSPACE_BASE:/opt/workspace_base" \
         -v /var/run/docker.sock:/var/run/docker.sock \
+        -v "$DOCKER_BINARY:/usr/bin/docker" \
         --add-host host.docker.internal:host-gateway \
         "$IMAGE_NAME"
 else

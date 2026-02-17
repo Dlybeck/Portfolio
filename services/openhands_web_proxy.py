@@ -6,20 +6,25 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class OpenCodeWebProxy(BaseProxy):
-    def __init__(self, opencode_url: str = None):
-        if not opencode_url:
+class OpenHandsWebProxy(BaseProxy):
+    def __init__(self, openhands_url: str = None):
+        if not openhands_url:
             if IS_CLOUD_RUN:
-                opencode_url = f"http://{MAC_SERVER_IP}:4096"
+                openhands_url = f"http://{MAC_SERVER_IP}:3000"
             else:
-                opencode_url = "http://127.0.0.1:4096"
+                openhands_url = "http://127.0.0.1:3000"
 
-        super().__init__(opencode_url)
-        logger.info(f"OpenCode Web Proxy initialized: {opencode_url}")
+        super().__init__(openhands_url)
+        logger.info(f"OpenHands Web Proxy initialized: {openhands_url}")
 
     def get_health_endpoint(self) -> str:
-        # OpenCode public health endpoint is at /global/health
-        return "/global/health"
+        # OpenHands health endpoint is at /api/health
+        return "/api/health"
+
+    @property
+    def target_url(self) -> str:
+        # Compatibility with existing tests that expect a 'target_url' attribute
+        return self.base_url
 
     async def proxy_request(self, request: Request, path: str) -> StreamingResponse:
         response = await super().proxy_request(request, path)
@@ -69,12 +74,12 @@ class OpenCodeWebProxy(BaseProxy):
         # Inject minimal locale fix for all HTML pages
         content_type = response.headers.get("content-type", "")
         logger.info(
-            f"[OpenCodeWebProxy] Processing path: {path}, content-type: {content_type}"
+            f"[OpenHandsWebProxy] Processing path: {path}, content-type: {content_type}"
         )
         if "text/html" in content_type:
             from fastapi.responses import Response
 
-            logger.info("[OpenCodeWebProxy] Found HTML response, will inject scripts")
+            logger.info("[OpenHandsWebProxy] Found HTML response, will inject scripts")
 
             body = b""
             async for chunk in response.body_iterator:
@@ -82,16 +87,16 @@ class OpenCodeWebProxy(BaseProxy):
 
             html = body.decode("utf-8", errors="ignore")
             logger.info(
-                f"[OpenCodeWebProxy] HTML size: {len(html)} chars, has <head>: {'<head>' in html}"
+                f"[OpenHandsWebProxy] HTML size: {len(html)} chars, has <head>: {'<head>' in html}"
             )
 
-            # Injected scripts for OpenCode web interface
+            # Injected scripts for OpenHands web interface
             # 1. Locale fix: Set language and theme preferences
             # 2. Mobile health check: Auto-recover from background suspension on mobile Chrome
             injected_scripts = """<script>
-// Locale fix: Set OpenCode language and theme preferences
-localStorage.setItem('opencode.global.dat:language','{"locale":"en"}');
-localStorage.setItem('opencode-theme-id','nord');
+// Locale fix: Set OpenHands language and theme preferences
+localStorage.setItem('openhands.global.dat:language','{"locale":"en"}');
+localStorage.setItem('openhands-theme-id','default');
 
 // Mobile health check: Recover from background suspension
 (function() {
@@ -132,7 +137,7 @@ localStorage.setItem('opencode-theme-id','nord');
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
       
-      const response = await fetch('/global/health', {
+      const response = await fetch('/api/health', {
         signal: controller.signal,
         cache: 'no-store'
       });
@@ -164,15 +169,14 @@ localStorage.setItem('opencode-theme-id','nord');
                 headers=dict(response.headers),
                 media_type="text/html",
             )
-
         return response
 
 
 _proxy_instance = None
 
 
-def get_opencode_proxy() -> OpenCodeWebProxy:
+def get_openhands_proxy() -> OpenHandsWebProxy:
     global _proxy_instance
     if _proxy_instance is None:
-        _proxy_instance = OpenCodeWebProxy()
+        _proxy_instance = OpenHandsWebProxy()
     return _proxy_instance

@@ -82,7 +82,7 @@ start_openhands() {
     pid=$!
     log "Starting OpenHands (openhands) with pid $pid"
   elif [ -x "./scripts/openhands_start.sh" ]; then
-    "./scripts/openhands_start.sh" &
+    sg docker -c "./scripts/openhands_start.sh" &
     pid=$!
     log "Starting OpenHands via scripts/openhands_start.sh with pid $pid"
   else

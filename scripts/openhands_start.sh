@@ -3,15 +3,29 @@ set -e
 
 # Configuration
 WORKSPACE_BASE="${HOME}/workspace"
+CONFIG_FILE="${HOME}/.openhands-config.toml"
 CONTAINER_NAME="openhands-app"
 IMAGE_NAME="ghcr.io/all-hands-ai/openhands:0.11"
 DOCKER_BINARY="/usr/bin/docker"
+BUILDX_PATH="$HOME/.docker/cli-plugins/docker-buildx"
 
 # Ensure workspace exists
 mkdir -p "$WORKSPACE_BASE"
 
+# Ensure config file exists
+touch "$CONFIG_FILE"
+
+# Install buildx if missing (required for sandbox build)
+if [ ! -f "$BUILDX_PATH" ]; then
+    echo "Installing docker-buildx..."
+    mkdir -p "$(dirname "$BUILDX_PATH")"
+    curl -Lo "$BUILDX_PATH" https://github.com/docker/buildx/releases/download/v0.12.1/buildx-v0.12.1.linux-amd64
+    chmod +x "$BUILDX_PATH"
+fi
+
 echo "Starting OpenHands..."
 echo "Workspace: $WORKSPACE_BASE"
+echo "Config: $CONFIG_FILE"
 echo "Container: $CONTAINER_NAME"
 
 # Clean up existing container if it exists
@@ -21,7 +35,6 @@ if command -v docker >/dev/null 2>&1 && docker ps -a --format '{{.Names}}' | gre
 fi
 
 # Run OpenHands
-# We use --rm so it cleans up after itself when stopped
 if command -v docker >/dev/null 2>&1; then
     docker run --rm \
         --name "$CONTAINER_NAME" \
@@ -31,6 +44,8 @@ if command -v docker >/dev/null 2>&1; then
         -v "$WORKSPACE_BASE:/opt/workspace_base" \
         -v /var/run/docker.sock:/var/run/docker.sock \
         -v "$DOCKER_BINARY:/usr/bin/docker" \
+        -v "$BUILDX_PATH:/usr/libexec/docker/cli-plugins/docker-buildx" \
+        -v "$CONFIG_FILE:/app/config.toml" \
         --add-host host.docker.internal:host-gateway \
         "$IMAGE_NAME"
 else

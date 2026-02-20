@@ -99,12 +99,13 @@ class OpenHandsWebProxy(BaseProxy):
             )
 
             # Injected scripts for OpenHands web interface
-            # 1. Locale fix: Set language and theme preferences
+            # 1. Locale fix: Set i18next language to English before app initializes
             # 2. Mobile health check: Auto-recover from background suspension on mobile Chrome
             injected_scripts = """<script>
-// Locale fix: Set OpenHands language and theme preferences
-localStorage.setItem('openhands.global.dat:language','{"locale":"en"}');
-localStorage.setItem('openhands-theme-id','default');
+// Locale fix: Set i18next localStorage key so OpenHands v1.3+ loads English translations.
+// 'i18nextLng' is the standard lookupLocalStorage key used by i18next in OpenHands v1.3.
+// The old 'openhands.global.dat:language' key is not present in v1.3 and is ignored.
+localStorage.setItem('i18nextLng','en');
 
 // Mobile health check: Recover from background suspension
 (function() {

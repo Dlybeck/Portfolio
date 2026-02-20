@@ -23,6 +23,7 @@ if command -v docker >/dev/null 2>&1; then
         -e AGENT_SERVER_IMAGE_REPOSITORY=ghcr.io/openhands/agent-server \
         -e AGENT_SERVER_IMAGE_TAG=1.10.0-python \
         -e LOG_ALL_EVENTS=true \
+        -e OH_SECRET_KEY=ba97cf4a868bc213559f804b25764d0248f0252e76597188ee66209a06a7cb18 \
         -v /var/run/docker.sock:/var/run/docker.sock \
         -v "$HOME/.openhands:/.openhands" \
         --add-host host.docker.internal:host-gateway \

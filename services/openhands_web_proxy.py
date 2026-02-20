@@ -37,6 +37,7 @@ class OpenHandsWebProxy(BaseProxy):
                 new_directives = []
                 has_media_src = False
 
+                has_connect_src = False
                 for d in directives:
                     if d.startswith("script-src"):
                         # Allow inline scripts for locale injection
@@ -45,11 +46,18 @@ class OpenHandsWebProxy(BaseProxy):
                         # Allow data URIs for notification sounds
                         d = f"{d} data:"
                         has_media_src = True
+                    elif d.startswith("connect-src"):
+                        # Allow WebSocket connections from the proxy domain
+                        d = f"{d} 'self' wss: ws:"
+                        has_connect_src = True
                     new_directives.append(d)
 
                 # Add media-src if it doesn't exist
                 if not has_media_src:
                     new_directives.append("media-src 'self' data:")
+                # Add connect-src if it doesn't exist
+                if not has_connect_src:
+                    new_directives.append("connect-src 'self' wss: ws:")
 
                 response.headers[csp_header] = "; ".join(new_directives)
 

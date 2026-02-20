@@ -339,6 +339,10 @@ class BaseProxy:
                     f"[{self.__class__.__name__}] Rewrote headers. Host: {headers.get('Host')}, Origin: {headers.get('Origin')}, Subprotocols: {subprotocols}"
                 )
 
+            # Disable proxy auto-detection in websockets v15 (default proxy=True picks up
+            # system HTTP_PROXY env var, which can interfere with local ws://127.0.0.1 connections)
+            ws_kwargs["proxy"] = None
+
             async with websockets.connect(ws_url, **ws_kwargs) as server_ws:
                 logger.info(
                     f"[{self.__class__.__name__}] ✅ Connected! Subprotocol selected: {server_ws.subprotocol}"

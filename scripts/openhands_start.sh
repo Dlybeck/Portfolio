@@ -6,6 +6,14 @@ set -e
 # Ensure persistence directory exists
 mkdir -p ~/.openhands
 
+# Load or generate OH_SECRET_KEY (stored outside the repo, never committed)
+KEY_FILE="$HOME/.openhands/oh_secret_key"
+if [ ! -f "$KEY_FILE" ]; then
+    python3 -c "import secrets; print(secrets.token_hex(32))" > "$KEY_FILE"
+    chmod 600 "$KEY_FILE"
+fi
+OH_SECRET_KEY=$(cat "$KEY_FILE")
+
 # Configuration (v1.3.0): use new image and minimal mounts
 CONTAINER_NAME="openhands-app"
 
@@ -23,7 +31,7 @@ if command -v docker >/dev/null 2>&1; then
         -e AGENT_SERVER_IMAGE_REPOSITORY=ghcr.io/openhands/agent-server \
         -e AGENT_SERVER_IMAGE_TAG=1.10.0-python \
         -e LOG_ALL_EVENTS=true \
-        -e OH_SECRET_KEY=ba97cf4a868bc213559f804b25764d0248f0252e76597188ee66209a06a7cb18 \
+        -e OH_SECRET_KEY="$OH_SECRET_KEY" \
         -v /var/run/docker.sock:/var/run/docker.sock \
         -v "$HOME/.openhands:/.openhands" \
         --add-host host.docker.internal:host-gateway \

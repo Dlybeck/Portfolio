@@ -299,8 +299,9 @@ class BaseProxy:
                     if key.lower() in ["host", "origin"]:
                         del headers[key]
 
-                headers["Host"] = f"{parsed.hostname}:{parsed.port}"
-
+                # Do NOT set Host in additional_headers — websockets.connect() auto-sets it
+                # from the URL, and Headers.update() appends rather than replaces, causing
+                # duplicate Host headers which uvicorn rejects with HTTP 400.
                 scheme = "https" if parsed.scheme == "wss" else "http"
                 headers["Origin"] = f"{scheme}://{parsed.hostname}:{parsed.port}"
 
@@ -336,7 +337,7 @@ class BaseProxy:
                 if subprotocols:
                     ws_kwargs["subprotocols"] = subprotocols
                 logger.info(
-                    f"[{self.__class__.__name__}] Rewrote headers. Host: {headers.get('Host')}, Origin: {headers.get('Origin')}, Subprotocols: {subprotocols}"
+                    f"[{self.__class__.__name__}] Rewrote headers. Origin: {headers.get('Origin')}, Subprotocols: {subprotocols}"
                 )
 
             # Disable proxy auto-detection in websockets v15 (default proxy=True picks up

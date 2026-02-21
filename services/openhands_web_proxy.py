@@ -102,38 +102,8 @@ class OpenHandsWebProxy(BaseProxy):
             # 1. Locale fix: Set i18next language to English before app initializes
             # 2. Mobile health check: Auto-recover from background suspension on mobile Chrome
             injected_scripts = """<script>
-// Locale fix: Set i18next localStorage key so OpenHands v1.3+ loads English translations.
+// Set i18next language to English
 localStorage.setItem('i18nextLng','en');
-
-// i18next re-render fix: i18next uses initAsync:true, deferring init via setTimeout(0).
-// On first render, React sees getI18n()=null → returns raw key fallback → no Suspense throw.
-// When translations load, no React re-render is triggered automatically.
-// Fix: intercept the translation fetch, then dispatch popstate to trigger React Router re-render.
-(function() {
-  var _fetch = window.fetch;
-  var done = false;
-  window.fetch = function() {
-    var resource = arguments[0];
-    var url = typeof resource === 'string' ? resource : (resource && resource.url);
-    var p = _fetch.apply(this, arguments);
-    if (!done && url && url.indexOf('/locales/') !== -1) {
-      done = true;
-      p.then(function(res) {
-        if (res && res.ok) {
-          // Allow i18next to parse and store the loaded translations before re-rendering
-          setTimeout(function() {
-            try {
-              window.dispatchEvent(new PopStateEvent('popstate', {
-                state: window.history.state, bubbles: true
-              }));
-            } catch(e) {}
-          }, 100);
-        }
-      }).catch(function(){});
-    }
-    return p;
-  };
-})();
 
 // Mobile health check: Recover from background suspension
 (function() {

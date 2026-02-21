@@ -25,6 +25,7 @@ from starlette.websockets import WebSocket as StarletteWebSocket
 from services.coding_service_factory import get_coding_service
 from services.openhands_web_proxy import get_openhands_proxy
 from services.opencode_web_proxy import get_opencode_proxy
+from services.base_proxy import IS_CLOUD_RUN, MAC_SERVER_IP
 
 from core.dev_utils import extract_token
 
@@ -260,22 +261,27 @@ class CodingWebSocketMiddleware:
                             # Cache miss — fetch directly (handles proxy restarts / race conditions)
                             agent_url = await openhands_proxy.fetch_agent_url(conv_id)
                         if agent_url:
-                            # Keep localhost — SOCKS5 proxy (tailscaled on Mac) resolves
-                            # "localhost" to 127.0.0.1 on itself, reaching the agent server
-                            # directly. No Tailscale IP substitution needed.
-                            target_base_url = agent_url
+                            # On Cloud Run, tailscaled's SOCKS5 server resolves "localhost"
+                            # to 127.0.0.1 on the container itself — not the Mac. We must
+                            # use MAC_SERVER_IP (Tailscale IP) so the CONNECT target routes
+                            # through Tailscale to the Mac's agent server port.
+                            target_base_url = (
+                                agent_url.replace("localhost", MAC_SERVER_IP)
+                                if IS_CLOUD_RUN
+                                else agent_url
+                            )
                             logger.info(
-                                "[OpenHands] /sockets/events/%s: agent_url=%r, target=%r",
-                                conv_id,
-                                agent_url,
-                                target_base_url,
+                                "[OpenHands] /sockets/events/%s: agent_url=%r → target=%r",
+                                conv_id, agent_url, target_base_url,
                             )
                         else:
-                            logger.warning(
-                                "[OpenHands] No agent URL found for conversation %s; "
-                                "WebSocket will target port 3000 and likely fail.",
+                            logger.error(
+                                "[OpenHands] No agent URL for conversation %s — closing WS. "
+                                "Reload the page to re-populate the agent URL cache.",
                                 conv_id,
                             )
+                            await websocket.close(code=4001, reason="Agent not ready — please reload")
+                            return
 
                 logger.info("Proxying WebSocket to '%s': %s", service_name, path_clean)
 

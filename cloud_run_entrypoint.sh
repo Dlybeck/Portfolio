@@ -39,13 +39,50 @@ echo "✅ Generated fresh auth key (valid 90 days)"
 # Start tailscaled in background
 # Fix for Cloud Run packet fragmentation (MTU issue)
 export TS_DEBUG_MTU=512
+echo "🔧 Starting tailscaled with SOCKS5 server on localhost:1055..."
 tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &
-sleep 2
+TAILSCALED_PID=$!
+sleep 3
+
+# Check if tailscaled is running
+if ! kill -0 $TAILSCALED_PID 2>/dev/null; then
+echo "❌ tailscaled failed to start"
+exit 1
+fi
+
+echo "🔍 Checking SOCKS5 server status..."
+# Verify SOCKS5 port is listening
+if ss -tlnp 2>/dev/null | grep -q ":1055 "; then
+echo "✅ SOCKS5 proxy listening on port 1055"
+else
+echo "⚠️  SOCKS5 port 1055 not listening, checking alternative methods..."
+# Try netstat as fallback
+netstat -tlnp 2>/dev/null | grep ":1055 " && echo "✅ SOCKS5 proxy found via netstat"
+fi
 
 # Connect to Tailscale network
+echo "🔗 Connecting to Tailscale network..."
 tailscale up --authkey=${AUTH_KEY} --hostname=portfolio-app --accept-routes
 
+# Verify Tailscale connection
+sleep 2
+if tailscale status >/dev/null 2>&1; then
 echo "✅ Connected to Tailscale"
+echo "📊 Tailscale status:"
+tailscale status --json | jq -r '.Self.TailscaleIPs[0]' 2>/dev/null || tailscale ip
+else
+echo "❌ Tailscale connection failed"
+exit 1
+fi
 
+# Test SOCKS5 connectivity
+echo "🧪 Testing SOCKS5 proxy connectivity..."
+if curl --socks5 localhost:1055 --max-time 5 http://100.79.140.119:3000/api/health 2>/dev/null | grep -q "healthy"; then
+echo "✅ SOCKS5 proxy test passed - can reach Ubuntu server"
+else
+echo "⚠️  SOCKS5 proxy test failed - may have connectivity issues"
+fi
+
+echo "🚀 Starting FastAPI application..."
 # Start FastAPI app
 exec uvicorn main:app --host 0.0.0.0 --port 8080

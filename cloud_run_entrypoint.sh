@@ -69,7 +69,13 @@ sleep 2
 if tailscale status >/dev/null 2>&1; then
 echo "✅ Connected to Tailscale"
 echo "📊 Tailscale status:"
-tailscale status --json | jq -r '.Self.TailscaleIPs[0]' 2>/dev/null || tailscale ip
+# Get IPv4 address (handle multiple IPs from tailscale ip)
+TAILSCALE_IPV4=$(tailscale ip -4 2>/dev/null || tailscale status --json 2>/dev/null | jq -r '.Self.TailscaleIPs[] | select(. | test("^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$"))' | head -1)
+if [ -z "$TAILSCALE_IPV4" ]; then
+echo "⚠️  Could not extract IPv4 address, using first IP"
+TAILSCALE_IPV4=$(tailscale ip | head -1 | awk '{print $1}')
+fi
+echo "Tailscale IPv4: $TAILSCALE_IPV4"
 else
 echo "❌ Tailscale connection failed"
 exit 1
@@ -77,10 +83,10 @@ fi
 
 # Test SOCKS5 connectivity
 echo "🧪 Testing SOCKS5 proxy connectivity..."
-if curl --socks5 localhost:1055 --max-time 5 http://100.79.140.119:3000/api/health 2>/dev/null | grep -q "healthy"; then
-echo "✅ SOCKS5 proxy test passed - can reach Ubuntu server"
+if curl --socks5 localhost:1055 --max-time 5 "http://${TAILSCALE_IPV4}:3000/api/health" 2>/dev/null | grep -q "healthy"; then
+echo "✅ SOCKS5 proxy test passed - can reach Ubuntu server at $TAILSCALE_IPV4:3000"
 else
-echo "⚠️  SOCKS5 proxy test failed - may have connectivity issues"
+echo "⚠️  SOCKS5 proxy test failed - cannot reach Ubuntu server at $TAILSCALE_IPV4:3000"
 fi
 
 echo "🚀 Starting FastAPI application..."

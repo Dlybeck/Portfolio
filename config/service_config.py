@@ -13,10 +13,6 @@ SERVICE_CONFIGS: Dict[str, Dict[str, object]] = {
         "port": 3000,
         "health_endpoint": "/api/health",
     },
-    "opencode": {
-        "port": 4096,
-        "health_endpoint": "/global/health",
-    },
 }
 
 

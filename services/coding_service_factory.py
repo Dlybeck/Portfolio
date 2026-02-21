@@ -2,31 +2,13 @@
 """Coding service factory
 
 This module provides a lightweight factory to describe available coding
-services (OpenCode and OpenHands). It exposes a single helper,
+services (OpenHands only, OpenCode removed as legacy). It exposes a single helper,
 get_coding_service(), which returns a minimal configuration payload for the
 requested service. The default service is OpenHands.
 """
 
 import logging
 from typing import Any, Dict
-
-# Import proxies for health probes. If the actual modules are not available in
-# the runtime environment, provide lightweight fallbacks to keep imports sane.
-try:
-    from OpenCodeWebProxy import OpenCodeWebProxy  # type: ignore
-except Exception:  # pragma: no cover - fallback when not installed
-
-    class OpenCodeWebProxy:  # type: ignore
-        pass
-
-
-try:
-    from OpenHandsWebProxy import OpenHandsWebProxy  # type: ignore
-except Exception:  # pragma: no cover - fallback when not installed
-
-    class OpenHandsWebProxy:  # type: ignore
-        pass
-
 
 logger = logging.getLogger(__name__)
 
@@ -36,12 +18,6 @@ SERVICE_CONFIG = {
     "openhands": {
         "port": 3000,
         "health_endpoint": "/api/health",
-        "proxy_class": OpenHandsWebProxy,
-    },
-    "opencode": {
-        "port": 4096,
-        "health_endpoint": "/global/health",
-        "proxy_class": OpenCodeWebProxy,
     },
 }
 
@@ -53,7 +29,7 @@ def get_coding_service(service_name: str | None = None) -> Dict[str, Any]:
         service_name: Optional service name. If omitted, defaults to 'openhands'.
 
     Returns:
-        A dictionary with keys: service_name, port, health_endpoint, proxy_class.
+        A dictionary with keys: service_name, port, health_endpoint.
     """
     if service_name is None:
         service_name = "openhands"
@@ -76,5 +52,4 @@ def get_coding_service(service_name: str | None = None) -> Dict[str, Any]:
         "service_name": service_name,
         "port": cfg["port"],
         "health_endpoint": cfg["health_endpoint"],
-        "proxy_class": cfg["proxy_class"],
     }

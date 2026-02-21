@@ -58,12 +58,14 @@ def test_resolve_service_name_blank_defaults_to_openhands(monkeypatch):
 
 def test_resolve_service_name_opencode(monkeypatch):
     monkeypatch.setenv("CODING_SERVICE", "opencode")
-    assert _resolve_service_name() == "opencode"
+    # OpenCode service name is automatically mapped to OpenHands
+    assert _resolve_service_name() == "openhands"
 
 
 def test_resolve_service_name_normalises_case(monkeypatch):
     monkeypatch.setenv("CODING_SERVICE", "  OpenCode  ")
-    assert _resolve_service_name() == "opencode"
+    # OpenCode service name is automatically mapped to OpenHands
+    assert _resolve_service_name() == "openhands"
 
 
 # ── middleware: X-Service-Name header and routing ─────────────────────────────
@@ -113,9 +115,10 @@ def _get_client(service_name: str, proxy_status: int = 200, raise_exc: bool = Fa
 
 @pytest.fixture
 def opencode_client():
+    # Fixture name kept for compatibility; routes opencode.davidlybeck.com to openhands service
     with (
         patch(
-            "apis.route_coding_subdomain._resolve_service_name", return_value="opencode"
+            "apis.route_coding_subdomain._resolve_service_name", return_value="openhands"
         ),
         patch("apis.route_coding_subdomain._get_proxy_for_service") as mock_get_proxy,
         patch("apis.route_coding_subdomain.extract_token", return_value="tok"),
@@ -147,7 +150,7 @@ def test_x_service_name_header_present(opencode_client):
     client, _ = opencode_client
     resp = client.get("/")
     assert "x-service-name" in resp.headers
-    assert resp.headers["x-service-name"] == "opencode"
+    assert resp.headers["x-service-name"] == "openhands"
 
 
 def test_get_request_routed(opencode_client):
@@ -223,11 +226,11 @@ def test_unauthenticated_redirects_to_login():
 def test_health_endpoint_bypasses_auth():
     with (
         patch(
-            "apis.route_coding_subdomain._resolve_service_name", return_value="opencode"
+            "apis.route_coding_subdomain._resolve_service_name", return_value="openhands"
         ),
         patch(
             "apis.route_coding_subdomain._get_health_endpoint",
-            return_value="/global/health",
+            return_value="/api/health",  # OpenHands health endpoint
         ),
         patch("apis.route_coding_subdomain._get_proxy_for_service") as mock_get_proxy,
         patch("apis.route_coding_subdomain.extract_token", return_value=None),
@@ -251,9 +254,9 @@ def test_health_endpoint_bypasses_auth():
         app.add_middleware(CodingSubdomainMiddleware)
 
         client = TestClient(app, base_url="http://opencode.davidlybeck.com")
-        resp = client.get("/global/health")
+        resp = client.get("/api/health")
         assert resp.status_code == 200
-        assert resp.headers.get("x-service-name") == "opencode"
+        assert resp.headers.get("x-service-name") == "openhands"
 
 
 def test_non_coding_host_passes_through():

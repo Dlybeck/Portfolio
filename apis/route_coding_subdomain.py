@@ -6,7 +6,7 @@ service selection.
 
 Supported values for CODING_SERVICE:
   - "openhands" (default when env var is unset)
-  - "opencode"
+  - Legacy "opencode" hostnames are automatically mapped to "openhands"
 """
 
 import os
@@ -24,7 +24,7 @@ from starlette.websockets import WebSocket as StarletteWebSocket
 
 from services.coding_service_factory import get_coding_service
 from services.openhands_web_proxy import get_openhands_proxy
-from services.opencode_web_proxy import get_opencode_proxy
+
 from services.base_proxy import IS_CLOUD_RUN, MAC_SERVER_IP
 
 from core.dev_utils import extract_token
@@ -80,21 +80,23 @@ def _resolve_service_name(host: str = None) -> str:
     # Infer service from hostname if possible
     if host:
         if "opencode." in host:
-            logger.debug(f"Inferred service 'opencode' from host: {host}")
-            return "opencode"
+            logger.debug(f"Mapping legacy 'opencode' host to 'openhands': {host}")
+            return "openhands"
         if "openhands." in host:
             logger.debug(f"Inferred service 'openhands' from host: {host}")
             return "openhands"
     # Fall back to environment variable
     raw = (os.environ.get("CODING_SERVICE") or "").strip().lower()
     service = raw or "openhands"
+    # Map legacy 'opencode' service name to 'openhands'
+    if service == "opencode":
+        logger.debug(f"Mapping legacy service name 'opencode' to 'openhands'")
+        service = "openhands"
     logger.debug(f"Resolved service '{service}' from CODING_SERVICE env var (host: {host})")
     return service
 
 
 def _get_proxy_for_service(service_name: str):
-    if service_name == "opencode":
-        return get_opencode_proxy()
     if service_name == "openhands":
         return get_openhands_proxy()
     raise ValueError(f"Unknown service '{service_name}'")

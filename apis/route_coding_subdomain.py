@@ -76,9 +76,20 @@ def _classify_request_path(path: str) -> PathKind:
     return "other"
 
 
-def _resolve_service_name() -> str:
+def _resolve_service_name(host: str = None) -> str:
+    # Infer service from hostname if possible
+    if host:
+        if "opencode." in host:
+            logger.debug(f"Inferred service 'opencode' from host: {host}")
+            return "opencode"
+        if "openhands." in host:
+            logger.debug(f"Inferred service 'openhands' from host: {host}")
+            return "openhands"
+    # Fall back to environment variable
     raw = (os.environ.get("CODING_SERVICE") or "").strip().lower()
-    return raw or "openhands"
+    service = raw or "openhands"
+    logger.debug(f"Resolved service '{service}' from CODING_SERVICE env var (host: {host})")
+    return service
 
 
 def _get_proxy_for_service(service_name: str):
@@ -99,7 +110,7 @@ class CodingSubdomainMiddleware(BaseHTTPMiddleware):
         host = request.headers.get("host", "")
 
         if "opencode.davidlybeck.com" in host or "opencode." in host:
-            service_name = _resolve_service_name()
+            service_name = _resolve_service_name(host)
             path = request.url.path
             path_kind = _classify_request_path(path)
             start_time = time.monotonic()
@@ -194,7 +205,7 @@ class CodingWebSocketMiddleware:
             )
 
             if "opencode.davidlybeck.com" in host or "opencode." in host:
-                service_name = _resolve_service_name()
+                service_name = _resolve_service_name(host)
                 logger.info(
                     "CodingWebSocketMiddleware: routing WebSocket to service='%s' "
                     "(CODING_SERVICE=%r), path=%s",
@@ -210,6 +221,8 @@ class CodingWebSocketMiddleware:
 
                 if "tkn" in query_params:
                     token = query_params["tkn"][0]
+                elif "session_api_key" in query_params:
+                    token = query_params["session_api_key"][0]
 
                 if not token:
                     cookie_header = headers_dict.get("cookie", "")
@@ -220,6 +233,7 @@ class CodingWebSocketMiddleware:
                                 token = cookie_part.split("=", 1)[1]
                                 break
 
+                logger.debug(f"WebSocket token extracted: {'<present>' if token else '<missing'}")
                 if not token:
                     logger.warning(
                         "Unauthenticated WebSocket attempt to coding subdomain: %s",

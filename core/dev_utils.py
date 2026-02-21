@@ -11,7 +11,15 @@ def extract_token(request: Request) -> str | None:
     if auth.startswith("Bearer "):
         return auth.replace("Bearer ", "")
     
-    return request.query_params.get("tkn")
+    # Check for token in query parameters
+    token = request.query_params.get("tkn")
+    if token:
+        return token
+    token = request.query_params.get("session_api_key")
+    if token:
+        return token
+    
+    return None
 
 def verify_token_valid(token: str) -> bool:
     try:

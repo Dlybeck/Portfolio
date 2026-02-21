@@ -87,10 +87,13 @@ echo "🧪 Testing SOCKS5 proxy connectivity..."
 TARGET_IP="${MAC_SERVER_IP:-$TAILSCALE_IPV4}"
 echo "Target Ubuntu server IP: $TARGET_IP"
 echo "Testing connection to $TARGET_IP:3000 via SOCKS5 proxy..."
-if curl --socks5 localhost:1055 --max-time 5 "http://${TARGET_IP}:3000/api/health" 2>/dev/null | grep -q "healthy"; then
+# Add Host header that OpenHands expects
+if curl --socks5 localhost:1055 -H "Host: opencode.davidlybeck.com" --max-time 5 "http://${TARGET_IP}:3000/api/health" 2>/dev/null | grep -q "healthy"; then
 echo "✅ SOCKS5 proxy test passed - can reach Ubuntu server at $TARGET_IP:3000"
 else
 echo "⚠️  SOCKS5 proxy test failed - cannot reach Ubuntu server at $TARGET_IP:3000"
+echo "Debug: Trying without SOCKS5..."
+curl -H "Host: opencode.davidlybeck.com" --max-time 3 "http://${TARGET_IP}:3000/api/health" 2>&1 | head -5
 fi
 
 echo "🚀 Starting FastAPI application..."

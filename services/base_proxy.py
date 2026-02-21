@@ -187,10 +187,9 @@ class BaseProxy:
             logger.error(f"[{self.__class__.__name__}] Error proxying to {url}: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
-    async def proxy_websocket(self, client_ws: WebSocket, path: str):
-        ws_base = self.base_url.replace("http://", "ws://").replace(
-            "https://", "wss://"
-        )
+    async def proxy_websocket(self, client_ws: WebSocket, path: str, target_base_url: str = None):
+        base = (target_base_url or self.base_url).rstrip("/")
+        ws_base = base.replace("http://", "ws://").replace("https://", "wss://")
         ws_url = f"{ws_base}/{path}"
 
         if client_ws.query_params:

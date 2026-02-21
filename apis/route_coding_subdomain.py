@@ -10,6 +10,7 @@ Supported values for CODING_SERVICE:
 """
 
 import os
+import re
 import time
 import logging
 from urllib.parse import parse_qs
@@ -24,7 +25,11 @@ from starlette.websockets import WebSocket as StarletteWebSocket
 from services.coding_service_factory import get_coding_service
 from services.openhands_web_proxy import get_openhands_proxy
 from services.opencode_web_proxy import get_opencode_proxy
+from services.base_proxy import IS_CLOUD_RUN, MAC_SERVER_IP
 from core.dev_utils import extract_token
+
+# Matches /sockets/events/{conversation_id} — OpenHands V1 agent server WebSocket path
+_SOCKETS_EVENTS_RE = re.compile(r'^/sockets/events/([^/?]+)')
 
 logger = logging.getLogger(__name__)
 
@@ -239,11 +244,46 @@ class CodingWebSocketMiddleware:
                 websocket = StarletteWebSocket(scope, receive=receive, send=send)
                 path_clean = path.lstrip("/")
 
+                # OpenHands V1: agent server runs on a random port separate from port 3000.
+                # The browser builds ws://localhost:PORT/sockets/events/{id} from the conversation
+                # URL — unreachable from the user's browser.  We rewrite conversation URLs in
+                # JSON responses to point at our proxy, then here we look up the real agent URL
+                # and forward the WebSocket directly to the agent server port.
+                target_base_url = None
+                if service_name == "openhands":
+                    m = _SOCKETS_EVENTS_RE.match(path)
+                    if m:
+                        conv_id = m.group(1)
+                        openhands_proxy = get_openhands_proxy()
+                        agent_url = openhands_proxy.get_agent_url(conv_id)
+                        if not agent_url:
+                            # Cache miss — fetch directly (handles proxy restarts / race conditions)
+                            agent_url = await openhands_proxy.fetch_agent_url(conv_id)
+                        if agent_url:
+                            # In Cloud Run, replace localhost with MAC_SERVER_IP so SOCKS5
+                            # routes the connection through Tailscale to the Mac.
+                            target_base_url = (
+                                agent_url.replace("localhost", MAC_SERVER_IP)
+                                if IS_CLOUD_RUN
+                                else agent_url
+                            )
+                            logger.info(
+                                "[OpenHands] Routing /sockets/events/%s → %s",
+                                conv_id,
+                                target_base_url,
+                            )
+                        else:
+                            logger.warning(
+                                "[OpenHands] No agent URL found for conversation %s; "
+                                "WebSocket will target port 3000 and likely fail.",
+                                conv_id,
+                            )
+
                 logger.info("Proxying WebSocket to '%s': %s", service_name, path_clean)
 
                 try:
                     proxy = _get_proxy_for_service(service_name)
-                    await proxy.proxy_websocket(websocket, path_clean)
+                    await proxy.proxy_websocket(websocket, path_clean, target_base_url=target_base_url)
                 except Exception as exc:
                     logger.error(
                         "WebSocket proxy error for service '%s': %s",

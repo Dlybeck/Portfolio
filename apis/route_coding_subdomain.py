@@ -25,7 +25,7 @@ from starlette.websockets import WebSocket as StarletteWebSocket
 from services.coding_service_factory import get_coding_service
 from services.openhands_web_proxy import get_openhands_proxy
 from services.opencode_web_proxy import get_opencode_proxy
-from services.base_proxy import IS_CLOUD_RUN, MAC_SERVER_IP
+
 from core.dev_utils import extract_token
 
 # Matches /sockets/events/{conversation_id} — OpenHands V1 agent server WebSocket path
@@ -260,16 +260,14 @@ class CodingWebSocketMiddleware:
                             # Cache miss — fetch directly (handles proxy restarts / race conditions)
                             agent_url = await openhands_proxy.fetch_agent_url(conv_id)
                         if agent_url:
-                            # In Cloud Run, replace localhost with MAC_SERVER_IP so SOCKS5
-                            # routes the connection through Tailscale to the Mac.
-                            target_base_url = (
-                                agent_url.replace("localhost", MAC_SERVER_IP)
-                                if IS_CLOUD_RUN
-                                else agent_url
-                            )
+                            # Keep localhost — SOCKS5 proxy (tailscaled on Mac) resolves
+                            # "localhost" to 127.0.0.1 on itself, reaching the agent server
+                            # directly. No Tailscale IP substitution needed.
+                            target_base_url = agent_url
                             logger.info(
-                                "[OpenHands] Routing /sockets/events/%s → %s",
+                                "[OpenHands] /sockets/events/%s: agent_url=%r, target=%r",
                                 conv_id,
+                                agent_url,
                                 target_base_url,
                             )
                         else:

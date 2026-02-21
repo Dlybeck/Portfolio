@@ -57,6 +57,7 @@ class OpenHandsWebProxy(BaseProxy):
             session = await self.get_session()
             url = f"{self.base_url}/api/conversations/{conversation_id}"
             async with session.get(url) as resp:
+                logger.info(f"[OpenHandsWebProxy] fetch_agent_url: GET {url} → {resp.status}")
                 if resp.status == 200:
                     data = await resp.json(content_type=None)
                     _extract_agent_urls(data, self._agent_urls)

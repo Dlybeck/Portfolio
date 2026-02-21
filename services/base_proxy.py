@@ -211,138 +211,44 @@ class BaseProxy:
         logger.info(f"[{self.__class__.__name__}] About to configure proxy...")
         logger.info(f"[{self.__class__.__name__}] ==============================")
 
-        proxy_url = None
-        if IS_CLOUD_RUN:
-            proxy_url = SOCKS5_PROXY
-            logger.info(
-                f"[{self.__class__.__name__}] Using websockets proxy: {proxy_url}"
-            )
-
-            try:
-                import socket
-
-                test_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                test_sock.settimeout(2)
-                test_sock.connect(("127.0.0.1", 1055))
-                test_sock.send(b"\x05\x01\x00")
-                response = test_sock.recv(2)
-                test_sock.close()
-                logger.info(
-                    f"[{self.__class__.__name__}] SOCKS5 handshake test: sent=\\x05\\x01\\x00, received={response.hex()}"
-                )
-                if response == b"\x05\x00":
-                    logger.info(
-                        f"[{self.__class__.__name__}] ✅ SOCKS5 protocol working!"
-                    )
-                else:
-                    logger.warning(
-                        f"[{self.__class__.__name__}] ⚠️ SOCKS5 unexpected response: {response.hex()}"
-                    )
-            except Exception as e:
-                logger.error(
-                    f"[{self.__class__.__name__}] ❌ SOCKS5 test failed: {type(e).__name__}: {e}"
-                )
-
         try:
-            logger.info(
-                f"[{self.__class__.__name__}] Connecting to upstream WebSocket..."
+            from urllib.parse import urlparse
+
+            parsed = urlparse(ws_url)
+
+            # Strip WS-specific headers; websockets sets them automatically.
+            # Keep everything else (cookies, auth headers, etc.) to forward to upstream.
+            _strip = {
+                "host", "origin", "connection", "upgrade",
+                "sec-websocket-key", "sec-websocket-version",
+                "sec-websocket-extensions", "sec-websocket-protocol",
+            }
+            headers = {k: v for k, v in client_ws.headers.items() if k.lower() not in _strip}
+            scheme = "https" if parsed.scheme == "wss" else "http"
+            headers["Origin"] = f"{scheme}://{parsed.hostname}:{parsed.port}"
+
+            subprotocol_header = next(
+                (v for k, v in client_ws.headers.items() if k.lower() == "sec-websocket-protocol"),
+                None,
             )
-
-            sock = None
-            if IS_CLOUD_RUN:
-                try:
-                    from python_socks.async_.asyncio import Proxy
-
-                    logger.info(
-                        f"[{self.__class__.__name__}] Connecting to proxy: {SOCKS5_PROXY}"
-                    )
-                    proxy = Proxy.from_url(SOCKS5_PROXY)
-
-                    from urllib.parse import urlparse
-
-                    parsed = urlparse(ws_url)
-                    target_host = parsed.hostname
-                    target_port = parsed.port or (443 if parsed.scheme == "wss" else 80)
-
-                    logger.info(
-                        f"[{self.__class__.__name__}] Establish tunnel to {target_host}:{target_port}"
-                    )
-
-                    sock = await proxy.connect(
-                        dest_host=target_host, dest_port=target_port
-                    )
-                    logger.info(
-                        f"[{self.__class__.__name__}] ✅ SOCKS5 tunnel established"
-                    )
-
-                except Exception as e:
-                    logger.error(
-                        f"[{self.__class__.__name__}] ❌ Failed to create proxy tunnel: {e}"
-                    )
-                    raise
+            subprotocols = [p.strip() for p in subprotocol_header.split(",")] if subprotocol_header else []
 
             ws_kwargs = {
                 "open_timeout": 20,
-                "ping_interval": 20,  # Send ping every 20s to keep SOCKS5 tunnel alive
-                "ping_timeout": 60,  # Wait up to 60s for pong (generous for SOCKS5)
+                "ping_interval": 20,
+                "ping_timeout": 60,
+                "additional_headers": headers,
+                # Use SOCKS5 proxy in Cloud Run; disable proxy auto-detection locally
+                # (websockets v15 supports socks5:// natively via python-socks[asyncio])
+                "proxy": SOCKS5_PROXY if IS_CLOUD_RUN else None,
             }
-            if sock:
-                ws_kwargs["sock"] = sock
-                logger.info(f"[{self.__class__.__name__}] Connecting via SOCKS5 tunnel")
-            else:
-                headers = dict(client_ws.headers.items())
-                from urllib.parse import urlparse
+            if subprotocols:
+                ws_kwargs["subprotocols"] = subprotocols
 
-                parsed = urlparse(ws_url)
-
-                for key in list(headers.keys()):
-                    if key.lower() in ["host", "origin"]:
-                        del headers[key]
-
-                # Do NOT set Host in additional_headers — websockets.connect() auto-sets it
-                # from the URL, and Headers.update() appends rather than replaces, causing
-                # duplicate Host headers which uvicorn rejects with HTTP 400.
-                scheme = "https" if parsed.scheme == "wss" else "http"
-                headers["Origin"] = f"{scheme}://{parsed.hostname}:{parsed.port}"
-
-                subprotocol_header = None
-                for key, val in client_ws.headers.items():
-                    if key.lower() == "sec-websocket-protocol":
-                        subprotocol_header = val
-                        break
-
-                subprotocols = []
-                if subprotocol_header:
-                    subprotocols = [p.strip() for p in subprotocol_header.split(",")]
-                    logger.info(
-                        f"[{self.__class__.__name__}] Extracted subprotocols: {subprotocols}"
-                    )
-                else:
-                    logger.warning(
-                        f"[{self.__class__.__name__}] No sec-websocket-protocol in headers: {list(client_ws.headers.keys())}"
-                    )
-
-                for key in list(headers.keys()):
-                    if key.lower() in [
-                        "connection",
-                        "upgrade",
-                        "sec-websocket-key",
-                        "sec-websocket-version",
-                        "sec-websocket-extensions",
-                        "sec-websocket-protocol",
-                    ]:
-                        del headers[key]
-
-                ws_kwargs["additional_headers"] = headers
-                if subprotocols:
-                    ws_kwargs["subprotocols"] = subprotocols
-                logger.info(
-                    f"[{self.__class__.__name__}] Rewrote headers. Origin: {headers.get('Origin')}, Subprotocols: {subprotocols}"
-                )
-
-            # Disable proxy auto-detection in websockets v15 (default proxy=True picks up
-            # system HTTP_PROXY env var, which can interfere with local ws://127.0.0.1 connections)
-            ws_kwargs["proxy"] = None
+            logger.info(
+                f"[{self.__class__.__name__}] Connecting to {ws_url} "
+                f"(proxy={'SOCKS5' if IS_CLOUD_RUN else 'none'})"
+            )
 
             async with websockets.connect(ws_url, **ws_kwargs) as server_ws:
                 logger.info(

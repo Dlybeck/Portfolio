@@ -248,6 +248,8 @@ class BaseProxy:
                 f"[{self.__class__.__name__}] Connecting to {ws_url} "
                 f"(proxy={'SOCKS5' if IS_CLOUD_RUN else 'none'})"
             )
+            if IS_CLOUD_RUN:
+                logger.info(f"[{self.__class__.__name__}] SOCKS5 proxy URL: {SOCKS5_PROXY}")
 
             async with websockets.connect(ws_url, **ws_kwargs) as server_ws:
                 logger.info(

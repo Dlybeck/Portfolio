@@ -83,10 +83,14 @@ fi
 
 # Test SOCKS5 connectivity
 echo "🧪 Testing SOCKS5 proxy connectivity..."
-if curl --socks5 localhost:1055 --max-time 5 "http://${TAILSCALE_IPV4}:3000/api/health" 2>/dev/null | grep -q "healthy"; then
-echo "✅ SOCKS5 proxy test passed - can reach Ubuntu server at $TAILSCALE_IPV4:3000"
+# Use MAC_SERVER_IP environment variable if set, otherwise use the extracted Tailscale IPv4
+TARGET_IP="${MAC_SERVER_IP:-$TAILSCALE_IPV4}"
+echo "Target Ubuntu server IP: $TARGET_IP"
+echo "Testing connection to $TARGET_IP:3000 via SOCKS5 proxy..."
+if curl --socks5 localhost:1055 --max-time 5 "http://${TARGET_IP}:3000/api/health" 2>/dev/null | grep -q "healthy"; then
+echo "✅ SOCKS5 proxy test passed - can reach Ubuntu server at $TARGET_IP:3000"
 else
-echo "⚠️  SOCKS5 proxy test failed - cannot reach Ubuntu server at $TAILSCALE_IPV4:3000"
+echo "⚠️  SOCKS5 proxy test failed - cannot reach Ubuntu server at $TARGET_IP:3000"
 fi
 
 echo "🚀 Starting FastAPI application..."

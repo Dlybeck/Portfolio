@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🔐 Generating Tailscale auth key via OAuth..."
+echo "🔐 Setting up Tailscale for Cloud Run..."
 
 # Get OAuth access token
 TOKEN_RESPONSE=$(curl -s -X POST https://api.tailscale.com/api/v2/oauth/token \
@@ -20,11 +20,60 @@ fi
 
 echo "✅ Got OAuth access token"
 
-# Generate auth key using OAuth token
+# Clean up old/stale proxy devices
+echo "🧹 Cleaning up stale proxy devices..."
+DEVICES_RESPONSE=$(curl -s -X GET https://api.tailscale.com/api/v2/tailnet/-/devices \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}")
+
+# Extract device IDs with tag:proxy that are offline and older than 10 minutes
+STALE_DEVICES=$(echo "$DEVICES_RESPONSE" | python3 -c "
+import sys, json, time
+from datetime import datetime, timezone
+data = json.load(sys.stdin)
+for device in data.get('devices', []):
+    if 'tag:proxy' not in device.get('tags', []):
+        continue
+    device_id = device.get('id', '')
+    hostname = device.get('hostname', '')
+    online = device.get('online', False)
+    last_seen = device.get('lastSeen', '')
+    
+    # Skip if device is currently online
+    if online:
+        continue
+    
+    # Skip if no lastSeen timestamp
+    if not last_seen:
+        continue
+    
+    # Calculate age in minutes
+    last_dt = datetime.fromisoformat(last_seen.replace('Z', '+00:00'))
+    age_minutes = (datetime.now(timezone.utc) - last_dt).total_seconds() / 60
+    
+    # Delete if offline for more than 10 minutes
+    if age_minutes > 10:
+        print(f'{device_id} {hostname} {age_minutes:.1f}m')
+")
+
+echo "Stale devices to clean:"
+echo "$STALE_DEVICES"
+
+# Delete stale devices
+for DEVICE_INFO in $STALE_DEVICES; do
+    DEVICE_ID=$(echo $DEVICE_INFO | awk '{print $1}')
+    HOSTNAME=$(echo $DEVICE_INFO | awk '{print $2}')
+    AGE=$(echo $DEVICE_INFO | awk '{print $3}')
+    echo "Deleting stale device: $HOSTNAME (offline for $AGE minutes)"
+    curl -s -X DELETE "https://api.tailscale.com/api/v2/device/$DEVICE_ID" \
+      -H "Authorization: Bearer ${ACCESS_TOKEN}" || true
+done
+
+# Generate REUSABLE auth key (so new containers can reconnect as same device)
+echo "🔑 Generating reusable auth key..."
 AUTH_KEY_RESPONSE=$(curl -s -X POST https://api.tailscale.com/api/v2/tailnet/-/keys \
   -H "Authorization: Bearer ${ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
-  -d '{"capabilities":{"devices":{"create":{"reusable":false,"ephemeral":true,"preauthorized":true,"tags":["tag:proxy"]}}},"expirySeconds":7776000}')
+  -d '{"capabilities":{"devices":{"create":{"reusable":true,"ephemeral":true,"preauthorized":true,"tags":["tag:proxy"]}}},"expirySeconds":7776000}')
 
 AUTH_KEY=$(echo $AUTH_KEY_RESPONSE | python3 -c "import sys, json; print(json.load(sys.stdin).get(\"key\", \"\"))")
 
@@ -34,7 +83,7 @@ if [ -z "$AUTH_KEY" ]; then
   exit 1
 fi
 
-echo "✅ Generated fresh auth key (valid 90 days)"
+echo "✅ Generated reusable auth key (valid 90 days)"
 
 # Start tailscaled in background
 # Fix for Cloud Run packet fragmentation (MTU issue)
@@ -60,9 +109,12 @@ echo "⚠️  SOCKS5 port 1055 not listening, checking alternative methods..."
 netstat -tlnp 2>/dev/null | grep ":1055 " && echo "✅ SOCKS5 proxy found via netstat"
 fi
 
-# Connect to Tailscale network
+# Connect to Tailscale network with unique hostname
 echo "🔗 Connecting to Tailscale network..."
-tailscale up --authkey=${AUTH_KEY} --hostname=portfolio-app --accept-routes
+# Use Cloud Run revision ID for unique hostname, fallback to timestamp
+UNIQUE_HOSTNAME="portfolio-app-${K_REVISION:-$(date +%s)}"
+echo "Using unique hostname: $UNIQUE_HOSTNAME"
+tailscale up --authkey=${AUTH_KEY} --hostname=$UNIQUE_HOSTNAME --accept-routes
 
 # Verify Tailscale connection
 sleep 2

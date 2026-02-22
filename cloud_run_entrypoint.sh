@@ -88,8 +88,8 @@ echo "✅ Generated reusable auth key (valid 90 days)"
 # Start tailscaled in background
 # Fix for Cloud Run packet fragmentation (MTU issue)
 export TS_DEBUG_MTU=512
-echo "🔧 Starting tailscaled with SOCKS5 server on localhost:1055..."
-tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &
+echo "🔧 Starting tailscaled with SOCKS5 server on 0.0.0.0:1055..."
+tailscaled --tun=userspace-networking --socks5-server=0.0.0.0:1055 &
 TAILSCALED_PID=$!
 sleep 3
 
@@ -138,19 +138,46 @@ echo "🧪 Testing SOCKS5 proxy connectivity..."
 # Use MAC_SERVER_IP environment variable if set, otherwise use the extracted Tailscale IPv4
 TARGET_IP="${MAC_SERVER_IP:-$TAILSCALE_IPV4}"
 echo "Target Ubuntu server IP: $TARGET_IP"
+
+# Test 1: OpenHands main API (port 3000)
 echo "Testing connection to $TARGET_IP:3000 via SOCKS5 proxy..."
 # Test multiple endpoints - OpenHands might use /health or /api/health
 # Accept ANY 200 response as success
+OPENHANDS_TEST_PASSED=false
 if curl --socks5 localhost:1055 -H "Host: opencode.davidlybeck.com" --max-time 5 -f -s -o /dev/null -w "%{http_code}" "http://${TARGET_IP}:3000/api/health" 2>/dev/null | grep -q "200"; then
 echo "✅ SOCKS5 proxy test passed - can reach Ubuntu server at $TARGET_IP:3000 (/api/health)"
+OPENHANDS_TEST_PASSED=true
 elif curl --socks5 localhost:1055 -H "Host: opencode.davidlybeck.com" --max-time 5 -f -s -o /dev/null -w "%{http_code}" "http://${TARGET_IP}:3000/health" 2>/dev/null | grep -q "200"; then
 echo "✅ SOCKS5 proxy test passed - can reach Ubuntu server at $TARGET_IP:3000 (/health)"
+OPENHANDS_TEST_PASSED=true
 elif curl --socks5 localhost:1055 -H "Host: opencode.davidlybeck.com" --max-time 5 -f -s -o /dev/null -w "%{http_code}" "http://${TARGET_IP}:3000/" 2>/dev/null | grep -q "200"; then
 echo "✅ SOCKS5 proxy test passed - can reach Ubuntu server at $TARGET_IP:3000 (/)"
+OPENHANDS_TEST_PASSED=true
 else
 echo "⚠️  SOCKS5 proxy test failed - cannot reach Ubuntu server at $TARGET_IP:3000"
 echo "Debug: Trying without SOCKS5..."
 curl -H "Host: opencode.davidlybeck.com" --max-time 3 -I "http://${TARGET_IP}:3000/" 2>&1 | head -5
+fi
+
+# Test 2: Agent server port (48431 or other)
+echo ""
+echo "Testing connection to agent server ports via SOCKS5 proxy..."
+# Check if we can detect agent ports from environment or try common ones
+AGENT_PORT="${AGENT_SERVER_PORT:-48431}"
+echo "Testing agent port $AGENT_PORT..."
+
+# Try to connect to agent port via SOCKS5 (accept any response, including connection refused)
+if curl --socks5 localhost:1055 --max-time 5 -s "http://${TARGET_IP}:${AGENT_PORT}/" 2>&1 | head -1 >/dev/null; then
+echo "✅ Can connect to agent server at $TARGET_IP:$AGENT_PORT via SOCKS5"
+elif timeout 3 bash -c "cat < /dev/null > /dev/tcp/127.0.0.1/1055" 2>/dev/null; then
+# SOCKS5 proxy is running, but agent port not accessible
+echo "⚠️  SOCKS5 proxy is running but agent port $AGENT_PORT not accessible"
+echo "   This could mean:"
+echo "   - Agent server not running on port $AGENT_PORT"
+echo "   - Agent server binding to 127.0.0.1 instead of 0.0.0.0"
+echo "   - Firewall blocking port $AGENT_PORT"
+else
+echo "❌ Cannot connect to SOCKS5 proxy on port 1055"
 fi
 
 echo "🚀 Starting FastAPI application..."

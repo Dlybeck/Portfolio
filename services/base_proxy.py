@@ -251,10 +251,37 @@ class BaseProxy:
             if IS_CLOUD_RUN:
                 logger.info(f"[{self.__class__.__name__}] SOCKS5 proxy URL: {SOCKS5_PROXY}")
 
-            async with websockets.connect(ws_url, **ws_kwargs) as server_ws:
-                logger.info(
-                    f"[{self.__class__.__name__}] ✅ Connected! Subprotocol selected: {server_ws.subprotocol}"
-                )
+            # Try to connect with SOCKS5 proxy, fall back to direct connection if it fails
+            server_ws = None
+            connection_methods = []
+            
+            if IS_CLOUD_RUN:
+                # Try SOCKS5 first
+                connection_methods.append(("SOCKS5 proxy", ws_kwargs))
+                # Then try without proxy (direct Tailscale connection)
+                direct_kwargs = ws_kwargs.copy()
+                direct_kwargs["proxy"] = None
+                connection_methods.append(("direct (no proxy)", direct_kwargs))
+            else:
+                connection_methods.append(("no proxy", ws_kwargs))
+            
+            last_error = None
+            for method_name, kwargs in connection_methods:
+                try:
+                    logger.info(f"[{self.__class__.__name__}] Attempting connection via {method_name}...")
+                    server_ws = await websockets.connect(ws_url, **kwargs)
+                    logger.info(f"[{self.__class__.__name__}] ✅ Connected via {method_name}! Subprotocol selected: {server_ws.subprotocol}")
+                    break
+                except Exception as e:
+                    last_error = e
+                    logger.warning(f"[{self.__class__.__name__}] Connection via {method_name} failed: {e}")
+                    continue
+            
+            if server_ws is None:
+                logger.error(f"[{self.__class__.__name__}] All connection methods failed. Last error: {last_error}")
+                raise last_error
+            
+            async with server_ws:
 
                 await client_ws.accept(subprotocol=server_ws.subprotocol)
                 logger.info(

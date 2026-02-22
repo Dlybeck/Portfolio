@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     MAC_SERVER_IP: str = "100.79.140.119"
     MAC_SERVER_PORT: int = 8080  # FastAPI server port (8888 is code-server)
     CODE_SERVER_PORT: int = 8888
-    SOCKS5_PROXY: str = "socks5://localhost:1055"  # Use localhost to match tailscaled listening behavior
+    SOCKS5_PROXY: str = "socks5://127.0.0.1:1055"  # Use 127.0.0.1 to avoid DNS resolution issues
     SOCKS5_PORT: int = 1055
 
     # Proxmox host debug console URL

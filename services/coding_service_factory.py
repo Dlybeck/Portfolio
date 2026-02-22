@@ -41,7 +41,7 @@ def get_coding_service(service_name: str | None = None) -> Dict[str, Any]:
         )
 
     cfg = SERVICE_CONFIG[service_name]
-    logger.info(
+    logger.debug(
         "Selected coding service '%s' (port=%s, health=%s)",
         service_name,
         cfg["port"],

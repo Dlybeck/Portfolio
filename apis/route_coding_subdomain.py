@@ -285,21 +285,12 @@ class CodingWebSocketMiddleware:
                             # to 127.0.0.1 on the container itself — not the Mac. We must
                             # use MAC_SERVER_IP (Tailscale IP) so the CONNECT target routes
                             # through Tailscale to the Mac's agent server port.
-                            logger.info(f"[OpenHands] IS_CLOUD_RUN={IS_CLOUD_RUN}, MAC_SERVER_IP={MAC_SERVER_IP}")
                             target_base_url = (
                                 agent_url.replace("localhost", MAC_SERVER_IP)
                                 if IS_CLOUD_RUN
                                 else agent_url
                             )
-                            # Convert http:// to ws:// for WebSocket connections
-                            if target_base_url.startswith("http://"):
-                                target_base_url = "ws://" + target_base_url[7:]  # Remove "http://"
-                            elif target_base_url.startswith("https://"):
-                                target_base_url = "wss://" + target_base_url[8:]  # Remove "https://"
-                            # Ensure it's ws:// (not wss:// since we're connecting via Tailscale/internal)
-                            if target_base_url.startswith("wss://"):
-                                target_base_url = "ws://" + target_base_url[6:]
-                            
+                            # base_proxy.proxy_websocket handles http:// → ws:// conversion
                             logger.info(
                                 "[OpenHands] /sockets/events/%s: agent_url=%r → target=%r",
                                 conv_id, agent_url, target_base_url,

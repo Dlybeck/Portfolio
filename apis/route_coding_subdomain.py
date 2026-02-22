@@ -32,6 +32,19 @@ from core.dev_utils import extract_token
 # Matches /sockets/events/{conversation_id} — OpenHands V1 agent server WebSocket path
 _SOCKETS_EVENTS_RE = re.compile(r'^/sockets/events/([^/?]+)')
 
+# Conversation ID extracted from a Referer URL like /conversations/{id}
+_REFERER_CONV_RE = re.compile(r'/conversations/([^/?#]+)')
+
+# Path prefixes served by the agent server (not by port 3000).
+# Port 3000 falls through to the React SPA for these, returning HTML instead of JSON.
+_AGENT_API_PREFIXES = (
+    "api/git/",
+    "api/list-files",
+    "api/save-file",
+    "api/select-file",
+    "api/refresh-files",
+)
+
 logger = logging.getLogger(__name__)
 
 _STATIC_EXTENSIONS = frozenset(
@@ -107,6 +120,30 @@ def _get_health_endpoint(service_name: str) -> str:
     return cfg["health_endpoint"]
 
 
+def _find_agent_url(request: Request, openhands_proxy) -> str | None:
+    """Resolve the agent server base URL for this request.
+
+    1. Try to extract the conversation ID from the Referer header
+       (e.g. Referer: https://opencode.davidlybeck.com/conversations/<id>)
+    2. Fall back to the cached URL when exactly one conversation is active.
+    Returns None if no agent URL can be determined.
+    """
+    referer = request.headers.get("referer", "")
+    if referer:
+        m = _REFERER_CONV_RE.search(referer)
+        if m:
+            conv_id = m.group(1)
+            url = openhands_proxy.get_agent_url(conv_id)
+            if url:
+                logger.debug("[OpenHands] Agent URL from Referer conv %s: %s", conv_id, url)
+                return url
+    # Single-conversation fallback
+    url = openhands_proxy.get_fallback_agent_url()
+    if url:
+        logger.debug("[OpenHands] Agent URL from fallback cache: %s", url)
+    return url
+
+
 class CodingSubdomainMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         host = request.headers.get("host", "")
@@ -156,7 +193,29 @@ class CodingSubdomainMiddleware(BaseHTTPMiddleware):
 
             try:
                 proxy = _get_proxy_for_service(service_name)
-                response = await proxy.proxy_request(request, path.lstrip("/"))
+                path_clean = path.lstrip("/")
+
+                # Agent-server API routing: paths like /api/git/*, /api/list-files, etc.
+                # are served by the per-conversation agent server (random port), NOT by
+                # port 3000. Port 3000 falls through to the React SPA for these, returning
+                # HTML instead of JSON → "Invalid response from runtime" in the UI.
+                override_url = None
+                if service_name == "openhands" and any(
+                    path_clean.startswith(p) for p in _AGENT_API_PREFIXES
+                ):
+                    agent_url = _find_agent_url(request, get_openhands_proxy())
+                    if agent_url:
+                        override_url = (
+                            agent_url.replace("localhost", MAC_SERVER_IP)
+                            if IS_CLOUD_RUN
+                            else agent_url
+                        )
+                        logger.info(
+                            "[%s] routing %s → agent server %s",
+                            service_name, path, override_url,
+                        )
+
+                response = await proxy.proxy_request(request, path_clean, override_base_url=override_url)
                 response.headers["X-Service-Name"] = service_name
                 elapsed = time.monotonic() - start_time
                 logger.info(

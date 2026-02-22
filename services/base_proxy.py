@@ -73,11 +73,12 @@ class BaseProxy:
         return headers
 
     async def proxy_request(
-        self, request: Request, path: str, rewrite_body_callback=None
+        self, request: Request, path: str, rewrite_body_callback=None, *, override_base_url: str = None
     ) -> StreamingResponse:
         session = await self.get_session()
 
-        url = f"{self.base_url}/{path}"
+        base = (override_base_url or self.base_url).rstrip("/")
+        url = f"{base}/{path}"
         if request.url.query:
             url += f"?{request.url.query}"
 

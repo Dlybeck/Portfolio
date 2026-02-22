@@ -123,6 +123,12 @@ class OpenHandsWebProxy(BaseProxy):
     def get_agent_url(self, conversation_id: str) -> str | None:
         return self._agent_urls.get(conversation_id)
 
+    def get_fallback_agent_url(self) -> str | None:
+        """Return the cached agent URL when exactly one conversation is active."""
+        if len(self._agent_urls) == 1:
+            return next(iter(self._agent_urls.values()))
+        return None
+
     async def fetch_agent_url(self, conversation_id: str) -> str | None:
         """Fetch agent URL directly from OpenHands API when not yet cached."""
         # Try multiple API endpoint patterns - OpenHands v1.3 might use different paths
@@ -190,12 +196,13 @@ class OpenHandsWebProxy(BaseProxy):
         logger.warning(f"[OpenHandsWebProxy] No agent URL found for {conversation_id} after trying all endpoints")
         return None
 
-    async def proxy_request(self, request: Request, path: str, rewrite_body_callback=None):
+    async def proxy_request(self, request: Request, path: str, rewrite_body_callback=None, *, override_base_url: str = None):
         """Proxy with JSON rewriting and HTML i18n injection.
 
         - api/ paths: rewrites agent localhost:PORT URLs with the public host.
         - HTML responses: injects _I18N_FIX and adds unsafe-inline to CSP.
         - All other paths stream normally.
+        - override_base_url: if set, forwards to that URL instead of self.base_url.
         """
         # Step 1: JSON rewriting for api/ paths (existing behavior)
         if not rewrite_body_callback and path.startswith("api/"):
@@ -217,9 +224,9 @@ class OpenHandsWebProxy(BaseProxy):
                     logger.warning(f"[OpenHandsWebProxy] JSON rewrite failed: {e}")
                     return body, {}
 
-            response = await super().proxy_request(request, path, rewrite_body_callback=_rewrite)
+            response = await super().proxy_request(request, path, rewrite_body_callback=_rewrite, override_base_url=override_base_url)
         else:
-            response = await super().proxy_request(request, path, rewrite_body_callback)
+            response = await super().proxy_request(request, path, rewrite_body_callback, override_base_url=override_base_url)
 
         # Step 2: HTML injection (new behavior) — only for HTML responses
         if "text/html" not in response.headers.get("content-type", ""):

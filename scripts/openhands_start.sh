@@ -27,11 +27,17 @@ fi
 if command -v docker >/dev/null 2>&1; then
     docker run --rm -d \
         --name "$CONTAINER_NAME" \
-        -p 3000:3000 \
+        --network host \
         -e AGENT_SERVER_IMAGE_REPOSITORY=ghcr.io/openhands/agent-server \
         -e AGENT_SERVER_IMAGE_TAG=1.10.0-python \
         -e LOG_ALL_EVENTS=true \
         -e OH_SECRET_KEY="$OH_SECRET_KEY" \
+        -e BIND_ADDRESS=0.0.0.0 \
+        -e HOST=0.0.0.0 \
+        -e AGENT_SERVER_BIND_ADDRESS=0.0.0.0 \
+        -e AGENT_SERVER_HOST=0.0.0.0 \
+        -e AGENT_ENV_BIND_ADDRESS=0.0.0.0 \
+        -e AGENT_ENV_HOST=0.0.0.0 \
         -v /var/run/docker.sock:/var/run/docker.sock \
         -v "$HOME/.openhands:/.openhands" \
         --add-host host.docker.internal:host-gateway \

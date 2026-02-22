@@ -77,6 +77,7 @@ class OpenHandsWebProxy(BaseProxy):
         try:
             session = await self.get_session()
             url = f"{self.base_url}/api/conversations/{conversation_id}"
+            logger.info(f"[OpenHandsWebProxy] fetch_agent_url: Attempting GET {url}")
             async with session.get(url) as resp:
                 logger.info(f"[OpenHandsWebProxy] fetch_agent_url: GET {url} → {resp.status}")
                 if resp.status == 200:
@@ -85,9 +86,21 @@ class OpenHandsWebProxy(BaseProxy):
                     result = self._agent_urls.get(conversation_id)
                     if result:
                         logger.info(f"[OpenHandsWebProxy] Fetched agent URL via API for {conversation_id}: {result}")
+                    else:
+                        logger.warning(f"[OpenHandsWebProxy] No agent URL found in conversation data for {conversation_id}")
+                        # Log a snippet of the data for debugging (first 500 chars)
+                        data_str = str(data)[:500]
+                        logger.info(f"[OpenHandsWebProxy] Conversation data preview: {data_str}")
                     return result
+                else:
+                    # Try to read error response
+                    try:
+                        error_text = await resp.text()
+                        logger.error(f"[OpenHandsWebProxy] fetch_agent_url failed with status {resp.status}: {error_text[:200]}")
+                    except:
+                        logger.error(f"[OpenHandsWebProxy] fetch_agent_url failed with status {resp.status}")
         except Exception as e:
-            logger.warning(f"[OpenHandsWebProxy] fetch_agent_url failed for {conversation_id}: {e}")
+            logger.error(f"[OpenHandsWebProxy] fetch_agent_url failed for {conversation_id}: {e}", exc_info=True)
         return None
 
     async def proxy_request(self, request: Request, path: str, rewrite_body_callback=None):

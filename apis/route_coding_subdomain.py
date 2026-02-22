@@ -271,16 +271,21 @@ class CodingWebSocketMiddleware:
                     m = _SOCKETS_EVENTS_RE.match(path)
                     if m:
                         conv_id = m.group(1)
+                        logger.info(f"[OpenHands] WebSocket for conversation {conv_id}")
                         openhands_proxy = get_openhands_proxy()
                         agent_url = openhands_proxy.get_agent_url(conv_id)
+                        logger.info(f"[OpenHands] Cached agent_url for {conv_id}: {agent_url}")
                         if not agent_url:
                             # Cache miss — fetch directly (handles proxy restarts / race conditions)
+                            logger.info(f"[OpenHands] Cache miss, fetching agent URL for {conv_id}")
                             agent_url = await openhands_proxy.fetch_agent_url(conv_id)
+                            logger.info(f"[OpenHands] Fetched agent_url for {conv_id}: {agent_url}")
                         if agent_url:
                             # On Cloud Run, tailscaled's SOCKS5 server resolves "localhost"
                             # to 127.0.0.1 on the container itself — not the Mac. We must
                             # use MAC_SERVER_IP (Tailscale IP) so the CONNECT target routes
                             # through Tailscale to the Mac's agent server port.
+                            logger.info(f"[OpenHands] IS_CLOUD_RUN={IS_CLOUD_RUN}, MAC_SERVER_IP={MAC_SERVER_IP}")
                             target_base_url = (
                                 agent_url.replace("localhost", MAC_SERVER_IP)
                                 if IS_CLOUD_RUN

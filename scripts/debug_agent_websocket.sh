@@ -36,6 +36,16 @@ curl -s "http://$AGENT_IP:$AGENT_PORT/sockets/events/test" 2>&1 | head -5
 
 echo ""
 echo "3. Testing WebSocket with different configurations..."
+
+# Check if websockets module is installed
+if ! python3 -c "import websockets" 2>/dev/null; then
+    echo "❌ Python websockets module not installed"
+    echo "   Installing with: pip3 install websockets --user"
+    echo "   Or run: bash scripts/install_python_deps.sh"
+    echo "   Skipping WebSocket tests..."
+    exit 0
+fi
+
 cat > /tmp/debug_agent_ws.py << 'PYEOF'
 import asyncio
 import websockets

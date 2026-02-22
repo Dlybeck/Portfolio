@@ -1,4 +1,0 @@
-2025-10-14 21:38:46.007 [info] Extension host with pid 53977 started
-2025-10-14 21:38:46.057 [info] Eager extensions activated
-2025-10-14 21:38:46.062 [error] Error: connect ENOENT /Users/dlybeck/Documents/Portfolio/~/.local/share/code-server/code-server-ipc.sock
-	at PipeConnectWrap.afterConnect [as oncomplete] (node:net:1637:16)

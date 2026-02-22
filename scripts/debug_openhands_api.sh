@@ -32,7 +32,7 @@ for endpoint in "${ENDPOINTS[@]}"; do
         echo "Status: OK, Length: $LENGTH chars"
         
         # Check if it looks like JSON
-        if [[ "$RESPONSE" =~ ^[\[\{]" ]]; then
+        if [[ "$RESPONSE" =~ ^[\[\{] ]]; then
             echo "Format: JSON-like"
             # Try to parse and show structure
             echo "$RESPONSE" | python3 -c "

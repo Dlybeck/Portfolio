@@ -22,15 +22,42 @@ if ! command -v docker &> /dev/null; then
     sudo systemctl start docker
     sudo usermod -aG docker $USER
     echo "✅ Docker installed"
+    echo "⚠️  You may need to log out and back in for Docker group changes to take effect"
 else
     echo "✅ Docker already installed"
 fi
 
+# Test Docker permissions
+if ! docker ps &> /dev/null; then
+    echo "⚠️  Docker command may require sudo or user not in docker group"
+    echo "   Try: sudo usermod -aG docker $USER && newgrp docker"
+fi
+
 # Install Python packages for diagnostics
 echo "Installing Python packages..."
+
+# First ensure pip3 is available
+if ! command -v pip3 &> /dev/null; then
+    echo "pip3 not found, installing python3-pip..."
+    sudo apt-get install -y python3-pip
+fi
+
+# Try Ubuntu package first (more reliable)
+echo "Trying Ubuntu package: python3-websockets..."
+sudo apt-get install -y python3-websockets 2>/dev/null || echo "⚠️  Ubuntu package not available, trying pip..."
+
+# Install via pip (user install first, then system)
+echo "Installing via pip..."
 pip3 install websockets python-socks --user 2>/dev/null || \
 sudo pip3 install websockets python-socks 2>/dev/null || \
-echo "⚠️  Python install failed (may need sudo)"
+echo "⚠️  Python install may have failed (check manually)"
+
+# Verify installation
+if python3 -c "import websockets" 2>/dev/null; then
+    echo "✅ websockets module verified"
+else
+    echo "❌ websockets module not installed - may affect diagnostics"
+fi
 
 echo "✅ Dependencies installed"
 echo ""
@@ -59,9 +86,9 @@ set -e
 
 echo "🚀 Starting OpenHands with 0.0.0.0 binding..."
 
-# Stop existing
-docker stop openhands-app 2>/dev/null || true
-docker rm openhands-app 2>/dev/null || true
+# Stop and remove existing container (force remove)
+echo "Cleaning up any existing container..."
+docker rm -f openhands-app 2>/dev/null || true
 
 # Load key
 KEY_FILE="$HOME/.openhands/oh_secret_key"
@@ -169,9 +196,8 @@ echo "🔄 Creating reset script..."
 cat > reset-openhands.sh << 'RESETEOF'
 #!/bin/bash
 echo "🔄 Resetting OpenHands..."
-docker stop openhands-app 2>/dev/null || true
-docker rm openhands-app 2>/dev/null || true
-docker stop $(docker ps -q --filter "name=agent" 2>/dev/null) 2>/dev/null || true
+docker rm -f openhands-app 2>/dev/null || true
+docker rm -f $(docker ps -a -q --filter "name=agent" 2>/dev/null) 2>/dev/null || true
 docker system prune -f
 ./start-openhands.sh
 echo "✅ Reset complete!"

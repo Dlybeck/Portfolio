@@ -108,5 +108,11 @@ docker logs openhands-app
 - [ ] Cloud Run logs show successful SOCKS5 connection
 - [ ] Browser WebSocket connects at `opencode.davidlybeck.com`
 
+### Additional Fixes (2026-02-22)
+- **Python dependency installation**: Added fallback to Ubuntu packages (`python3-websockets`) and better error handling
+- **Container cleanup**: Changed to `docker rm -f` to force remove existing containers
+- **Docker permissions**: Added warning when user not in docker group
+- **Health checks**: Improved diagnostics and reset scripts
+
 **Last Debugged**: 2026-02-22 (WebSocket 403/404 issues resolved)
 <!-- MANUAL ADDITIONS END -->

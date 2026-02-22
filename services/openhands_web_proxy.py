@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 
 # Matches the agent server base URL embedded in conversation JSON responses.
 # OpenHands V1 conversations return e.g. "url": "http://localhost:36873/api/conversations/..."
-_LOCALHOST_RE = re.compile(r'http://localhost:(\d+)')
+# Also handles various URL formats: http://, ws://, just localhost:PORT, or 127.0.0.1:PORT
+_LOCALHOST_RE = re.compile(r'(?:http://|ws://|wss://)?(?:localhost|127\.0\.0\.1):(\d+)')
 
 # Injected into every HTML page served by the OpenHands proxy.
 # Pre-fetches the English translation bundle synchronously so the Remix SSR
@@ -35,13 +36,53 @@ localStorage.setItem('i18nextLng','en');
 def _extract_agent_urls(data, cache: dict) -> None:
     """Walk JSON data and populate cache with conversation_id → agent base URL."""
     if isinstance(data, dict):
-        conv_id = data.get("conversation_id")
-        url = data.get("url") or ""
-        m = _LOCALHOST_RE.search(url)
-        if conv_id and m:
-            port = m.group(1)
-            cache[conv_id] = f"http://localhost:{port}"
-            logger.info(f"[OpenHandsWebProxy] Cached agent for {conv_id}: localhost:{port}")
+        # Try multiple possible conversation ID field names
+        conv_id = None
+        for field in ["conversation_id", "id", "conversationId", "conversationID"]:
+            if field in data:
+                conv_id = data.get(field)
+                break
+        
+        # Try multiple possible URL field names
+        found_url = None
+        for field in ["url", "agent_url", "server_url", "websocket_url", "connection_url", "agentUrl", "serverUrl"]:
+            if field in data:
+                url_value = data.get(field)
+                if isinstance(url_value, str):
+                    m = _LOCALHOST_RE.search(url_value)
+                    if m:
+                        found_url = url_value
+                        break
+        
+        # Also search all string values for localhost:PORT patterns
+        if not found_url:
+            for k, v in data.items():
+                if isinstance(v, str):
+                    m = _LOCALHOST_RE.search(v)
+                    if m:
+                        found_url = v
+                        logger.debug(f"[OpenHandsWebProxy] Found agent URL in field '{k}': {v}")
+                        break
+        
+        if conv_id and found_url:
+            m = _LOCALHOST_RE.search(found_url)
+            if m:
+                port = m.group(1)
+                # Extract base URL: convert any localhost:PORT or 127.0.0.1:PORT to http://localhost:PORT
+                # (for WebSocket connections, we'll convert http:// to ws:// later)
+                cache[conv_id] = f"http://localhost:{port}"
+                logger.info(f"[OpenHandsWebProxy] Cached agent for {conv_id}: {found_url} → http://localhost:{port}")
+                
+                # Debug: log the full found URL
+                logger.debug(f"[OpenHandsWebProxy] Original URL: {found_url}")
+            else:
+                logger.debug(f"[OpenHandsWebProxy] Found conv_id {conv_id} but no localhost:PORT in URL: {found_url}")
+        elif conv_id and not found_url:
+            logger.debug(f"[OpenHandsWebProxy] Found conv_id {conv_id} but no agent URL in data")
+        elif found_url and not conv_id:
+            logger.debug(f"[OpenHandsWebProxy] Found agent URL {found_url} but no conversation ID")
+            
+        # Recursively search nested structures
         for v in data.values():
             if isinstance(v, (dict, list)):
                 _extract_agent_urls(v, cache)

@@ -35,6 +35,16 @@ localStorage.setItem('i18nextLng','en');
 
 def _extract_agent_urls(data, cache: dict) -> None:
     """Walk JSON data and populate cache with conversation_id → agent base URL."""
+    # Handle paginated response format: {"results": [...], "next_page_id": ...}
+    if isinstance(data, dict) and "results" in data:
+        logger.debug(f"[OpenHandsWebProxy] Found paginated response with {len(data.get('results', []))} results")
+        _extract_agent_urls(data["results"], cache)
+        # Also check other dict fields that might contain conversations
+        for k, v in data.items():
+            if k != "results" and isinstance(v, (dict, list)):
+                _extract_agent_urls(v, cache)
+        return
+    
     if isinstance(data, dict):
         # Try multiple possible conversation ID field names
         conv_id = None

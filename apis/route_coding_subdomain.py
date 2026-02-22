@@ -291,6 +291,15 @@ class CodingWebSocketMiddleware:
                                 if IS_CLOUD_RUN
                                 else agent_url
                             )
+                            # Convert http:// to ws:// for WebSocket connections
+                            if target_base_url.startswith("http://"):
+                                target_base_url = "ws://" + target_base_url[7:]  # Remove "http://"
+                            elif target_base_url.startswith("https://"):
+                                target_base_url = "wss://" + target_base_url[8:]  # Remove "https://"
+                            # Ensure it's ws:// (not wss:// since we're connecting via Tailscale/internal)
+                            if target_base_url.startswith("wss://"):
+                                target_base_url = "ws://" + target_base_url[6:]
+                            
                             logger.info(
                                 "[OpenHands] /sockets/events/%s: agent_url=%r → target=%r",
                                 conv_id, agent_url, target_base_url,

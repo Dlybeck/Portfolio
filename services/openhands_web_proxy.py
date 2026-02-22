@@ -115,33 +115,69 @@ class OpenHandsWebProxy(BaseProxy):
 
     async def fetch_agent_url(self, conversation_id: str) -> str | None:
         """Fetch agent URL directly from OpenHands API when not yet cached."""
+        # Try multiple API endpoint patterns - OpenHands v1.3 might use different paths
+        api_patterns = [
+            f"{self.base_url}/api/conversations/{conversation_id}",
+            f"{self.base_url}/api/v1/conversations/{conversation_id}",
+            f"{self.base_url}/api/agent/{conversation_id}",
+            f"{self.base_url}/api/agents/{conversation_id}",
+        ]
+        
+        for url in api_patterns:
+            try:
+                session = await self.get_session()
+                logger.info(f"[OpenHandsWebProxy] fetch_agent_url: Attempting GET {url}")
+                async with session.get(url) as resp:
+                    logger.info(f"[OpenHandsWebProxy] fetch_agent_url: GET {url} → {resp.status}")
+                    if resp.status == 200:
+                        data = await resp.json(content_type=None)
+                        _extract_agent_urls(data, self._agent_urls)
+                        result = self._agent_urls.get(conversation_id)
+                        if result:
+                            logger.info(f"[OpenHandsWebProxy] Fetched agent URL via API for {conversation_id}: {result}")
+                            return result
+                        else:
+                            logger.debug(f"[OpenHandsWebProxy] No agent URL found in response from {url}")
+                            # Try next pattern
+                            continue
+                    elif resp.status == 404:
+                        logger.debug(f"[OpenHandsWebProxy] Endpoint not found: {url}")
+                        continue  # Try next pattern
+                    else:
+                        # Try to read error response
+                        try:
+                            error_text = await resp.text()
+                            logger.warning(f"[OpenHandsWebProxy] fetch_agent_url got status {resp.status} from {url}: {error_text[:200]}")
+                        except:
+                            logger.warning(f"[OpenHandsWebProxy] fetch_agent_url got status {resp.status} from {url}")
+                        continue  # Try next pattern
+            except Exception as e:
+                logger.debug(f"[OpenHandsWebProxy] fetch_agent_url failed for {url}: {e}")
+                continue  # Try next pattern
+        
+        # If all patterns fail, also try to get from conversations list
+        logger.info(f"[OpenHandsWebProxy] All direct endpoints failed, trying conversations list")
         try:
             session = await self.get_session()
-            url = f"{self.base_url}/api/conversations/{conversation_id}"
-            logger.info(f"[OpenHandsWebProxy] fetch_agent_url: Attempting GET {url}")
-            async with session.get(url) as resp:
-                logger.info(f"[OpenHandsWebProxy] fetch_agent_url: GET {url} → {resp.status}")
-                if resp.status == 200:
-                    data = await resp.json(content_type=None)
-                    _extract_agent_urls(data, self._agent_urls)
-                    result = self._agent_urls.get(conversation_id)
-                    if result:
-                        logger.info(f"[OpenHandsWebProxy] Fetched agent URL via API for {conversation_id}: {result}")
-                    else:
-                        logger.warning(f"[OpenHandsWebProxy] No agent URL found in conversation data for {conversation_id}")
-                        # Log a snippet of the data for debugging (first 500 chars)
-                        data_str = str(data)[:500]
-                        logger.info(f"[OpenHandsWebProxy] Conversation data preview: {data_str}")
-                    return result
-                else:
-                    # Try to read error response
-                    try:
-                        error_text = await resp.text()
-                        logger.error(f"[OpenHandsWebProxy] fetch_agent_url failed with status {resp.status}: {error_text[:200]}")
-                    except:
-                        logger.error(f"[OpenHandsWebProxy] fetch_agent_url failed with status {resp.status}")
+            list_patterns = [
+                f"{self.base_url}/api/conversations",
+                f"{self.base_url}/api/v1/conversations",
+            ]
+            
+            for list_url in list_patterns:
+                logger.info(f"[OpenHandsWebProxy] fetch_agent_url: Trying list endpoint {list_url}")
+                async with session.get(list_url) as resp:
+                    if resp.status == 200:
+                        data = await resp.json(content_type=None)
+                        _extract_agent_urls(data, self._agent_urls)
+                        result = self._agent_urls.get(conversation_id)
+                        if result:
+                            logger.info(f"[OpenHandsWebProxy] Found agent URL in conversations list for {conversation_id}: {result}")
+                            return result
         except Exception as e:
-            logger.error(f"[OpenHandsWebProxy] fetch_agent_url failed for {conversation_id}: {e}", exc_info=True)
+            logger.debug(f"[OpenHandsWebProxy] Conversations list fetch failed: {e}")
+        
+        logger.warning(f"[OpenHandsWebProxy] No agent URL found for {conversation_id} after trying all endpoints")
         return None
 
     async def proxy_request(self, request: Request, path: str, rewrite_body_callback=None):

@@ -2,7 +2,6 @@ import aiohttp
 import asyncio
 import os
 import logging
-import websockets
 from contextlib import suppress
 from urllib.parse import urlparse
 from typing import Dict, Any, Optional, AsyncGenerator
@@ -191,8 +190,8 @@ class BaseProxy:
 
     async def proxy_websocket(self, client_ws: WebSocket, path: str, target_base_url: str = None):
         base = (target_base_url or self.base_url).rstrip("/")
-        ws_base = base.replace("http://", "ws://").replace("https://", "wss://")
-        ws_url = f"{ws_base}/{path}"
+        # aiohttp.ws_connect accepts http:// directly — no need to convert to ws://
+        ws_url = f"{base}/{path}"
 
         if client_ws.query_params:
             query_string = str(client_ws.url.query)
@@ -204,7 +203,7 @@ class BaseProxy:
 
         parsed = urlparse(ws_url)
 
-        # Strip WS-specific headers; websockets sets them automatically.
+        # Strip WS-specific headers; aiohttp sets them automatically.
         # Keep everything else (cookies, auth headers, etc.) to forward to upstream.
         _strip = {
             "host", "origin", "connection", "upgrade",
@@ -212,7 +211,7 @@ class BaseProxy:
             "sec-websocket-extensions", "sec-websocket-protocol",
         }
         headers = {k: v for k, v in client_ws.headers.items() if k.lower() not in _strip}
-        scheme = "https" if parsed.scheme == "wss" else "http"
+        scheme = "https" if parsed.scheme in ("https", "wss") else "http"
         port_part = f":{parsed.port}" if parsed.port else ""
         headers["Origin"] = f"{scheme}://{parsed.hostname}{port_part}"
 
@@ -220,19 +219,7 @@ class BaseProxy:
             (v for k, v in client_ws.headers.items() if k.lower() == "sec-websocket-protocol"),
             None,
         )
-        subprotocols = [p.strip() for p in subprotocol_header.split(",")] if subprotocol_header else []
-
-        ws_kwargs = {
-            "open_timeout": 20,
-            "ping_interval": 20,
-            "ping_timeout": 60,
-            "additional_headers": headers,
-            # Use SOCKS5 proxy in Cloud Run; disable proxy auto-detection locally
-            # (websockets v15 supports socks5:// natively via python-socks[asyncio])
-            "proxy": SOCKS5_PROXY if IS_CLOUD_RUN else None,
-        }
-        if subprotocols:
-            ws_kwargs["subprotocols"] = subprotocols
+        subprotocols = tuple(p.strip() for p in subprotocol_header.split(",")) if subprotocol_header else ()
 
         # Accept client immediately so the browser gets its 101 without waiting for upstream.
         # If upstream later fails, we close the already-accepted socket with code 1011.
@@ -242,81 +229,93 @@ class BaseProxy:
             f"(proxy={'SOCKS5' if IS_CLOUD_RUN else 'none'})"
         )
 
+        # Use the existing aiohttp session which already has the SOCKS5 ProxyConnector
+        # configured for Cloud Run — same path that successfully handles HTTP requests.
+        session = await self.get_session()
         try:
-            server_ws = await websockets.connect(ws_url, **ws_kwargs)
-        except Exception as e:
+            async with session.ws_connect(
+                ws_url,
+                headers=headers,
+                protocols=subprotocols,
+                heartbeat=20.0,  # send WS ping every 20s to keep connection alive
+            ) as server_ws:
+                logger.info(
+                    f"[{self.__class__.__name__}] Connected to upstream. Protocol: {server_ws.protocol}"
+                )
+
+                async def forward_client_to_server():
+                    try:
+                        while True:
+                            msg = await client_ws.receive()
+                            if msg.get("type") == "websocket.disconnect":
+                                logger.info(
+                                    f"[{self.__class__.__name__}] Client disconnected"
+                                )
+                                break
+                            if "text" in msg:
+                                logger.debug(
+                                    f"[{self.__class__.__name__}] C->S text: {msg['text'][:100]}"
+                                )
+                                await server_ws.send_str(msg["text"])
+                            if "bytes" in msg:
+                                logger.debug(
+                                    f"[{self.__class__.__name__}] C->S binary: {len(msg['bytes'])} bytes"
+                                )
+                                await server_ws.send_bytes(msg["bytes"])
+                    except WebSocketDisconnect:
+                        logger.info(
+                            f"[{self.__class__.__name__}] Client WebSocket disconnected normally"
+                        )
+                    except Exception as e:
+                        logger.error(
+                            f"[{self.__class__.__name__}] Client->Server error: {e}"
+                        )
+
+                async def forward_server_to_client():
+                    try:
+                        async for msg in server_ws:
+                            if msg.type == aiohttp.WSMsgType.TEXT:
+                                logger.debug(
+                                    f"[{self.__class__.__name__}] S->C text: {len(msg.data)} chars"
+                                )
+                                await client_ws.send_text(msg.data)
+                            elif msg.type == aiohttp.WSMsgType.BINARY:
+                                logger.debug(
+                                    f"[{self.__class__.__name__}] S->C binary: {len(msg.data)} bytes"
+                                )
+                                await client_ws.send_bytes(msg.data)
+                            elif msg.type == aiohttp.WSMsgType.ERROR:
+                                logger.error(
+                                    f"[{self.__class__.__name__}] Server WS error: {server_ws.exception()}"
+                                )
+                                break
+                            elif msg.type == aiohttp.WSMsgType.CLOSED:
+                                logger.info(
+                                    f"[{self.__class__.__name__}] Server WebSocket closed"
+                                )
+                                break
+                            await asyncio.sleep(0)
+                    except Exception as e:
+                        logger.error(
+                            f"[{self.__class__.__name__}] Server->Client error: {e}"
+                        )
+
+                t1 = asyncio.create_task(forward_client_to_server())
+                t2 = asyncio.create_task(forward_server_to_client())
+                done, pending = await asyncio.wait({t1, t2}, return_when=asyncio.FIRST_COMPLETED)
+                for task in pending:
+                    task.cancel()
+                    with suppress(asyncio.CancelledError):
+                        await task
+                logger.info(f"[{self.__class__.__name__}] WebSocket session ended cleanly")
+
+        except aiohttp.ClientConnectorError as e:
             logger.error(f"[{self.__class__.__name__}] Upstream WS connection failed: {e}")
             await client_ws.close(code=1011, reason="Upstream unavailable")
-            return
-
-        async with server_ws:
-            logger.info(
-                f"[{self.__class__.__name__}] Connected to upstream. Subprotocol: {server_ws.subprotocol}"
-            )
-
-            async def forward_client_to_server():
-                try:
-                    while True:
-                        msg = await client_ws.receive()
-                        if msg.get("type") == "websocket.disconnect":
-                            logger.info(
-                                f"[{self.__class__.__name__}] Client disconnected"
-                            )
-                            break
-                        if "text" in msg:
-                            logger.debug(
-                                f"[{self.__class__.__name__}] C->S text: {msg['text'][:100]}"
-                            )
-                            await server_ws.send(msg["text"])
-                        if "bytes" in msg:
-                            logger.debug(
-                                f"[{self.__class__.__name__}] C->S binary: {len(msg['bytes'])} bytes"
-                            )
-                            await server_ws.send(msg["bytes"])
-                except WebSocketDisconnect:
-                    logger.info(
-                        f"[{self.__class__.__name__}] Client WebSocket disconnected normally"
-                    )
-                except Exception as e:
-                    logger.error(
-                        f"[{self.__class__.__name__}] Client->Server error: {e}"
-                    )
-
-            async def forward_server_to_client():
-                try:
-                    async for msg in server_ws:
-                        if isinstance(msg, str):
-                            logger.debug(
-                                f"[{self.__class__.__name__}] S->C text: {len(msg)} chars"
-                            )
-                            await client_ws.send_text(msg)
-                        elif isinstance(msg, bytes):
-                            logger.debug(
-                                f"[{self.__class__.__name__}] S->C binary: {len(msg)} bytes"
-                            )
-                            await client_ws.send_bytes(msg)
-                        else:
-                            logger.warning(
-                                f"[{self.__class__.__name__}] S->C unknown type: {type(msg)}"
-                            )
-                        await asyncio.sleep(0)
-                except websockets.exceptions.ConnectionClosed as e:
-                    logger.info(
-                        f"[{self.__class__.__name__}] Server WebSocket closed: {e}"
-                    )
-                except Exception as e:
-                    logger.error(
-                        f"[{self.__class__.__name__}] Server->Client error: {e}"
-                    )
-
-            t1 = asyncio.create_task(forward_client_to_server())
-            t2 = asyncio.create_task(forward_server_to_client())
-            done, pending = await asyncio.wait({t1, t2}, return_when=asyncio.FIRST_COMPLETED)
-            for task in pending:
-                task.cancel()
-                with suppress(asyncio.CancelledError):
-                    await task
-            logger.info(f"[{self.__class__.__name__}] WebSocket session ended cleanly")
+        except Exception as e:
+            logger.error(f"[{self.__class__.__name__}] WS connection failed: {e}")
+            with suppress(Exception):
+                await client_ws.close(code=1011, reason=str(e))
 
     async def close(self):
         if self.session:

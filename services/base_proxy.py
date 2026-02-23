@@ -304,15 +304,27 @@ class BaseProxy:
                 t1 = asyncio.create_task(forward_client_to_server())
                 t2 = asyncio.create_task(forward_server_to_client())
                 done, pending = await asyncio.wait({t1, t2}, return_when=asyncio.FIRST_COMPLETED)
+                server_closed_first = t2 in done and t1 not in done
+                logger.info(
+                    f"[{self.__class__.__name__}] WS relay ended: "
+                    f"server_closed_first={server_closed_first} "
+                    f"done={len(done)} pending={len(pending)}"
+                )
                 for task in pending:
                     task.cancel()
                     with suppress(asyncio.CancelledError):
                         await task
                 logger.info(f"[{self.__class__.__name__}] WebSocket session ended cleanly")
 
-            # Upstream closed — send CLOSE frame to browser so frontend reconnects
-            with suppress(Exception):
-                await client_ws.close(code=1001)  # 1001 = Going Away
+            # Upstream closed — send CLOSE frame to browser so frontend reconnects.
+            # Only do this when the server closed first; if the client closed first
+            # we'd just be trying to close an already-gone socket.
+            if server_closed_first:
+                try:
+                    await client_ws.close(code=1001)  # 1001 = Going Away
+                    logger.info(f"[{self.__class__.__name__}] Sent 1001 Going Away to client")
+                except Exception as e:
+                    logger.warning(f"[{self.__class__.__name__}] Could not send close frame to client: {e}")
 
         except aiohttp.ClientConnectorError as e:
             logger.error(f"[{self.__class__.__name__}] Upstream WS connection failed: {e}")

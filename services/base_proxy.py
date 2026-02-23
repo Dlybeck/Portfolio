@@ -310,6 +310,10 @@ class BaseProxy:
                         await task
                 logger.info(f"[{self.__class__.__name__}] WebSocket session ended cleanly")
 
+            # Upstream closed — send CLOSE frame to browser so frontend reconnects
+            with suppress(Exception):
+                await client_ws.close(code=1001)  # 1001 = Going Away
+
         except aiohttp.ClientConnectorError as e:
             logger.error(f"[{self.__class__.__name__}] Upstream WS connection failed: {e}")
             await client_ws.close(code=1011, reason="Upstream unavailable")

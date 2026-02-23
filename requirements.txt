@@ -1,6 +1,6 @@
-fastapi==0.115.6
-uvicorn==0.34.0
-jinja2==3.1.5
+fastapi==0.115.14
+uvicorn==0.34.1
+jinja2==3.1.6
 httpx[socks]==0.28.1
 
 # Authentication & Security
@@ -9,18 +9,18 @@ bcrypt==5.0.0
 python-multipart==0.0.20
 pyotp==2.9.0
 python-dotenv==1.1.1
-pydantic-settings==2.12.0
+pydantic-settings==2.13.1
 
 # Terminal & WebSockets
 websockets==15.0.1
 python-socks==2.5.2  # Required for websockets SOCKS5 proxy support
-aiohttp==3.11.11
-aiohttp-socks==0.9.1  # Required for code-server WebSocket SOCKS5 proxy
+aiohttp==3.11.18
+aiohttp-socks==0.10.1  # Required for code-server WebSocket SOCKS5 proxy
 ptyprocess==0.7.0
 aiofiles==24.1.0
 
 # AI Integration
-anthropic==0.69.0
+anthropic==0.70.0
 
 # Utilities
 qrcode[pil]==8.2

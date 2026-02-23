@@ -28,7 +28,7 @@ class Settings(BaseSettings):
 
     MAX_LOGIN_ATTEMPTS: int = 3
     LOCKOUT_DURATION_MINUTES: int = 15
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 days — matches session cookie lifespan
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     MAX_DEVICES_PER_USER: int = 3
 

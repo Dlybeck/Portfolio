@@ -45,6 +45,11 @@ _AGENT_API_PREFIXES = (
     "api/refresh-files",
 )
 
+# Matches agent-server action paths embedded with the conversation ID.
+# e.g. api/conversations/{id}/pause, api/conversations/{id}/run
+# Port 3000 has no handler for these (returns 405); they must go to the agent server.
+_AGENT_CONV_ACTION_RE = re.compile(r'^api/conversations/([^/]+)/(pause|run)$')
+
 logger = logging.getLogger(__name__)
 
 _STATIC_EXTENSIONS = frozenset(
@@ -195,25 +200,31 @@ class CodingSubdomainMiddleware(BaseHTTPMiddleware):
                 proxy = _get_proxy_for_service(service_name)
                 path_clean = path.lstrip("/")
 
-                # Agent-server API routing: paths like /api/git/*, /api/list-files, etc.
-                # are served by the per-conversation agent server (random port), NOT by
-                # port 3000. Port 3000 falls through to the React SPA for these, returning
-                # HTML instead of JSON → "Invalid response from runtime" in the UI.
+                # Agent-server API routing: certain paths are served by the per-conversation
+                # agent server (random port), NOT by port 3000.
+                #   - Prefix-matched paths (git, list-files, etc.): port 3000 returns SPA HTML
+                #   - /api/conversations/{id}/pause|run: port 3000 returns 405 (no handler in V1)
                 override_url = None
-                if service_name == "openhands" and any(
-                    path_clean.startswith(p) for p in _AGENT_API_PREFIXES
-                ):
-                    agent_url = _find_agent_url(request, get_openhands_proxy())
-                    if agent_url:
-                        override_url = (
-                            agent_url.replace("localhost", MAC_SERVER_IP)
-                            if IS_CLOUD_RUN
-                            else agent_url
-                        )
-                        logger.info(
-                            "[%s] routing %s → agent server %s",
-                            service_name, path, override_url,
-                        )
+                agent_url = None
+                if service_name == "openhands":
+                    conv_action_match = _AGENT_CONV_ACTION_RE.match(path_clean)
+                    if conv_action_match:
+                        # Extract conversation ID directly from the path
+                        conv_id = conv_action_match.group(1)
+                        agent_url = get_openhands_proxy().get_agent_url(conv_id)
+                    elif any(path_clean.startswith(p) for p in _AGENT_API_PREFIXES):
+                        agent_url = _find_agent_url(request, get_openhands_proxy())
+
+                if agent_url:
+                    override_url = (
+                        agent_url.replace("localhost", MAC_SERVER_IP)
+                        if IS_CLOUD_RUN
+                        else agent_url
+                    )
+                    logger.info(
+                        "[%s] routing %s → agent server %s",
+                        service_name, path, override_url,
+                    )
 
                 response = await proxy.proxy_request(request, path_clean, override_base_url=override_url)
                 response.headers["X-Service-Name"] = service_name

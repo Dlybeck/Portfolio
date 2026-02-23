@@ -238,7 +238,7 @@ class BaseProxy:
                 ws_url,
                 headers=headers,
                 protocols=subprotocols,
-                heartbeat=20.0,  # send WS ping every 20s to keep connection alive
+                heartbeat=60.0,  # ping every 60s; pong timeout = 30s (enough for Tailscale DERP rebinds)
             ) as server_ws:
                 logger.info(
                     f"[{self.__class__.__name__}] Connected to upstream. Protocol: {server_ws.protocol}"
@@ -301,21 +301,10 @@ class BaseProxy:
                             f"[{self.__class__.__name__}] Server->Client error: {e}"
                         )
 
-                async def client_heartbeat():
-                    """Ping the browser every 25s to keep the connection alive through Cloud Run/GCP LB idle timeouts."""
-                    try:
-                        while True:
-                            await asyncio.sleep(25)
-                            await client_ws.send({"type": "websocket.ping", "bytes": b""})
-                            logger.debug(f"[{self.__class__.__name__}] Sent keepalive ping to browser")
-                    except Exception:
-                        pass
-
                 t1 = asyncio.create_task(forward_client_to_server())
                 t2 = asyncio.create_task(forward_server_to_client())
-                t3 = asyncio.create_task(client_heartbeat())
                 done, pending = await asyncio.wait({t1, t2}, return_when=asyncio.FIRST_COMPLETED)
-                for task in list(pending) + [t3]:
+                for task in pending:
                     task.cancel()
                     with suppress(asyncio.CancelledError):
                         await task

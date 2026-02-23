@@ -118,6 +118,8 @@ if __name__ == "__main__":
                 port=port,
                 ssl_keyfile=str(ssl_key_path),
                 ssl_certfile=str(ssl_cert_path),
+                ws_ping_interval=30,
+                ws_ping_timeout=86400,
             )
         else:
             # HTTP fallback
@@ -129,4 +131,4 @@ if __name__ == "__main__":
                 "    openssl req -x509 -newkey rsa:2048 -nodes -keyout ~/.ssl/key.pem -out ~/.ssl/cert.pem -days 365"
             )
 
-            uvicorn.run(app, host=host, port=port)
+            uvicorn.run(app, host=host, port=port, ws_ping_interval=30, ws_ping_timeout=86400)

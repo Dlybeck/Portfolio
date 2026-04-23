@@ -211,13 +211,23 @@ window.updateVisibility = function(centerTitle) {
             // Kick off the sweep-off animation only if this tile was the
             // previously-centered one. Other tiles have no cover on-stage.
             if (wasExpanded) {
-                // Pick the exit direction based on last scroll direction.
-                // User scrolling down (map panning up) → cover exits upward.
-                // User scrolling up (map panning down) → cover exits downward.
-                // Default (no recent scroll) → upward (plays nice with tile-
-                // click flows which usually don't involve a scroll state).
-                const dir = window._lastScrollDir || 0;
-                const leaveClass = (dir < 0) ? 'cover-leaving-down' : 'cover-leaving-up';
+                // Pick exit direction from TILE GEOMETRY, not scroll state.
+                // When a new tile becomes the center, every other tile shifts
+                // by (new_center - old_center). The de-centered tile moves in
+                // viewport by (this_tile.top - new_center.top). We want its
+                // cover to follow that motion (same direction), so the cover
+                // rides off with the tile rather than opposing the layout.
+                //   this.top > center.top → tile moves DOWN → cover exits DOWN
+                //   this.top < center.top → tile moves UP   → cover exits UP
+                //   tied → fall back to scroll direction (if any), then UP.
+                const centerPos = window.positions[centerTitle];
+                const thisPos = window.positions[tileTitle];
+                let leaveClass = 'cover-leaving-up';
+                if (centerPos && thisPos) {
+                    if (thisPos.top > centerPos.top) leaveClass = 'cover-leaving-down';
+                    else if (thisPos.top < centerPos.top) leaveClass = 'cover-leaving-up';
+                    else if ((window._lastScrollDir || 0) < 0) leaveClass = 'cover-leaving-down';
+                }
                 tile.classList.add(leaveClass);
 
                 const prev = window._coverLeaveTimers.get(tileTitle);

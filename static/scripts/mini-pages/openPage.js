@@ -230,20 +230,19 @@ class MiniWindow {
     }
 
     hide() {
-        // Stop the map pan and animate the tabletop back to offset 0; when
-        // it finishes, remove the paper (two physical motions: pan-back then
-        // paper-lift) so the close feels continuous.
-        const removePaper = () => {
+        // Paper exit = swap .open for .closing. The CSS paper-exit keyframe
+        // slides the whole paper DOWN past the viewport bottom (translateY
+        // 120vh), which clears it regardless of how tall the iframe content
+        // is. After the animation ends we remove .closing and tear down.
+        const EXIT_MS = 520; // slightly longer than the 0.5s CSS animation
+        const finishClose = () => {
             this.container.classList.remove('open');
+            this.container.classList.remove('closing');
             // Reset back-button inline display so CSS `body.page-open` rule
             // governs it cleanly next time a page opens.
             if (this.backButton) this.backButton.style.display = '';
-            // Clear the iframe after the slide-off animation completes so the
-            // old content isn't visible during the transition.
-            setTimeout(() => {
-                this.page.setAttribute('src', '');
-                this.page.style.height = '';
-            }, 620);
+            this.page.setAttribute('src', '');
+            this.page.style.height = '';
             if (this.resizeObserver) {
                 this.resizeObserver.disconnect();
                 this.resizeObserver = null;
@@ -252,11 +251,17 @@ class MiniWindow {
         };
 
         document.removeEventListener('click', this.handleClickOutside);
+
+        // Start the exit animation: replace .open with .closing.
+        this.container.classList.remove('open');
+        this.container.classList.add('closing');
+
+        // Animate the tabletop back to offset 0 in parallel with the paper
+        // slide-off. Both finish in ~500ms and then we clean up.
         if (window.mapPan && window.mapPan.isActive()) {
-            window.mapPan.stop(removePaper);
-        } else {
-            removePaper();
+            window.mapPan.stop();
         }
+        setTimeout(finishClose, EXIT_MS);
     }
 
     // ---------------------- helpers ----------------------

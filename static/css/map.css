@@ -427,9 +427,12 @@
   left: 50%;
   width: min(86vw, 780px);
   /* height is set inline by JS based on iframe content scrollHeight */
-  /* OFF-STAGE just above the viewport — the long paper travels one screen
-     height into place (not ten), so it reads as "placed" not "flashed". */
-  transform: translate(-50%, -110vh) rotate(-3deg) scale(0.98);
+  /* Default (resting / off-stage) — invisible. Entry/exit motions are
+     driven by keyframe animations (asymmetric: entry FROM ABOVE feels
+     placed; exit DOWN past 100vh works for any paper height because once
+     the top edge passes the viewport bottom, the whole paper is gone
+     regardless of its own length). */
+  transform: translate(-50%, 0) rotate(-0.6deg);
   opacity: 1;
   visibility: hidden;
   pointer-events: none;
@@ -458,10 +461,6 @@
   box-shadow:
     8px 14px 24px rgba(0, 0, 0, 0.45),
     0 2px 4px rgba(0, 0, 0, 0.2);
-  /* "Placed" deceleration — fast release, slow settle. */
-  transition:
-    transform 0.55s cubic-bezier(.17,.62,.22,1),
-    visibility 0s linear 0.55s;
   will-change: transform;
 }
 
@@ -481,14 +480,40 @@
 .mini-window-container::before { left: 8%;  transform: rotate(-6deg); }
 .mini-window-container::after  { right: 8%; transform: rotate(7deg); }
 
-/* Open state: paper has been placed on the table */
+/* Open: play the "placed from above" entry animation. */
 .mini-window-container.open {
+  animation: paper-enter 0.6s cubic-bezier(.17,.62,.22,1) both;
   visibility: visible;
   pointer-events: auto;
-  transform: translate(-50%, 0) rotate(-0.6deg) scale(1);
-  transition:
-    transform 0.55s cubic-bezier(.17,.62,.22,1),
-    visibility 0s linear 0s;
+}
+
+/* Closing: play the "pushed off the bottom" exit animation. JS adds this
+   class when hide() is called and removes it after the animation ends. */
+.mini-window-container.closing {
+  animation: paper-exit 0.5s cubic-bezier(.5,0,.75,0) both;
+  visibility: visible;
+  pointer-events: none;
+}
+
+@keyframes paper-enter {
+  from {
+    transform: translate(-50%, -110vh) rotate(-3deg) scale(0.98);
+  }
+  to {
+    transform: translate(-50%, 0) rotate(-0.6deg) scale(1);
+  }
+}
+
+/* Exit goes DOWN past the viewport. Translating far enough that the
+   container's top edge is below 100vh guarantees the entire paper is off
+   screen for any page height. */
+@keyframes paper-exit {
+  from {
+    transform: translate(-50%, 0) rotate(-0.6deg) scale(1);
+  }
+  to {
+    transform: translate(-50%, 120vh) rotate(-5deg) scale(0.98);
+  }
 }
 
 /* The iframe itself fills its container; height set inline by JS */

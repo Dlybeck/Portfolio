@@ -38,6 +38,17 @@ window.centerOnTile = function(title) {
         tile.style.top  = `${tilePos.top  + offsetY}%`;
     });
 
+    // Parallax the wall underlay by about half the tile shift. The wall is
+    // painted on .map::before and reads these CSS variables. As you move
+    // between tiles the wall drifts in the same direction as the tiles but
+    // much slower, so the whole scene feels anchored together instead of
+    // the wall being a frozen backdrop.
+    const mapEl = document.querySelector('.map');
+    if (mapEl) {
+        mapEl.style.setProperty('--wall-shift-x', `${-centerPos.left * 0.5}rem`);
+        mapEl.style.setProperty('--wall-shift-y', `${-centerPos.top  * 0.5}rem`);
+    }
+
     window.checkHomeButton();
     updateVisibility(title);
 };
@@ -65,6 +76,13 @@ window.returnHome = function() {
         tile.style.left = `${tilePos.left + offsetX}%`;
         tile.style.top  = `${tilePos.top  + offsetY}%`;
     });
+
+    // Reset the wall parallax to origin since we're back at Home.
+    const mapEl = document.querySelector('.map');
+    if (mapEl) {
+        mapEl.style.setProperty('--wall-shift-x', '0rem');
+        mapEl.style.setProperty('--wall-shift-y', '0rem');
+    }
 
     updateVisibility('Home');
     window.checkHomeButton(document.body);

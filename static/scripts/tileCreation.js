@@ -11,7 +11,20 @@
 
 // Option pools used for stable-hash selection
 const STICKY_COLORS = ["sticky-yellow", "sticky-pink", "sticky-blue", "sticky-green", "sticky-orange"];
-const SCRAP_VARIANTS = ["scrap-ruled", "scrap-graph", "scrap-plain", "scrap-kraft", "scrap-index"];
+const SCRAP_VARIANTS = [
+    "scrap-ruled", "scrap-graph", "scrap-plain", "scrap-kraft", "scrap-index",
+    "scrap-legal", "scrap-dotgrid", "scrap-manila", "scrap-receipt", "scrap-napkin"
+];
+// Shape (clip-path) variants — only applied to SCRAPS. Stickies keep their
+// folded-corner clip. Includes "shape-rect" as a no-op so some scraps stay
+// plain rectangles (otherwise every scrap would be deformed). Duplicated
+// "shape-rect" entries bias the distribution toward rectangular by default.
+const SCRAP_SHAPES = [
+    "shape-rect", "shape-rect", "shape-rect",
+    "shape-torn-bottom", "shape-torn-top", "shape-torn-both",
+    "shape-corner-bite", "shape-slant-right", "shape-slant-left",
+    "shape-ripped-side"
+];
 const TILE_FONTS = ["var(--font-hand-casual)", "var(--font-hand-neat)", "var(--font-hand-thin)"];
 const INK_COLORS_SCRAP = ["var(--ink-blue)", "var(--ink-black)", "var(--ink-pencil)"];
 const INK_COLORS_STICKY = ["var(--ink-black)", "var(--ink-blue)", "var(--ink-red)"];
@@ -24,25 +37,35 @@ function pick(arr, seed) { return arr[seed % arr.length]; }
  */
 function tileStyleSeed(title) {
     const h = window.stableHash(title);
-    // 5 independent "channels" by dividing the hash down
+    // Independent "channels" by dividing the hash down
     const a = h;
-    const b = (h / 7)    | 0;
-    const c = (h / 53)   | 0;
-    const d = (h / 211)  | 0;
-    const e = (h / 1031) | 0;
+    const b = (h / 7)     | 0;
+    const c = (h / 53)    | 0;
+    const d = (h / 211)   | 0;
+    const e = (h / 1031)  | 0;
+    const f = (h / 3779)  | 0;
+    const g = (h / 9973)  | 0;
+    const i = (h / 19937) | 0;
+    const j = (h / 39119) | 0;
 
     return {
-        rot:          ((a % 1000) / 1000 * 10 - 5).toFixed(2) + "deg",       // -5..+5
-        rotExpanded:  ((b % 1000) / 1000 * 8  - 4).toFixed(2) + "deg",       // -4..+4
-        jitterX:      ((c % 1000) / 1000 * 8  - 4).toFixed(2) + "px",        // -4..+4
-        jitterY:      ((d % 1000) / 1000 * 8  - 4).toFixed(2) + "px",
-        tapeAngle:    ((e % 1000) / 1000 * 16 - 8).toFixed(2) + "deg",       // -8..+8
-        colorIdx:     a,
-        variantIdx:   b,
-        fontIdx:      c,
-        inkIdx:       d,
-        hasTape:      (e % 2) === 0,
-        torn:         (a % 3) === 0, // ~1/3 of scraps
+        rot:                ((a % 1000) / 1000 * 10 - 5).toFixed(2) + "deg",  // -5..+5
+        rotExpanded:        ((b % 1000) / 1000 * 8  - 4).toFixed(2) + "deg",  // -4..+4
+        jitterX:            ((c % 1000) / 1000 * 8  - 4).toFixed(2) + "px",   // -4..+4
+        jitterY:            ((d % 1000) / 1000 * 8  - 4).toFixed(2) + "px",
+        tapeAngle:          ((e % 1000) / 1000 * 16 - 8).toFixed(2) + "deg",  // -8..+8
+        colorIdx:           a,
+        variantIdx:         b,
+        fontIdx:            c,
+        inkIdx:             d,
+        hasTape:            (e % 2) === 0,
+        // Base shape index — only applied to scraps (stickies keep their curl).
+        shapeIdx:           i,
+        // Independent channels for the expanded (cover) paper so it can
+        // be a visually distinct scrap from the one underneath.
+        expandedVariantIdx: f,
+        expandedHasTape:    (g % 2) === 1,
+        expandedShapeIdx:   j,
     };
 }
 
@@ -61,13 +84,21 @@ window.createTile = function(title) {
     tileWrapper.className = `tile-container ${paperType}`;
     tileWrapper.dataset.title = title;
 
-    // Paper-family specific variant class
+    // Variant class for the BASE scrap (on the tile-container so CSS can
+    // scope `.tile-container.<variant> .tile-base`). The expanded cover
+    // gets its own independently-hashed variant further down, applied to
+    // the .tile-expanded element directly — so base and cover are
+    // different pieces of paper from the same family.
     if (paperType === "sticky") {
         tileWrapper.classList.add(pick(STICKY_COLORS, seed.colorIdx));
-        if (seed.hasTape) tileWrapper.classList.add("has-tape");
+        // Stickies are self-adhesive — NO tape.
+        // Stickies keep their folded-corner clip — no shape variant.
     } else {
         tileWrapper.classList.add(pick(SCRAP_VARIANTS, seed.variantIdx));
-        if (seed.torn) tileWrapper.classList.add("torn");
+        // Independent shape (rip/asymmetry) for the base scrap.
+        tileWrapper.classList.add(pick(SCRAP_SHAPES, seed.shapeIdx));
+        // Scraps aren't self-adhesive — always need tape to hold them down.
+        tileWrapper.classList.add("has-tape");
     }
 
     // Per-tile CSS variables (stable)
@@ -80,30 +111,73 @@ window.createTile = function(title) {
     tileWrapper.style.setProperty('--tile-font',    pick(TILE_FONTS, seed.fontIdx));
     tileWrapper.style.setProperty('--ink-color',    pick(inkPool,    seed.inkIdx));
 
-    // ---- .tile-base : the small always-visible scrap/sticky ----
-    // (we keep the legacy .tile class on this element too so map.js's
-    //  existing click binding `.querySelector('.tile')` still works)
+    // ---- .tile-base : outer wrapper (handles rotation/jitter). ----
+    // Structure:
+    //   .tile-base            (outer, NO clip-path; tape lives here so it
+    //                         can overhang past the paper's shape edges)
+    //     .paper-body         (inner, carries background + clip-path/shape)
+    //       .scrap-title      (text content, stays inside the clip)
+    //     .tape               (sibling of .paper-body, not clipped)
+    //
+    // The legacy .tile class stays on the outer element so map.js's
+    // `.querySelector('.tile')` click binding keeps working.
     const base = document.createElement('div');
     base.className = 'tile tile-base';
+
+    const baseBody = document.createElement('div');
+    baseBody.className = 'paper-body';
+    base.appendChild(baseBody);
 
     const baseTitle = document.createElement('h2');
     baseTitle.className = 'scrap-title';
     baseTitle.textContent = title === 'Dev' ? 'Dev' : title;
-    base.appendChild(baseTitle);
+    baseBody.appendChild(baseTitle);
 
-    // ---- .tile-expanded : larger paper that covers the base when centered ----
+    // Tape as a sibling of paper-body (scraps only — stickies skip tape).
+    if (paperType !== 'sticky') {
+        const tape = document.createElement('div');
+        tape.className = 'tape';
+        base.appendChild(tape);
+    }
+
+    // ---- .tile-expanded : larger cover paper (same nested structure) ----
+    // .tile-expanded is the outer animation host. .paper-body inside it
+    // carries the background + clip-path. Tape is a sibling of .paper-body
+    // so it can overhang past any torn/rip shape.
     const expanded = document.createElement('div');
     expanded.className = 'tile-expanded';
+    const expandedBody = document.createElement('div');
+    expandedBody.className = 'paper-body';
+    expanded.appendChild(expandedBody);
+    if (paperType === "sticky") {
+        const baseIdx = seed.colorIdx % STICKY_COLORS.length;
+        const expIdx  = (seed.expandedVariantIdx + 2) % STICKY_COLORS.length;
+        const finalIdx = (expIdx === baseIdx)
+            ? (expIdx + 1) % STICKY_COLORS.length
+            : expIdx;
+        expanded.classList.add(STICKY_COLORS[finalIdx]);
+        // Stickies don't need tape — self-adhesive.
+    } else {
+        const baseIdx = seed.variantIdx % SCRAP_VARIANTS.length;
+        const expIdx  = (seed.expandedVariantIdx + 2) % SCRAP_VARIANTS.length;
+        const finalIdx = (expIdx === baseIdx)
+            ? (expIdx + 1) % SCRAP_VARIANTS.length
+            : expIdx;
+        expanded.classList.add(SCRAP_VARIANTS[finalIdx]);
+        expanded.classList.add(pick(SCRAP_SHAPES, seed.expandedShapeIdx));
+        // Covers on non-sticky papers also need tape.
+        expanded.classList.add("has-tape");
+    }
 
     const expTitle = document.createElement('h2');
     expTitle.className = 'expanded-title';
     expTitle.textContent = title === 'Dev' ? 'Dev Hub' : title;
-    expanded.appendChild(expTitle);
+    expandedBody.appendChild(expTitle);
 
     const expText = document.createElement('p');
     expText.className = 'expanded-text';
     expText.innerHTML = texts[title] || '';
-    expanded.appendChild(expText);
+    expandedBody.appendChild(expText);
 
     // "open →" link — only for tiles that actually have a leaf route (scrap + Dev).
     // Hub stickies (keys of tilesData other than Home/Dev) have routes "/" in
@@ -120,7 +194,7 @@ window.createTile = function(title) {
             event.stopPropagation();
             window.openPage(route);
         });
-        expanded.appendChild(openLink);
+        expandedBody.appendChild(openLink);
     }
 
     // Keep a legacy `.button` reference for existing map.js code paths that
@@ -130,7 +204,14 @@ window.createTile = function(title) {
     legacyButton.className = 'button';
     legacyButton.style.display = 'none';
     legacyButton.href = route || '';
-    expanded.appendChild(legacyButton);
+    expandedBody.appendChild(legacyButton);
+
+    // Tape as a sibling of expanded's paper-body (scraps only).
+    if (paperType !== 'sticky') {
+        const expandedTape = document.createElement('div');
+        expandedTape.className = 'tape';
+        expanded.appendChild(expandedTape);
+    }
 
     // Preserve the legacy .tile-contents/.tile-title/.tile-text element names too,
     // pointing them at the real nodes — so older code that queries these still
@@ -235,7 +316,7 @@ window.updateVisibility = function(centerTitle) {
                 const t = setTimeout(() => {
                     tile.classList.remove('cover-leaving-up', 'cover-leaving-down');
                     window._coverLeaveTimers.delete(tileTitle);
-                }, 380); // slightly longer than the 0.35s CSS animation
+                }, 540); // slightly longer than the 0.5s CSS animation
                 window._coverLeaveTimers.set(tileTitle, t);
             }
         }

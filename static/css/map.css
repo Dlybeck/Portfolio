@@ -23,35 +23,86 @@
   transform: translate3d(0, 0, 0);
   transition: transform 0.35s cubic-bezier(.2,.7,.2,1);
   background: transparent; /* tabletop painted on ::before underlay */
+  /* Parallax offsets set by tileMovement.js on tile-center — these shift
+     the wall underlay (::before) at a slower rate than the tiles, so as
+     you navigate tiles the wall visibly drifts with you. Defaults to 0. */
+  --wall-shift-x: 0rem;
+  --wall-shift-y: 0rem;
 }
 
-/* Wood grain tabletop — a lightweight pseudo-element that tiles a subtle
-   grain over a warm wood base. Kept small-ish (400vh) and to two gradient
-   layers so it fits inside GPU compositor texture limits and stays on a
-   fast layer while panning. Promoted to its own compositor layer with
-   translateZ(0) so paint invalidations don't cascade to siblings. */
+/* Original brown wood tabletop — warm base with fine grain stripes, broad
+   grain bands, a warmth wash, and plank seams every 260px. The plank seams
+   are a visible, recurring feature that give the eye a reference while
+   panning — that's what made this surface "feel" like it was moving. The
+   painted-wall replacements had no such reference, so a 2000px pan looked
+   indistinguishable from standing still. */
 .map::before {
   content: "";
   position: absolute;
-  top: -100vh;
-  left: -5vw;
-  width: 110vw;
-  height: 400vh;
+  /* Extent sized for any plausible pan + parallax. Horizontally -80vw to
+     +180vw (260vw total) gives ~80vw of buffer on each side — enough to
+     absorb the maximum parallax shift (up to ~28vw on edge-grid tiles)
+     with room to spare. Vertically 3000vh covers any realistic pan. */
+  top: -500vh;
+  left: -80vw;
+  width: 260vw;
+  height: 3000vh;
   pointer-events: none;
   z-index: -1;
+  /* Parallax translate driven by CSS variables on .map. Transitions
+     smoothly so the wall drifts rather than snapping when a new tile is
+     centered. This is ADDED onto .map's own transform during page-pan,
+     so wall motion from navigation + motion from scroll compose cleanly.
+     NO transition by default — prevents a "fly-in" animation on page
+     load when centerOnTile from the URL hash sets the initial shift.
+     The transition is enabled by a .wall-transition-ready class added
+     to .map by map.js after the first paint settles. */
+  transform: translate(var(--wall-shift-x, 0rem), var(--wall-shift-y, 0rem));
   background-color: #7a4a23;
   background-image:
-    /* fine grain stripes (cheap repeating pattern, small period) */
+    /* fine grain stripes */
     repeating-linear-gradient(
       92deg,
-      rgba(40, 20, 8, 0.14) 0 1px,
-      transparent 1px 5px
+      rgba(60, 30, 10, 0.18) 0px,
+      rgba(60, 30, 10, 0.18) 1px,
+      transparent 1px,
+      transparent 4px
     ),
-    /* warmth gradient — bakes into the layer cache, no per-frame cost */
-    linear-gradient(180deg, #8e5a2c 0%, #6a3f1e 100%);
-  /* No will-change / translateZ here — this is a child of .map (which
-     already has its own compositor layer). Painting it once as part of
-     .map's layer is cheaper than making it its own layer. */
+    /* broader grain bands */
+    repeating-linear-gradient(
+      90deg,
+      rgba(40, 20, 8, 0.10) 0px,
+      rgba(40, 20, 8, 0.10) 12px,
+      transparent 12px,
+      transparent 38px
+    ),
+    /* Warmth wash — SYMMETRIC so it tiles without a seam. Starts and ends
+       at the same color (#7a4a23 — the base), peaks lighter (#8e5a2c) at
+       the midpoint. When this gradient repeats every 200vh, each tile's
+       top meets the previous tile's bottom at identical color — no
+       visible line. */
+    linear-gradient(180deg,
+      #7a4a23 0%,
+      #855229 25%,
+      #8e5a2c 50%,
+      #855229 75%,
+      #7a4a23 100%),
+    /* plank seams every 520px (260px plank + 260px next) — the key motion
+       reference. */
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 260px,
+      rgba(0,0,0,0.28) 260px,
+      rgba(0,0,0,0.28) 263px,
+      transparent 263px,
+      transparent 520px
+    );
+  /* Warmth wash tiles every 200vh (two viewport heights) — subtle slow
+     variation rather than a rapid pulse. Symmetric gradient above means
+     tile boundaries are invisible. */
+  background-size: auto, auto, 100% 200vh, auto;
+  background-repeat: repeat, repeat, repeat, repeat;
 }
 
 /* (Ambient tabletop imperfections removed — the "coffee ring" just read as a
@@ -61,6 +112,15 @@
 /* When a mini-page is open we want smooth but immediate panning */
 .map.panning {
   transition: none;
+}
+
+/* Once the page has finished initial layout (JS adds .wall-transition-ready
+   after the first paint), enable the wall's parallax transition so
+   clicking between tiles produces a smooth drift. On the initial load,
+   the transition is OFF — so the wall just paints in place instead of
+   flying in from (0,0). */
+.map.wall-transition-ready::before {
+  transition: transform 0.55s cubic-bezier(.2,.7,.2,1);
 }
 
 /* =========================================================================
@@ -75,9 +135,30 @@
   width: 150px;
   height: 150px;
   pointer-events: auto;
+  /* Default stacking level for a resting tile. Animating tiles get
+     elevated via .expanded / .cover-leaving-* below so their in-motion
+     cover paper is always painted ON TOP of every other tile's base
+     (otherwise DOM order + stacking contexts can let the animating
+     paper slip behind tiles it physically crosses, breaking the
+     "paper on top of the table" illusion). */
+  z-index: 1;
   /* Leave the wrapper itself un-rotated; inner papers carry jitter/rot */
   transition: left 0.45s cubic-bezier(.2,.7,.2,1),
               top  0.45s cubic-bezier(.2,.7,.2,1);
+}
+
+/* An entering cover — on top of everything tile-related so it never passes
+   behind a neighbor while sliding in. */
+.tile-container.expanded {
+  z-index: 200;
+}
+
+/* A leaving cover — still above resting tiles while the sweep plays, but
+   lower than an entering cover (if both happen at once, the NEW one wins
+   visually). */
+.tile-container.cover-leaving-up,
+.tile-container.cover-leaving-down {
+  z-index: 150;
 }
 
 /* Disable per-tile width/height morphing — the wrapper stays a constant size.
@@ -98,25 +179,20 @@
 }
 
 /* =========================================================================
-   TILE — base layer (small, always-rendered scrap/sticky)
+   TILE — outer wrapper, carries rotation/jitter and hover behavior.
+   The VISIBLE paper (background, clip-path, shadow) lives on an inner
+   .paper-body element; tape lives as a sibling of .paper-body so it can
+   overhang the paper's shape without being clipped.
    ========================================================================= */
 .tile,
 .tile-base {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
   cursor: pointer;
-  overflow: hidden;
-  padding: 10px;
-  box-sizing: border-box;
   /* per-tile randomness via CSS vars set from JS (stable hash of title) */
   transform: rotate(var(--rot, 0deg))
              translate(var(--jitter-x, 0px), var(--jitter-y, 0px));
-  transition: transform 0.3s cubic-bezier(.2,.7,.2,1),
-              filter 0.3s ease;
+  transition: transform 0.3s cubic-bezier(.2,.7,.2,1);
   will-change: transform;
   z-index: 1;
 }
@@ -126,8 +202,28 @@
   transform: rotate(calc(var(--rot, 0deg) * 0.5))
              translate(var(--jitter-x, 0px), calc(var(--jitter-y, 0px) - 3px))
              scale(1.04);
-  filter: drop-shadow(4px 8px 10px rgba(0, 0, 0, 0.35));
   z-index: 2;
+}
+
+/* Inner paper body — the visible paper. Clip-path/shape classes target
+   THIS element, not the outer wrapper, so sibling elements (tape) can sit
+   outside the clip region. */
+.paper-body {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  padding: 10px;
+  box-sizing: border-box;
+  transition: filter 0.3s ease;
+}
+.tile-base:hover .paper-body,
+.tile:hover .paper-body {
+  filter: drop-shadow(4px 8px 10px rgba(0, 0, 0, 0.35));
 }
 
 /* The title text on the small scrap */
@@ -143,10 +239,12 @@
 }
 
 /* =========================================================================
-   STICKY NOTES (hubs)
+   STICKY NOTES (hubs) — paper styling on the INNER .paper-body.
+   Clip-path (folded corner), background, and drop-shadow all go here so
+   sibling tape (if any) on the outer isn't affected.
    ========================================================================= */
-.tile-container.sticky .tile-base,
-.tile-container.sticky .tile-expanded {
+.tile-container.sticky .tile-base .paper-body,
+.tile-container.sticky .tile-expanded .paper-body {
   background: var(--sticky-color, #ffe66d);
   background-image:
     linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(0,0,0,0.05) 100%),
@@ -157,33 +255,57 @@
     );
   border-radius: 2px 3px 2px 2px;
   filter: drop-shadow(3px 5px 8px rgba(0,0,0,0.35));
-  /* subtle curl on the bottom-right corner via a cheap clip */
   clip-path: polygon(
     0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%
   );
 }
 
-/* Sticky color variants — stable-hashed by JS via .sticky-N class */
-.sticky-yellow .tile-base, .sticky-yellow .tile-expanded { --sticky-color: #ffe66d; }
-.sticky-pink   .tile-base, .sticky-pink   .tile-expanded { --sticky-color: #ffb6c1; }
-.sticky-blue   .tile-base, .sticky-blue   .tile-expanded { --sticky-color: #b3dcff; }
-.sticky-green  .tile-base, .sticky-green  .tile-expanded { --sticky-color: #c4eab0; }
-.sticky-orange .tile-base, .sticky-orange .tile-expanded { --sticky-color: #ffd49a; }
+/* Sticky color variants — BASE color var still cascades via tile-container */
+.tile-container.sticky-yellow .tile-base .paper-body { --sticky-color: #ffe66d; }
+.tile-container.sticky-pink   .tile-base .paper-body { --sticky-color: #ffb6c1; }
+.tile-container.sticky-blue   .tile-base .paper-body { --sticky-color: #b3dcff; }
+.tile-container.sticky-green  .tile-base .paper-body { --sticky-color: #c4eab0; }
+.tile-container.sticky-orange .tile-base .paper-body { --sticky-color: #ffd49a; }
 
-/* A bit of tape on sticky notes (only some — via :nth-child hack falls flat,
-   so we enable it with a .has-tape class the JS adds for ~half the stickies) */
-.tile-container.sticky.has-tape .tile-base::before {
-  content: "";
+/* Sticky color variants — COVER (class on .tile-expanded itself) */
+.tile-expanded.sticky-yellow .paper-body { --sticky-color: #ffe66d; }
+.tile-expanded.sticky-pink   .paper-body { --sticky-color: #ffb6c1; }
+.tile-expanded.sticky-blue   .paper-body { --sticky-color: #b3dcff; }
+.tile-expanded.sticky-green  .paper-body { --sticky-color: #c4eab0; }
+.tile-expanded.sticky-orange .paper-body { --sticky-color: #ffd49a; }
+
+/* Tape strip — a real DOM element (`.tape`) added by JS as a sibling of
+   `.paper-body` on scrap papers. Sibling-not-descendant is crucial: the
+   paper-body carries the clip-path for torn/rip shapes, which would cut
+   off anything positioned above `top: 0%` if the tape lived inside. As a
+   sibling, the tape can overhang the paper's top edge and look like a
+   real piece of washi tape holding the scrap down. */
+.tile-base > .tape,
+.tile-expanded > .tape {
   position: absolute;
   top: -8px;
   left: 50%;
-  width: 55px;
-  height: 16px;
-  background: rgba(240, 235, 200, 0.65);
-  border: 1px solid rgba(160, 145, 100, 0.35);
-  box-shadow: 1px 1px 2px rgba(0,0,0,0.15);
+  width: 58px;
+  height: 18px;
+  background:
+    /* subtle horizontal sheen so the tape has a bit of depth */
+    linear-gradient(180deg,
+      rgba(255, 250, 210, 0.85) 0%,
+      rgba(230, 215, 155, 0.85) 100%);
+  border: 1px solid rgba(165, 145, 85, 0.4);
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.3);
   transform: translateX(-50%) rotate(var(--tape-angle, -4deg));
   z-index: 3;
+  pointer-events: none;
+}
+
+/* Scale up tape on the larger cover paper so it reads proportionally. */
+.tile-expanded > .tape {
+  top: -10px;
+  width: 84px;
+  height: 22px;
 }
 
 .tile-container.sticky .scrap-title {
@@ -196,15 +318,19 @@
 /* =========================================================================
    SCRAP PAPER (leaves)
    ========================================================================= */
-.tile-container.scrap .tile-base,
-.tile-container.scrap .tile-expanded {
+.tile-container.scrap .tile-base .paper-body,
+.tile-container.scrap .tile-expanded .paper-body {
   background: var(--paper-white);
   filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.25));
   border-radius: 1px;
 }
 
-/* Scrap paper variants */
-.scrap-ruled .tile-base, .scrap-ruled .tile-expanded {
+/* Scrap paper variants — defined as selector groups so each variant applies
+   whether the class is on the .tile-container (base) OR on the
+   .tile-expanded element itself (cover). That lets the base and cover use
+   independent variants from the same family. */
+.tile-container.scrap-ruled .tile-base .paper-body,
+.tile-expanded.scrap-ruled .paper-body {
   background-color: #fafaf2;
   background-image:
     repeating-linear-gradient(
@@ -214,16 +340,19 @@
     ),
     linear-gradient(90deg, transparent 0 18px, rgba(200, 60, 60, 0.30) 18px 19px, transparent 19px);
 }
-.scrap-graph .tile-base, .scrap-graph .tile-expanded {
+.tile-container.scrap-graph .tile-base .paper-body,
+.tile-expanded.scrap-graph .paper-body {
   background-color: #f7faf3;
   background-image:
     repeating-linear-gradient(0deg, transparent 0 16px, rgba(100,140,100,0.25) 16px 17px),
     repeating-linear-gradient(90deg, transparent 0 16px, rgba(100,140,100,0.25) 16px 17px);
 }
-.scrap-plain .tile-base, .scrap-plain .tile-expanded {
+.tile-container.scrap-plain .tile-base .paper-body,
+.tile-expanded.scrap-plain .paper-body {
   background-color: #fbf8ee;
 }
-.scrap-kraft .tile-base, .scrap-kraft .tile-expanded {
+.tile-container.scrap-kraft .tile-base .paper-body,
+.tile-expanded.scrap-kraft .paper-body {
   background-color: #c9a877;
   background-image:
     repeating-linear-gradient(
@@ -232,13 +361,141 @@
       transparent 2px 4px
     );
 }
-.scrap-index .tile-base, .scrap-index .tile-expanded {
+.tile-container.scrap-index .tile-base .paper-body,
+.tile-expanded.scrap-index .paper-body {
   background-color: #fbfbf3;
   background-image:
     linear-gradient(0deg, transparent calc(100% - 16px), rgba(200,50,50,0.45) calc(100% - 16px), rgba(200,50,50,0.45) calc(100% - 15px), transparent calc(100% - 15px)),
     repeating-linear-gradient(0deg, transparent 0 20px, rgba(90,120,180,0.25) 20px 21px);
   background-position: 0 bottom, 0 0;
   background-repeat: no-repeat, repeat;
+}
+
+/* Yellow legal pad — warm yellow with heavier blue rule lines and a red
+   margin on the left. */
+.tile-container.scrap-legal .tile-base .paper-body,
+.tile-expanded.scrap-legal .paper-body {
+  background-color: #fdf1a5;
+  background-image:
+    linear-gradient(90deg, transparent 0 22px, rgba(200,50,50,0.45) 22px 23.5px, transparent 23.5px),
+    repeating-linear-gradient(0deg, transparent 0 22px, rgba(90,120,180,0.35) 22px 23px);
+}
+
+/* Dot grid (bullet journal / engineering paper) — clean, modern */
+.tile-container.scrap-dotgrid .tile-base .paper-body,
+.tile-expanded.scrap-dotgrid .paper-body {
+  background-color: #f8f6ef;
+  background-image: radial-gradient(rgba(120,140,170,0.5) 1px, transparent 1.5px);
+  background-size: 14px 14px;
+}
+
+/* Manila folder — warm tan card stock */
+.tile-container.scrap-manila .tile-base .paper-body,
+.tile-expanded.scrap-manila .paper-body {
+  background-color: #d9bf8a;
+  background-image:
+    linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(0,0,0,0.08) 100%),
+    repeating-linear-gradient(95deg, rgba(80,60,30,0.04) 0 2px, transparent 2px 6px);
+}
+
+/* Receipt paper — thermal white with a faded horizontal gradient that hints
+   at bleaching, plus a dashed perforation line along the bottom. */
+.tile-container.scrap-receipt .tile-base .paper-body,
+.tile-expanded.scrap-receipt .paper-body {
+  background-color: #f6f3e8;
+  background-image:
+    linear-gradient(180deg, rgba(100,80,50,0.07) 0%, transparent 30%, transparent 70%, rgba(100,80,50,0.07) 100%),
+    repeating-linear-gradient(90deg,
+      rgba(80,60,30,0.35) 0 6px,
+      transparent 6px 12px
+    );
+  background-size: 100% 100%, 100% 2px;
+  background-position: 0 0, 0 calc(100% - 6px);
+  background-repeat: no-repeat, repeat-x;
+}
+
+/* Napkin / paper towel — faintly textured off-white with a visible weave */
+.tile-container.scrap-napkin .tile-base .paper-body,
+.tile-expanded.scrap-napkin .paper-body {
+  background-color: #f9f4e6;
+  background-image:
+    repeating-linear-gradient(45deg,  rgba(160,130,80,0.06) 0 3px, transparent 3px 6px),
+    repeating-linear-gradient(-45deg, rgba(160,130,80,0.06) 0 3px, transparent 3px 6px);
+}
+
+/* =========================================================================
+   SHAPE / RIP variants — applied independently to base or cover via a
+   dedicated class. Each defines a clip-path that makes the paper
+   non-rectangular (torn edges, missing corners, slanted cuts). Picked by
+   a separate hash channel from the color variant, so any paper type can
+   have any shape.
+   ========================================================================= */
+
+/* Default rectangular shape — nothing to do. Clip-path: none by default. */
+
+/* Heavy torn bottom (more aggressive than the old .torn) */
+.tile-container.shape-torn-bottom .tile-base .paper-body,
+.tile-expanded.shape-torn-bottom .paper-body {
+  clip-path: polygon(
+    0 0, 100% 0, 100% 92%,
+    96% 97%, 90% 91%, 84% 99%, 76% 93%, 68% 98%, 60% 91%,
+    52% 99%, 44% 92%, 36% 98%, 28% 92%, 20% 99%, 12% 93%, 4% 98%,
+    0 94%
+  );
+}
+
+/* Torn top edge (pulled from a pad) */
+.tile-container.shape-torn-top .tile-base .paper-body,
+.tile-expanded.shape-torn-top .paper-body {
+  clip-path: polygon(
+    0 6%,  4% 2%, 12% 7%, 20% 1%, 28% 8%, 36% 2%, 44% 8%,
+    52% 1%, 60% 9%, 68% 2%, 76% 7%, 84% 1%, 90% 9%, 96% 3%, 100% 8%,
+    100% 100%, 0 100%
+  );
+}
+
+/* Torn on BOTH top and bottom */
+.tile-container.shape-torn-both .tile-base .paper-body,
+.tile-expanded.shape-torn-both .paper-body {
+  clip-path: polygon(
+    0 6%,  10% 2%, 22% 7%, 34% 2%, 46% 8%, 58% 2%, 70% 7%, 82% 2%, 94% 6%, 100% 3%,
+    100% 94%, 92% 99%, 80% 93%, 68% 99%, 56% 92%, 44% 98%, 32% 93%, 20% 99%, 8% 94%, 0 97%
+  );
+}
+
+/* Corner bite — chunk missing from the top-right, like a torn notebook page */
+.tile-container.shape-corner-bite .tile-base .paper-body,
+.tile-expanded.shape-corner-bite .paper-body {
+  clip-path: polygon(
+    0 0, 72% 0, 78% 6%, 86% 3%, 92% 10%, 100% 14%,
+    100% 100%, 0 100%
+  );
+}
+
+/* Slanted right edge — non-rectangular cut going diagonally */
+.tile-container.shape-slant-right .tile-base .paper-body,
+.tile-expanded.shape-slant-right .paper-body {
+  clip-path: polygon(
+    0 0, 96% 0, 88% 100%, 0 100%
+  );
+}
+
+/* Slanted left edge (mirror) */
+.tile-container.shape-slant-left .tile-base .paper-body,
+.tile-expanded.shape-slant-left .paper-body {
+  clip-path: polygon(
+    4% 0, 100% 0, 100% 100%, 12% 100%
+  );
+}
+
+/* Jagged left edge — looks like paper was ripped out of a binder */
+.tile-container.shape-ripped-side .tile-base .paper-body,
+.tile-expanded.shape-ripped-side .paper-body {
+  clip-path: polygon(
+    3% 0, 100% 0, 100% 100%, 3% 100%,
+    6% 92%, 2% 84%, 5% 76%, 1% 68%, 4% 60%,
+    2% 52%, 5% 44%, 1% 36%, 4% 28%, 2% 20%, 5% 12%, 2% 4%
+  );
 }
 
 .tile-container.scrap .scrap-title {
@@ -248,9 +505,11 @@
   font-weight: 600;
 }
 
-/* Torn-edge bottom on some scrap tiles (JS adds .torn) */
-.tile-container.scrap.torn .tile-base,
-.tile-container.scrap.torn .tile-expanded {
+/* Torn-edge bottom on some scrap tiles. Applied independently to base and
+   cover: .torn on the container torns the base, .torn on the expanded
+   torns the cover. JS can set either, both, or neither. */
+.tile-container.scrap.torn .tile-base .paper-body,
+.tile-container.scrap .tile-expanded.torn .paper-body {
   clip-path: polygon(
     0 0, 100% 0, 100% 94%,
     95% 98%, 88% 93%, 80% 99%, 72% 95%, 62% 99%,
@@ -272,58 +531,75 @@
   min-height: 380px;
   /* Default (resting / off-stage): invisible. The actual off-stage position
      doesn't matter because visibility: hidden prevents rendering. Entry and
-     exit motions are driven by CSS animations below (asymmetric: entry from
-     above, exit to the right — avoiding vertical conflict with map pan). */
+     exit motions are driven by CSS animations below (asymmetric). */
   transform: translate(-50%, -50%);
   visibility: hidden;
   pointer-events: none;
   z-index: 10;
-  padding: 28px 26px 24px 26px;
-  box-sizing: border-box;
+  will-change: transform;
+}
+
+/* Content layout is on the INNER paper-body so it's clipped by the shape
+   along with the background. Extra bottom padding keeps the "open →" link
+   clear of torn-edge clip paths (~92% of height). */
+.tile-expanded > .paper-body {
+  padding: 28px 26px 52px 26px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   gap: 14px;
-  will-change: transform;
+  box-sizing: border-box;
 }
 
-/* ENTRY: cover slides DOWN from above onto the table — deliberate "placed"
-   motion. 0.65s deceleration curve. */
+/* ENTRY — "pause, then slide in":
+     0 → 25%: cover stays off-stage (a beat of anticipation — nothing moves)
+     25 → 100%: cover slides all the way in to cover the base
+   The pause is at the START, not the middle. Feels like the paper is
+   waiting its turn before being placed. */
 .tile-container.expanded .tile-expanded {
-  animation: cover-enter 0.65s cubic-bezier(.17,.62,.22,1) both;
+  animation: cover-enter 0.8s cubic-bezier(.17,.62,.22,1) both;
   visibility: visible;
   pointer-events: auto;
   z-index: 120;
 }
 
-/* EXIT: cover slides vertically AWAY from the direction the user is
-   currently scrolling. If they're scrolling down (map panning up), the
-   cover also goes up — moving WITH the pan, so the two reinforce rather
-   than fight. If they're scrolling up (map panning down), cover goes down.
-   JS (updateVisibility) picks between .cover-leaving-up and
-   .cover-leaving-down based on window._lastScrollDir. */
+/* EXIT — "pause, then sweep off":
+     0 → 30%: cover stays on-stage (a beat before moving — you paused the
+       paper, now you're about to remove it)
+     30 → 100%: cover slides off the viewport in the direction dictated by
+       tile geometry (up or down)
+   Direction is chosen in JS (updateVisibility) based on where the
+   de-centered tile is moving on the grid relative to the new center. */
 .tile-container.cover-leaving-up .tile-expanded {
-  animation: cover-sweep-up 0.35s cubic-bezier(.5,0,.75,0) both;
+  animation: cover-sweep-up 0.5s cubic-bezier(.5,0,.75,0) both;
   visibility: visible;
   pointer-events: none;
   z-index: 110;
 }
 .tile-container.cover-leaving-down .tile-expanded {
-  animation: cover-sweep-down 0.35s cubic-bezier(.5,0,.75,0) both;
+  animation: cover-sweep-down 0.5s cubic-bezier(.5,0,.75,0) both;
   visibility: visible;
   pointer-events: none;
   z-index: 110;
 }
 
 @keyframes cover-enter {
-  from {
+  /* 0% → 25% : HOLD off-stage (the anticipation pause) */
+  0% {
     transform: translate(-50%, -50%)
                translate(0, -80vh)
                rotate(calc(var(--rot-expanded, 0deg) + 12deg))
                scale(0.94);
   }
-  to {
+  25% {
+    transform: translate(-50%, -50%)
+               translate(0, -80vh)
+               rotate(calc(var(--rot-expanded, 0deg) + 12deg))
+               scale(0.94);
+  }
+  /* 25% → 100% : slide in, decelerate onto the base */
+  100% {
     transform: translate(-50%, -50%)
                translate(0, 0)
                rotate(var(--rot-expanded, 0deg))
@@ -332,13 +608,21 @@
 }
 
 @keyframes cover-sweep-up {
-  from {
+  /* 0 → 30% : HOLD on-stage (pause before moving) */
+  0% {
     transform: translate(-50%, -50%)
                translate(0, 0)
                rotate(var(--rot-expanded, 0deg))
                scale(1);
   }
-  to {
+  30% {
+    transform: translate(-50%, -50%)
+               translate(0, 0)
+               rotate(var(--rot-expanded, 0deg))
+               scale(1);
+  }
+  /* 30 → 100% : sweep off */
+  100% {
     transform: translate(-50%, -50%)
                translate(0, -130vh)
                rotate(calc(var(--rot-expanded, 0deg) + 6deg))
@@ -347,13 +631,21 @@
 }
 
 @keyframes cover-sweep-down {
-  from {
+  /* 0 → 30% : HOLD on-stage (pause before moving) */
+  0% {
     transform: translate(-50%, -50%)
                translate(0, 0)
                rotate(var(--rot-expanded, 0deg))
                scale(1);
   }
-  to {
+  30% {
+    transform: translate(-50%, -50%)
+               translate(0, 0)
+               rotate(var(--rot-expanded, 0deg))
+               scale(1);
+  }
+  /* 30 → 100% : sweep off */
+  100% {
     transform: translate(-50%, -50%)
                translate(0, 130vh)
                rotate(calc(var(--rot-expanded, 0deg) - 6deg))
@@ -361,17 +653,24 @@
   }
 }
 
-/* Sticky-note expanded: bigger, same color family */
+/* Sticky-note expanded sizing */
 .tile-container.sticky .tile-expanded {
   min-height: 340px;
   width: 320px;
+}
+/* Larger drop-shadow on the cover's paper-body (shadow now lives on the
+   actual rendered shape, so torn/rip clip paths get a correctly-shaped
+   shadow for free). */
+.tile-container.sticky .tile-expanded .paper-body {
   filter: drop-shadow(6px 10px 18px rgba(0,0,0,0.45));
 }
 
-/* Scrap expanded: taller, more like a full note */
+/* Scrap expanded sizing */
 .tile-container.scrap .tile-expanded {
   min-height: 380px;
   width: 340px;
+}
+.tile-container.scrap .tile-expanded .paper-body {
   filter: drop-shadow(5px 9px 16px rgba(0,0,0,0.40));
 }
 
@@ -411,6 +710,9 @@
   transition: transform 0.15s ease, color 0.15s ease;
   align-self: center;
   margin-top: auto;
+  /* Extra breathing room beneath the link so heavy rips (shape-torn-both,
+     shape-ripped-side) can't clip through it. */
+  margin-bottom: 10px;
 }
 .tile-expanded .expanded-open:hover {
   color: #d43a3a;

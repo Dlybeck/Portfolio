@@ -110,28 +110,43 @@ html, body {
   filter: sepia(0.2);
 }
 
+/* Home button — fades/scales in place instead of growing from 0.
+   The space is always reserved (fixed width/height) so neighboring navbar
+   items (logo, title) never shift when the button appears or disappears.
+   Opacity + transform are cheap GPU-composited properties; animating them
+   is smooth even if triggered simultaneously with tile centering,
+   paper-open, or paper-close animations. */
 .home-button {
   cursor: pointer;
   position: relative;
+  width: 1.6rem;
+  height: 1.6rem;
+  margin-left: 6px;
   opacity: 0;
   visibility: hidden;
+  transform: scale(0.5) rotate(-10deg);
+  transform-origin: center;
   filter: brightness(0.3) sepia(0.5);
-  transition: opacity 0.3s ease, max-width 0.3s ease, max-height 0.3s ease;
-  max-width: 0;
-  max-height: 0;
-  overflow: hidden;
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s cubic-bezier(.2,.7,.25,1),
+    visibility 0s linear 0.35s;
+  pointer-events: none;
 }
 
 .home-button.visible {
   opacity: 1;
   visibility: visible;
-  max-width: 1.6rem;
-  max-height: 1.6rem;
-  margin-left: 4px;
+  transform: scale(1) rotate(0deg);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s cubic-bezier(.2,.7,.25,1),
+    visibility 0s linear 0s;
+  pointer-events: auto;
 }
 
 .home-button:hover {
-  transform: scale(1.1);
+  transform: scale(1.12) rotate(-3deg);
 }
 
 /* Hide portfolio navbar on dev pages */

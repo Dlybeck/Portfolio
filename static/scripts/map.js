@@ -48,7 +48,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Initialize URL handling
+    // Initialize URL handling (this calls centerOnTile, which sets the
+    // wall's parallax CSS variables to the correct initial position).
     window.addEventListener('hashchange', window.checkUrlHash);
     window.checkUrlHash();
+
+    // Enable wall parallax transition ONLY after the initial center has
+    // been painted — otherwise the wall animates from (0,0) to the
+    // correct spot on every refresh, which looks like it's "flying in"
+    // while the papers are already in place. Two RAFs: first settles
+    // layout, second runs after paint, then the transition is safe to
+    // enable for subsequent tile clicks.
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            const mapEl = document.querySelector('.map');
+            if (mapEl) mapEl.classList.add('wall-transition-ready');
+        });
+    });
 });

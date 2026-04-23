@@ -20,11 +20,10 @@ class MiniWindow {
         this.container   = document.querySelector(".mini-window-container");
         this.page        = document.querySelector(".mini-window");
         this.closeButton = document.querySelector(".close-button");
-        this.backButton  = document.querySelector(".back-button");
+        this.closeLabel  = this.closeButton ? this.closeButton.querySelector('.tab') : null;
         this.navigationHistory = [];
         this.resizeObserver = null;
 
-        if (this.backButton) this.backButton.style.display = 'none';
         this.setEvents();
         this._installScrollParallax();
     }
@@ -38,20 +37,27 @@ class MiniWindow {
         const normalized = this.normalizeUrl(route);
         this._loadInto(normalized);
 
-        // Start at the top of the document so the paper enters from above.
         window.scrollTo(0, 0);
         this.container.classList.remove('closing');
         this.container.classList.add('open');
         document.body.classList.add('page-open');
 
-        this.updateBackButtonState();
+        // Tap/click anywhere outside the paper closes. Installed with a
+        // small delay so the click that opened the page doesn't instantly
+        // close it. Registered in capture phase so we see the event before
+        // any child handler can stop it.
+        setTimeout(() => {
+            document.addEventListener('click', this._outsideHandler, true);
+        }, 100);
+
+        this.updateCloseButtonLabel();
     }
 
     navigateTo(route) {
         const normalized = this.normalizeUrl(route);
         this.navigationHistory.push(normalized);
         this._loadInto(normalized);
-        this.updateBackButtonState();
+        this.updateCloseButtonLabel();
         window.scrollTo(0, 0);
     }
 
@@ -60,15 +66,20 @@ class MiniWindow {
         this.navigationHistory.pop();
         const previousUrl = this.navigationHistory[this.navigationHistory.length - 1];
         this._loadInto(previousUrl);
-        this.updateBackButtonState();
+        this.updateCloseButtonLabel();
         window.scrollTo(0, 0);
         return true;
     }
 
     _loadInto(url) {
         this._showLoadingScrap();
-        this.page.setAttribute('src', url);
+        // Reset iframe height so the previous page's (possibly much
+        // taller) height doesn't persist while the new page loads —
+        // otherwise body stays tall with extra empty space until the new
+        // measurement completes.
+        this.page.style.height = '';
         this.page.onload = () => this._onIframeLoad();
+        this.page.setAttribute('src', url);
     }
 
     _onIframeLoad() {
@@ -153,12 +164,11 @@ class MiniWindow {
         this.container.classList.remove('open');
         this.container.classList.add('closing');
 
-        // After the fade-out completes, tear down: clear the iframe,
-        // hide the container entirely so body goes back to short.
+        document.removeEventListener('click', this._outsideHandler, true);
+
         const EXIT_MS = 320;
         setTimeout(() => {
             this.container.classList.remove('closing');
-            if (this.backButton) this.backButton.style.display = '';
             this.page.setAttribute('src', '');
             this.page.style.height = '';
             if (this.resizeObserver) {
@@ -176,10 +186,18 @@ class MiniWindow {
         return this.container.classList.contains('open');
     }
 
-    updateBackButtonState() {
-        if (!this.backButton) return;
-        this.backButton.style.display =
-            this.navigationHistory.length > 1 ? 'flex' : 'none';
+    /**
+     * Update the single button's label based on navigation state:
+     *   - history length > 1  → "← back" (clicking goes back one step)
+     *   - history length === 1 → "✕ close" (clicking closes the paper)
+     */
+    updateCloseButtonLabel() {
+        if (!this.closeLabel) return;
+        if (this.navigationHistory.length > 1) {
+            this.closeLabel.textContent = '← back';
+        } else {
+            this.closeLabel.textContent = '✕ close';
+        }
     }
 
     _showLoadingScrap() {
@@ -221,18 +239,31 @@ class MiniWindow {
     }
 
     setEvents() {
+        // Single button — contextual action.
         if (this.closeButton) {
             this.closeButton.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.hide();
+                if (this.navigationHistory.length > 1) this.goBack();
+                else this.hide();
             });
         }
-        if (this.backButton) {
-            this.backButton.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.goBack();
-            });
-        }
+
+        // Tap/click outside the paper area closes. Registered in capture
+        // phase so we see the click before child handlers can stop it.
+        // The handler is stored on the instance so it can be removed on
+        // hide.
+        this._outsideHandler = (event) => {
+            const t = event.target;
+            if (!t) return;
+            // Ignore clicks inside the paper container itself.
+            if (this.container.contains(t)) return;
+            // Ignore clicks on the close/back button.
+            if (this.closeButton && this.closeButton.contains(t)) return;
+            // Ignore clicks on the navbar (home icon etc).
+            const navbar = document.querySelector('.navbar');
+            if (navbar && navbar.contains(t)) return;
+            this.hide();
+        };
     }
 
     /**

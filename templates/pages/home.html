@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-    <link rel="stylesheet" href="/static/css/map.css?v=29">
+    <link rel="stylesheet" href="/static/css/map.css?v=30">
     {# The mini-window paper is OUTSIDE .map so it participates in normal
        body scroll flow. Browser handles touch, wheel, inertia, momentum,
        overscroll — all native, all smooth. .map stays position: fixed
@@ -18,9 +18,10 @@
     {# Close/back tabs live in a transform-free fixed overlay so their
        position: fixed is reliably anchored to the viewport regardless of
        what any other element does with transforms/will-change. #}
+    {# Single dynamic button — shows "back" if there's nav history,
+       "close" otherwise. Tapping anywhere outside the paper also closes. #}
     <div class="viewport-overlay">
-        <div class="close-button" aria-label="close"><span class="tab">✕ close</span></div>
-        <div class="back-button"  aria-label="back"><span class="tab">← back</span></div>
+        <div class="close-button" aria-label="close or back"><span class="tab">✕ close</span></div>
     </div>
 {% endblock %}
 

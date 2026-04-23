@@ -866,8 +866,7 @@
    (which is itself fixed to the viewport). Rotation lives on an inner .tab
    span so the button element's own box has no transform that could confuse
    stacking/containing-block resolution. */
-.close-button,
-.back-button {
+.close-button {
   position: absolute;
   top: 18px;
   padding: 8px 16px 10px;
@@ -887,31 +886,19 @@
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* Close on the RIGHT, back on the LEFT — so they never crowd each other
-   regardless of how wide the text renders, and "back = left side"
-   matches the symbolic direction of a back arrow. */
-.close-button { right: 22px; }
-.back-button  { left: 22px; }
+/* Single button in the top-right. Text is set dynamically by JS (either
+   "✕ close" or "← back" depending on navigation history). */
+.close-button { top: 18px; right: 22px; }
 
 /* Rotation on the inner .tab span, not the button itself */
 .close-button .tab { display: inline-block; transform: rotate(-4deg); }
-.back-button  .tab { display: inline-block; transform: rotate(3deg); }
 
-body.page-open .close-button,
-body.page-open .back-button {
+body.page-open .close-button {
   display: flex;
 }
 
-/* Legacy SVG inside the buttons (old markup) — hide if present */
-.close-button svg,
-.back-button svg {
-  display: none;
-}
-
 .close-button:hover { box-shadow: 3px 5px 10px rgba(0,0,0,0.45); }
-.back-button:hover  { box-shadow: 3px 5px 10px rgba(0,0,0,0.45); }
 .close-button:hover .tab { transform: rotate(-2deg) scale(1.05); }
-.back-button:hover  .tab { transform: rotate(1deg)  scale(1.05); }
 
 /* =========================================================================
    Dev tile — keep its 3D flip behavior; restyle as a hidden index card
@@ -968,6 +955,5 @@ body.page-open .back-button {
     width: 96vw;
     padding: 26px 16px 30px;
   }
-  .close-button { right: 10px; font-size: 1.1rem; padding: 6px 12px 8px; }
-  .back-button  { left: 10px; font-size: 1.1rem; padding: 6px 12px 8px; }
+  .close-button { top: 12px; right: 10px; font-size: 1.1rem; padding: 6px 12px 8px; }
 }

@@ -60,21 +60,25 @@
   transform: translate(var(--wall-shift-x, 0rem), var(--wall-shift-y, 0rem));
   background-color: #7a4a23;
   background-image:
-    /* fine grain stripes */
-    repeating-linear-gradient(
-      92deg,
-      rgba(60, 30, 10, 0.18) 0px,
-      rgba(60, 30, 10, 0.18) 1px,
-      transparent 1px,
-      transparent 4px
-    ),
-    /* broader grain bands */
+    /* Fine grain stripes — angle locked to 90deg exactly (the earlier
+       92deg added a tiny diagonal component that, combined with the
+       other vertical grain layer, produced visible moiré bands on
+       high-DPI phone screens). Period widened from 4px to 8px to
+       further reduce aliasing at fractional CSS-pixel scales. */
     repeating-linear-gradient(
       90deg,
-      rgba(40, 20, 8, 0.10) 0px,
-      rgba(40, 20, 8, 0.10) 12px,
-      transparent 12px,
-      transparent 38px
+      rgba(60, 30, 10, 0.14) 0px,
+      rgba(60, 30, 10, 0.14) 1px,
+      transparent 1px,
+      transparent 8px
+    ),
+    /* broader grain bands — also exactly vertical */
+    repeating-linear-gradient(
+      90deg,
+      rgba(40, 20, 8, 0.08) 0px,
+      rgba(40, 20, 8, 0.08) 10px,
+      transparent 10px,
+      transparent 44px
     ),
     /* Warmth wash — SYMMETRIC so it tiles without a seam. Starts and ends
        at the same color (#7a4a23 — the base), peaks lighter (#8e5a2c) at

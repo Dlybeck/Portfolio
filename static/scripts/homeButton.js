@@ -1,22 +1,18 @@
 /**
- * Check to see if the home button should be visible in the navbar
+ * Decide whether the "home" icon in the navbar should be visible.
+ * Rule: show it whenever the current centered tile is not "Home".
+ * The current tile is driven by the URL hash (see urlHandler.js).
  */
-window.checkHomeButton = function (){
-    // Get the current style
-    const style = document.body.style;
+window.checkHomeButton = function () {
+    const button = document.querySelector(".home-button");
+    if (!button) return;
 
-    // Get the background position
-    const backgroundPosition = style.backgroundPosition;
+    const hash = decodeURIComponent((window.location.hash || '').replace(/^#/, ''));
+    const onHome = !hash || hash === 'Home';
 
-    // Get the home button
-    let button = document.querySelector(".home-button");
-
-    // Check if the background position is '0% 0%' (home)
-    if (backgroundPosition === '0rem 0rem') {
-        //Hide the home button
+    if (onHome) {
         button.classList.remove("visible");
     } else {
-        //Show the home button
-        button.classList.add('visible');
+        button.classList.add("visible");
     }
-}
+};

@@ -1,161 +1,341 @@
+/**
+ * openPage.js — Paper-table theme
+ *
+ * A mini-page is NOT a scrollable overlay anymore. Instead we:
+ *   1. Size the iframe to its content's natural scrollHeight (same-origin,
+ *      so we can read contentDocument safely).
+ *   2. Disable internal scrolling inside the iframe.
+ *   3. Install mapPan (wheel/touch/keyboard) so scrolling pans the tabletop
+ *      itself — the background, tiles, and the paper all move together.
+ *   4. On close, animate mapPan back to 0, remove the paper, and leave the
+ *      centered tile exactly where it was.
+ *
+ * Nothing morphs text or size in place — open/close are two elements
+ * entering/leaving the stage.
+ */
+
 class MiniWindow {
     constructor() {
-        this.container = document.querySelector(".mini-window-container");
-        this.page = document.querySelector(".mini-window");
+        this.container  = document.querySelector(".mini-window-container");
+        this.page       = document.querySelector(".mini-window");
         this.closeButton = document.querySelector(".close-button");
-        this.backButton = document.querySelector(".back-button");
-        this.backButton.style.visibility = "hidden";
+        this.backButton  = document.querySelector(".back-button");
         this.navigationHistory = [];
+        this.resizeObserver = null;
+
+        // Hide close/back initially (the CSS .page-open rules reveal them)
+        if (this.backButton) this.backButton.style.display = 'none';
 
         this.setEvents();
     }
 
-    /**
-     * Open a mini-window with a given route
-     * @param {String} route - the route for fast-api
-     */
+    // ---------------------- open / close ----------------------
+
     open(route) {
         this.initialRoute = route;
         this.navigationHistory = [route];
 
-        // Ensure route uses same protocol as parent page
-        const normalizedRoute = this.normalizeUrl(route);
-        this.page.setAttribute("src", normalizedRoute);
+        const normalized = this.normalizeUrl(route);
+        this._loadInto(normalized);
         this.show();
         this.updateBackButtonState();
     }
 
-    /**
-     * Normalize URL to ensure it uses the correct protocol
-     * @param {String} url - the URL to normalize
-     * @returns {String} - normalized URL
-     */
-    normalizeUrl(url) {
-        // For relative URLs, construct absolute HTTPS URL explicitly
-        // This prevents mixed content issues if browser somehow uses HTTP origin
-        if (url.startsWith('/')) {
-            // Use protocol detection (matches pattern in agentbridge.js, speckit.js, websocket.js, tabs.js)
-            const protocol = window.location.protocol; // 'https:' or 'http:'
-            const hostname = window.location.hostname;
-
-            // If parent page is HTTPS, construct absolute HTTPS URL
-            if (protocol === 'https:') {
-                const httpsUrl = `https://${hostname}${url}`;
-                console.log('[MiniWindow] Converting relative to absolute HTTPS:', url, '->', httpsUrl);
-                return httpsUrl;
-            }
-
-            // For http (localhost/dev), return as-is
-            return url;
-        }
-
-        // If it has a protocol, ensure it's HTTPS
-        if (url.startsWith('http://')) {
-            console.warn('[MiniWindow] Converting HTTP to HTTPS:', url);
-            return url.replace('http://', 'https://');
-        }
-
-        // If it's a protocol-relative URL (//domain.com/path)
-        if (url.startsWith('//')) {
-            return 'https:' + url; // Force HTTPS
-        }
-
-        return url;
+    navigateTo(route) {
+        const normalized = this.normalizeUrl(route);
+        this.navigationHistory.push(normalized);
+        this._loadInto(normalized);
+        this.updateBackButtonState();
     }
 
-    /**
-     * Show the mini-window
-     */
-    show() {
-        this.container.style.visibility = "visible";
-        this.container.style.opacity = "1";
-        document.addEventListener('click', this.handleClickOutside);
-    }
-
-    /**
-     * Hide the mini-window
-     */
-    hide() {
-        this.container.style.opacity = "0";
-        this.container.style.visibility = "hidden";
-        this.page.setAttribute("src", "")
-        document.removeEventListener('click', this.handleClickOutside);
-        this.navigationHistory = [];
-    }
-
-    /**
-     * If navigated away from the original route, go back to previous page
-     * @returns {Boolean} - whether the back operation was performed
-     */
     goBack() {
-        if (!this.isVisible() || this.navigationHistory.length <= 1) {
-            return false;
-        }
-
+        if (!this.isVisible() || this.navigationHistory.length <= 1) return false;
         this.navigationHistory.pop();
         const previousUrl = this.navigationHistory[this.navigationHistory.length - 1];
-        this.page.setAttribute("src", previousUrl);
+        this._loadInto(previousUrl);
         this.updateBackButtonState();
         return true;
     }
 
-    /**
-     * Update back button visibility based on navigation history
-     */
-    updateBackButtonState() {
-        if (this.navigationHistory.length <= 1) {
-            this.backButton.style.visibility = 'hidden';
-        } else {
-            this.backButton.style.visibility = 'visible';
+    _loadInto(url) {
+        // Reset pan bounds for the new page (height unknown until load)
+        if (window.mapPan && window.mapPan.isActive()) {
+            window.mapPan.setBounds(0);
+        }
+        // Show a temporary "Loading..." scrap overlay (separate element; no
+        // textContent mutation on content elements).
+        this._showLoadingScrap();
+
+        this.page.setAttribute('src', url);
+        this.page.onload = () => this._onIframeLoad();
+    }
+
+    _onIframeLoad() {
+        let doc = null;
+        try { doc = this.page.contentDocument; } catch (_) {}
+
+        // Without content access we can't auto-size. Fall back to viewport height.
+        if (!doc || !doc.body) {
+            this.page.style.height = (window.innerHeight * 0.9) + 'px';
+            if (window.mapPan) window.mapPan.setBounds(window.innerHeight * 0.9);
+            this._hideLoadingScrap();
+            return;
+        }
+
+        // Inject CSS that disables in-iframe scroll AND makes the body blend
+        // into the paper theme (transparent background + ink colors).
+        const style = doc.createElement('style');
+        style.setAttribute('data-paper-table', '');
+        style.textContent = `
+            html, body {
+                overflow: hidden !important;
+                height: auto !important;
+                background: transparent !important;
+                font-family: 'Kalam', 'Caveat', cursive !important;
+                color: #1b1b1b !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            /* Hide the legacy back-to-top button — the tabletop is the scroll surface */
+            #topBtn { display: none !important; }
+            /* Reduce solid panel look; keep content readable on paper */
+            .section { background-color: rgba(255,255,255,0.55) !important; border-color: rgba(0,0,0,0.3) !important; }
+            header { background-color: rgba(26, 58, 110, 0.85) !important; }
+        `;
+        doc.head.appendChild(style);
+
+        // Measure once a tick later so layout has settled
+        requestAnimationFrame(() => this._measureAndSize(doc));
+
+        // Keep height in sync with dynamic content (images, model-viewer)
+        if (this.resizeObserver) this.resizeObserver.disconnect();
+        this.resizeObserver = new ResizeObserver(() => this._measureAndSize(doc));
+        this.resizeObserver.observe(doc.body);
+        // Also re-measure after images load (ResizeObserver misses some cases)
+        const imgs = doc.images || [];
+        Array.from(imgs).forEach(img => {
+            if (!img.complete) img.addEventListener('load', () => this._measureAndSize(doc));
+        });
+
+        // Forward scroll/touch input FROM INSIDE the iframe to the parent
+        // mapPan. Browsers don't let iframe events bubble to the parent
+        // window, so without this, mouse-wheel/touch-drag over the paper
+        // wouldn't pan the tabletop — exactly the bug the user hit.
+        this._installInnerInputForwarding(doc);
+
+        this._hideLoadingScrap();
+    }
+
+    _installInnerInputForwarding(doc) {
+        // Events from inside the iframe don't bubble out to the parent window,
+        // so we attach listeners to the iframe's own window AND document AND
+        // documentElement (all three, because different browsers route wheel
+        // events to different targets when body has overflow: hidden).
+        const parent = window;
+        const iframeWin = doc.defaultView;
+        const targets = [iframeWin, doc, doc.documentElement, doc.body].filter(Boolean);
+
+        const onWheel = (e) => {
+            if (!parent.mapPan || !parent.mapPan.isActive()) return;
+            e.preventDefault();
+            e.stopPropagation();
+            // Normalize multiple wheel event sources to pixels:
+            //   - 'wheel' with deltaMode 0 (px), 1 (lines), 2 (pages)
+            //   - legacy 'mousewheel' (uses wheelDelta, inverse sign)
+            //   - legacy 'DOMMouseScroll' (uses detail)
+            let dy = 0;
+            if (typeof e.deltaY === 'number') {
+                dy = e.deltaY;
+                if (e.deltaMode === 1)      dy *= 16;                    // line → px
+                else if (e.deltaMode === 2) dy *= window.innerHeight;    // page → px
+            } else if (typeof e.wheelDelta === 'number') {
+                dy = -e.wheelDelta;
+            } else if (typeof e.detail === 'number') {
+                dy = e.detail * 40;
+            }
+            if (window.__panDebug) console.log('[iframe wheel]', { deltaY: e.deltaY, deltaMode: e.deltaMode, dy });
+            parent.mapPan.pan(dy);
+        };
+
+        const onTouchStart = (e) => {
+            if (!parent.mapPan || !parent.mapPan.isActive()) return;
+            if (e.touches && e.touches.length === 1) {
+                parent.mapPan.touchStart(e.touches[0].clientY);
+            }
+        };
+        const onTouchMove = (e) => {
+            if (!parent.mapPan || !parent.mapPan.isActive()) return;
+            if (e.touches && e.touches.length === 1) {
+                if (e.cancelable) e.preventDefault();
+                parent.mapPan.touchMove(e.touches[0].clientY);
+            }
+        };
+        const onTouchEnd = () => parent.mapPan && parent.mapPan.touchEnd();
+
+        const onKey = (e) => {
+            if (!parent.mapPan || !parent.mapPan.isActive()) return;
+            const step = 80, big = window.innerHeight * 0.85;
+            let dy = 0;
+            switch (e.key) {
+                case 'ArrowDown':  dy = step;  break;
+                case 'ArrowUp':    dy = -step; break;
+                case 'PageDown':
+                case ' ':          dy = big;   break;
+                case 'PageUp':     dy = -big;  break;
+                default: return;
+            }
+            e.preventDefault();
+            parent.mapPan.pan(dy);
+        };
+
+        targets.forEach(t => {
+            if (!t || !t.addEventListener) return;
+            t.addEventListener('wheel',        onWheel,      { passive: false, capture: true });
+            t.addEventListener('mousewheel',   onWheel,      { passive: false, capture: true });
+            t.addEventListener('DOMMouseScroll', onWheel,    { passive: false, capture: true });
+            t.addEventListener('touchstart',   onTouchStart, { passive: true,  capture: true });
+            t.addEventListener('touchmove',    onTouchMove,  { passive: false, capture: true });
+            t.addEventListener('touchend',     onTouchEnd,   { capture: true });
+            t.addEventListener('touchcancel',  onTouchEnd,   { capture: true });
+            t.addEventListener('keydown',      onKey,        { capture: true });
+        });
+    }
+
+    _measureAndSize(doc) {
+        const h = Math.max(
+            doc.body.scrollHeight,
+            doc.documentElement ? doc.documentElement.scrollHeight : 0,
+            240
+        );
+        this.page.style.height = h + 'px';
+        this.container.style.height = 'auto';
+        if (window.mapPan && window.mapPan.isActive()) {
+            window.mapPan.setBounds(h + 120);
         }
     }
 
-    /**
-     * Checks to see whether or not the mini-window is visible
-     * @returns {Boolean}
-     */
-    isVisible() {
-        return this.container.style.visibility === "visible" &&
-               this.container.style.opacity === "1";
+    // ---------------------- show / hide ----------------------
+
+    show() {
+        // Position the paper vertically based on where the centered tile sits.
+        // A small delay so the container class change can be picked up by CSS.
+        this.container.classList.add('open');
+        // Install map-pan listeners; bounds updated once content loads.
+        if (window.mapPan) window.mapPan.start(window.innerHeight);
+        // Outside-click closes; register AFTER this click has fully resolved
+        // (otherwise the very click that opened the page would close it).
+        setTimeout(() => {
+            document.addEventListener('click', this.handleClickOutside);
+        }, 50);
     }
 
-    /**
-     * Sets up event listeners for the following events:
-     *  Clicking the x button to close
-     *  Clicking the back button to go back
-     *  Clicking off the mini-window to close
-     */
-    setEvents() {
-        this.handleClickOutside = (event) => {
-            if (!this.container.contains(event.target)) {
-                this.hide();
+    hide() {
+        // Stop the map pan and animate the tabletop back to offset 0; when
+        // it finishes, remove the paper (two physical motions: pan-back then
+        // paper-lift) so the close feels continuous.
+        const removePaper = () => {
+            this.container.classList.remove('open');
+            // Reset back-button inline display so CSS `body.page-open` rule
+            // governs it cleanly next time a page opens.
+            if (this.backButton) this.backButton.style.display = '';
+            // Clear the iframe after the slide-off animation completes so the
+            // old content isn't visible during the transition.
+            setTimeout(() => {
+                this.page.setAttribute('src', '');
+                this.page.style.height = '';
+            }, 620);
+            if (this.resizeObserver) {
+                this.resizeObserver.disconnect();
+                this.resizeObserver = null;
             }
+            this.navigationHistory = [];
         };
 
-        this.closeButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.hide();
-        });
-
-        this.backButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.goBack();
-        });
+        document.removeEventListener('click', this.handleClickOutside);
+        if (window.mapPan && window.mapPan.isActive()) {
+            window.mapPan.stop(removePaper);
+        } else {
+            removePaper();
+        }
     }
 
-    /**
-     * Navigate to a new route within the same mini-window
-     * @param {String} route - the route to navigate to
-     */
-    navigateTo(route) {
-        const normalizedRoute = this.normalizeUrl(route);
-        this.navigationHistory.push(normalizedRoute);
-        this.page.setAttribute("src", normalizedRoute);
-        this.updateBackButtonState();
+    // ---------------------- helpers ----------------------
+
+    isVisible() {
+        return this.container.classList.contains('open');
+    }
+
+    updateBackButtonState() {
+        if (!this.backButton) return;
+        this.backButton.style.display =
+            this.navigationHistory.length > 1 ? 'flex' : 'none';
+    }
+
+    _showLoadingScrap() {
+        if (this._loadingEl) return;
+        const el = document.createElement('div');
+        el.className = 'loading-scrap';
+        el.textContent = 'loading…';
+        el.style.cssText = `
+            position: absolute; top: 40px; left: 50%;
+            transform: translateX(-50%) rotate(-3deg);
+            font-family: var(--font-hand-casual, 'Caveat', cursive);
+            font-size: 1.2rem; color: var(--ink-pencil, #3a3a3a);
+            background: var(--paper-white, #fafaf3);
+            padding: 6px 14px; border-radius: 2px;
+            box-shadow: 2px 3px 5px rgba(0,0,0,0.25);
+            z-index: 10; pointer-events: none;
+        `;
+        this.container.appendChild(el);
+        this._loadingEl = el;
+    }
+
+    _hideLoadingScrap() {
+        if (!this._loadingEl) return;
+        const el = this._loadingEl;
+        this._loadingEl = null;
+        if (el.parentNode) el.parentNode.removeChild(el);
+    }
+
+    normalizeUrl(url) {
+        if (url.startsWith('/')) {
+            const protocol = window.location.protocol;
+            const hostname = window.location.hostname;
+            if (protocol === 'https:') return `https://${hostname}${url}`;
+            return url;
+        }
+        if (url.startsWith('http://')) return url.replace('http://', 'https://');
+        if (url.startsWith('//'))      return 'https:' + url;
+        return url;
+    }
+
+    setEvents() {
+        this.handleClickOutside = (event) => {
+            // The close/back buttons are OUTSIDE the container in the new
+            // layout (fixed-to-viewport tabs), so clicks there must not count
+            // as outside clicks.
+            if (this.container.contains(event.target)) return;
+            if (this.closeButton && this.closeButton.contains(event.target)) return;
+            if (this.backButton  && this.backButton.contains(event.target))  return;
+            this.hide();
+        };
+
+        if (this.closeButton) {
+            this.closeButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.hide();
+            });
+        }
+        if (this.backButton) {
+            this.backButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.goBack();
+            });
+        }
     }
 }
 
-// Expose openPage and navigateToPage to HTML so it can use them
+// Expose openPage / navigateToPage
 document.addEventListener("DOMContentLoaded", () => {
     const miniWindow = new MiniWindow();
     window.openPage = (route) => miniWindow.open(route);

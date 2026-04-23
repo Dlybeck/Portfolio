@@ -3,7 +3,20 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    {% if request.url.hostname not in ['localhost', '127.0.0.1'] and not request.url.hostname.startswith('192.168.') %}
+    {# Only force HTTPS upgrades for public-facing production hosts. Skip
+       localhost, LAN (192.168.x, 10.x), Tailscale CGNAT (100.64-127.x),
+       link-local, and class-B private (172.16-31.x) so local/LAN testing
+       over plain HTTP works. #}
+    {% set _h = request.url.hostname or '' %}
+    {% set _is_private = (
+        _h in ['localhost', '127.0.0.1', '::1']
+        or _h.startswith('192.168.')
+        or _h.startswith('10.')
+        or _h.startswith('169.254.')
+        or (_h.startswith('100.') and _h.split('.')[1].isdigit() and 64 <= _h.split('.')[1]|int <= 127)
+        or (_h.startswith('172.') and _h.split('.')[1].isdigit() and 16 <= _h.split('.')[1]|int <= 31)
+    ) %}
+    {% if not _is_private %}
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     {% endif %}
     <meta
@@ -11,7 +24,10 @@
     content="A place to explore aspects of David Lybeck's Life">
       {% block title %}
     {% endblock %}
-    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Kalam:wght@400;700&family=Permanent+Marker&family=Shadows+Into+Light&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/base.css?v=2">
   </head>
   <body>
     {% include "components/navbar.html" %}
@@ -19,13 +35,14 @@
     {% endblock %}
 
 
-    <script src="/static/scripts/homeButton.js?v=2"></script>
-    <script src="/static/scripts/mini-pages/openPage.js?v=2"></script>
-    <script src="/static/scripts/tileData.js?v=2"></script>
-    <script src="/static/scripts/tileCreation.js?v=2"></script>
-    <script src="/static/scripts/tileMovement.js?v=2"></script>
+    <script src="/static/scripts/homeButton.js?v=3"></script>
+    <script src="/static/scripts/mini-pages/openPage.js?v=6"></script>
+    <script src="/static/scripts/tileData.js?v=3"></script>
+    <script src="/static/scripts/tileCreation.js?v=5"></script>
+    <script src="/static/scripts/tileMovement.js?v=3"></script>
     <script src="/static/scripts/urlHandler.js?v=2"></script>
-    <script src="/static/scripts/map.js?v=2"></script>
+    <script src="/static/scripts/mapPan.js?v=6"></script>
+    <script src="/static/scripts/map.js?v=3"></script>
     <script src="/static/scripts/swipeUpReveal.js?v=2"></script>
     {% block scripts %}
     {% endblock %}

@@ -201,6 +201,34 @@ window.tileInfo = {
 
 
 /**
+ * Classify a tile as "sticky" (hub) or "scrap" (leaf page) for the paper-table theme.
+ * Keys of tilesData are hubs. Home/Dev are always hubs.
+ * @param {string} title
+ * @returns {"sticky"|"scrap"}
+ */
+window.getPaperType = function(title) {
+    if (title === "Home" || title === "Dev") return "sticky";
+    if (window.tilesData.hasOwnProperty(title)) return "sticky";
+    return "scrap";
+};
+
+/**
+ * Deterministic string hash → 32-bit int.
+ * Used to seed stable per-tile "randomness" (rotation, color, variant, font)
+ * so the tabletop looks organic but consistent across reloads.
+ * @param {string} s
+ * @returns {number}
+ */
+window.stableHash = function(s) {
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+    }
+    return Math.abs(h | 0);
+};
+
+/**
  * Creates maps to acces data for positions, text contents, and routes, by tile title
  * @returns {positions map, pexts map, routes map}]
  */

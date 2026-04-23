@@ -1,61 +1,113 @@
-/*HTML not in the iframe*/
-.main{
-  height: 100%;
-  margin: 0;
-  background-color: #e0c8ab;
+/* =========================================================================
+   BASE — Tabletop + Handwritten typography + Taped-label navbar
+   ========================================================================= */
+
+:root {
+  --ink-blue:    #1a3a6e;
+  --ink-black:   #1b1b1b;
+  --ink-pencil:  #3a3a3a;
+  --ink-red:     #a82828;
+  --paper-cream: #f5eedd;
+  --paper-white: #fafaf3;
+
+  --wood-dark:   #6b4423;
+  --wood-mid:    #8a5a2b;
+  --wood-light:  #a47040;
+  --wood-grain:  #5a3818;
+
+  --font-hand-neat:   'Kalam', 'Caveat', cursive;
+  --font-hand-casual: 'Caveat', cursive;
+  --font-hand-marker: 'Permanent Marker', 'Caveat', cursive;
+  --font-hand-thin:   'Shadows Into Light', 'Caveat', cursive;
 }
 
-body{
-  transition: none;
+.main {
   height: 100%;
-  width: 100;
-  /* Higher quality laoded in through js after dom is laoded (for better initial loading speeds) */
-  background-image: url("/static/images/sand2048.webp");
-  transition: all 0.4s;
-  background-repeat: repeat;
-  overflow: scroll;
-  background-size: 100%;
   margin: 0;
+  background-color: var(--wood-dark); /* ambient fallback under the tabletop */
 }
 
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* the tabletop (.map) owns scrolling; body never scrolls */
+  font-family: var(--font-hand-neat);
+  color: var(--ink-black);
+  /* Solid wood so any gap around .map still feels like the same surface */
+  background-color: var(--wood-mid);
+}
+
+/* =========================================================================
+   Navbar — restyled as a small taped-on paper label, top-left
+   The classes are preserved to match existing markup in components/navbar.html
+   ========================================================================= */
 .navbar {
   position: fixed;
-  left: 50%;
-  transform: translate(-50%, 0);
-  border-radius: 0px 0px 10px 10px;
-  background: linear-gradient(135deg, #006699, #005588);
+  top: 14px;
+  left: 14px;
+  transform: rotate(-2.5deg);
+  background: var(--paper-white);
+  background-image:
+    linear-gradient(135deg, rgba(0,0,0,.04) 0%, rgba(0,0,0,0) 40%),
+    repeating-linear-gradient(0deg, rgba(0,0,0,.02) 0, rgba(0,0,0,.02) 1px, transparent 1px, transparent 4px);
+  border: none;
+  border-radius: 2px 4px 3px 2px / 3px 2px 4px 3px; /* uneven paper corners */
   width: fit-content;
-  height: 50px;
+  height: auto;
   max-width: 90%;
-  z-index: 9999999999; /*Should always be on top*/
-  padding: 5px 0px;
+  z-index: 9999;
+  padding: 6px 14px 8px 14px;
+  box-shadow:
+    2px 3px 6px rgba(0,0,0,.35),
+    inset 0 0 20px rgba(0,0,0,.03);
 }
+
+/* Two bits of tape holding it down */
+.navbar::before,
+.navbar::after {
+  content: "";
+  position: absolute;
+  width: 42px;
+  height: 14px;
+  background: rgba(240, 230, 180, 0.55);
+  border: 1px solid rgba(180, 160, 100, 0.25);
+  box-shadow: 1px 1px 2px rgba(0,0,0,.15);
+  top: -7px;
+}
+.navbar::before { left: 8px;  transform: rotate(-8deg); }
+.navbar::after  { right: 8px; transform: rotate(6deg); }
 
 .navbar-content {
   display: flex;
   align-items: center;
-  height: 50px;
+  height: auto;
   width: fit-content;
-  padding: 0px 12px 0px 12px;
+  padding: 0;
   flex-wrap: nowrap;
+  gap: 8px;
 }
 
 .navbar-title {
-  font-size: 1.5em;
-  font-weight: bold;
-  color: white;
+  font-family: var(--font-hand-marker);
+  font-size: 1.25rem;
+  font-weight: normal;
+  color: var(--ink-blue);
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: 0.5px;
 }
 
 .navbar-logo {
-  height: 2rem; 
+  height: 1.8rem;
   width: auto;
   object-fit: contain;
-  border: 2px solid #FFFFFF;
-  margin-right: 8px;
+  border: 1px solid rgba(0,0,0,.15);
+  margin-right: 4px;
+  filter: sepia(0.2);
 }
 
 .home-button {
@@ -63,8 +115,8 @@ body{
   position: relative;
   opacity: 0;
   visibility: hidden;
-  filter: brightness(0) invert(1);
-  transition: all 0.4s ease;
+  filter: brightness(0.3) sepia(0.5);
+  transition: opacity 0.3s ease, max-width 0.3s ease, max-height 0.3s ease;
   max-width: 0;
   max-height: 0;
   overflow: hidden;
@@ -73,9 +125,9 @@ body{
 .home-button.visible {
   opacity: 1;
   visibility: visible;
-  max-width: 2rem;
-  max-height: 2rem;
-  margin-left: 8px;
+  max-width: 1.6rem;
+  max-height: 1.6rem;
+  margin-left: 4px;
 }
 
 .home-button:hover {

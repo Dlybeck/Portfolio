@@ -1,92 +1,166 @@
 /**
- * creates a tile for the specified title
- * @param {string} title - Title of node to be created
- * @returns - html object representing the wrapper for the tile
+ * Tile creation — paper-table theme.
+ *
+ * Each tile is TWO stacked papers in the same .tile-container:
+ *   .tile-base     — small scrap/sticky always visible
+ *   .tile-expanded — larger paper that COVERS the base when centered
+ *
+ * Per-tile variability (rotation, color, paper variant, font) is derived from
+ * a stable hash of the title so reloads look the same but every tile differs.
  */
-window.createTile = function(title) {
-    let [ , texts, routes] = window.calculatePositions();
 
-    // Create the container for tile
-    const tileWrapper = document.createElement('div');
-    tileWrapper.className = 'tile-container';
-    tileWrapper.dataset.title = title;
+// Option pools used for stable-hash selection
+const STICKY_COLORS = ["sticky-yellow", "sticky-pink", "sticky-blue", "sticky-green", "sticky-orange"];
+const SCRAP_VARIANTS = ["scrap-ruled", "scrap-graph", "scrap-plain", "scrap-kraft", "scrap-index"];
+const TILE_FONTS = ["var(--font-hand-casual)", "var(--font-hand-neat)", "var(--font-hand-thin)"];
+const INK_COLORS_SCRAP = ["var(--ink-blue)", "var(--ink-black)", "var(--ink-pencil)"];
+const INK_COLORS_STICKY = ["var(--ink-black)", "var(--ink-blue)", "var(--ink-red)"];
 
-    // Create the tile
-    const tile = document.createElement('div');
-    tile.className = 'tile';
-
-    // Create the div for tile contents
-    const tileContents = document.createElement('div');
-    tileContents.className = 'tile-contents';
-
-    // Title for the tile
-    const tileTitle = document.createElement('h2');
-    tileTitle.className = 'tile-title';
-    tileTitle.innerHTML = title;
-
-    // Go button for the tile (will be hidden later if not applicable)
-    const button = document.createElement('a');
-    button.className = 'button';
-    button.href = routes[title];
-    button.textContent = title === 'Dev' ? 'Dev Hub' : title;
-
-    // Attach event listener to handle iframe behavior
-    button.addEventListener('click', (event) => {
-        event.preventDefault(); // Prevent the default anchor navigation
-        openPage(routes[title]); // Call your function to load the iframe
-    });
-
-    // Text contents of the tile
-    const tileText = document.createElement('p');
-    tileText.className = 'tile-text';
-    tileText.innerHTML = `${texts[title]}`;
-
-    // Append the children and create the tile
-    tileContents.appendChild(tileTitle);
-    tileContents.appendChild(button);
-    tileContents.appendChild(tileText);
-    tile.appendChild(tileContents);
-    tileWrapper.appendChild(tile);
-    container.appendChild(tileWrapper);
-
-    // Properly position this tile relative to the others
-    positionTile(tileWrapper, title);
-
-    // If the page is just a hub (no go button) make it a circle and hide the button
-    if (tilesData.hasOwnProperty(title) == true){
-        tile.style.borderRadius = "200px";
-        button.style.display = "none";
-    }
-
-    // Make home look identifiable
-    if (title === "Home") {
-        tile.style.background = "linear-gradient(135deg, #004477, #002255)";
-    }
-
-    // Make Dev match Home styling (they're at the same position)
-    if (title === "Dev") {
-        tile.style.background = "linear-gradient(135deg, #004477, #002255)";
-    }
-
-    return tileWrapper;
-}
-
+function pick(arr, seed) { return arr[seed % arr.length]; }
 
 /**
- * Move the tile to its proper position on the map
- * @param {*} tile - html object for the tile
- * @param {*} title - title of the tile
+ * Derive stable per-tile presentation variables from a title.
+ * Returns the values as strings ready to drop into styles/classes.
+ */
+function tileStyleSeed(title) {
+    const h = window.stableHash(title);
+    // 5 independent "channels" by dividing the hash down
+    const a = h;
+    const b = (h / 7)    | 0;
+    const c = (h / 53)   | 0;
+    const d = (h / 211)  | 0;
+    const e = (h / 1031) | 0;
+
+    return {
+        rot:          ((a % 1000) / 1000 * 10 - 5).toFixed(2) + "deg",       // -5..+5
+        rotExpanded:  ((b % 1000) / 1000 * 8  - 4).toFixed(2) + "deg",       // -4..+4
+        jitterX:      ((c % 1000) / 1000 * 8  - 4).toFixed(2) + "px",        // -4..+4
+        jitterY:      ((d % 1000) / 1000 * 8  - 4).toFixed(2) + "px",
+        tapeAngle:    ((e % 1000) / 1000 * 16 - 8).toFixed(2) + "deg",       // -8..+8
+        colorIdx:     a,
+        variantIdx:   b,
+        fontIdx:      c,
+        inkIdx:       d,
+        hasTape:      (e % 2) === 0,
+        torn:         (a % 3) === 0, // ~1/3 of scraps
+    };
+}
+
+/**
+ * Create and return a tile wrapper (paper-table version).
+ * @param {string} title
+ * @returns {HTMLElement}
+ */
+window.createTile = function(title) {
+    const [ , texts, routes ] = window.calculatePositions();
+    const paperType = window.getPaperType(title); // "sticky" | "scrap"
+    const seed = tileStyleSeed(title);
+
+    // ---- Container ----
+    const tileWrapper = document.createElement('div');
+    tileWrapper.className = `tile-container ${paperType}`;
+    tileWrapper.dataset.title = title;
+
+    // Paper-family specific variant class
+    if (paperType === "sticky") {
+        tileWrapper.classList.add(pick(STICKY_COLORS, seed.colorIdx));
+        if (seed.hasTape) tileWrapper.classList.add("has-tape");
+    } else {
+        tileWrapper.classList.add(pick(SCRAP_VARIANTS, seed.variantIdx));
+        if (seed.torn) tileWrapper.classList.add("torn");
+    }
+
+    // Per-tile CSS variables (stable)
+    const inkPool = paperType === "sticky" ? INK_COLORS_STICKY : INK_COLORS_SCRAP;
+    tileWrapper.style.setProperty('--rot',          seed.rot);
+    tileWrapper.style.setProperty('--rot-expanded', seed.rotExpanded);
+    tileWrapper.style.setProperty('--jitter-x',     seed.jitterX);
+    tileWrapper.style.setProperty('--jitter-y',     seed.jitterY);
+    tileWrapper.style.setProperty('--tape-angle',   seed.tapeAngle);
+    tileWrapper.style.setProperty('--tile-font',    pick(TILE_FONTS, seed.fontIdx));
+    tileWrapper.style.setProperty('--ink-color',    pick(inkPool,    seed.inkIdx));
+
+    // ---- .tile-base : the small always-visible scrap/sticky ----
+    // (we keep the legacy .tile class on this element too so map.js's
+    //  existing click binding `.querySelector('.tile')` still works)
+    const base = document.createElement('div');
+    base.className = 'tile tile-base';
+
+    const baseTitle = document.createElement('h2');
+    baseTitle.className = 'scrap-title';
+    baseTitle.textContent = title === 'Dev' ? 'Dev' : title;
+    base.appendChild(baseTitle);
+
+    // ---- .tile-expanded : larger paper that covers the base when centered ----
+    const expanded = document.createElement('div');
+    expanded.className = 'tile-expanded';
+
+    const expTitle = document.createElement('h2');
+    expTitle.className = 'expanded-title';
+    expTitle.textContent = title === 'Dev' ? 'Dev Hub' : title;
+    expanded.appendChild(expTitle);
+
+    const expText = document.createElement('p');
+    expText.className = 'expanded-text';
+    expText.innerHTML = texts[title] || '';
+    expanded.appendChild(expText);
+
+    // "open →" link — only for tiles that actually have a leaf route (scrap + Dev).
+    // Hub stickies (keys of tilesData other than Home/Dev) have routes "/" in
+    // tileData.js, which would just reload the current map, so we skip them.
+    const route = routes[title];
+    const isHubWithoutPage = window.tilesData.hasOwnProperty(title) && route === '/';
+    if (route && !isHubWithoutPage) {
+        const openLink = document.createElement('a');
+        openLink.className = 'expanded-open';
+        openLink.href = route;
+        openLink.textContent = title === 'Dev' ? 'enter →' : 'open →';
+        openLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            window.openPage(route);
+        });
+        expanded.appendChild(openLink);
+    }
+
+    // Keep a legacy `.button` reference for existing map.js code paths that
+    // query for it; we hide it visually (it's display:none) but the DOM node
+    // existing prevents null-derefs in older logic.
+    const legacyButton = document.createElement('a');
+    legacyButton.className = 'button';
+    legacyButton.style.display = 'none';
+    legacyButton.href = route || '';
+    expanded.appendChild(legacyButton);
+
+    // Preserve the legacy .tile-contents/.tile-title/.tile-text element names too,
+    // pointing them at the real nodes — so older code that queries these still
+    // finds SOMETHING valid rather than null. We don't actually rely on them.
+    baseTitle.classList.add('tile-title');
+    expText.classList.add('tile-text');
+
+    tileWrapper.appendChild(base);
+    tileWrapper.appendChild(expanded);
+
+    container.appendChild(tileWrapper);
+
+    // Position using existing grid math
+    positionTile(tileWrapper, title);
+
+    return tileWrapper;
+};
+
+/**
+ * Position a tile absolutely on the map via grid math (unchanged from original).
+ * @param {HTMLElement} tile
+ * @param {string} title
  */
 window.positionTile = function(tile, title) {
-    // grab the position
     const pos = window.positions[title];
-
-    // If a position is found, move the tile to that position
     if (pos) {
         tile.style.position = 'absolute';
         tile.style.left = `${pos.left}%`;
-        tile.style.top = `${pos.top}%`;
-        // center it
+        tile.style.top  = `${pos.top}%`;
+        // Keep the wrapper on-center; inner papers carry jitter/rotation.
         tile.style.transform = 'translate(-50%, -50%)';
     } else {
         console.error("No position found");
@@ -94,59 +168,66 @@ window.positionTile = function(tile, title) {
 };
 
 /**
- * Update the tiles visibility based on the centered tile (make tiles dimmed if not connected, expand center, shrink non-center)
- * @param {*} centerTitle 
+ * Update tile visibility based on which tile is centered.
+ * Physical-paper rule: the cover paper on a de-centered tile doesn't just
+ * fade out. It plays a short "sweep off to the right" animation (driven by
+ * the .cover-leaving class + CSS keyframe) that's horizontal so map-pan
+ * can't catch up with it and freeze it mid-screen.
+ * @param {string} centerTitle
  */
-window.updateVisibility = function(centerTitle) {
-    // Get connected tiles (if none, use [])
-    const connectedTiles = tilesData[centerTitle] || [];
+window._coverLeaveTimers = window._coverLeaveTimers || new Map();
 
-    // Find the tiles directly connected to this one
-    const parentTitle = Object.entries(tilesData).find(([_, children]) => 
-        // If there is a key ([0]) for the parent title, add it.
+window.updateVisibility = function(centerTitle) {
+    const connectedTiles = tilesData[centerTitle] || [];
+    const parentTitle = Object.entries(tilesData).find(([_, children]) =>
         children.includes(centerTitle)
     )?.[0];
 
-    // Add the center tile, all directly connected tiles to visible tiles
     const visibleTiles = [centerTitle, ...connectedTiles];
-    if (parentTitle) {
-        visibleTiles.push(parentTitle);
-    }
+    if (parentTitle) visibleTiles.push(parentTitle);
 
-    // Update all tile visibilities based on connection
     const tiles = document.querySelectorAll('.tile-container');
     tiles.forEach(tile => {
         const tileTitle = tile.dataset.title;
+        if (tileTitle === 'Dev') return;
 
-        // Skip Dev tile - it overlaps with Home at [0,0] and is managed by swipeUpReveal.js
-        // Including it here causes conflicts when flipped (it gets dimmed incorrectly)
-        if (tileTitle === 'Dev') {
-            return;
+        const wasExpanded = tile.classList.contains('expanded');
+        const shouldBeExpanded = (tileTitle === centerTitle);
+
+        // If a user re-selects a tile that's in the middle of its exit
+        // sweep, cancel the sweep and re-enter cleanly.
+        if (shouldBeExpanded) {
+            tile.classList.remove('cover-leaving-up', 'cover-leaving-down');
+            const pending = window._coverLeaveTimers.get(tileTitle);
+            if (pending) { clearTimeout(pending); window._coverLeaveTimers.delete(tileTitle); }
         }
 
-        // Reset all states first
         tile.classList.remove('expanded', 'connected', 'dimmed');
 
-        if (tileTitle === centerTitle) {
-            // Center tile is expanded
+        if (shouldBeExpanded) {
             tile.classList.add('expanded');
-        } else if (visibleTiles.includes(tileTitle)) {
-            // Connected tiles show title only
-            tile.classList.add('connected');
         } else {
-            // Other tiles are dimmed
-            tile.classList.add('dimmed');
-        }
+            tile.classList.add(visibleTiles.includes(tileTitle) ? 'connected' : 'dimmed');
+            // Kick off the sweep-off animation only if this tile was the
+            // previously-centered one. Other tiles have no cover on-stage.
+            if (wasExpanded) {
+                // Pick the exit direction based on last scroll direction.
+                // User scrolling down (map panning up) → cover exits upward.
+                // User scrolling up (map panning down) → cover exits downward.
+                // Default (no recent scroll) → upward (plays nice with tile-
+                // click flows which usually don't involve a scroll state).
+                const dir = window._lastScrollDir || 0;
+                const leaveClass = (dir < 0) ? 'cover-leaving-down' : 'cover-leaving-up';
+                tile.classList.add(leaveClass);
 
-        // After the visibility change, recheck if the title should be hidden for expanded tile
-        const button = tile.querySelector('.button');
-        const tileTitleElem = tile.querySelector('.tile-title');
-
-        // Hide the title if the tile is expanded and the button is visible
-        if (tile.classList.contains('expanded') && button.style.display !== "none") {
-            tileTitleElem.style.display = 'none';
-        } else {
-            tileTitleElem.style.display = 'block';
+                const prev = window._coverLeaveTimers.get(tileTitle);
+                if (prev) clearTimeout(prev);
+                const t = setTimeout(() => {
+                    tile.classList.remove('cover-leaving-up', 'cover-leaving-down');
+                    window._coverLeaveTimers.delete(tileTitle);
+                }, 380); // slightly longer than the 0.35s CSS animation
+                window._coverLeaveTimers.set(tileTitle, t);
+            }
         }
     });
-}
+};

@@ -5,30 +5,20 @@
 {% endblock %}
 
 {% block content %}
-    <link rel="stylesheet" href="/static/css/map.css">
+    <link rel="stylesheet" href="/static/css/map.css?v=11">
     <div class="map">
         <div class="mini-window-container">
-            <div class="close-button">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                    <path d="M6 6L18 18M6 18L18 6" 
-                          stroke="currentColor" 
-                          stroke-width="2" 
-                          stroke-linecap="round" 
-                          fill="none"/>
-                </svg>
-            </div>
-            <div class="back-button">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                    <path d="M15 6L9 12L15 18" 
-                          stroke="currentColor" 
-                          stroke-width="2" 
-                          stroke-linecap="round" 
-                          stroke-linejoin="round" 
-                          fill="none"/>
-                </svg>
-            </div>
             <iframe class="mini-window"></iframe>
         </div>
+    </div>
+    {# Close/back tabs live in a transform-free fixed overlay so their
+       position: fixed is reliably anchored to the viewport regardless of
+       what any other element does with transforms/will-change. The rotation
+       is on the inner .tab span, so the fixed wrapper itself has no
+       transform of its own. #}
+    <div class="viewport-overlay">
+        <div class="close-button" aria-label="close"><span class="tab">✕ close</span></div>
+        <div class="back-button"  aria-label="back"><span class="tab">← back</span></div>
     </div>
 {% endblock %}
 

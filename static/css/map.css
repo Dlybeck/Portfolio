@@ -887,8 +887,11 @@
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
+/* Close on the RIGHT, back on the LEFT — so they never crowd each other
+   regardless of how wide the text renders, and "back = left side"
+   matches the symbolic direction of a back arrow. */
 .close-button { right: 22px; }
-.back-button  { right: 110px; }
+.back-button  { left: 22px; }
 
 /* Rotation on the inner .tab span, not the button itself */
 .close-button .tab { display: inline-block; transform: rotate(-4deg); }
@@ -966,5 +969,5 @@ body.page-open .back-button {
     padding: 26px 16px 30px;
   }
   .close-button { right: 10px; font-size: 1.1rem; padding: 6px 12px 8px; }
-  .back-button  { right: 90px; font-size: 1.1rem; padding: 6px 12px 8px; }
+  .back-button  { left: 10px; font-size: 1.1rem; padding: 6px 12px 8px; }
 }

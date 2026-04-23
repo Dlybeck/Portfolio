@@ -114,11 +114,35 @@ class MiniWindow {
     }
 
     _measureAndSize(doc) {
-        const h = Math.max(
-            doc.body.scrollHeight,
-            doc.documentElement ? doc.documentElement.scrollHeight : 0,
-            240
-        );
+        // Measure actual content bottom by finding the lowest-bottomed
+        // visible child of body. body.scrollHeight can over-report for
+        // pages with trailing margins, flex gaps, or inline whitespace
+        // after the last element — we were seeing that as "extra length
+        // for no reason" on some pages. Iterating top-level children
+        // and taking max(offsetTop + offsetHeight) trims this cleanly.
+        let contentBottom = 0;
+        const children = doc.body.children;
+        for (let i = 0; i < children.length; i++) {
+            const el = children[i];
+            if (el.offsetParent === null) continue;       // display: none
+            if (el.id === 'topBtn') continue;             // fixed-position helper
+            const bottom = el.offsetTop + el.offsetHeight;
+            if (bottom > contentBottom) contentBottom = bottom;
+        }
+        // Also consult body/document scrollHeight as a safety floor in
+        // case offsetTop/Height is unreliable (e.g. transformed
+        // descendants). Take the min of our measurement and scrollHeight
+        // so we bound extra whitespace.
+        const bodyScroll = doc.body.scrollHeight;
+        const docScroll  = doc.documentElement ? doc.documentElement.scrollHeight : 0;
+        const scrollMax  = Math.max(bodyScroll, docScroll);
+
+        // Start with contentBottom + small pad; if it's wildly less than
+        // scrollMax, trust scrollMax (some layouts confuse offsetParent).
+        let h = contentBottom + 24;
+        if (h < scrollMax * 0.5) h = scrollMax;
+        h = Math.max(240, h);
+
         this.page.style.height = h + 'px';
     }
 

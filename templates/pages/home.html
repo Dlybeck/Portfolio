@@ -5,11 +5,15 @@
 {% endblock %}
 
 {% block content %}
-    <link rel="stylesheet" href="/static/css/map.css?v=27">
+    <link rel="stylesheet" href="/static/css/map.css?v=28">
+    {# The mini-window paper is OUTSIDE .map so it participates in normal
+       body scroll flow. Browser handles touch, wheel, inertia, momentum,
+       overscroll — all native, all smooth. .map stays position: fixed
+       as the backdrop (wall + tiles). #}
+    <div class="mini-window-container">
+        <iframe class="mini-window"></iframe>
+    </div>
     <div class="map">
-        <div class="mini-window-container">
-            <iframe class="mini-window"></iframe>
-        </div>
     </div>
     {# Close/back tabs live in a transform-free fixed overlay so their
        position: fixed is reliably anchored to the viewport regardless of

@@ -28,22 +28,23 @@
 }
 
 html, body {
-  height: 100%;
+  min-height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* the tabletop (.map) owns scrolling; body never scrolls */
+  /* Body scrolls natively when a mini-window paper is open (the paper is
+     a normal-flow element that makes the document tall). With no paper
+     open, body is viewport-height and there's nothing to scroll. Native
+     browser scroll → butter-smooth touch on any platform, no custom JS
+     handling required. */
+  overflow-x: hidden;
+  overflow-y: auto;
   font-family: var(--font-hand-neat);
   color: var(--ink-black);
-  /* Solid wood so any gap around .map still feels like the same surface */
   background-color: var(--wood-mid);
-  /* Disable iOS Safari's native touch panning (rubber-band, overscroll)
-     so it doesn't compete with mapPan for the same gesture. Without
-     this, touch scroll could feel like two things fighting over the
-     same input on mobile. */
-  touch-action: none;
-  -webkit-overflow-scrolling: auto;
-  overscroll-behavior: none;
+}
+body {
+  height: auto;
 }
 
 /* =========================================================================

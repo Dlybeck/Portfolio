@@ -95,6 +95,13 @@ class MiniWindow {
                 color: #1b1b1b !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                /* Disable iOS Safari's native touch panning/rubber-banding
+                   inside the iframe so it doesn't fight mapPan for the
+                   same gesture (that was the source of the "two
+                   conflicting actions" feel on touch). */
+                touch-action: none !important;
+                -webkit-user-select: none;
+                user-select: none;
             }
             /* Hide the legacy back-to-top button — the tabletop is the scroll surface */
             #topBtn { display: none !important; }
@@ -159,18 +166,28 @@ class MiniWindow {
 
         const onTouchStart = (e) => {
             if (!parent.mapPan || !parent.mapPan.isActive()) return;
+            // stopPropagation prevents the same event from firing on the
+            // three additional targets we attach to (doc/docEl/body).
+            // Without this, every touchmove triggered mapPan.touchMove 4×
+            // per frame, which confuses velocity tracking and thrashes
+            // state on mobile where compute is limited.
+            e.stopPropagation();
             if (e.touches && e.touches.length === 1) {
                 parent.mapPan.touchStart(e.touches[0].clientY);
             }
         };
         const onTouchMove = (e) => {
             if (!parent.mapPan || !parent.mapPan.isActive()) return;
+            e.stopPropagation();
             if (e.touches && e.touches.length === 1) {
                 if (e.cancelable) e.preventDefault();
                 parent.mapPan.touchMove(e.touches[0].clientY);
             }
         };
-        const onTouchEnd = () => parent.mapPan && parent.mapPan.touchEnd();
+        const onTouchEnd = (e) => {
+            if (e) e.stopPropagation();
+            if (parent.mapPan) parent.mapPan.touchEnd();
+        };
 
         const onKey = (e) => {
             if (!parent.mapPan || !parent.mapPan.isActive()) return;

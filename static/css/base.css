@@ -15,10 +15,15 @@
   --wood-light:  #a47040;
   --wood-grain:  #5a3818;
 
-  --font-hand-neat:   'Kalam', 'Caveat', cursive;
-  --font-hand-casual: 'Caveat', cursive;
-  --font-hand-marker: 'Permanent Marker', 'Caveat', cursive;
-  --font-hand-thin:   'Shadows Into Light', 'Caveat', cursive;
+  /* Handwritten PRINT fonts only — no cursive. Each is a distinct print
+     style so tiles can pick different looks via --tile-font. */
+  --font-hand-neat:   'Kalam', sans-serif;
+  --font-hand-casual: 'Patrick Hand', sans-serif;
+  --font-hand-marker: 'Architects Daughter', sans-serif;
+  --font-hand-thin:   'Gochi Hand', sans-serif;
+  /* Typed body font for the paper pages (inside iframes) — a standard
+     serif that reads like a document, not a note. */
+  --font-body-typed:  Georgia, 'Times New Roman', Times, serif;
 }
 
 .main {
@@ -28,23 +33,15 @@
 }
 
 html, body {
-  min-height: 100%;
+  height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
-  /* Body scrolls natively when a mini-window paper is open (the paper is
-     a normal-flow element that makes the document tall). With no paper
-     open, body is viewport-height and there's nothing to scroll. Native
-     browser scroll → butter-smooth touch on any platform, no custom JS
-     handling required. */
-  overflow-x: hidden;
-  overflow-y: auto;
+  /* Viewport is fixed; the paper scrolls internally. No body/html scroll. */
+  overflow: hidden;
   font-family: var(--font-hand-neat);
   color: var(--ink-black);
   background-color: var(--wood-mid);
-}
-body {
-  height: auto;
 }
 
 /* =========================================================================

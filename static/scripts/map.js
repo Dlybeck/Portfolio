@@ -1,7 +1,8 @@
 //Listen for when page is ready to load in the tiles
 document.addEventListener('DOMContentLoaded', function() {
-    // Grab the map
-    window.container = document.querySelector(".map");
+    // Tiles go into the .tile-layer sub-container (fixed 100vh box, so
+    // tile % positions stay stable when .map itself grows with paper).
+    window.container = document.querySelector(".tile-layer");
     
     // Calculate initial position data
     let [positions, , ] = window.calculatePositions();

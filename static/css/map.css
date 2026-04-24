@@ -13,67 +13,41 @@
    texture is painted as a fixed-position pseudo-element that's also
    translated so it moves with the rest of the "desk". */
 .map {
+  /* Fixed viewport-sized backdrop. Paper is a separate fixed overlay. */
   position: fixed;
   top: 0; left: 0;
   width: 100vw;
   height: 100vh;
   overflow: visible;
   z-index: 1;
-  will-change: transform;
-  transform: translate3d(0, 0, 0);
-  transition: transform 0.35s cubic-bezier(.2,.7,.2,1);
-  background: transparent; /* tabletop painted on ::before underlay */
-  /* Parallax offsets set by tileMovement.js on tile-center — these shift
-     the wall underlay (::before) at a slower rate than the tiles, so as
-     you navigate tiles the wall visibly drifts with you. Defaults to 0. */
+  background: transparent;
   --wall-shift-x: 0rem;
   --wall-shift-y: 0rem;
 }
 
-/* Original brown wood tabletop — warm base with fine grain stripes, broad
-   grain bands, a warmth wash, and plank seams every 260px. The plank seams
-   are a visible, recurring feature that give the eye a reference while
-   panning — that's what made this surface "feel" like it was moving. The
-   painted-wall replacements had no such reference, so a 2000px pan looked
-   indistinguishable from standing still. */
+/* Tile layer fills .map. Tile % positioning resolves against 100vh × 100vw. */
+.tile-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.tile-layer > * { pointer-events: auto; }
+
+/* Wall on .map::before — large extent so navigation parallax doesn't
+   reveal edges. */
 .map::before {
   content: "";
   position: absolute;
-  /* Extent sized for any plausible pan + parallax. Horizontally -80vw to
-     +180vw (260vw total) gives ~80vw of buffer on each side — enough to
-     absorb the maximum parallax shift (up to ~28vw on edge-grid tiles)
-     with room to spare. Vertically 3000vh covers any realistic pan. */
   top: -500vh;
   left: -80vw;
   width: 260vw;
   height: 3000vh;
   pointer-events: none;
   z-index: -1;
-  /* Parallax translate driven by CSS variables on .map. Transitions
-     smoothly so the wall drifts rather than snapping when a new tile is
-     centered. This is ADDED onto .map's own transform during page-pan,
-     so wall motion from navigation + motion from scroll compose cleanly.
-     NO transition by default — prevents a "fly-in" animation on page
-     load when centerOnTile from the URL hash sets the initial shift.
-     The transition is enabled by a .wall-transition-ready class added
-     to .map by map.js after the first paint settles. */
-  /* Combined translate: tile-navigation parallax (CSS vars from
-     centerOnTile) plus scroll parallax (CSS var from scroll listener
-     in openPage.js). Scroll subtracted because scrollY increases
-     downward and we want the wall to translate up when content
-     scrolls up. Factor 0.5 in the scroll listener makes wall drift
-     at half the speed of the scrolling content. */
-  transform: translate(
-    var(--wall-shift-x, 0rem),
-    calc(var(--wall-shift-y, 0rem) - var(--scroll-parallax, 0px))
-  );
+  transform: translate(var(--wall-shift-x, 0rem), var(--wall-shift-y, 0rem));
   background-color: #7a4a23;
   background-image:
-    /* Fine grain stripes — angle locked to 90deg exactly (the earlier
-       92deg added a tiny diagonal component that, combined with the
-       other vertical grain layer, produced visible moiré bands on
-       high-DPI phone screens). Period widened from 4px to 8px to
-       further reduce aliasing at fractional CSS-pixel scales. */
     repeating-linear-gradient(
       90deg,
       rgba(60, 30, 10, 0.14) 0px,
@@ -81,7 +55,6 @@
       transparent 1px,
       transparent 8px
     ),
-    /* broader grain bands — also exactly vertical */
     repeating-linear-gradient(
       90deg,
       rgba(40, 20, 8, 0.08) 0px,
@@ -89,19 +62,14 @@
       transparent 10px,
       transparent 44px
     ),
-    /* Warmth wash — SYMMETRIC so it tiles without a seam. Starts and ends
-       at the same color (#7a4a23 — the base), peaks lighter (#8e5a2c) at
-       the midpoint. When this gradient repeats every 200vh, each tile's
-       top meets the previous tile's bottom at identical color — no
-       visible line. */
-    linear-gradient(180deg,
+    linear-gradient(
+      180deg,
       #7a4a23 0%,
       #855229 25%,
       #8e5a2c 50%,
       #855229 75%,
-      #7a4a23 100%),
-    /* plank seams every 520px (260px plank + 260px next) — the key motion
-       reference. */
+      #7a4a23 100%
+    ),
     repeating-linear-gradient(
       0deg,
       transparent 0,
@@ -111,11 +79,11 @@
       transparent 263px,
       transparent 520px
     );
-  /* Warmth wash tiles every 200vh (two viewport heights) — subtle slow
-     variation rather than a rapid pulse. Symmetric gradient above means
-     tile boundaries are invisible. */
   background-size: auto, auto, 100% 200vh, auto;
   background-repeat: repeat, repeat, repeat, repeat;
+}
+.map.wall-transition-ready::before {
+  transition: transform 0.55s cubic-bezier(.2,.7,.2,1);
 }
 
 /* (Ambient tabletop imperfections removed — the "coffee ring" just read as a
@@ -127,14 +95,9 @@
   transition: none;
 }
 
-/* Once the page has finished initial layout (JS adds .wall-transition-ready
-   after the first paint), enable the wall's parallax transition so
-   clicking between tiles produces a smooth drift. On the initial load,
-   the transition is OFF — so the wall just paints in place instead of
-   flying in from (0,0). */
-.map.wall-transition-ready::before {
-  transition: transform 0.55s cubic-bezier(.2,.7,.2,1);
-}
+/* (Wall-transition-ready class used to ungate a ::before transition when
+   the wall was parallaxing. Wall is on body now with no transform; class
+   is harmless but unused. Kept for backward compat with map.js's RAF hook.) */
 
 /* =========================================================================
    TILE CONTAINERS (wrappers — positioned by tile layout logic)
@@ -239,12 +202,11 @@
   filter: drop-shadow(4px 8px 10px rgba(0, 0, 0, 0.35));
 }
 
-/* The title text on the small scrap — large enough to read at a glance
-   on a phone without pinching. */
+/* The title text on the small scrap — readable at arm's length. */
 .tile-base .scrap-title {
   font-family: var(--tile-font, var(--font-hand-casual));
   color: var(--ink-color, var(--ink-blue));
-  font-size: 1.6rem;
+  font-size: 1.35rem;
   line-height: 1.05;
   margin: 0;
   padding: 0 6px;
@@ -324,7 +286,7 @@
 
 .tile-container.sticky .scrap-title {
   font-family: var(--font-hand-marker);
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   letter-spacing: 0.5px;
   color: var(--ink-color, #222);
 }
@@ -529,8 +491,8 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 320px;
-  min-height: 380px;
+  width: 260px;
+  min-height: 300px;
   /* Default (resting / off-stage): invisible. The actual off-stage position
      doesn't matter because visibility: hidden prevents rendering. Entry and
      exit motions are driven by CSS animations below (asymmetric). */
@@ -542,15 +504,15 @@
 }
 
 /* Content layout is on the INNER paper-body so it's clipped by the shape
-   along with the background. Extra bottom padding keeps the "open →" link
+   along with the background. Bottom padding keeps the "open →" link
    clear of torn-edge clip paths (~92% of height). */
 .tile-expanded > .paper-body {
-  padding: 28px 26px 52px 26px;
+  padding: 20px 18px 40px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 14px;
+  gap: 10px;
   box-sizing: border-box;
 }
 
@@ -657,20 +619,17 @@
 
 /* Sticky-note expanded sizing */
 .tile-container.sticky .tile-expanded {
-  min-height: 340px;
-  width: 320px;
+  min-height: 270px;
+  width: 260px;
 }
-/* Larger drop-shadow on the cover's paper-body (shadow now lives on the
-   actual rendered shape, so torn/rip clip paths get a correctly-shaped
-   shadow for free). */
 .tile-container.sticky .tile-expanded .paper-body {
   filter: drop-shadow(6px 10px 18px rgba(0,0,0,0.45));
 }
 
 /* Scrap expanded sizing */
 .tile-container.scrap .tile-expanded {
-  min-height: 380px;
-  width: 340px;
+  min-height: 300px;
+  width: 280px;
 }
 .tile-container.scrap .tile-expanded .paper-body {
   filter: drop-shadow(5px 9px 16px rgba(0,0,0,0.40));
@@ -680,21 +639,21 @@
 .tile-expanded .expanded-title {
   font-family: var(--font-hand-marker);
   color: var(--ink-color, var(--ink-blue));
-  font-size: 1.8rem;
+  font-size: 1.45rem;
   line-height: 1.1;
   margin: 2px 0 0 0;
   text-align: center;
 }
 .tile-container.scrap .tile-expanded .expanded-title {
   font-family: var(--tile-font, var(--font-hand-casual));
-  font-size: 2rem;
+  font-size: 1.6rem;
   font-weight: 700;
 }
 .tile-expanded .expanded-text {
   font-family: var(--tile-font, var(--font-hand-neat));
   color: var(--ink-color, var(--ink-black));
-  font-size: 1.1rem;
-  line-height: 1.35;
+  font-size: 0.95rem;
+  line-height: 1.3;
   text-align: center;
   margin: 0;
   padding: 0 4px;
@@ -704,7 +663,7 @@
 .tile-expanded .expanded-open {
   font-family: var(--font-hand-marker);
   color: var(--ink-red);
-  font-size: 1.35rem;
+  font-size: 1.15rem;
   text-decoration: none;
   border-bottom: 2px solid var(--ink-red);
   padding: 2px 10px 1px;
@@ -726,15 +685,15 @@
    Full content height (set by JS). Pans with the rest of the map.
    ========================================================================= */
 .mini-window-container {
-  /* In normal body flow so it contributes to document height — body
-     scrolls naturally when a paper is open. Default (closed) state is
-     display: none, so it takes no space; opening switches to block +
-     runs a short drop-in animation. */
+  /* Fixed overlay centered in viewport. Iframe inside scrolls its own
+     content internally. Slide-in/out from the side is the entry/exit. */
   display: none;
-  position: relative;
-  margin: 8vh auto 20vh auto;
+  position: fixed;
+  top: 7vh;
+  left: 50%;
   width: min(86vw, 780px);
-  transform: rotate(-0.6deg);
+  height: 86vh;
+  transform: translateX(-50%) rotate(-0.6deg);
   z-index: 500;
   padding: 36px 30px 40px 30px;
   box-sizing: border-box;
@@ -779,59 +738,50 @@
 .mini-window-container::before { left: 8%;  transform: rotate(-6deg); }
 .mini-window-container::after  { right: 8%; transform: rotate(7deg); }
 
-/* Open: show the paper and run a short drop-in animation. */
+/* Open: slide in from the right. */
 .mini-window-container.open {
   display: block;
   pointer-events: auto;
-  animation: paper-enter 0.45s cubic-bezier(.17,.62,.22,1) both;
+  animation: paper-slide-in 0.5s cubic-bezier(.22,.68,.28,1) both;
 }
 
-/* Closing: stays display:block briefly while the fade-up animation runs,
-   then JS sets display: none (via removing both .open and .closing). */
+/* Closing: slide out to the left. JS removes both classes after
+   animation completes, returning to display: none. */
 .mini-window-container.closing {
   display: block;
   pointer-events: none;
-  animation: paper-exit 0.3s ease both;
+  animation: paper-slide-out 0.4s cubic-bezier(.4,0,.7,0) both;
 }
 
-/* Entry: short drop-in from a small offset above. No more huge -110vh
-   travel; with native body scroll, the paper lands in place and the user
-   scrolls normally from there. */
-@keyframes paper-enter {
+/* Entry: paper slides in from the right edge. The container's usual
+   resting transform is `translateX(-50%) rotate(-0.6deg)` for centering
+   + slight tilt; we animate to that from an off-screen-right position. */
+@keyframes paper-slide-in {
   0% {
-    transform: rotate(-3deg) translateY(-40px);
-    opacity: 0;
-  }
-  30% {
-    transform: rotate(-3deg) translateY(-40px);
-    opacity: 0;
+    transform: translateX(calc(-50% + 120vw)) rotate(6deg);
   }
   100% {
-    transform: rotate(-0.6deg) translateY(0);
-    opacity: 1;
+    transform: translateX(-50%) rotate(-0.6deg);
   }
 }
 
-/* Exit: fade up slightly and vanish. JS scrolls body back to 0 after. */
-@keyframes paper-exit {
+/* Exit: paper slides off to the left. */
+@keyframes paper-slide-out {
   0% {
-    transform: rotate(-0.6deg) translateY(0);
-    opacity: 1;
+    transform: translateX(-50%) rotate(-0.6deg);
   }
   100% {
-    transform: rotate(-2deg) translateY(-30px);
-    opacity: 0;
+    transform: translateX(calc(-50% - 120vw)) rotate(-6deg);
   }
 }
 
-/* The iframe itself fills its container; height set inline by JS */
+/* Iframe fills its container and scrolls its own content. */
 .mini-window {
   display: block;
   width: 100%;
   height: 100%;
   border: none;
   background: transparent;
-  overflow: hidden;
   pointer-events: auto;
 }
 
@@ -919,30 +869,30 @@ body.page-open .close-button {
    Responsive tweaks
    ========================================================================= */
 @media (max-width: 1000px) {
-  .tile-expanded { width: 280px; min-height: 340px; }
-  .tile-container.scrap .tile-expanded { width: 300px; }
+  .tile-expanded { width: 240px; min-height: 270px; }
+  .tile-container.scrap .tile-expanded { width: 260px; min-height: 280px; }
   .mini-window-container { width: 92vw; }
 }
 
 @media (max-width: 700px) {
-  /* Larger tile + larger text on phones — the previous sizes were too
-     small to read comfortably at arm's length. */
-  .tile-container { width: 140px; height: 140px; }
+  /* Tiles only a touch bigger than the original 120px — enough for the
+     bumped text to fit comfortably without dominating the viewport. */
+  .tile-container { width: 126px; height: 126px; }
   .tile-container.expanded,
   .tile-container.connected,
   .tile-container.dimmed,
   .tile-container:hover {
-    width: 140px;
-    height: 140px;
+    width: 126px;
+    height: 126px;
   }
-  .tile-base .scrap-title { font-size: 1.35rem; }
-  .tile-container.sticky .scrap-title { font-size: 1.25rem; }
+  .tile-base .scrap-title { font-size: 1.2rem; }
+  .tile-container.sticky .scrap-title { font-size: 1.1rem; }
   .tile-expanded {
-    width: 78vw;
-    min-height: 300px;
-    padding: 24px 20px;
+    width: 68vw;
+    min-height: 240px;
   }
-  .tile-container.scrap .tile-expanded { width: 80vw; }
+  .tile-container.scrap .tile-expanded { width: 70vw; min-height: 250px; }
+  .tile-expanded > .paper-body { padding: 18px 14px 32px 14px; gap: 8px; }
   .mini-window-container {
     width: 96vw;
     padding: 26px 16px 30px;

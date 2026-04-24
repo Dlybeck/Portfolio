@@ -22,10 +22,8 @@ class MiniWindow {
         this.closeButton = document.querySelector(".close-button");
         this.closeLabel  = this.closeButton ? this.closeButton.querySelector('.tab') : null;
         this.navigationHistory = [];
-        this.resizeObserver = null;
 
         this.setEvents();
-        this._installScrollParallax();
     }
 
     // ---------------------- open / close ----------------------
@@ -37,7 +35,6 @@ class MiniWindow {
         const normalized = this.normalizeUrl(route);
         this._loadInto(normalized);
 
-        window.scrollTo(0, 0);
         this.container.classList.remove('closing');
         this.container.classList.add('open');
         document.body.classList.add('page-open');
@@ -58,7 +55,6 @@ class MiniWindow {
         this.navigationHistory.push(normalized);
         this._loadInto(normalized);
         this.updateCloseButtonLabel();
-        window.scrollTo(0, 0);
     }
 
     goBack() {
@@ -67,17 +63,11 @@ class MiniWindow {
         const previousUrl = this.navigationHistory[this.navigationHistory.length - 1];
         this._loadInto(previousUrl);
         this.updateCloseButtonLabel();
-        window.scrollTo(0, 0);
         return true;
     }
 
     _loadInto(url) {
         this._showLoadingScrap();
-        // Reset iframe height so the previous page's (possibly much
-        // taller) height doesn't persist while the new page loads —
-        // otherwise body stays tall with extra empty space until the new
-        // measurement completes.
-        this.page.style.height = '';
         this.page.onload = () => this._onIframeLoad();
         this.page.setAttribute('src', url);
     }
@@ -85,98 +75,48 @@ class MiniWindow {
     _onIframeLoad() {
         let doc = null;
         try { doc = this.page.contentDocument; } catch (_) {}
+        if (!doc || !doc.body) { this._hideLoadingScrap(); return; }
 
-        if (!doc || !doc.body) {
-            this.page.style.height = (window.innerHeight * 0.9) + 'px';
-            this._hideLoadingScrap();
-            return;
-        }
-
-        // Inject styles inside the iframe: disable its own scroll (the
-        // outer body scrolls instead), apply the paper theme.
+        // Inject paper theme. Keep scroll ENABLED inside the iframe —
+        // the iframe scrolls its own content internally; outer viewport
+        // stays fixed. `touch-action: pan-y` opts into native vertical
+        // touch panning so mobile feels smooth without any JS
+        // forwarding / custom momentum fighting the browser.
         const style = doc.createElement('style');
         style.setAttribute('data-paper-table', '');
         style.textContent = `
             html, body {
-                overflow: hidden !important;
-                height: auto !important;
                 background: transparent !important;
-                font-family: 'Kalam', 'Caveat', cursive !important;
+                font-family: Georgia, 'Times New Roman', Times, serif !important;
                 color: #1b1b1b !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                touch-action: pan-y !important;
             }
+            body { overflow-y: auto !important; overflow-x: hidden !important; }
             #topBtn { display: none !important; }
             .section { background-color: rgba(255,255,255,0.55) !important; border-color: rgba(0,0,0,0.3) !important; }
             header { background-color: rgba(26, 58, 110, 0.85) !important; }
         `;
         doc.head.appendChild(style);
 
-        requestAnimationFrame(() => this._measureAndSize(doc));
-
-        if (this.resizeObserver) this.resizeObserver.disconnect();
-        this.resizeObserver = new ResizeObserver(() => this._measureAndSize(doc));
-        this.resizeObserver.observe(doc.body);
-        Array.from(doc.images || []).forEach(img => {
-            if (!img.complete) img.addEventListener('load', () => this._measureAndSize(doc));
-        });
-
         this._hideLoadingScrap();
-    }
-
-    _measureAndSize(doc) {
-        // Measure actual content bottom by finding the lowest-bottomed
-        // visible child of body. body.scrollHeight can over-report for
-        // pages with trailing margins, flex gaps, or inline whitespace
-        // after the last element — we were seeing that as "extra length
-        // for no reason" on some pages. Iterating top-level children
-        // and taking max(offsetTop + offsetHeight) trims this cleanly.
-        let contentBottom = 0;
-        const children = doc.body.children;
-        for (let i = 0; i < children.length; i++) {
-            const el = children[i];
-            if (el.offsetParent === null) continue;       // display: none
-            if (el.id === 'topBtn') continue;             // fixed-position helper
-            const bottom = el.offsetTop + el.offsetHeight;
-            if (bottom > contentBottom) contentBottom = bottom;
-        }
-        // Also consult body/document scrollHeight as a safety floor in
-        // case offsetTop/Height is unreliable (e.g. transformed
-        // descendants). Take the min of our measurement and scrollHeight
-        // so we bound extra whitespace.
-        const bodyScroll = doc.body.scrollHeight;
-        const docScroll  = doc.documentElement ? doc.documentElement.scrollHeight : 0;
-        const scrollMax  = Math.max(bodyScroll, docScroll);
-
-        // Start with contentBottom + small pad; if it's wildly less than
-        // scrollMax, trust scrollMax (some layouts confuse offsetParent).
-        let h = contentBottom + 24;
-        if (h < scrollMax * 0.5) h = scrollMax;
-        h = Math.max(240, h);
-
-        this.page.style.height = h + 'px';
     }
 
     // ---------------------- show / hide ----------------------
 
     hide() {
+        document.removeEventListener('click', this._outsideHandler, true);
         document.body.classList.remove('page-open');
         this.container.classList.remove('open');
         this.container.classList.add('closing');
 
-        document.removeEventListener('click', this._outsideHandler, true);
-
-        const EXIT_MS = 320;
+        // Wait for the slide-out animation to finish, then tear down.
+        const EXIT_MS = 420;
         setTimeout(() => {
             this.container.classList.remove('closing');
             this.page.setAttribute('src', '');
-            this.page.style.height = '';
-            if (this.resizeObserver) {
-                this.resizeObserver.disconnect();
-                this.resizeObserver = null;
-            }
             this.navigationHistory = [];
-            window.scrollTo(0, 0);
         }, EXIT_MS);
     }
 
@@ -266,25 +206,6 @@ class MiniWindow {
         };
     }
 
-    /**
-     * Wall parallax — on scroll, update a CSS var on .map that the wall
-     * underlay (::before) reads. The wall translates at 0.5× the scroll
-     * speed so it drifts slowly behind the paper as the user scrolls.
-     * Passive listener + RAF-coalesced writes = essentially free.
-     */
-    _installScrollParallax() {
-        let pending = false;
-        const map = document.querySelector('.map');
-        if (!map) return;
-        window.addEventListener('scroll', () => {
-            if (pending) return;
-            pending = true;
-            requestAnimationFrame(() => {
-                pending = false;
-                map.style.setProperty('--scroll-parallax', (window.scrollY * 0.5) + 'px');
-            });
-        }, { passive: true });
-    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {

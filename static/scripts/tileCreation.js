@@ -15,15 +15,16 @@ const SCRAP_VARIANTS = [
     "scrap-ruled", "scrap-graph", "scrap-plain", "scrap-kraft", "scrap-index",
     "scrap-legal", "scrap-dotgrid", "scrap-manila", "scrap-receipt", "scrap-napkin"
 ];
-// Shape (clip-path) variants — only applied to SCRAPS. Stickies keep their
-// folded-corner clip. Includes "shape-rect" as a no-op so some scraps stay
-// plain rectangles (otherwise every scrap would be deformed). Duplicated
-// "shape-rect" entries bias the distribution toward rectangular by default.
+// Shape (clip-path) variants — ONLY ripped/torn looks. Clean diagonal
+// cuts (slant-left/right) were removed because a paper scrap with a
+// straight diagonal edge looks like it was cut with scissors, not
+// ripped; that's inconsistent with the "scraps of paper" aesthetic.
+// "shape-rect" is the no-op default and is duplicated to bias most
+// scraps toward plain rectangles.
 const SCRAP_SHAPES = [
-    "shape-rect", "shape-rect", "shape-rect",
+    "shape-rect", "shape-rect", "shape-rect", "shape-rect",
     "shape-torn-bottom", "shape-torn-top", "shape-torn-both",
-    "shape-corner-bite", "shape-slant-right", "shape-slant-left",
-    "shape-ripped-side"
+    "shape-corner-bite", "shape-ripped-side"
 ];
 const TILE_FONTS = ["var(--font-hand-casual)", "var(--font-hand-neat)", "var(--font-hand-thin)"];
 const INK_COLORS_SCRAP = ["var(--ink-blue)", "var(--ink-black)", "var(--ink-pencil)"];

@@ -99,7 +99,7 @@ body {
 
 .navbar-title {
   font-family: var(--font-hand-marker);
-  font-size: 1.25rem;
+  font-size: 1.55rem;
   font-weight: normal;
   color: var(--ink-blue);
   text-decoration: none;
@@ -110,7 +110,7 @@ body {
 }
 
 .navbar-logo {
-  height: 1.8rem;
+  height: 2.1rem;
   width: auto;
   object-fit: contain;
   border: 1px solid rgba(0,0,0,.15);

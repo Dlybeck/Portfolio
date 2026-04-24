@@ -239,12 +239,13 @@
   filter: drop-shadow(4px 8px 10px rgba(0, 0, 0, 0.35));
 }
 
-/* The title text on the small scrap */
+/* The title text on the small scrap — large enough to read at a glance
+   on a phone without pinching. */
 .tile-base .scrap-title {
   font-family: var(--tile-font, var(--font-hand-casual));
   color: var(--ink-color, var(--ink-blue));
-  font-size: 1.25rem;
-  line-height: 1.1;
+  font-size: 1.6rem;
+  line-height: 1.05;
   margin: 0;
   padding: 0 6px;
   word-break: break-word;
@@ -323,7 +324,7 @@
 
 .tile-container.sticky .scrap-title {
   font-family: var(--font-hand-marker);
-  font-size: 1.15rem;
+  font-size: 1.4rem;
   letter-spacing: 0.5px;
   color: var(--ink-color, #222);
 }
@@ -485,21 +486,9 @@
   );
 }
 
-/* Slanted right edge — non-rectangular cut going diagonally */
-.tile-container.shape-slant-right .tile-base .paper-body,
-.tile-expanded.shape-slant-right .paper-body {
-  clip-path: polygon(
-    0 0, 96% 0, 88% 100%, 0 100%
-  );
-}
-
-/* Slanted left edge (mirror) */
-.tile-container.shape-slant-left .tile-base .paper-body,
-.tile-expanded.shape-slant-left .paper-body {
-  clip-path: polygon(
-    4% 0, 100% 0, 100% 100%, 12% 100%
-  );
-}
+/* (Removed shape-slant-right and shape-slant-left — clean diagonal cuts
+   look scissor-cut rather than ripped; that's inconsistent with the
+   scrap-paper aesthetic. Only torn/jagged shapes remain.) */
 
 /* Jagged left edge — looks like paper was ripped out of a binder */
 .tile-container.shape-ripped-side .tile-base .paper-body,
@@ -936,15 +925,18 @@ body.page-open .close-button {
 }
 
 @media (max-width: 700px) {
-  .tile-container { width: 120px; height: 120px; }
+  /* Larger tile + larger text on phones — the previous sizes were too
+     small to read comfortably at arm's length. */
+  .tile-container { width: 140px; height: 140px; }
   .tile-container.expanded,
   .tile-container.connected,
   .tile-container.dimmed,
   .tile-container:hover {
-    width: 120px;
-    height: 120px;
+    width: 140px;
+    height: 140px;
   }
-  .tile-base .scrap-title { font-size: 1rem; }
+  .tile-base .scrap-title { font-size: 1.35rem; }
+  .tile-container.sticky .scrap-title { font-size: 1.25rem; }
   .tile-expanded {
     width: 78vw;
     min-height: 300px;
@@ -955,5 +947,5 @@ body.page-open .close-button {
     width: 96vw;
     padding: 26px 16px 30px;
   }
-  .close-button { top: 12px; right: 10px; font-size: 1.1rem; padding: 6px 12px 8px; }
+  .close-button { top: 12px; right: 10px; font-size: 1.2rem; padding: 8px 14px 10px; }
 }

@@ -92,8 +92,11 @@
    ========================================================================= */
 .tile-container {
   position: absolute;
-  width: 150px;
-  height: 150px;
+  /* Tile size scales with smaller viewport dimension (vmin), bounded
+     to a tappable minimum and a comfortable maximum. Square because
+     tiles are square. */
+  width: clamp(108px, 18vmin, 200px);
+  height: clamp(108px, 18vmin, 200px);
   pointer-events: auto;
   /* Default stacking level for a resting tile. Animating tiles get
      elevated via .expanded / .cover-leaving-* below so their in-motion
@@ -128,8 +131,8 @@
 .tile-container.dimmed,
 .tile-container:hover,
 .tile-container.expanded:hover {
-  width: 150px;
-  height: 150px;
+  width: clamp(108px, 18vmin, 200px);
+  height: clamp(108px, 18vmin, 200px);
 }
 
 /* The "dimmed" class (still toggled by existing JS) is now a no-op visually;
@@ -186,11 +189,12 @@
   filter: drop-shadow(4px 8px 10px rgba(0, 0, 0, 0.35));
 }
 
-/* The title text on the small scrap — readable at arm's length. */
+/* The title text on the small scrap — readable at arm's length.
+   Scales with vmin so titles grow on bigger screens. */
 .tile-base .scrap-title {
   font-family: var(--tile-font, var(--font-hand-casual));
   color: var(--ink-color, var(--ink-blue));
-  font-size: 1.35rem;
+  font-size: clamp(0.78rem, 2.4vmin, 1.7rem);
   line-height: 1.05;
   margin: 0;
   padding: 0 6px;
@@ -270,9 +274,36 @@
 
 .tile-container.sticky .scrap-title {
   font-family: var(--font-hand-marker);
-  font-size: 1.2rem;
+  font-size: clamp(0.78rem, 2.2vmin, 1.55rem);
   letter-spacing: 0.5px;
   color: var(--ink-color, #222);
+  /* Sticky tiles are HUBS (route to other tiles, not a leaf page).
+     Hand-drawn underline via a pseudo-element + SVG mask. The SVG
+     defines the underline shape (wobble, multi-pass, etc.); the mask
+     is filled with currentColor so the underline matches the ink. */
+  position: relative;
+  padding-bottom: 8px;
+}
+.tile-container.sticky .scrap-title::after {
+  content: "";
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: 0;
+  height: 7px;
+  background-color: currentColor;
+  -webkit-mask-image: var(--title-underline-mask);
+          mask-image: var(--title-underline-mask);
+  -webkit-mask-size: 100% 100%;
+          mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  /* Slight rotation + optional horizontal flip per tile, so even
+     the same SVG variant looks subtly different across tiles. With
+     4 SVG variants × 2 flip states × ~20 rotation steps, the pool
+     of distinct visual underlines is 160+. */
+  transform: rotate(var(--title-underline-rot, 0deg))
+             scaleX(var(--title-underline-flip, 1));
 }
 
 /* =========================================================================
@@ -449,7 +480,7 @@
 .tile-container.scrap .scrap-title {
   font-family: var(--tile-font, var(--font-hand-casual));
   color: var(--ink-color, var(--ink-blue));
-  font-size: 1.2rem;
+  font-size: clamp(0.78rem, 2.2vmin, 1.55rem);
   font-weight: 600;
 }
 
@@ -601,19 +632,19 @@
   }
 }
 
-/* Sticky-note expanded sizing */
+/* Sticky-note expanded sizing — vmin-scaled with safe bounds. */
 .tile-container.sticky .tile-expanded {
-  min-height: 270px;
-  width: 260px;
+  width: clamp(190px, 32vmin, 360px);
+  min-height: clamp(210px, 36vmin, 400px);
 }
 .tile-container.sticky .tile-expanded .paper-body {
   filter: drop-shadow(6px 10px 18px rgba(0,0,0,0.45));
 }
 
-/* Scrap expanded sizing */
+/* Scrap expanded sizing — vmin-scaled with safe bounds. */
 .tile-container.scrap .tile-expanded {
-  min-height: 300px;
-  width: 280px;
+  width: clamp(200px, 34vmin, 380px);
+  min-height: clamp(220px, 38vmin, 420px);
 }
 .tile-container.scrap .tile-expanded .paper-body {
   filter: drop-shadow(5px 9px 16px rgba(0,0,0,0.40));
@@ -623,14 +654,14 @@
 .tile-expanded .expanded-title {
   font-family: var(--font-hand-marker);
   color: var(--ink-color, var(--ink-blue));
-  font-size: 1.45rem;
+  font-size: clamp(1.1rem, 2.8vmin, 1.95rem);
   line-height: 1.1;
   margin: 2px 0 0 0;
   text-align: center;
 }
 .tile-container.scrap .tile-expanded .expanded-title {
   font-family: var(--tile-font, var(--font-hand-casual));
-  font-size: 1.6rem;
+  font-size: clamp(1.2rem, 3.2vmin, 2.2rem);
   font-weight: 700;
 }
 .tile-expanded .expanded-text {
@@ -864,29 +895,14 @@ body.page-open .close-button {
    Responsive tweaks
    ========================================================================= */
 @media (max-width: 1000px) {
-  .tile-expanded { width: 240px; min-height: 270px; }
-  .tile-container.scrap .tile-expanded { width: 260px; min-height: 280px; }
+  /* Tile + expanded sizing handled by clamp(...) on the base rules.
+     Other media-specific styles below. */
   .mini-window-container { width: 92vw; }
 }
 
 @media (max-width: 700px) {
-  /* Tiles only a touch bigger than the original 120px — enough for the
-     bumped text to fit comfortably without dominating the viewport. */
-  .tile-container { width: 126px; height: 126px; }
-  .tile-container.expanded,
-  .tile-container.connected,
-  .tile-container.dimmed,
-  .tile-container:hover {
-    width: 126px;
-    height: 126px;
-  }
-  .tile-base .scrap-title { font-size: 1.2rem; }
-  .tile-container.sticky .scrap-title { font-size: 1.1rem; }
-  .tile-expanded {
-    width: 68vw;
-    min-height: 240px;
-  }
-  .tile-container.scrap .tile-expanded { width: 70vw; min-height: 250px; }
+  /* Tile + expanded sizing handled by clamp(...) on base rules.
+     Padding inside expanded is mobile-tightened here. */
   .tile-expanded > .paper-body { padding: 18px 14px 32px 14px; gap: 8px; }
   .mini-window-container {
     width: 96vw;

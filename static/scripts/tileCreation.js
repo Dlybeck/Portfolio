@@ -112,6 +112,49 @@ window.createTile = function(title) {
     tileWrapper.style.setProperty('--tile-font',    pick(TILE_FONTS, seed.fontIdx));
     tileWrapper.style.setProperty('--ink-color',    pick(inkPool,    seed.inkIdx));
 
+    // Hub tiles (sticky paper type — no leaf page) get a handwritten
+    // underline on the title via a pseudo-element + SVG mask. Each
+    // tile picks an SVG shape, flip direction, and rotation from
+    // independent rehashes so neighboring tiles don't accidentally
+    // share the same look.
+    if (paperType === "sticky") {
+        const UNDERLINE_MASKS = [
+            // 1. Single wavy line (uneven peaks)
+            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 7' preserveAspectRatio='none'><path d='M2,4 Q15,1 28,4 Q40,7 55,3 Q70,1 85,4 Q93,5 98,3' stroke='white' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>\")",
+            // 2. Double-pass scribble (one above, one below, both wavy)
+            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 7' preserveAspectRatio='none'><path d='M3,3 Q30,2 50,3.5 T96,3' stroke='white' stroke-width='1.6' fill='none' stroke-linecap='round'/><path d='M5,5.2 Q35,4 60,5.4 T94,5' stroke='white' stroke-width='1.4' fill='none' stroke-linecap='round'/></svg>\")",
+            // 3. Big single-S squiggle
+            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 7' preserveAspectRatio='none'><path d='M1,4 C12,1 22,6 32,4 S52,1 64,4 S84,7 99,3.5' stroke='white' stroke-width='2.1' fill='none' stroke-linecap='round'/></svg>\")",
+            // 4. Quick stroke with a tail flick
+            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 7' preserveAspectRatio='none'><path d='M2,4.5 Q35,2 70,4 Q85,5 95,3 Q97,2.6 99,2' stroke='white' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>\")",
+            // 5. Tight zigzag — short alternating peaks
+            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 7' preserveAspectRatio='none'><path d='M2,3 L12,5 L22,3 L34,5.5 L46,2.8 L58,5.2 L70,3 L82,5 L94,3.2 L98,4' stroke='white' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>\")",
+            // 6. Slow undulation that fades at one end (variable thickness via stroke change)
+            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 7' preserveAspectRatio='none'><path d='M3,3.6 Q22,2 42,4 Q60,5.6 78,3.4 Q88,2.4 96,4.6' stroke='white' stroke-width='2.6' fill='none' stroke-linecap='round'/></svg>\")",
+        ];
+
+        // Three independent rehashes from the title's stableHash —
+        // avoids "same shape next to same shape" by making shape, flip,
+        // and rotation use uncorrelated bit slices.
+        function rehash(x) {
+            x = (x ^ (x >>> 16)) * 0x85ebca6b >>> 0;
+            x = (x ^ (x >>> 13)) * 0xc2b2ae35 >>> 0;
+            return (x ^ (x >>> 16)) >>> 0;
+        }
+        const h0 = window.stableHash(title);
+        const h1 = rehash(h0);
+        const h2 = rehash(h1);
+        const h3 = rehash(h2);
+
+        const idx = h1 % UNDERLINE_MASKS.length;
+        const flip = (h2 % 2) === 0 ? 1 : -1;
+        const rot = ((h3 % 100) / 100 - 0.5) * 4; // -2..+2 deg
+
+        tileWrapper.style.setProperty('--title-underline-mask', UNDERLINE_MASKS[idx]);
+        tileWrapper.style.setProperty('--title-underline-rot', rot.toFixed(2) + 'deg');
+        tileWrapper.style.setProperty('--title-underline-flip', flip);
+    }
+
     // ---- .tile-base : outer wrapper (handles rotation/jitter). ----
     // Structure:
     //   .tile-base            (outer, NO clip-path; tape lives here so it

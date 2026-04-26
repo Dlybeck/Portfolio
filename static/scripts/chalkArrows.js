@@ -18,21 +18,26 @@
     // Defaults match what we had hard-coded. The tweak panel mutates
     // this and calls redraw.
     window.chalkArrowsConfig = window.chalkArrowsConfig || {
-        // Length of the arrow as a fraction of the center-to-center
-        // distance: 0 = a dot at the midpoint, 1 = full line all the
-        // way to each tile's center.
-        length: 0.42,
+        // Distance in PIXELS from each tile's center to where the arrow
+        // ends. With inset ~ expanded-paper half-width (~120px on
+        // desktop, ~136px on mobile), arrow ends are HIDDEN beneath the
+        // centered tile's expanded paper — visually the arrow looks
+        // like it points away from the centered tile, with its near
+        // end vanishing under the paper. Same constant px regardless
+        // of tile spacing, so it works on every viewport size.
+        inset: 100,
         headStyle: 'open',
         headPosition: 'both',
-        // Sizes in PIXELS (was viewBox 0-100 units; pixel units mean
-        // arrows look the same on any aspect ratio).
         headLen: 15,
         headHalf: 12,
         strokeWidth: 5.2,
         opacity: 1,
         color: '#f3efe2',
-        // Subtle hand-drawn perpendicular wobble (pixels).
-        wobble: 42,
+        // Wobble is a FRACTION of line length (not absolute px) so the
+        // curvature looks similar regardless of how far apart the two
+        // tiles are. 0.14 means each control-point offset can be up to
+        // ±7% of line length on each side of the chord.
+        wobble: 0.14,
     };
     const cfg = () => window.chalkArrowsConfig;
 
@@ -119,11 +124,14 @@
     }
 
     /**
-     * Symmetric length-based endpoints. The arrow is always centered on
-     * the midpoint between the two tile centers; `length` (0..1) sets
-     * how far in each direction it reaches from that midpoint.
-     *   length = 0 → both ends at the midpoint (a dot)
-     *   length = 1 → from-end at fromCenter, to-end at toCenter
+     * Inset-based endpoints. Arrow ends sit a FIXED pixel distance
+     * inset from each tile's center, regardless of how far apart the
+     * tiles are. This ensures the arrow's near-tile portion is hidden
+     * under the centered tile's expanded paper across all viewport
+     * sizes (desktop wide, phone narrow, etc.).
+     *
+     * For very close tiles (where 2*inset would exceed total distance),
+     * the inset is scaled down to leave a small visible arrow.
      */
     function computeEndpoints(fromX, fromY, toX, toY) {
         const dx = toX - fromX;
@@ -133,17 +141,21 @@
 
         const ux = dx / len;
         const uy = dy / len;
-        const t = Math.max(0, Math.min(1, cfg().length));
-        const eachSide = (len / 2) * t;
-        const midX = (fromX + toX) / 2;
-        const midY = (fromY + toY) / 2;
+
+        let inset = Math.max(0, cfg().inset);
+        // For close tiles (small viewports especially), cap inset at
+        // 30% of total distance so at least 40% of the line stays
+        // visible. Without this, on iPhone-SE-width screens the entire
+        // arrow gets eaten by the inset on each side.
+        const maxInset = len * 0.3;
+        if (inset > maxInset) inset = maxInset;
 
         return {
             len,
-            fromX: midX - ux * eachSide,
-            fromY: midY - uy * eachSide,
-            toX:   midX + ux * eachSide,
-            toY:   midY + uy * eachSide,
+            fromX: fromX + ux * inset,
+            fromY: fromY + uy * inset,
+            toX:   toX   - ux * inset,
+            toY:   toY   - uy * inset,
             ux,
             uy,
         };
@@ -226,10 +238,11 @@
         const py = ux;
         const dx = toX - fromX;
         const dy = toY - fromY;
+        const lineLen = Math.sqrt(dx * dx + dy * dy);
 
-        // Two independent perpendicular offsets pulled from different
-        // bits of the seed.
-        const w = c.wobble;
+        // Wobble is a FRACTION of line length, so curvature stays
+        // visually consistent across short and long arrows.
+        const w = c.wobble * lineLen;
         const off1 = (((seed % 100) / 100) - 0.5) * w;
         const off2 = (((seed >> 7) % 100) / 100 - 0.5) * w;
 

@@ -145,9 +145,9 @@
 
         body.appendChild(sectionHeader('Length'));
         body.appendChild(row(
-            'Length',
-            '0 = dot at midpoint · 1 = full center-to-center',
-            'range', 'length', { min: 0, max: 1, step: 0.01 }
+            'Inset (px)',
+            'gap from each tile center to arrow end (covered by expanded paper)',
+            'range', 'inset', { min: 0, max: 200, step: 1 }
         ));
 
         body.appendChild(sectionHeader('Line style'));
@@ -168,8 +168,8 @@
         ));
         body.appendChild(row(
             'Wobble',
-            'hand-drawn curve (0 = straight)',
-            'range', 'wobble', { min: 0, max: 8, step: 0.1 }
+            'curvature as fraction of line length (0 = straight)',
+            'range', 'wobble', { min: 0, max: 0.5, step: 0.005 }
         ));
 
         panel.appendChild(body);

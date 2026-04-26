@@ -39,14 +39,14 @@ window.centerOnTile = function(title) {
     });
 
     // Parallax the wall underlay by about half the tile shift. The wall is
-    // painted on .map::before and reads these CSS variables. As you move
-    // between tiles the wall drifts in the same direction as the tiles but
-    // much slower, so the whole scene feels anchored together instead of
-    // the wall being a frozen backdrop.
+    // painted on .map::before and reads these CSS variables. Wall pans
+    // 1:1 with tiles — same magnitude, same units (vw/vh, matching the
+    // tiles' percentage-of-layer positioning) — so the chalkboard
+    // surface and the papers pinned to it move together as one scene.
     const mapEl = document.querySelector('.map');
     if (mapEl) {
-        mapEl.style.setProperty('--wall-shift-x', `${-centerPos.left * 0.5}rem`);
-        mapEl.style.setProperty('--wall-shift-y', `${-centerPos.top  * 0.5}rem`);
+        mapEl.style.setProperty('--wall-shift-x', `${-centerPos.left}vw`);
+        mapEl.style.setProperty('--wall-shift-y', `${-centerPos.top}vh`);
     }
 
     window.checkHomeButton();

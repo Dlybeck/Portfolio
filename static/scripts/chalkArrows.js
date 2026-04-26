@@ -116,7 +116,15 @@
 
         arrowsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         arrowsGroup.setAttribute('class', 'arrows-group');
-        arrowsGroup.style.transition = 'transform 0.45s cubic-bezier(.2,.7,.2,1)';
+        // ONE chalk filter applied to the whole arrows group — way cheaper
+        // than per-arrow filter passes (was 14 individual filter
+        // computations per redraw).
+        arrowsGroup.setAttribute('filter', 'url(#chalk-rough)');
+        // GPU compositing hint so transform animations don't re-rasterize
+        // the (expensive, filtered) arrow content every frame.
+        arrowsGroup.style.willChange = 'transform';
+        // Transition added AFTER the first render so initial position
+        // doesn't animate in from origin on page load.
         svg.appendChild(arrowsGroup);
 
         layer.appendChild(svg);
@@ -313,10 +321,8 @@
         if (e.len === 0) return null;
 
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        // Shared chalk-grain filter on the whole group — both halo
-        // and main stroke get the same fine displacement, so they
-        // stay perfectly aligned (no "double line" drift).
-        g.setAttribute('filter', 'url(#chalk-rough)');
+        // No per-arrow filter — the parent arrowsGroup carries the
+        // filter once for all arrows. Major perf win.
 
         const lineD = buildLineD(e.fromX, e.fromY, e.toX, e.toY, e.ux, e.uy, seed);
         appendChalkLine(g, lineD);
@@ -386,6 +392,7 @@
         });
     }
 
+    let firstOffsetApplied = false;
     function updateOffset(centerTitle) {
         if (!arrowsGroup || !window.positions) return;
         const centerPos = window.positions[centerTitle];
@@ -393,11 +400,25 @@
         const layer = document.querySelector('.tile-layer');
         if (!layer) return;
         const layerRect = layer.getBoundingClientRect();
-        // Tile centering uses (50% - centerLeft%, 52% - centerTop%) of
-        // layer. Same offset in pixels.
         const offsetX = ((50 - centerPos.left) / 100) * layerRect.width;
         const offsetY = ((52 - centerPos.top)  / 100) * layerRect.height;
         arrowsGroup.setAttribute('transform', `translate(${offsetX}, ${offsetY})`);
+
+        // Enable the transition AFTER the first transform has been
+        // committed — so the initial render snaps to position instead
+        // of animating in from origin. Two RAFs guarantee the browser
+        // has painted the initial state before we install the
+        // transition.
+        if (!firstOffsetApplied) {
+            firstOffsetApplied = true;
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (arrowsGroup) {
+                        arrowsGroup.style.transition = 'transform 0.45s cubic-bezier(.2,.7,.2,1)';
+                    }
+                });
+            });
+        }
     }
 
     /**

@@ -72,7 +72,10 @@ html, body {
   height: auto;
   max-width: 90%;
   z-index: 9999;
-  padding: 6px 14px 8px 14px;
+  /* Padding scales with viewport so the whole tab shrinks on phones
+     while staying generous on desktop. */
+  padding: clamp(4px, 1vmin, 8px) clamp(10px, 2vmin, 18px)
+           clamp(5px, 1.2vmin, 10px) clamp(10px, 2vmin, 18px);
   box-shadow:
     2px 3px 6px rgba(0,0,0,.35),
     inset 0 0 20px rgba(0,0,0,.03);
@@ -105,7 +108,10 @@ html, body {
 
 .navbar-title {
   font-family: var(--font-hand-marker);
-  font-size: 1.55rem;
+  /* Scales with viewport. At vmin=900 (typical laptop) 2.8vmin ≈
+     1.575rem — matches the old 1.55rem default. Floor keeps it
+     readable on phones; ceiling caps it on big monitors. */
+  font-size: clamp(0.95rem, 2.8vmin, 1.85rem);
   font-weight: normal;
   color: var(--ink-blue);
   text-decoration: none;
@@ -116,7 +122,7 @@ html, body {
 }
 
 .navbar-logo {
-  height: 2.1rem;
+  height: clamp(1.4rem, 3.8vmin, 2.5rem);
   width: auto;
   object-fit: contain;
   border: 1px solid rgba(0,0,0,.15);
@@ -133,8 +139,8 @@ html, body {
 .home-button {
   cursor: pointer;
   position: relative;
-  width: 1.6rem;
-  height: 1.6rem;
+  width: clamp(1.05rem, 2.85vmin, 1.85rem);
+  height: clamp(1.05rem, 2.85vmin, 1.85rem);
   margin-left: 6px;
   opacity: 0;
   visibility: hidden;

@@ -34,8 +34,13 @@
 }
 .tile-layer > * { pointer-events: auto; }
 
-/* Wall on .map::before — large extent so navigation parallax doesn't
-   reveal edges. */
+/* Wall on .map::before — chalkboard surface. Dark slate green base
+   with several stacked overlays that create the look of a real
+   classroom chalkboard:
+     - faint horizontal "eraser smear" bands (lighter chalk dust streaks)
+     - tiny scattered chalk-dust noise from an SVG turbulence filter
+     - subtle vignette-style vertical gradient so the board isn't flat
+   Large extent so navigation parallax doesn't reveal edges. */
 .map::before {
   content: "";
   position: absolute;
@@ -46,44 +51,23 @@
   pointer-events: none;
   z-index: -1;
   transform: translate(var(--wall-shift-x, 0rem), var(--wall-shift-y, 0rem));
-  background-color: #7a4a23;
+  background-color: #233b35;
   background-image:
-    repeating-linear-gradient(
-      90deg,
-      rgba(60, 30, 10, 0.14) 0px,
-      rgba(60, 30, 10, 0.14) 1px,
-      transparent 1px,
-      transparent 8px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      rgba(40, 20, 8, 0.08) 0px,
-      rgba(40, 20, 8, 0.08) 10px,
-      transparent 10px,
-      transparent 44px
-    ),
-    linear-gradient(
-      180deg,
-      #7a4a23 0%,
-      #855229 25%,
-      #8e5a2c 50%,
-      #855229 75%,
-      #7a4a23 100%
-    ),
-    repeating-linear-gradient(
-      0deg,
-      transparent 0,
-      transparent 260px,
-      rgba(0,0,0,0.28) 260px,
-      rgba(0,0,0,0.28) 263px,
-      transparent 263px,
-      transparent 520px
-    );
-  background-size: auto, auto, 100% 200vh, auto;
-  background-repeat: repeat, repeat, repeat, repeat;
+    /* Fine grain (chalk dust): 2050px tile, fine specks (freq 2.0),
+       fairly visible (alpha 0.26), variant 23. */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='2050' height='2050'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='2.0' numOctaves='3' stitchTiles='stitch' seed='23'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0.26 0 0 0 -0.13'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+    /* Broad patches (wear & lighting): 4000px tile, huge clouds
+       (freq 0.01), subtle (alpha 0.09), variant 30. */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='4000' height='4000'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.01' numOctaves='3' stitchTiles='stitch' seed='30'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0.09 0 0 0 -0.045'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 2050px 2050px, 4000px 4000px;
+  background-repeat: repeat, repeat;
 }
 .map.wall-transition-ready::before {
-  transition: transform 0.55s cubic-bezier(.2,.7,.2,1);
+  /* Match the tile-container left/top transition timing so the wall
+     parallax and the tile slide finish on the same frame. The chalkboard
+     texture makes any desync between tile motion and background motion
+     much more visible than the wood texture did. */
+  transition: transform 0.45s cubic-bezier(.2,.7,.2,1);
 }
 
 /* (Ambient tabletop imperfections removed — the "coffee ring" just read as a

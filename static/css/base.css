@@ -10,10 +10,17 @@
   --paper-cream: #f5eedd;
   --paper-white: #fafaf3;
 
-  --wood-dark:   #6b4423;
-  --wood-mid:    #8a5a2b;
-  --wood-light:  #a47040;
-  --wood-grain:  #5a3818;
+  /* Chalkboard slate palette (kept as --wood-* var names so existing
+     consumers don't need updating; values now reference chalkboard
+     greens instead of wood browns). */
+  --wood-dark:   #1a2e29;
+  --wood-mid:    #233b35;
+  --wood-light:  #2d4a43;
+  --wood-grain:  #14211e;
+  /* Chalk-on-board accent palette for arrows + decorations. */
+  --chalk-white: #f3efe2;
+  --chalk-soft:  rgba(243, 239, 226, 0.78);
+  --chalk-dust:  rgba(243, 239, 226, 0.32);
 
   /* Handwritten PRINT fonts only — no cursive. Each is a distinct print
      style so tiles can pick different looks via --tile-font. */

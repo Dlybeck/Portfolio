@@ -321,4 +321,6 @@ window.updateVisibility = function(centerTitle) {
             }
         }
     });
+
+    if (window.updateChalkArrows) window.updateChalkArrows(centerTitle);
 };

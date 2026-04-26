@@ -18,50 +18,34 @@ window.tileInfo = {
         `
         Welcome!
         <br><br>
-        Check out the neighboring tiles to explore aspects of David's life.
+        Check out the neighboring tiles and look out for "Open" buttons for more info!
         <br><br>
         Come back here if you ever get lost!
         `,
         ``
     ],
 
-    "Dev": [
-        [0, 0],  // Same position as Home (underneath)
-        `
-        My personal remote development hub
-        `,
-        `/dev`  // Opens dev hub
-    ],
-
     //Home
     "Hobbies": [
         [-1, -1],
         `
-        What I like to do with my free time!
+        All my favorites!
         <br><br>
-        (minus coding)
-        <br><br>
-        ((It's somewhere else))
-        <br><br>
-        (((----->)))
+        (Coding gets its own section)
         `,
         `/`
     ],
     "Projects": [
         [1, -1],
         `
-        The home for personal or Team projects I've developed
-        <br><br>
-        Don't judge too hard
+        Personal Projects I've developed
         `,
         `/`
     ],
     "Work Experience": [
         [1, 1],
         `
-        Look here for information on my work history
-        <br><br>
-        <small>#opentowork</small>
+        Junior Tennis Pro --> Innovation AI Developer
         `,
         `/jobs`
     ],
@@ -95,7 +79,7 @@ window.tileInfo = {
         `
         I've played for as long as I remember.
         <br><br>
-        Let me know if you need someone to hit with!
+        Let me know if you want to hit
         `,
         `/hobbies/tennis`
     ],
@@ -202,12 +186,12 @@ window.tileInfo = {
 
 /**
  * Classify a tile as "sticky" (hub) or "scrap" (leaf page) for the paper-table theme.
- * Keys of tilesData are hubs. Home/Dev are always hubs.
+ * Keys of tilesData are hubs. Home is always a hub.
  * @param {string} title
  * @returns {"sticky"|"scrap"}
  */
 window.getPaperType = function(title) {
-    if (title === "Home" || title === "Dev") return "sticky";
+    if (title === "Home") return "sticky";
     if (window.tilesData.hasOwnProperty(title)) return "sticky";
     return "scrap";
 };

@@ -5,21 +5,16 @@
 {% endblock %}
 
 {% block content %}
-    <link rel="stylesheet" href="/static/css/map.css?v=37">
-    {# .map is a fixed viewport-sized backdrop (wall + tiles). The paper
-       is a fixed overlay OUTSIDE .map with its own internal scroll — the
-       iframe handles scrolling its own content natively. #}
+    <link rel="stylesheet" href="/static/css/map.css?v=59">
+    {# .map = fixed viewport backdrop (wall + tiles).
+       .mini-window-container = ruled-paper viewer; iframe scrolls its own
+       content natively. Slides in from the right, slides up to close. #}
     <div class="map">
         <div class="tile-layer"></div>
     </div>
     <div class="mini-window-container">
         <iframe class="mini-window"></iframe>
     </div>
-    {# Close/back tabs live in a transform-free fixed overlay so their
-       position: fixed is reliably anchored to the viewport regardless of
-       what any other element does with transforms/will-change. #}
-    {# Single dynamic button — shows "back" if there's nav history,
-       "close" otherwise. Tapping anywhere outside the paper also closes. #}
     <div class="viewport-overlay">
         <div class="close-button" aria-label="close or back"><span class="tab">✕ close</span></div>
     </div>

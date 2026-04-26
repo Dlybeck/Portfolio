@@ -24,12 +24,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Create Dev tile (not in tilesData, but needs to be created before centering)
-    if (!createdTiles.has('Dev')) {
-        window.createTile('Dev');
-        createdTiles.add('Dev');
-    }
-
     // Add click handlers
     const tileContainers = document.querySelectorAll('.tile-container');
     tileContainers.forEach(container => {

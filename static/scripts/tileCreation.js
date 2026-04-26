@@ -131,7 +131,7 @@ window.createTile = function(title) {
 
     const baseTitle = document.createElement('h2');
     baseTitle.className = 'scrap-title';
-    baseTitle.textContent = title === 'Dev' ? 'Dev' : title;
+    baseTitle.textContent = title;
     baseBody.appendChild(baseTitle);
 
     // Tape as a sibling of paper-body (scraps only — stickies skip tape).
@@ -172,7 +172,7 @@ window.createTile = function(title) {
 
     const expTitle = document.createElement('h2');
     expTitle.className = 'expanded-title';
-    expTitle.textContent = title === 'Dev' ? 'Dev Hub' : title;
+    expTitle.textContent = title;
     expandedBody.appendChild(expTitle);
 
     const expText = document.createElement('p');
@@ -180,16 +180,16 @@ window.createTile = function(title) {
     expText.innerHTML = texts[title] || '';
     expandedBody.appendChild(expText);
 
-    // "open →" link — only for tiles that actually have a leaf route (scrap + Dev).
-    // Hub stickies (keys of tilesData other than Home/Dev) have routes "/" in
-    // tileData.js, which would just reload the current map, so we skip them.
+    // "open →" link — only for tiles that actually have a leaf route.
+    // Hub stickies (keys of tilesData) have route "/" in tileData.js, which
+    // would just reload the current map, so we skip them.
     const route = routes[title];
     const isHubWithoutPage = window.tilesData.hasOwnProperty(title) && route === '/';
     if (route && !isHubWithoutPage) {
         const openLink = document.createElement('a');
         openLink.className = 'expanded-open';
         openLink.href = route;
-        openLink.textContent = title === 'Dev' ? 'enter →' : 'open →';
+        openLink.textContent = 'open →';
         openLink.addEventListener('click', (event) => {
             event.preventDefault();
             event.stopPropagation();
@@ -271,7 +271,6 @@ window.updateVisibility = function(centerTitle) {
     const tiles = document.querySelectorAll('.tile-container');
     tiles.forEach(tile => {
         const tileTitle = tile.dataset.title;
-        if (tileTitle === 'Dev') return;
 
         const wasExpanded = tile.classList.contains('expanded');
         const shouldBeExpanded = (tileTitle === centerTitle);

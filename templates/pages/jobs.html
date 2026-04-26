@@ -30,6 +30,17 @@
             margin: 0;
         }
 
+        /* Logos: cap to 100px tall on desktop, scale down on narrow
+           viewports so wide logos (e.g. ScribbleScan) don't exceed the
+           page width. max-width: 100% prevents horizontal overflow;
+           max-height: 100px keeps the visual size intent. */
+        .section img {
+            max-width: 100%;
+            max-height: 100px;
+            height: auto;
+            width: auto;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -39,7 +50,7 @@
 
 
 <div class="container"> 
-    <h2 id="location">Work Experience</h2>
+    <h2 id="location">Professional History</h2>
 
     <div class="section">
         <h2>General Resume</h2>
@@ -53,13 +64,20 @@
     </div>
 
     <div class="section">
-        <h2>Work History</h3>
+        <h2>Work History</h2>
+    </div>
+
+    <div class="section">
+        <img src="/static/images/Work/Denali.webp" height="100px" width="auto">
+        <h3>Denali Advanced Integration - Innovation AI Developer</h3>
+        <p>August 2025 - Present<br>
+        Building and deploying internal AI tools to make day-to-day work at Denali faster — including agents for workflow automation and helping individuals and teams across the company adopt AI in their own roles. Driving select external projects on edge/mobile AI and computer vision.</p>
     </div>
 
     <div class="section">
         <img src="/static/images/Work/ScribbleScan.webp" height="100px" width="auto">
         <h3>ScribbleScan LLC - Founder and Developer</h3>
-        <p>February 2025 - Present<br>
+        <p>February 2025 - April 2026<br>
         Solo-developed an industry-leading AI-based handwriting digitization service. Achieving ~11-22% higher character accuracy on average when compared to leading OCR and AI-based OCR services such as Pen to Print. This service is also capable of image/non-textual element preservation, ensuring no information is lost in translation. You can try it now at <a href="https://scribblescan.app" target="_blank">scribblescan.app</a>.</p>
     </div>
 
@@ -73,7 +91,7 @@
     <div class="section">
         <img src="/static/images/Work/Tech.webp" height="100px" width="auto">
         <h3>University of Puget Sound Technology Services Assistant II</h3>
-        <p>August 2022 - Current<br>
+        <p>August 2022 - Present<br>
         Answering phone calls and tickets from UPS faculty, staff and incoming students about varying tech issues. Then either helping fix those issues, or passing them to the correct people.</p>    
     </div>
 
@@ -100,7 +118,7 @@
 
     <div class="section">
         <img src="/static/images/Work/Tech.webp" height="100px" width="auto">
-        <h3>Univeristy of Puget Sound Technology Services Assistant I</h3>
+        <h3>University of Puget Sound Technology Services Assistant I</h3>
         <p>January 2022 - May 2022<br>
         Answering phone calls from UPS faculty, staff and incoming students about varying tech issues. Then either helping fix those issues, or passing them to the correct people.</p>
     </div>

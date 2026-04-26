@@ -689,10 +689,10 @@
      content internally. Slide-in/out from the side is the entry/exit. */
   display: none;
   position: fixed;
-  top: 7vh;
+  top: 5vh;
   left: 50%;
-  width: min(86vw, 780px);
-  height: 86vh;
+  width: min(92vw, 960px);
+  height: 90vh;
   transform: translateX(-50%) rotate(-0.6deg);
   z-index: 500;
   padding: 36px 30px 40px 30px;
@@ -765,13 +765,15 @@
   }
 }
 
-/* Exit: paper slides off to the left. */
+/* Exit: paper slides straight up out of view (instead of off to the
+   left) — feels cleaner and matches how a paper "lifts off the table"
+   when you're done with it. */
 @keyframes paper-slide-out {
   0% {
-    transform: translateX(-50%) rotate(-0.6deg);
+    transform: translateX(-50%) translateY(0) rotate(-0.6deg);
   }
   100% {
-    transform: translateX(calc(-50% - 120vw)) rotate(-6deg);
+    transform: translateX(-50%) translateY(-130vh) rotate(-1.2deg);
   }
 }
 
@@ -840,32 +842,6 @@ body.page-open .close-button {
 .close-button:hover .tab { transform: rotate(-2deg) scale(1.05); }
 
 /* =========================================================================
-   Dev tile — keep its 3D flip behavior; restyle as a hidden index card
-   ========================================================================= */
-.tile-container[data-title="Dev"] {
-  z-index: 0 !important;
-  opacity: 0;
-  transform: rotateY(180deg);
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-  pointer-events: none;
-}
-
-.tile-container[data-title="Home"] {
-  z-index: 10 !important;
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-}
-
-.tile-container[data-title="Home"].flipped-out {
-  pointer-events: none;
-}
-
-.tile-container[data-title="Dev"].flipped-in {
-  pointer-events: auto;
-}
-
-/* =========================================================================
    Responsive tweaks
    ========================================================================= */
 @media (max-width: 1000px) {
@@ -895,6 +871,11 @@ body.page-open .close-button {
   .tile-expanded > .paper-body { padding: 18px 14px 32px 14px; gap: 8px; }
   .mini-window-container {
     width: 96vw;
+    /* Push down so the paper doesn't overlap the taped navbar (top-left)
+       or the close button (top-right) on small screens. ~70px header
+       gutter clears both. Height shrinks to compensate. */
+    top: 72px;
+    height: calc(100vh - 84px);
     padding: 26px 16px 30px;
   }
   .close-button { top: 12px; right: 10px; font-size: 1.2rem; padding: 8px 14px 10px; }

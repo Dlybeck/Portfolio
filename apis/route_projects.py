@@ -26,6 +26,10 @@ async def test(request: Request):
 async def test(request: Request):
     return templates.TemplateResponse("pages/projects/websites/this_website/v2.html", {"request": request})
 
+@project_router.get("/projects/websites/this_website/v3")
+async def test(request: Request):
+    return templates.TemplateResponse("pages/projects/websites/this_website/v3.html", {"request": request})
+
 @project_router.get("/projects/programs")
 async def test(request: Request):
     return templates.TemplateResponse("pages/projects/programs.html", {"request": request})

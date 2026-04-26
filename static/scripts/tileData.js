@@ -106,9 +106,7 @@ window.tileInfo = {
     "Programs": [
         [2, 0],
         `
-        Programs I've made both for fun and for class
-        <br><br>
-        (Some of them are pretty old)
+        Code from side projects, old experiments and class
         `,
         `/projects/programs`
     ],
@@ -116,8 +114,6 @@ window.tileInfo = {
         [2, -2],
         `
         Web apps I've developed, and how they were made.
-        <br><br>
-        This is my favorite :)
         `,
         `/`
     ],
@@ -155,18 +151,16 @@ window.tileInfo = {
     "College": [
         [-2, 2],
         `
-        Don't come looking for me here
+        Class of 2025
         <br><br>
-        (I graduated)
+        CS degree, math minor, tennis team
         `,
         `/education/college`
     ],
     "Early Education": [
         [0, 2],
         `
-        Don't come looking for me here
-        <br><br>
-        (I graduated)
+        The classics.
         `,
         `/education/early_education`
     ],

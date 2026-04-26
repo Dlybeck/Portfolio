@@ -20,21 +20,19 @@
     window.chalkArrowsConfig = window.chalkArrowsConfig || {
         // Length of the arrow as a fraction of the center-to-center
         // distance: 0 = a dot at the midpoint, 1 = full line all the
-        // way to each tile's center. Symmetric — the line is always
-        // centered on the midpoint between the two tiles.
+        // way to each tile's center.
         length: 0.42,
-        // Arrowhead style: 'open' (V), 'closed' (filled triangle), 'none'.
         headStyle: 'open',
-        // Where to draw arrowheads: 'end', 'start', 'both', 'none'.
         headPosition: 'both',
-        headLen: 1.5,
-        headHalf: 1.2,
-        // Line style.
+        // Sizes in PIXELS (was viewBox 0-100 units; pixel units mean
+        // arrows look the same on any aspect ratio).
+        headLen: 15,
+        headHalf: 12,
         strokeWidth: 5.2,
         opacity: 1,
         color: '#f3efe2',
-        // Subtle hand-drawn perpendicular wobble (viewBox units).
-        wobble: 4.2,
+        // Subtle hand-drawn perpendicular wobble (pixels).
+        wobble: 42,
     };
     const cfg = () => window.chalkArrowsConfig;
 
@@ -57,8 +55,10 @@
         if (!layer) return null;
         svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('class', 'chalk-arrows');
-        svg.setAttribute('viewBox', '0 0 100 100');
-        svg.setAttribute('preserveAspectRatio', 'none');
+        // viewBox is set dynamically to match the layer's pixel
+        // dimensions in updateViewBox() so arrows render in 1:1 pixel
+        // space — no stretching, no aspect-ratio distortion of curves
+        // or arrowheads on narrow viewports.
         svg.style.cssText = [
             'position: absolute',
             'inset: 0',
@@ -84,13 +84,20 @@
         // stretched to the layer (~1000×600px on desktop), so the
         // equivalent physical bump height is ~0.5 viewBox units.
         const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        // Filter parameters recalibrated for pixel-space user coords
+        // (was viewBox 0-100):
+        //   baseFrequency 3.5 → 0.35 — noise features ~3px instead of
+        //     ~0.3px (which was sub-pixel and invisible)
+        //   surfaceScale 0.28 → 2.8 — bump height in pixels
+        //   filter region now spans -2000 to +5000 in both axes,
+        //     comfortably larger than any viewport
         defs.innerHTML = `
             <filter id="chalk-rough"
                     filterUnits="userSpaceOnUse"
                     primitiveUnits="userSpaceOnUse"
-                    x="-100" y="-100" width="300" height="300">
-                <feTurbulence type="fractalNoise" baseFrequency="3.5" numOctaves="3" seed="2" result="t"/>
-                <feDiffuseLighting in="t" surfaceScale="0.28" diffuseConstant="1.2" lighting-color="#f3efe2" result="light">
+                    x="-2000" y="-2000" width="7000" height="7000">
+                <feTurbulence type="fractalNoise" baseFrequency="0.35" numOctaves="3" seed="2" result="t"/>
+                <feDiffuseLighting in="t" surfaceScale="2.8" diffuseConstant="1.2" lighting-color="#f3efe2" result="light">
                     <feDistantLight azimuth="45" elevation="55"/>
                 </feDiffuseLighting>
                 <feComposite in="light" in2="SourceGraphic" operator="in" result="lit"/>
@@ -322,23 +329,45 @@
         while (arrowsGroup.firstChild) arrowsGroup.removeChild(arrowsGroup.firstChild);
     }
 
+    /**
+     * Sets the SVG's viewBox to match the layer's pixel dimensions.
+     * After this, 1 viewBox unit = 1 device pixel, so arrow geometry
+     * (curves, arrowheads, wobble) is NOT distorted by aspect-ratio
+     * stretching. Returns the layer rect for callers that need the
+     * pixel dimensions to convert tile positions.
+     */
+    function updateViewBox() {
+        const layer = document.querySelector('.tile-layer');
+        if (!layer || !svg) return null;
+        const r = layer.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0) return null;
+        svg.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`);
+        return r;
+    }
+
     function drawAllArrows() {
         if (!ensureSvg()) return;
         if (!window.tilesData || !window.positions) return;
+        const layerRect = updateViewBox();
+        if (!layerRect) return;
         clearArrows();
+
+        // Convert tile percentage positions to pixel coords.
+        const toPx = (pos) => ({
+            x: (pos.left / 100) * layerRect.width,
+            y: (pos.top  / 100) * layerRect.height,
+        });
 
         Object.entries(window.tilesData).forEach(([parent, children]) => {
             const pPos = window.positions[parent];
             if (!pPos) return;
+            const pPx = toPx(pPos);
             children.forEach((child) => {
                 const cPos = window.positions[child];
                 if (!cPos) return;
+                const cPx = toPx(cPos);
                 const seed = hash(parent + '|' + child);
-                const arrow = makeArrow(
-                    cPos.left, cPos.top,
-                    pPos.left, pPos.top,
-                    seed
-                );
+                const arrow = makeArrow(cPx.x, cPx.y, pPx.x, pPx.y, seed);
                 if (arrow) arrowsGroup.appendChild(arrow);
             });
         });
@@ -348,8 +377,13 @@
         if (!arrowsGroup || !window.positions) return;
         const centerPos = window.positions[centerTitle];
         if (!centerPos) return;
-        const offsetX = 50 - centerPos.left;
-        const offsetY = 52 - centerPos.top;
+        const layer = document.querySelector('.tile-layer');
+        if (!layer) return;
+        const layerRect = layer.getBoundingClientRect();
+        // Tile centering uses (50% - centerLeft%, 52% - centerTop%) of
+        // layer. Same offset in pixels.
+        const offsetX = ((50 - centerPos.left) / 100) * layerRect.width;
+        const offsetY = ((52 - centerPos.top)  / 100) * layerRect.height;
         arrowsGroup.setAttribute('transform', `translate(${offsetX}, ${offsetY})`);
     }
 
@@ -376,11 +410,22 @@
     window.redrawChalkArrows = function () {
         ensureSvg();
         drawAllArrows();
-        // Re-apply the offset for whatever tile is centered.
         const hash = decodeURIComponent(window.location.hash.slice(1));
         const center = (hash && window.positions && window.positions[hash])
             ? hash
             : 'Home';
         updateOffset(center);
     };
+
+    // Recompute on viewport resize. Arrow positions are in pixel
+    // coords matching the layer's current dimensions, so a resize
+    // requires re-running the whole pipeline. Debounced so we don't
+    // recompute on every resize tick during a continuous drag.
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            if (window.redrawChalkArrows) window.redrawChalkArrows();
+        }, 120);
+    });
 })();

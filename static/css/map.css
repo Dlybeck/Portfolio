@@ -644,25 +644,60 @@
   flex: 1;
   overflow: hidden;
 }
+/* "open" link — handwritten directly on the paper. Per-tile variety
+   in font, ink color, rotation, decoration via CSS variables and
+   modifier classes set in tileCreation.js. No hover transform or
+   shadow shifts; just `cursor: pointer` and a subtle decoration
+   variant so it reads as someone's annotation, not a UI button. */
 .tile-expanded .expanded-open {
-  font-family: var(--font-hand-marker);
-  color: var(--ink-red);
-  font-size: 1.15rem;
-  text-decoration: none;
-  border-bottom: 2px solid var(--ink-red);
-  padding: 2px 10px 1px;
-  cursor: pointer;
-  transition: transform 0.15s ease, color 0.15s ease;
+  display: inline-block;
   align-self: center;
+  font-family: var(--open-font, var(--font-hand-marker));
+  color: var(--open-ink, var(--ink-red));
+  font-size: 1.2rem;
+  letter-spacing: 0.3px;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 3px 8px 4px;
   margin-top: auto;
-  /* Extra breathing room beneath the link so heavy rips (shape-torn-both,
-     shape-ripped-side) can't clip through it. */
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  transform: rotate(var(--open-rot, 0deg));
+  /* No transform/box-shadow on hover. Only the cursor changes. */
 }
-.tile-expanded .expanded-open:hover {
-  color: #d43a3a;
-  transform: translateY(-2px) rotate(-1deg);
+
+/* Decoration variants — each tile gets one deterministically.
+   border-radius values are intentionally uneven so the "drawn shape"
+   doesn't look like a perfect CSS rectangle/oval. */
+
+.tile-expanded .expanded-open.deco-underline {
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
 }
+
+.tile-expanded .expanded-open.deco-circled {
+  border: 2px solid currentColor;
+  /* Lopsided ellipse — like a hand-drawn circle around the word. */
+  border-radius: 64% 36% 58% 42% / 48% 64% 36% 52%;
+  padding: 4px 14px 5px;
+  /* Same offset second-stroke trick as the boxed variant. */
+  box-shadow: 1.5px 1px 0 -0.5px currentColor;
+}
+
+.tile-expanded .expanded-open.deco-boxed {
+  border: 2px solid currentColor;
+  /* Strongly uneven percentage-based radii — each corner has a
+     different elliptical curve, so the box reads as someone drew it
+     by hand instead of a CSS-stamped rectangle. */
+  border-radius: 18% 7% 22% 11% / 14% 26% 9% 19%;
+  padding: 5px 13px 6px 14px;
+  /* Tiny secondary "stroke" offset down-right via box-shadow.
+     Simulates the wobble of someone drawing a rectangle with chalk —
+     the second pass doesn't quite line up with the first. */
+  box-shadow: 1px 1.5px 0 -0.5px currentColor;
+}
+
 
 /* =========================================================================
    MINI-WINDOW — A long strip of paper laid on the tabletop

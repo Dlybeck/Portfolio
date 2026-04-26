@@ -180,21 +180,52 @@ window.createTile = function(title) {
     expText.innerHTML = texts[title] || '';
     expandedBody.appendChild(expText);
 
-    // "open →" link — only for tiles that actually have a leaf route.
-    // Hub stickies (keys of tilesData) have route "/" in tileData.js, which
-    // would just reload the current map, so we skip them.
+    // "open" link — handwritten on the paper, with per-tile variety in
+    // the wording, font, ink color, rotation, and decoration. Same hash
+    // seed used for tile styling, so a given tile always renders the
+    // same way across reloads.
     const route = routes[title];
     const isHubWithoutPage = window.tilesData.hasOwnProperty(title) && route === '/';
     if (route && !isHubWithoutPage) {
         const openLink = document.createElement('a');
         openLink.className = 'expanded-open';
         openLink.href = route;
-        openLink.textContent = 'open →';
         openLink.addEventListener('click', (event) => {
             event.preventDefault();
             event.stopPropagation();
             window.openPage(route);
         });
+
+        const h = window.stableHash(title);
+        const OPEN_TEXTS = [
+            'open →', '→ open', 'see ▸', 'open it', 'go →',
+            'open this', 'check it out',
+        ];
+        const OPEN_INKS = [
+            '#a82828', '#1a3a6e', '#1b1b1b', '#5a3818', '#234a3e',
+        ];
+        const OPEN_FONTS = [
+            "'Architects Daughter', sans-serif",
+            "'Patrick Hand', sans-serif",
+            "'Gochi Hand', sans-serif",
+            "'Kalam', sans-serif",
+        ];
+        // Every link has SOME sort of decoration (underline, circle, or
+        // box) — never plain. Each tile picks one deterministically.
+        const OPEN_DECORATIONS = ['underline', 'circled', 'boxed'];
+
+        const textIdx = ((h / 89)   | 0) % OPEN_TEXTS.length;
+        const inkIdx  = ((h / 211)  | 0) % OPEN_INKS.length;
+        const fontIdx = ((h / 547)  | 0) % OPEN_FONTS.length;
+        const decoIdx = ((h / 1361) | 0) % OPEN_DECORATIONS.length;
+        const rotDeg  = ((((h / 4099) | 0) % 1000) / 1000 * 6 - 3).toFixed(2);
+
+        openLink.textContent = OPEN_TEXTS[textIdx];
+        openLink.style.setProperty('--open-ink', OPEN_INKS[inkIdx]);
+        openLink.style.setProperty('--open-font', OPEN_FONTS[fontIdx]);
+        openLink.style.setProperty('--open-rot', rotDeg + 'deg');
+        openLink.classList.add('deco-' + OPEN_DECORATIONS[decoIdx]);
+
         expandedBody.appendChild(openLink);
     }
 

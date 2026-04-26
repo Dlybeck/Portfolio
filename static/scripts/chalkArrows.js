@@ -47,6 +47,10 @@
         return h >>> 0;
     }
 
+    // ONE chalk roughness filter, applied identically to every arrow —
+    // consistent texture across the diagram, like the same piece of
+    // chalk drew everything. Variety comes from path geometry instead.
+
     function ensureSvg() {
         if (svg && svg.isConnected) return svg;
         const layer = document.querySelector('.tile-layer');
@@ -64,6 +68,39 @@
             'overflow: visible',
             'z-index: 0',
         ].join(';');
+
+        // Chalk via diffuse lighting on a turbulence height map.
+        //
+        // Recipe picked from the test bench (G5):
+        //   feTurbulence generates a fine-grain "bumpy surface."
+        //   feDiffuseLighting renders that surface with a directional
+        //     light, producing light/shadow patches that look like a
+        //     dimensional chalk dust catching light.
+        //   feComposite "in" clips the lit texture to the stroke shape.
+        //   feMerge layers the original solid stroke + the lit grain.
+        //
+        // surfaceScale is the bump height in user-space units. The test
+        // bench used pixel-space at 5; this filter runs in viewBox 0–100
+        // stretched to the layer (~1000×600px on desktop), so the
+        // equivalent physical bump height is ~0.5 viewBox units.
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        defs.innerHTML = `
+            <filter id="chalk-rough"
+                    filterUnits="userSpaceOnUse"
+                    primitiveUnits="userSpaceOnUse"
+                    x="-100" y="-100" width="300" height="300">
+                <feTurbulence type="fractalNoise" baseFrequency="3.5" numOctaves="3" seed="2" result="t"/>
+                <feDiffuseLighting in="t" surfaceScale="0.28" diffuseConstant="1.2" lighting-color="#f3efe2" result="light">
+                    <feDistantLight azimuth="45" elevation="55"/>
+                </feDiffuseLighting>
+                <feComposite in="light" in2="SourceGraphic" operator="in" result="lit"/>
+                <feMerge>
+                    <feMergeNode in="SourceGraphic"/>
+                    <feMergeNode in="lit"/>
+                </feMerge>
+            </filter>
+        `;
+        svg.appendChild(defs);
 
         arrowsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         arrowsGroup.setAttribute('class', 'arrows-group');
@@ -142,24 +179,112 @@
         return path;
     }
 
-    function makeLinePath(fromX, fromY, toX, toY, ux, uy, seed) {
-        const c = cfg();
-        // Subtle perpendicular wobble for hand-drawn feel.
-        const px = -uy;
-        const py = ux;
-        const wob = (((seed % 100) / 100) - 0.5) * c.wobble;
-        const mx = (fromX + toX) / 2 + px * wob;
-        const my = (fromY + toY) / 2 + py * wob;
-
+    function makeStrokePath(d, color, width, opacity, dasharray) {
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', `M${fromX},${fromY} Q${mx},${my} ${toX},${toY}`);
-        path.setAttribute('stroke', c.color);
-        path.setAttribute('stroke-width', c.strokeWidth);
+        path.setAttribute('d', d);
+        path.setAttribute('stroke', color);
+        path.setAttribute('stroke-width', width);
         path.setAttribute('fill', 'none');
         path.setAttribute('stroke-linecap', 'round');
         path.setAttribute('vector-effect', 'non-scaling-stroke');
-        path.setAttribute('opacity', c.opacity);
+        path.setAttribute('opacity', opacity);
+        if (dasharray) path.setAttribute('stroke-dasharray', dasharray);
         return path;
+    }
+
+    /**
+     * Two-pass chalk stroke. The parent <g>'s displacement filter adds
+     * the fine chalk grain — both passes share it identically.
+     *   1. Halo — soft chalk-dust haze around the main stroke
+     *   2. Main — primary chalk body
+     */
+    function appendChalkLine(g, d) {
+        const c = cfg();
+        const mainWidth = c.strokeWidth;
+        g.appendChild(makeStrokePath(d, c.color, mainWidth * 1.55, c.opacity * 0.16));
+        g.appendChild(makeStrokePath(d, c.color, mainWidth, c.opacity));
+    }
+
+    /**
+     * Build a path d-string from `from` to `to` with per-seed shape
+     * variety. Same connection always gets the same shape (deterministic
+     * from seed) so the diagram is stable across reloads, but different
+     * connections get visibly different curves — single bump, S-curve,
+     * double-bump, big sweep, gentle squiggle. Reads as "different lines
+     * drawn by hand," not "machine-stamped identical curves."
+     */
+    function buildLineD(fromX, fromY, toX, toY, ux, uy, seed) {
+        const c = cfg();
+        const px = -uy;
+        const py = ux;
+        const dx = toX - fromX;
+        const dy = toY - fromY;
+
+        // Two independent perpendicular offsets pulled from different
+        // bits of the seed.
+        const w = c.wobble;
+        const off1 = (((seed % 100) / 100) - 0.5) * w;
+        const off2 = (((seed >> 7) % 100) / 100 - 0.5) * w;
+
+        const styleIdx = seed % 5;
+
+        // Complex paths visually amplify the wobble (S-curves bend
+        // BOTH directions, two-bump cubics carry control points twice,
+        // squiggles have three bumps). Tone them down so they look
+        // similar in magnitude to the simple Q curve at the same wobble
+        // setting.
+        if (styleIdx === 0) {
+            // Single quadratic bump — the simplest curve.
+            const mx = fromX + dx * 0.5 + px * off1;
+            const my = fromY + dy * 0.5 + py * off1;
+            return `M${fromX},${fromY} Q${mx},${my} ${toX},${toY}`;
+        }
+        if (styleIdx === 1) {
+            // S-curve — opposing controls. Scaled to 0.45 so the
+            // double-deflection isn't twice as curvy as a Q.
+            const k = 0.45;
+            const c1x = fromX + dx * 0.33 + px * off1 * k;
+            const c1y = fromY + dy * 0.33 + py * off1 * k;
+            const c2x = fromX + dx * 0.67 - px * off1 * k;
+            const c2y = fromY + dy * 0.67 - py * off1 * k;
+            return `M${fromX},${fromY} C${c1x},${c1y} ${c2x},${c2y} ${toX},${toY}`;
+        }
+        if (styleIdx === 2) {
+            // Double-bump — same-side controls. Scaled to 0.5.
+            const k = 0.5;
+            const c1x = fromX + dx * 0.3 + px * off1 * k;
+            const c1y = fromY + dy * 0.3 + py * off1 * k;
+            const c2x = fromX + dx * 0.7 + px * off2 * k;
+            const c2y = fromY + dy * 0.7 + py * off2 * k;
+            return `M${fromX},${fromY} C${c1x},${c1y} ${c2x},${c2y} ${toX},${toY}`;
+        }
+        if (styleIdx === 3) {
+            // Slightly bigger single sweep — exaggerated 1.15× rather
+            // than the previous 1.7× (which made these stand out too
+            // strongly from the rest).
+            const mx = fromX + dx * 0.5 + px * off1 * 1.15;
+            const my = fromY + dy * 0.5 + py * off1 * 1.15;
+            return `M${fromX},${fromY} Q${mx},${my} ${toX},${toY}`;
+        }
+        // styleIdx === 4: Gentle squiggle — three tiny bumps. All offsets
+        // scaled to 0.32 so it reads as "slightly wavy" instead of
+        // "deeply zig-zagged."
+        const k = 0.32;
+        const halfX = fromX + dx * 0.5;
+        const halfY = fromY + dy * 0.5;
+        const c1x = fromX + dx * 0.25 + px * off1 * k;
+        const c1y = fromY + dy * 0.25 + py * off1 * k;
+        const c2x = fromX + dx * 0.5  - px * off1 * k * 0.6;
+        const c2y = fromY + dy * 0.5  - py * off1 * k * 0.6;
+        const c3x = halfX             + px * off2 * k * 0.6;
+        const c3y = halfY             + py * off2 * k * 0.6;
+        const c4x = fromX + dx * 0.75 - px * off2 * k;
+        const c4y = fromY + dy * 0.75 - py * off2 * k;
+        return (
+            `M${fromX},${fromY} ` +
+            `C${c1x},${c1y} ${c2x},${c2y} ${halfX},${halfY} ` +
+            `C${c3x},${c3y} ${c4x},${c4y} ${toX},${toY}`
+        );
     }
 
     function makeArrow(fromCx, fromCy, toCx, toCy, seed) {
@@ -168,7 +293,13 @@
         if (e.len === 0) return null;
 
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        g.appendChild(makeLinePath(e.fromX, e.fromY, e.toX, e.toY, e.ux, e.uy, seed));
+        // Shared chalk-grain filter on the whole group — both halo
+        // and main stroke get the same fine displacement, so they
+        // stay perfectly aligned (no "double line" drift).
+        g.setAttribute('filter', 'url(#chalk-rough)');
+
+        const lineD = buildLineD(e.fromX, e.fromY, e.toX, e.toY, e.ux, e.uy, seed);
+        appendChalkLine(g, lineD);
 
         const showStart =
             c.headStyle !== 'none' &&
@@ -181,8 +312,6 @@
             g.appendChild(makeHeadPath(e.toX, e.toY, e.ux, e.uy, c.headStyle));
         }
         if (showStart) {
-            // Arrow at start points toward FROM (back along the line) —
-            // i.e. the V opens toward the parent (away from start).
             g.appendChild(makeHeadPath(e.fromX, e.fromY, -e.ux, -e.uy, c.headStyle));
         }
         return g;

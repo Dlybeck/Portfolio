@@ -223,9 +223,62 @@
     );
   border-radius: 2px 3px 2px 2px;
   filter: drop-shadow(3px 5px 8px rgba(0,0,0,0.35));
+  /* Folded-corner clip-path is applied by ONE of the .sticky-fold-*
+     variant classes below — JS assigns a different fold per tile so
+     not every sticky note has the same corner. */
+}
+
+/* Fold variants — each clips a different corner (or no corner). The
+   default (no variant class) leaves the paper square. */
+.tile-container.sticky-fold-br .tile-base .paper-body,
+.tile-container.sticky-fold-br .tile-expanded .paper-body {
   clip-path: polygon(
     0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%
   );
+}
+.tile-container.sticky-fold-tr .tile-base .paper-body,
+.tile-container.sticky-fold-tr .tile-expanded .paper-body {
+  clip-path: polygon(
+    0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%
+  );
+}
+.tile-container.sticky-fold-bl .tile-base .paper-body,
+.tile-container.sticky-fold-bl .tile-expanded .paper-body {
+  clip-path: polygon(
+    0 0, 100% 0, 100% 100%, 14px 100%, 0 calc(100% - 14px)
+  );
+}
+.tile-container.sticky-fold-tl .tile-base .paper-body,
+.tile-container.sticky-fold-tl .tile-expanded .paper-body {
+  clip-path: polygon(
+    14px 0, 100% 0, 100% 100%, 0 100%, 0 14px
+  );
+}
+.tile-container.sticky-fold-big-br .tile-base .paper-body,
+.tile-container.sticky-fold-big-br .tile-expanded .paper-body {
+  /* Bigger bottom-right curl — like a more dramatic page lift. */
+  clip-path: polygon(
+    0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%
+  );
+}
+.tile-container.sticky-fold-big-bl .tile-base .paper-body,
+.tile-container.sticky-fold-big-bl .tile-expanded .paper-body {
+  /* Bigger bottom-LEFT curl. */
+  clip-path: polygon(
+    0 0, 100% 0, 100% 100%, 22px 100%, 0 calc(100% - 22px)
+  );
+}
+.tile-container.sticky-fold-big-tl .tile-base .paper-body,
+.tile-container.sticky-fold-big-tl .tile-expanded .paper-body {
+  /* Bigger top-LEFT curl. */
+  clip-path: polygon(
+    22px 0, 100% 0, 100% 100%, 0 100%, 0 22px
+  );
+}
+.tile-container.sticky-fold-flat .tile-base .paper-body,
+.tile-container.sticky-fold-flat .tile-expanded .paper-body {
+  /* No fold at all — just a clean rectangle of paper. */
+  clip-path: none;
 }
 
 /* Sticky color variants — BASE color var still cascades via tile-container */

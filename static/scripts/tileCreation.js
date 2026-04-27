@@ -93,7 +93,30 @@ window.createTile = function(title) {
     if (paperType === "sticky") {
         tileWrapper.classList.add(pick(STICKY_COLORS, seed.colorIdx));
         // Stickies are self-adhesive — NO tape.
-        // Stickies keep their folded-corner clip — no shape variant.
+        // Pick a folded-corner variant per tile. Pool is balanced
+        // left/right with a flat option so the wall has visible variety
+        // in fold direction, not just position on the right side.
+        const STICKY_FOLDS = [
+            'sticky-fold-br',     // bottom-right (small)
+            'sticky-fold-tr',     // top-right
+            'sticky-fold-bl',     // bottom-left
+            'sticky-fold-tl',     // top-left
+            'sticky-fold-big-br', // bigger bottom-right
+            'sticky-fold-big-bl', // bigger bottom-left
+            'sticky-fold-big-tl', // bigger top-left
+            'sticky-fold-flat',   // no fold
+        ];
+        // Mix the salted hash through a Knuth-style multiplier for
+        // better distribution — without this, the small set of hub
+        // titles can land in the same hash buckets and produce biased
+        // variant assignments.
+        function rehash(x) {
+            x = (x ^ (x >>> 16)) * 0x85ebca6b >>> 0;
+            x = (x ^ (x >>> 13)) * 0xc2b2ae35 >>> 0;
+            return (x ^ (x >>> 16)) >>> 0;
+        }
+        const foldH = rehash(window.stableHash(title + '|fold'));
+        tileWrapper.classList.add(STICKY_FOLDS[foldH % STICKY_FOLDS.length]);
     } else {
         tileWrapper.classList.add(pick(SCRAP_VARIANTS, seed.variantIdx));
         // Independent shape (rip/asymmetry) for the base scrap.

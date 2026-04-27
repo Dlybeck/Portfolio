@@ -53,6 +53,7 @@ html, body {
   background-color: var(--wood-mid);
 }
 
+
 /* =========================================================================
    Navbar — restyled as a small taped-on paper label, top-left
    The classes are preserved to match existing markup in components/navbar.html

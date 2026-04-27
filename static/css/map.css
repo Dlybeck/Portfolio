@@ -44,20 +44,24 @@
 .map::before {
   content: "";
   position: absolute;
+  /* Wall extents handle the maximum --wall-shift-* the 1:1 pan
+     formula can produce. Sized large enough that the wall covers the
+     viewport at any reasonable pan position. */
   top: -500vh;
-  left: -80vw;
-  width: 260vw;
+  left: -300vw;
+  width: 800vw;
   height: 3000vh;
   pointer-events: none;
   z-index: -1;
   transform: translate(var(--wall-shift-x, 0rem), var(--wall-shift-y, 0rem));
   background-color: #233b35;
+  /* Two-layer feTurbulence noise — same values that were working on
+     origin/main before the recent iteration. Alpha is intentionally
+     subtle on the broad layer (0.09) so its tile boundaries aren't
+     visible; fine layer is denser (0.26) and high-freq enough to
+     hide its own seams. */
   background-image:
-    /* Fine grain (chalk dust): 2050px tile, fine specks (freq 2.0),
-       fairly visible (alpha 0.26), variant 23. */
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='2050' height='2050'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='2.0' numOctaves='3' stitchTiles='stitch' seed='23'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0.26 0 0 0 -0.13'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
-    /* Broad patches (wear & lighting): 4000px tile, huge clouds
-       (freq 0.01), subtle (alpha 0.09), variant 30. */
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='4000' height='4000'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.01' numOctaves='3' stitchTiles='stitch' seed='30'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0.09 0 0 0 -0.045'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
   background-size: 2050px 2050px, 4000px 4000px;
   background-repeat: repeat, repeat;

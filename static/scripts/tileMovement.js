@@ -26,23 +26,18 @@ window.centerOnTile = function(title) {
     const offsetX = 50 - centerPos.left;
     const offsetY = 52 - centerPos.top;
 
-    const tiles = document.querySelectorAll('.tile-container');
-    tiles.forEach(tile => {
-        const tileTitle = tile.dataset.title;
-        const tilePos = positions[tileTitle];
-        if (!tilePos) {
-            console.error(`No position found for tile: ${tileTitle}`);
-            return;
-        }
-        tile.style.left = `${tilePos.left + offsetX}%`;
-        tile.style.top  = `${tilePos.top  + offsetY}%`;
-    });
+    // Pan by translating the entire tile-layer in ONE GPU-composited
+    // transform — no per-tile layout. Each tile stays pinned at its
+    // tileInfo position; only the layer moves. This is THE perf fix
+    // for mobile pan stutter (was animating left/top on 15 tiles
+    // → layout + paint per frame per tile).
+    const tileLayer = document.querySelector('.tile-layer');
+    if (tileLayer) {
+        tileLayer.style.transform = `translate3d(${offsetX}%, ${offsetY}%, 0)`;
+    }
 
-    // Parallax the wall underlay by about half the tile shift. The wall is
-    // painted on .map::before and reads these CSS variables. Wall pans
-    // 1:1 with tiles — same magnitude, same units (vw/vh, matching the
-    // tiles' percentage-of-layer positioning) — so the chalkboard
-    // surface and the papers pinned to it move together as one scene.
+    // Wall pans 1:1 with the tile-layer — same offset, vw/vh units so
+    // it matches the layer's percentage-based pan.
     const mapEl = document.querySelector('.map');
     if (mapEl) {
         mapEl.style.setProperty('--wall-shift-x', `${-centerPos.left}vw`);
@@ -68,14 +63,11 @@ window.returnHome = function() {
     const offsetX = 50 - homeTile.left;
     const offsetY = 50 - homeTile.top;
 
-    const tiles = document.querySelectorAll('.tile-container');
-    tiles.forEach(tile => {
-        const tileTitle = tile.dataset.title;
-        const tilePos = positions[tileTitle];
-        if (!tilePos) return;
-        tile.style.left = `${tilePos.left + offsetX}%`;
-        tile.style.top  = `${tilePos.top  + offsetY}%`;
-    });
+    // Single transform on the layer — see centerOnTile for the why.
+    const tileLayer = document.querySelector('.tile-layer');
+    if (tileLayer) {
+        tileLayer.style.transform = `translate3d(${offsetX}%, ${offsetY}%, 0)`;
+    }
 
     // Reset the wall parallax to origin since we're back at Home.
     const mapEl = document.querySelector('.map');

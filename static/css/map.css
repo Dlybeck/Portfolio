@@ -31,6 +31,12 @@
   inset: 0;
   z-index: 1;
   pointer-events: none;
+  /* Pan animation: ONE transform on the whole layer instead of 15
+     simultaneous left/top transitions. will-change hoists it to a GPU
+     compositor layer so the pan is pure compositing — no layout, no
+     per-tile paint. */
+  will-change: transform;
+  transition: transform 0.45s cubic-bezier(.2,.7,.2,1);
 }
 .tile-layer > * { pointer-events: auto; }
 
@@ -44,16 +50,22 @@
 .map::before {
   content: "";
   position: absolute;
-  /* Wall extents handle the maximum --wall-shift-* the 1:1 pan
-     formula can produce. Sized large enough that the wall covers the
-     viewport at any reasonable pan position. */
-  top: -500vh;
-  left: -300vw;
-  width: 800vw;
-  height: 3000vh;
+  /* Wall extents cover viewport + maximum 1:1 pan range. Pan formula
+     produces shifts of roughly ±100vw / ±100vh (tile percentages are
+     0–100%), so a 300vw × 300vh wall centered around the viewport is
+     plenty. Previous values (800vw × 3000vh) created a 76-megapixel
+     compositor layer on phones that murdered pan performance. */
+  top: -100vh;
+  left: -100vw;
+  width: 300vw;
+  height: 300vh;
   pointer-events: none;
   z-index: -1;
-  transform: translate(var(--wall-shift-x, 0rem), var(--wall-shift-y, 0rem));
+  /* will-change hoists the wall onto its own GPU compositor layer so
+     pan animations are pure transform composites instead of full
+     repaints of the tiled background. Critical for mobile. */
+  will-change: transform;
+  transform: translate3d(var(--wall-shift-x, 0rem), var(--wall-shift-y, 0rem), 0);
   background-color: #233b35;
   /* Two-layer feTurbulence noise — same values that were working on
      origin/main before the recent iteration. Alpha is intentionally
@@ -109,9 +121,10 @@
      paper slip behind tiles it physically crosses, breaking the
      "paper on top of the table" illusion). */
   z-index: 1;
-  /* Leave the wrapper itself un-rotated; inner papers carry jitter/rot */
-  transition: left 0.45s cubic-bezier(.2,.7,.2,1),
-              top  0.45s cubic-bezier(.2,.7,.2,1);
+  /* Leave the wrapper itself un-rotated; inner papers carry jitter/rot.
+     Pan animation is no longer per-tile — it's a single transform on
+     .tile-layer (see below). Tiles stay pinned at their tileInfo
+     positions. */
 }
 
 /* An entering cover — on top of everything tile-related so it never passes
@@ -137,6 +150,22 @@
 .tile-container.expanded:hover {
   width: clamp(108px, 18vmin, 200px);
   height: clamp(108px, 18vmin, 200px);
+}
+
+/* Narrow phones (Pixel Fold cover screen, iPhone SE, etc.): sticky
+   notes bump a touch bigger than scrap tiles so the handwritten title
+   stays readable on cramped widths. Targets .tile-container.sticky
+   only — scrap papers and hub tiles use the base sizing. */
+@media (max-width: 420px) {
+  .tile-container.sticky,
+  .tile-container.sticky.expanded,
+  .tile-container.sticky.connected,
+  .tile-container.sticky.dimmed,
+  .tile-container.sticky:hover,
+  .tile-container.sticky.expanded:hover {
+    width: clamp(124px, 22vmin, 200px);
+    height: clamp(124px, 22vmin, 200px);
+  }
 }
 
 /* The "dimmed" class (still toggled by existing JS) is now a no-op visually;

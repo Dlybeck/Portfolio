@@ -116,9 +116,12 @@
 
         arrowsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         arrowsGroup.setAttribute('class', 'arrows-group');
-        // ONE chalk filter applied to the whole arrows group — way cheaper
-        // than per-arrow filter passes (was 14 individual filter
-        // computations per redraw).
+        // Real chalk filter (feTurbulence + feDiffuseLighting). Costs
+        // nothing per frame: .tile-layer is GPU-promoted via will-change
+        // so the filtered arrows rasterize ONCE into the layer's cached
+        // bitmap, then pan via composite-only translation. The earlier
+        // assumption that this filter was the lag source was wrong —
+        // the lag was per-tile left/top animation, now fixed.
         arrowsGroup.setAttribute('filter', 'url(#chalk-rough)');
         // GPU compositing hint so transform animations don't re-rasterize
         // the (expensive, filtered) arrow content every frame.
@@ -220,8 +223,8 @@
     }
 
     /**
-     * Two-pass chalk stroke. The parent <g>'s displacement filter adds
-     * the fine chalk grain — both passes share it identically.
+     * Two-pass chalk stroke. The parent <g>'s feDiffuseLighting filter
+     * adds the fine chalk grain — both passes share it identically.
      *   1. Halo — soft chalk-dust haze around the main stroke
      *   2. Main — primary chalk body
      */
@@ -392,33 +395,11 @@
         });
     }
 
-    let firstOffsetApplied = false;
-    function updateOffset(centerTitle) {
-        if (!arrowsGroup || !window.positions) return;
-        const centerPos = window.positions[centerTitle];
-        if (!centerPos) return;
-        const layer = document.querySelector('.tile-layer');
-        if (!layer) return;
-        const layerRect = layer.getBoundingClientRect();
-        const offsetX = ((50 - centerPos.left) / 100) * layerRect.width;
-        const offsetY = ((52 - centerPos.top)  / 100) * layerRect.height;
-        arrowsGroup.setAttribute('transform', `translate(${offsetX}, ${offsetY})`);
-
-        // Enable the transition AFTER the first transform has been
-        // committed — so the initial render snaps to position instead
-        // of animating in from origin. Two RAFs guarantee the browser
-        // has painted the initial state before we install the
-        // transition.
-        if (!firstOffsetApplied) {
-            firstOffsetApplied = true;
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    if (arrowsGroup) {
-                        arrowsGroup.style.transition = 'transform 0.45s cubic-bezier(.2,.7,.2,1)';
-                    }
-                });
-            });
-        }
+    function updateOffset(_centerTitle) {
+        // No-op: the SVG lives inside .tile-layer, which now carries
+        // the pan transform itself. Arrows ride along for free —
+        // applying our own transform here would double-translate them.
+        // Kept as a function so tileCreation.js can still call it.
     }
 
     /**

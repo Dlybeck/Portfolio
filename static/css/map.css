@@ -163,8 +163,8 @@
   .tile-container.sticky.dimmed,
   .tile-container.sticky:hover,
   .tile-container.sticky.expanded:hover {
-    width: clamp(124px, 22vmin, 200px);
-    height: clamp(124px, 22vmin, 200px);
+    width: clamp(134px, 24vmin, 200px);
+    height: clamp(134px, 24vmin, 200px);
   }
 }
 

@@ -33,7 +33,7 @@ window.centerOnTile = function(title) {
     // → layout + paint per frame per tile).
     const tileLayer = document.querySelector('.tile-layer');
     if (tileLayer) {
-        tileLayer.style.transform = `translate3d(${offsetX}%, ${offsetY}%, 0)`;
+        tileLayer.style.transform = `translate3d(${offsetX}vw, ${offsetY}vh, 0)`;
     }
 
     // Wall pans 1:1 with the tile-layer — same offset, vw/vh units so
@@ -66,7 +66,7 @@ window.returnHome = function() {
     // Single transform on the layer — see centerOnTile for the why.
     const tileLayer = document.querySelector('.tile-layer');
     if (tileLayer) {
-        tileLayer.style.transform = `translate3d(${offsetX}%, ${offsetY}%, 0)`;
+        tileLayer.style.transform = `translate3d(${offsetX}vw, ${offsetY}vh, 0)`;
     }
 
     // Reset the wall parallax to origin since we're back at Home.

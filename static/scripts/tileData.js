@@ -19,8 +19,6 @@ window.tileInfo = {
         Welcome!
         <br><br>
         Check out the neighboring tiles and look out for "Open" buttons for more info!
-        <br><br>
-        Come back here if you ever get lost!
         `,
         ``
     ],
@@ -208,7 +206,7 @@ window.calculatePositions = function() {
         const [coordinates, text, tileRoute] = tileData;
         positions[title] = {
             left: (coordinates[0] * window.GRID_UNITS),
-            top: (coordinates[1] * window.GRID_UNITS*.9) //.9 for offset to give space to navbar
+            top: (coordinates[1] * window.GRID_UNITS*.92) // vertical grid spacing — sized so 1-row corners stay on-screen and 2-rows-away tiles fall off, with offsetY=50 putting centered tile near viewport center
         };
         texts[title] = text;
         routes[title] = tileRoute;

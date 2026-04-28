@@ -28,7 +28,10 @@
 /* Tile layer fills .map. Tile % positioning resolves against 100vh × 100vw. */
 .tile-layer {
   position: absolute;
-  inset: 0;
+  left: 0;
+  top: 0;
+  width: 100svw;
+  height: 100svh;
   z-index: 1;
   pointer-events: none;
   /* Pan animation: ONE transform on the whole layer instead of 15
@@ -36,6 +39,9 @@
      compositor layer so the pan is pure compositing — no layout, no
      per-tile paint. */
   will-change: transform;
+  /* Transition uses pixel-converted transforms (set in tileMovement.js)
+     so we avoid Chrome's svw/svh-in-transform-with-transition bug while
+     keeping the smooth pan animation. */
   transition: transform 0.45s cubic-bezier(.2,.7,.2,1);
 }
 .tile-layer > * { pointer-events: auto; }
@@ -111,8 +117,8 @@
   /* Tile size scales with smaller viewport dimension (vmin), bounded
      to a tappable minimum and a comfortable maximum. Square because
      tiles are square. */
-  width: clamp(108px, 18vmin, 200px);
-  height: clamp(108px, 18vmin, 200px);
+  width: var(--tile-size);
+  height: var(--tile-size);
   pointer-events: auto;
   /* Default stacking level for a resting tile. Animating tiles get
      elevated via .expanded / .cover-leaving-* below so their in-motion
@@ -148,24 +154,8 @@
 .tile-container.dimmed,
 .tile-container:hover,
 .tile-container.expanded:hover {
-  width: clamp(108px, 18vmin, 200px);
-  height: clamp(108px, 18vmin, 200px);
-}
-
-/* Narrow phones (Pixel Fold cover screen, iPhone SE, etc.): sticky
-   notes bump a touch bigger than scrap tiles so the handwritten title
-   stays readable on cramped widths. Targets .tile-container.sticky
-   only — scrap papers and hub tiles use the base sizing. */
-@media (max-width: 420px) {
-  .tile-container.sticky,
-  .tile-container.sticky.expanded,
-  .tile-container.sticky.connected,
-  .tile-container.sticky.dimmed,
-  .tile-container.sticky:hover,
-  .tile-container.sticky.expanded:hover {
-    width: clamp(134px, 24vmin, 200px);
-    height: clamp(134px, 24vmin, 200px);
-  }
+  width: var(--tile-size);
+  height: var(--tile-size);
 }
 
 /* The "dimmed" class (still toggled by existing JS) is now a no-op visually;
@@ -227,7 +217,7 @@
 .tile-base .scrap-title {
   font-family: var(--tile-font, var(--font-hand-casual));
   color: var(--ink-color, var(--ink-blue));
-  font-size: clamp(0.78rem, 2.4vmin, 1.7rem);
+  font-size: var(--font-tile-title);
   line-height: 1.05;
   margin: 0;
   padding: 0 6px;
@@ -360,7 +350,7 @@
 
 .tile-container.sticky .scrap-title {
   font-family: var(--font-hand-marker);
-  font-size: clamp(0.78rem, 2.2vmin, 1.55rem);
+  font-size: var(--font-tile-title);
   letter-spacing: 0.5px;
   color: var(--ink-color, #222);
   /* Sticky tiles are HUBS (route to other tiles, not a leaf page).
@@ -566,7 +556,7 @@
 .tile-container.scrap .scrap-title {
   font-family: var(--tile-font, var(--font-hand-casual));
   color: var(--ink-color, var(--ink-blue));
-  font-size: clamp(0.78rem, 2.2vmin, 1.55rem);
+  font-size: var(--font-tile-title);
   font-weight: 600;
 }
 
@@ -720,8 +710,8 @@
 
 /* Sticky-note expanded sizing — vmin-scaled with safe bounds. */
 .tile-container.sticky .tile-expanded {
-  width: clamp(190px, 32vmin, 360px);
-  min-height: clamp(210px, 36vmin, 400px);
+  width: var(--tile-size-expanded);
+  min-height: calc(var(--tile-size-expanded) * 1.3);
 }
 .tile-container.sticky .tile-expanded .paper-body {
   filter: drop-shadow(6px 10px 18px rgba(0,0,0,0.45));
@@ -729,8 +719,8 @@
 
 /* Scrap expanded sizing — vmin-scaled with safe bounds. */
 .tile-container.scrap .tile-expanded {
-  width: clamp(200px, 34vmin, 380px);
-  min-height: clamp(220px, 38vmin, 420px);
+  width: var(--tile-size-expanded-scrap);
+  min-height: calc(var(--tile-size-expanded-scrap) * 1.3);
 }
 .tile-container.scrap .tile-expanded .paper-body {
   filter: drop-shadow(5px 9px 16px rgba(0,0,0,0.40));
@@ -740,14 +730,14 @@
 .tile-expanded .expanded-title {
   font-family: var(--font-hand-marker);
   color: var(--ink-color, var(--ink-blue));
-  font-size: clamp(1.1rem, 2.8vmin, 1.95rem);
+  font-size: var(--font-tile-cover);
   line-height: 1.1;
   margin: 2px 0 0 0;
   text-align: center;
 }
 .tile-container.scrap .tile-expanded .expanded-title {
   font-family: var(--tile-font, var(--font-hand-casual));
-  font-size: clamp(1.2rem, 3.2vmin, 2.2rem);
+  font-size: var(--font-tile-cover);
   font-weight: 700;
 }
 .tile-expanded .expanded-text {
@@ -771,7 +761,7 @@
   align-self: center;
   font-family: var(--open-font, var(--font-hand-marker));
   color: var(--open-ink, var(--ink-red));
-  font-size: 1.2rem;
+  font-size: var(--font-tile-open-link);
   letter-spacing: 0.3px;
   text-decoration: none;
   cursor: pointer;
@@ -981,14 +971,16 @@ body.page-open .close-button {
    Responsive tweaks
    ========================================================================= */
 @media (max-width: 1000px) {
-  /* Tile + expanded sizing handled by clamp(...) on the base rules.
-     Other media-specific styles below. */
+  /* Tile sizing flows from the global --u unit (see base.css :root).
+     This block is for mini-window-only adjustments — the viewer is
+     intentionally NOT tied to --u so it can fill the screen on small
+     devices regardless of overall design scale. */
   .mini-window-container { width: 92vw; }
 }
 
 @media (max-width: 700px) {
-  /* Tile + expanded sizing handled by clamp(...) on base rules.
-     Padding inside expanded is mobile-tightened here. */
+  /* Tile sizing flows from --u; this block tightens mobile-only
+     paddings on the expanded paper and the mini-window viewer. */
   .tile-expanded > .paper-body { padding: 18px 14px 32px 14px; gap: 8px; }
   .mini-window-container {
     width: 96vw;

@@ -13,6 +13,23 @@
  */
 
 /**
+ * Apply a transform string to the tile-layer. On the very first call after
+ * page load, skip the CSS transition so the initial position lands without
+ * an animation from (0,0). Subsequent calls animate via the CSS rule.
+ */
+function _applyLayerTransform(tileLayer, transformStr) {
+    if (!window._layerInitialized) {
+        tileLayer.style.transition = 'none';
+        tileLayer.style.transform = transformStr;
+        void tileLayer.offsetHeight;
+        tileLayer.style.transition = '';
+        window._layerInitialized = true;
+    } else {
+        tileLayer.style.transform = transformStr;
+    }
+}
+
+/**
  * Center the map on a named tile.
  * @param {string} title
  */
@@ -24,16 +41,22 @@ window.centerOnTile = function(title) {
     }
 
     const offsetX = 50 - centerPos.left;
-    const offsetY = 52 - centerPos.top;
+    const offsetY = 50 - centerPos.top;
 
     // Pan by translating the entire tile-layer in ONE GPU-composited
     // transform — no per-tile layout. Each tile stays pinned at its
-    // tileInfo position; only the layer moves. This is THE perf fix
-    // for mobile pan stutter (was animating left/top on 15 tiles
-    // → layout + paint per frame per tile).
+    // tileInfo position; only the layer moves.
+    // Using svw/svh (small viewport units) so positions stay aligned
+    // with the chrome-visible safe area on mobile — matches the
+    // .tile-layer height: 100svh in map.css.
     const tileLayer = document.querySelector('.tile-layer');
     if (tileLayer) {
-        tileLayer.style.transform = `translate3d(${offsetX}vw, ${offsetY}vh, 0)`;
+        // Convert percentage offsets to pixels using the layer's rendered
+        // size (100svw × 100svh) so the CSS transition can animate the
+        // value without Chrome dropping it (it dislikes svw/svh in
+        // transition-bound transform).
+        const lr = tileLayer.getBoundingClientRect();
+        _applyLayerTransform(tileLayer, `translate3d(${(offsetX/100)*lr.width}px, ${(offsetY/100)*lr.height}px, 0)`);
     }
 
     // Wall pans 1:1 with the tile-layer — same offset, vw/vh units so
@@ -66,7 +89,12 @@ window.returnHome = function() {
     // Single transform on the layer — see centerOnTile for the why.
     const tileLayer = document.querySelector('.tile-layer');
     if (tileLayer) {
-        tileLayer.style.transform = `translate3d(${offsetX}vw, ${offsetY}vh, 0)`;
+        // Convert percentage offsets to pixels using the layer's rendered
+        // size (100svw × 100svh) so the CSS transition can animate the
+        // value without Chrome dropping it (it dislikes svw/svh in
+        // transition-bound transform).
+        const lr = tileLayer.getBoundingClientRect();
+        _applyLayerTransform(tileLayer, `translate3d(${(offsetX/100)*lr.width}px, ${(offsetY/100)*lr.height}px, 0)`);
     }
 
     // Reset the wall parallax to origin since we're back at Home.

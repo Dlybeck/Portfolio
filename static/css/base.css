@@ -31,6 +31,63 @@
   /* Typed body font for the paper pages (inside iframes) — a standard
      serif that reads like a document, not a note. */
   --font-body-typed:  Georgia, 'Times New Roman', Times, serif;
+
+  /* =====================================================================
+     RESPONSIVE SIZE SYSTEM — single source of truth.
+     --u is THE base unit. Every tile size, font size, padding, and icon
+     dimension is a calc() multiplier of --u. To rescale the whole
+     design, change ONLY the --u clamp formula below.
+
+     Why heavy on vw, light on vh (not vmin, not balanced):
+       - vmin caps at the smaller dimension, so on landscape desktops
+         it pegs to height and never grows with screen width.
+       - A balanced vw+vh formula blows up on square-ish screens like
+         an unfolded Pixel Fold (~768x1076), because both dimensions
+         are mid-large and ADD. Result: tiles grow faster than the
+         34%-of-viewport spacing between them, and arrows get covered.
+       - 0.9vw + 0.2vh follows the dimension that actually matters
+         (horizontal room for tiles in a row), with a small vh nudge
+         for tall thin viewports.
+
+     Resolved values:
+       iPhone SE (375x667):           u = 8px    (floor) — tile 104px
+       Pixel Fold cover (376x892):    u = 8px    (floor) — tile 104px
+       Pixel Fold open (768x1076):    u = 8px    (floor) — tile 104px
+       Pixel Fold open ldscp(1076x768): u = 9.7  — tile 126px
+       Tablet portrait (768x1024):    u = 8.96   — tile 117px
+       Laptop (1280x800):             u = 13.12  — tile 171px
+       Desktop (1920x1080):           u = 19.44  — tile 253px
+       Big monitor (2560x1440):       u = 25.92  — tile 337px
+       Ultrawide (3440x1440):         u = 28px   (ceiling) — tile 364px
+
+     Floor 8px keeps controls tappable on tiny screens. Ceiling 28px
+     prevents runaway scale on ultrawides. Tune ONLY this clamp to
+     rescale the entire design.
+  */
+  --u: clamp(8px, 1.2vw + 0.2vh, 28px);
+
+  /* Tile sizes use a parallel unit with a lower ceiling so big monitors
+     don't get oversized tiles while fonts keep scaling to stay readable.
+     On phone-sized viewports both clamps resolve identically. */
+  --tile-u: clamp(8px, 1.2vw + 0.2vh, 15px);
+
+  /* Semantic tokens — derive everything from --u or --tile-u so tuning
+     is one knob per concern. */
+  --tile-size:                calc(13 * var(--tile-u));
+  --tile-size-expanded:       min(calc(24 * var(--tile-u)), 400px);  /* sticky cover */
+  --tile-size-expanded-scrap: min(calc(26 * var(--tile-u)), 430px);  /* scrap cover */
+  --font-tile-title:          max(14px, calc(1.4 * var(--u)));  /* min 14px so corner-tile titles stay readable on phones */
+  --font-tile-cover:          calc(2.1 * var(--u));
+  --font-tile-open-link:      calc(0.85 * var(--font-tile-cover));
+  /* Navbar is a small "branding label" in the top-left corner, NOT a
+     hero element. Cap with min() so it stays small on desktop and
+     doesn't overlap the corner tile that lands at (~16% svw, ~14% svh).
+     On phone-sized viewports the cap doesn't kick in and it scales with
+     the rest of the design. */
+  --font-navbar-title:        min(calc(1.7 * var(--u)), 22px);
+  --icon-navbar:              min(calc(2.4 * var(--u)), 28px);
+  --pad-navbar-y:             min(calc(0.5 * var(--u)), 7px);
+  --pad-navbar-x:             min(calc(1.1 * var(--u)), 14px);
 }
 
 .main {
@@ -73,10 +130,8 @@ html, body {
   height: auto;
   max-width: 90%;
   z-index: 9999;
-  /* Padding scales with viewport so the whole tab shrinks on phones
-     while staying generous on desktop. */
-  padding: clamp(4px, 1vmin, 8px) clamp(10px, 2vmin, 18px)
-           clamp(5px, 1.2vmin, 10px) clamp(10px, 2vmin, 18px);
+  /* Padding scales with the global --u unit (see :root). */
+  padding: var(--pad-navbar-y) var(--pad-navbar-x);
   box-shadow:
     2px 3px 6px rgba(0,0,0,.35),
     inset 0 0 20px rgba(0,0,0,.03);
@@ -109,10 +164,7 @@ html, body {
 
 .navbar-title {
   font-family: var(--font-hand-marker);
-  /* Scales with viewport. At vmin=900 (typical laptop) 2.8vmin ≈
-     1.575rem — matches the old 1.55rem default. Floor keeps it
-     readable on phones; ceiling caps it on big monitors. */
-  font-size: clamp(0.95rem, 2.8vmin, 1.85rem);
+  font-size: var(--font-navbar-title);
   font-weight: normal;
   color: var(--ink-blue);
   text-decoration: none;
@@ -123,7 +175,7 @@ html, body {
 }
 
 .navbar-logo {
-  height: clamp(1.4rem, 3.8vmin, 2.5rem);
+  height: var(--icon-navbar);
   width: auto;
   object-fit: contain;
   border: 1px solid rgba(0,0,0,.15);
@@ -140,8 +192,8 @@ html, body {
 .home-button {
   cursor: pointer;
   position: relative;
-  width: clamp(1.05rem, 2.85vmin, 1.85rem);
-  height: clamp(1.05rem, 2.85vmin, 1.85rem);
+  width: var(--icon-navbar);
+  height: var(--icon-navbar);
   margin-left: 6px;
   opacity: 0;
   visibility: hidden;

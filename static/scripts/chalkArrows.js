@@ -18,14 +18,17 @@
     // Defaults match what we had hard-coded. The tweak panel mutates
     // this and calls redraw.
     window.chalkArrowsConfig = window.chalkArrowsConfig || {
-        // Distance in PIXELS from each tile's center to where the arrow
-        // ends. With inset ~ expanded-paper half-width (~120px on
-        // desktop, ~136px on mobile), arrow ends are HIDDEN beneath the
-        // centered tile's expanded paper — visually the arrow looks
-        // like it points away from the centered tile, with its near
-        // end vanishing under the paper. Same constant px regardless
-        // of tile spacing, so it works on every viewport size.
-        inset: 100,
+        // Endpoint inset from tile center, expressed as a multiplier of
+        // --tile-u (so it scales with the tile size system). The value
+        // 7.75 sits between corner-tile half (6.5u) and expanded-tile
+        // half (9u) so the same inset works in both directions:
+        //   - When this tile is centered (expanded), 7.75u < 9u →
+        //     endpoint lands INSIDE the expanded paper (covered).
+        //   - When this tile is a corner (base), 7.75u > 6.5u →
+        //     endpoint lands OUTSIDE the base paper (visible).
+        // null = use this multiplier; numeric overrides to a fixed px.
+        inset: null,
+        insetTileUFactor: 9,
         headStyle: 'open',
         headPosition: 'both',
         headLen: 15,
@@ -153,7 +156,18 @@
         const ux = dx / len;
         const uy = dy / len;
 
-        let inset = Math.max(0, cfg().inset);
+        let inset;
+        if (typeof cfg().inset === 'number') {
+            inset = Math.max(0, cfg().inset);
+        } else {
+            // Back-compute --tile-u from actual rendered tile size: tile = 13 * tile-u.
+            // (Reading --tile-u via getComputedStyle returns the literal clamp() string,
+            // not a resolved pixel value, so we measure instead.)
+            const sample = document.querySelector('.tile-container');
+            const tilePx = sample ? sample.getBoundingClientRect().width : 130;
+            const tileU = tilePx / 13;
+            inset = (cfg().insetTileUFactor || 7.75) * tileU;
+        }
         // For close tiles (small viewports especially), cap inset at
         // 30% of total distance so at least 40% of the line stays
         // visible. Without this, on iPhone-SE-width screens the entire

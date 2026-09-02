@@ -22,46 +22,9 @@ from core.config import settings  # noqa: E402
 from main import app  # noqa: E402
 
 
-THEMES = ("lily", "planets", "clouds", "islands")
+THEMES = ("canonical", "lily", "planets", "clouds", "islands")
 CANONICAL_AXIS_COUNT = 6
 MINIMUM_AXIS_COUNT = math.ceil(CANONICAL_AXIS_COUNT * 0.8)
-
-
-def audit_canonical(page, origin: str) -> dict[str, int]:
-    """Measure the existing paper Board without coupling it to theme metadata."""
-    page.goto(f"{origin}/?theme=canonical", wait_until="domcontentloaded")
-    page.locator('.tile-container[data-title="Home"].expanded').wait_for()
-    variants = page.locator(".tile-container").evaluate_all(
-        """tiles => tiles.map((tile) => {
-            const classes = [...tile.classList];
-            const expandedClasses = [...tile.querySelector('.tile-expanded').classList];
-            const material = classes.find((name) =>
-                /^sticky-(yellow|pink|blue|green|orange)$/.test(name)
-                || /^scrap-(ruled|graph|plain|kraft|index|legal|dotgrid|manila|receipt|napkin)$/.test(name)
-            );
-            const form = classes.find((name) =>
-                name.startsWith('sticky-fold-') || name.startsWith('shape-')
-            );
-            const cover = expandedClasses.filter((name) =>
-                /^sticky-(yellow|pink|blue|green|orange)$/.test(name)
-                || /^scrap-(ruled|graph|plain|kraft|index|legal|dotgrid|manila|receipt|napkin)$/.test(name)
-                || name.startsWith('shape-')
-            ).sort().join('+');
-            return {
-                material,
-                form,
-                attachment: tile.classList.contains('sticky') ? 'self-adhesive' : 'tape',
-                ink: tile.style.getPropertyValue('--ink-color'),
-                orientation: tile.style.getPropertyValue('--rot'),
-                cover,
-            };
-        })"""
-    )
-    signatures = {tuple(sorted(variant.items())) for variant in variants}
-    return {
-        "locations": len(variants),
-        "distinct_combinations": len(signatures),
-    }
 
 
 def audit_world(page, origin: str, theme: str) -> dict[str, object]:
@@ -229,15 +192,13 @@ def main() -> None:
             )
             context = browser.new_context(viewport={"width": 1440, "height": 900})
             page = context.new_page()
-            report["canonical"] = audit_canonical(page, origin)
-            minimum_combinations = math.ceil(
-                report["canonical"]["locations"] * 0.8
-            )
-            report["minimum_distinct_combinations"] = minimum_combinations
-
             report["worlds"] = {
                 theme: audit_world(page, origin, theme) for theme in THEMES
             }
+            report["minimum_distinct_combinations"] = min(
+                world["minimum_distinct_combinations"]
+                for world in report["worlds"].values()
+            )
             context.close()
             browser.close()
     finally:

@@ -166,16 +166,6 @@ class MiniWindow {
         const el = document.createElement('div');
         el.className = 'loading-scrap';
         el.textContent = 'loading…';
-        el.style.cssText = `
-            position: absolute; top: 40px; left: 50%;
-            transform: translateX(-50%) rotate(-3deg);
-            font-family: var(--font-hand-casual, 'Caveat', cursive);
-            font-size: 1.2rem; color: var(--ink-pencil, #3a3a3a);
-            background: var(--paper-white, #fafaf3);
-            padding: 6px 14px; border-radius: 2px;
-            box-shadow: 2px 3px 5px rgba(0,0,0,0.25);
-            z-index: 10; pointer-events: none;
-        `;
         this.container.appendChild(el);
         this._loadingEl = el;
     }

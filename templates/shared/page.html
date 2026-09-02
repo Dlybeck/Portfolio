@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-board-theme="{{ active_theme }}">
+<html lang="en" data-board-theme="{{ active_theme }}"{% if theme_engine_enabled %} data-theme-pack-visual style="{% for name, value in theme_document_variables.items() %}--theme-pack-{{ name }}: {{ value }};{% endfor %}"{% endif %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,7 +9,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Gochi+Hand&family=Kalam:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+    {% if theme_engine_enabled %}
+    <link rel="stylesheet" href="/static/css/document-structure.css?v=1">
+    {% else %}
     <link rel="stylesheet" href="/static/css/page.css">
+    {% endif %}
     <link rel="stylesheet" href="/static/css/motion.css?v=1">
     {% if theme_engine_enabled %}
     <link rel="stylesheet" href="/static/css/themes/documents.css?v=2">

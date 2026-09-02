@@ -1,0 +1,126 @@
+/* Invariant Document layout. Theme Packs supply every visual value. */
+
+html {
+  margin-top: 20px;
+  text-align: center;
+}
+
+body { margin: 0; }
+
+.container {
+  display: inline-block;
+  position: relative;
+  width: 100%;
+  margin: auto;
+  z-index: 1;
+}
+
+.section {
+  display: block;
+  max-width: 70%;
+  margin: 5px auto;
+  box-sizing: border-box;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+header h1 {
+  margin: auto;
+  text-align: center;
+  cursor: pointer;
+}
+
+#location {
+  display: block;
+  margin-top: 30px;
+  text-align: center;
+}
+
+h3 { margin-top: 10px; text-align: center; }
+
+p {
+  display: block;
+  margin: 7% 0;
+  text-align: center;
+}
+
+p.caption { margin: 10px; text-align: center; }
+
+ul {
+  display: inline-block;
+  padding-left: 0;
+  list-style: none;
+  text-align: left;
+}
+
+ul li { display: list-item; margin-left: 20px; text-align: left; }
+ul li::before { display: inline-block; width: 1em; margin-left: -1em; }
+
+#buttonHolder { text-align: center; }
+
+#topBtn {
+  display: none;
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 99;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+img {
+  display: block;
+  object-fit: contain;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.media { width: 70%; height: 70%; object-fit: contain; }
+.small-media { width: 40%; height: 25%; object-fit: contain; }
+
+.internal-link,
+.external-btn {
+  display: inline-block;
+  text-decoration: none;
+  transition: transform var(--theme-pack-interaction-transition);
+}
+
+iframe {
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  object-fit: contain;
+  overflow: auto;
+}
+
+.code { aspect-ratio: 3 / 2; }
+.game { display: inline; width: auto; height: 325px; margin: 2.5px; }
+
+model-viewer {
+  display: block;
+  width: 90%;
+  height: 400px;
+  margin: 25px auto;
+}
+
+.models a {
+  display: block;
+  width: fit-content;
+  margin-right: auto;
+  margin-left: auto;
+  text-align: center;
+  text-decoration: none;
+}
+
+@media (max-width: 600px) {
+  .section { max-width: 95%; }
+  p { padding-right: 5%; padding-left: 5%; }
+  .game { height: 180px; }
+  .media { width: 90%; }
+  .small-media { width: 80%; }
+  model-viewer { width: 100%; height: 200px; }
+}

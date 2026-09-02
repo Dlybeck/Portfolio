@@ -1,0 +1,276 @@
+{
+  "assignments": {
+    "Home": {
+      "base": "assets/tiles/home-base.svg",
+      "expanded": "assets/tiles/home-expanded.svg",
+      "factors": {
+        "family": 0,
+        "palette": 2,
+        "surface": 0,
+        "shape": 6,
+        "fold": 6,
+        "tape": 0,
+        "detail": 5,
+        "silhouette": 0,
+        "orientation": 5
+      },
+      "rotationDegrees": -0.02
+    },
+    "Hobbies": {
+      "base": "assets/tiles/hobbies-base.svg",
+      "expanded": "assets/tiles/hobbies-expanded.svg",
+      "factors": {
+        "family": 0,
+        "palette": 3,
+        "surface": 0,
+        "shape": 1,
+        "fold": 1,
+        "tape": 0,
+        "detail": 1,
+        "silhouette": 1,
+        "orientation": 3
+      },
+      "rotationDegrees": -1.95
+    },
+    "Projects": {
+      "base": "assets/tiles/projects-base.svg",
+      "expanded": "assets/tiles/projects-expanded.svg",
+      "factors": {
+        "family": 0,
+        "palette": 3,
+        "surface": 0,
+        "shape": 4,
+        "fold": 4,
+        "tape": 0,
+        "detail": 4,
+        "silhouette": 2,
+        "orientation": 6
+      },
+      "rotationDegrees": 1.41
+    },
+    "Work Experience": {
+      "base": "assets/tiles/work-experience-base.svg",
+      "expanded": "assets/tiles/work-experience-expanded.svg",
+      "factors": {
+        "family": 1,
+        "palette": 2,
+        "surface": 2,
+        "shape": 3,
+        "fold": 0,
+        "tape": 1,
+        "detail": 12,
+        "silhouette": 3,
+        "orientation": 5
+      },
+      "rotationDegrees": 0.36
+    },
+    "Education": {
+      "base": "assets/tiles/education-base.svg",
+      "expanded": "assets/tiles/education-expanded.svg",
+      "factors": {
+        "family": 0,
+        "palette": 2,
+        "surface": 0,
+        "shape": 2,
+        "fold": 2,
+        "tape": 0,
+        "detail": 2,
+        "silhouette": 4,
+        "orientation": 7
+      },
+      "rotationDegrees": 1.53
+    },
+    "3D Printing": {
+      "base": "assets/tiles/3d-printing-base.svg",
+      "expanded": "assets/tiles/3d-printing-expanded.svg",
+      "factors": {
+        "family": 0,
+        "palette": 2,
+        "surface": 0,
+        "shape": 4,
+        "fold": 4,
+        "tape": 0,
+        "detail": 0,
+        "silhouette": 5,
+        "orientation": 9
+      },
+      "rotationDegrees": 4.48
+    },
+    "Gaming": {
+      "base": "assets/tiles/gaming-base.svg",
+      "expanded": "assets/tiles/gaming-expanded.svg",
+      "factors": {
+        "family": 1,
+        "palette": 9,
+        "surface": 9,
+        "shape": 0,
+        "fold": 0,
+        "tape": 1,
+        "detail": 12,
+        "silhouette": 0,
+        "orientation": 2
+      },
+      "rotationDegrees": -2.6
+    },
+    "Tennis": {
+      "base": "assets/tiles/tennis-base.svg",
+      "expanded": "assets/tiles/tennis-expanded.svg",
+      "factors": {
+        "family": 1,
+        "palette": 6,
+        "surface": 6,
+        "shape": 2,
+        "fold": 0,
+        "tape": 1,
+        "detail": 0,
+        "silhouette": 2,
+        "orientation": 8
+      },
+      "rotationDegrees": 3.29
+    },
+    "Other Models": {
+      "base": "assets/tiles/other-models-base.svg",
+      "expanded": "assets/tiles/other-models-expanded.svg",
+      "factors": {
+        "family": 1,
+        "palette": 0,
+        "surface": 0,
+        "shape": 3,
+        "fold": 0,
+        "tape": 1,
+        "detail": 2,
+        "silhouette": 3,
+        "orientation": 6
+      },
+      "rotationDegrees": 1.19
+    },
+    "Puzzles": {
+      "base": "assets/tiles/puzzles-base.svg",
+      "expanded": "assets/tiles/puzzles-expanded.svg",
+      "factors": {
+        "family": 1,
+        "palette": 7,
+        "surface": 7,
+        "shape": 0,
+        "fold": 0,
+        "tape": 1,
+        "detail": 13,
+        "silhouette": 0,
+        "orientation": 10
+      },
+      "rotationDegrees": 4.87
+    },
+    "Programs": {
+      "base": "assets/tiles/programs-base.svg",
+      "expanded": "assets/tiles/programs-expanded.svg",
+      "factors": {
+        "family": 1,
+        "palette": 2,
+        "surface": 2,
+        "shape": 2,
+        "fold": 0,
+        "tape": 1,
+        "detail": 9,
+        "silhouette": 2,
+        "orientation": 8
+      },
+      "rotationDegrees": 3.08
+    },
+    "Websites": {
+      "base": "assets/tiles/websites-base.svg",
+      "expanded": "assets/tiles/websites-expanded.svg",
+      "factors": {
+        "family": 0,
+        "palette": 1,
+        "surface": 0,
+        "shape": 4,
+        "fold": 4,
+        "tape": 0,
+        "detail": 3,
+        "silhouette": 3,
+        "orientation": 0
+      },
+      "rotationDegrees": -4.86
+    },
+    "Digital Planner": {
+      "base": "assets/tiles/digital-planner-base.svg",
+      "expanded": "assets/tiles/digital-planner-expanded.svg",
+      "factors": {
+        "family": 1,
+        "palette": 2,
+        "surface": 2,
+        "shape": 4,
+        "fold": 0,
+        "tape": 1,
+        "detail": 3,
+        "silhouette": 4,
+        "orientation": 3
+      },
+      "rotationDegrees": -2.12
+    },
+    "This website": {
+      "base": "assets/tiles/this-website-base.svg",
+      "expanded": "assets/tiles/this-website-expanded.svg",
+      "factors": {
+        "family": 1,
+        "palette": 9,
+        "surface": 9,
+        "shape": 2,
+        "fold": 0,
+        "tape": 1,
+        "detail": 7,
+        "silhouette": 2,
+        "orientation": 5
+      },
+      "rotationDegrees": -0.34
+    },
+    "ScribbleScan": {
+      "base": "assets/tiles/scribblescan-base.svg",
+      "expanded": "assets/tiles/scribblescan-expanded.svg",
+      "factors": {
+        "family": 1,
+        "palette": 8,
+        "surface": 8,
+        "shape": 4,
+        "fold": 0,
+        "tape": 1,
+        "detail": 2,
+        "silhouette": 4,
+        "orientation": 8
+      },
+      "rotationDegrees": 2.53
+    },
+    "College": {
+      "base": "assets/tiles/college-base.svg",
+      "expanded": "assets/tiles/college-expanded.svg",
+      "factors": {
+        "family": 1,
+        "palette": 2,
+        "surface": 2,
+        "shape": 2,
+        "fold": 0,
+        "tape": 1,
+        "detail": 11,
+        "silhouette": 2,
+        "orientation": 6
+      },
+      "rotationDegrees": 1.27
+    },
+    "Early Education": {
+      "base": "assets/tiles/early-education-base.svg",
+      "expanded": "assets/tiles/early-education-expanded.svg",
+      "factors": {
+        "family": 1,
+        "palette": 1,
+        "surface": 1,
+        "shape": 0,
+        "fold": 0,
+        "tape": 1,
+        "detail": 11,
+        "silhouette": 0,
+        "orientation": 0
+      },
+      "rotationDegrees": -4.52
+    }
+  }
+}

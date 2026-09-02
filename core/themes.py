@@ -27,6 +27,10 @@ def theme_context(
         "active_theme": selected.id,
         "active_theme_pack": selected.client_payload(),
         "theme_engine_enabled": enabled,
+        "theme_board_variables": dict(selected.board_variables) if enabled else {},
+        "theme_document_variables": (
+            dict(selected.document_variables) if enabled else {}
+        ),
         "theme_selector_enabled": (
             enabled if selector_enabled is None else enabled and selector_enabled
         ),

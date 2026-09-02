@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="main" data-board-theme="{{ active_theme }}">
+<html lang="en" class="main" data-board-theme="{{ active_theme }}"{% if theme_engine_enabled %} data-theme-pack-visual style="{% for name, value in theme_board_variables.items() %}--theme-pack-{{ name }}: {{ value }};{% endfor %}"{% endif %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -27,7 +27,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Gochi+Hand&family=Kalam:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+    {% if theme_engine_enabled %}
+    <link rel="stylesheet" href="/static/css/theme-structure.css?v=1">
+    {% else %}
     <link rel="stylesheet" href="/static/css/base.css?v=27">
+    {% endif %}
     <link rel="stylesheet" href="/static/css/motion.css?v=1">
     {% if theme_engine_enabled %}
     <link rel="stylesheet" href="/static/css/themes/board.css?v=3">
@@ -42,11 +46,16 @@
     <script src="/static/scripts/homeButton.js?v=3"></script>
     <script src="/static/scripts/mini-pages/openPage.js?v=29"></script>
     <script src="/static/scripts/tileData.js?v=12"></script>
+    {% if not theme_engine_enabled %}
+    <script src="/static/scripts/legacyPaperTiles.js?v=1"></script>
+    {% endif %}
     <script src="/static/scripts/tileCreation.js?v=25"></script>
     <script src="/static/scripts/tileMovement.js?v=18"></script>
     <script src="/static/scripts/chalkArrows.js?v=39"></script>
+    {% if not theme_engine_enabled %}
     <script src="/static/scripts/chalkboardTweaks.js?v=3"></script>
     <script src="/static/scripts/chalkArrowsTweaks.js?v=4"></script>
+    {% endif %}
     <script src="/static/scripts/urlHandler.js?v=3"></script>
     <script src="/static/scripts/mapPan.js?v=6"></script>
     <script src="/static/scripts/map.js?v=4"></script>

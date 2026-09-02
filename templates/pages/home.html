@@ -5,7 +5,9 @@
 {% endblock %}
 
 {% block content %}
+    {% if not theme_engine_enabled %}
     <link rel="stylesheet" href="/static/css/map.css?v=97">
+    {% endif %}
     <script id="portfolio-state" type="application/json">{{ portfolio_state | tojson }}</script>
     {# .map = fixed viewport backdrop (wall + tiles).
        .mini-window-container = ruled-paper viewer; iframe scrolls its own

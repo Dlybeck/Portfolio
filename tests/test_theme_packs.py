@@ -1,5 +1,8 @@
 import json
 from pathlib import Path
+import re
+import subprocess
+import sys
 
 import pytest
 from playwright.sync_api import Page, expect
@@ -7,9 +10,11 @@ from playwright.sync_api import Page, expect
 from core.config import settings
 from core.theme_packs import (
     BOARD_PRESENTATION_TOKENS,
+    BOARD_LOCATIONS,
     DOCUMENT_PRESENTATION_TOKENS,
     InvalidThemeAsset,
     ThemePackRegistry,
+    load_theme_pack,
     sanitized_svg_asset,
 )
 
@@ -53,7 +58,7 @@ def write_compiled_tiles(
     pack_id: str,
     *,
     unsafe: bool = False,
-    titles: tuple[str, ...] = ("Home",),
+    titles: tuple[str, ...] = BOARD_TITLES,
 ) -> None:
     pack_dir = root / pack_id
     assets = pack_dir / "assets" / "tiles"
@@ -99,6 +104,14 @@ def write_presentation(root: Path, pack_id: str) -> None:
                     "headLen": 0,
                     "headHalf": 0,
                     "wobble": 0,
+                    "lineCap": "round",
+                    "dashPattern": "none",
+                    "curveStyle": "straight",
+                    "texture": "none",
+                    "textureColor": "currentColor",
+                    "haloWidth": 1,
+                    "haloOpacity": 0,
+                    "insetFactor": 9,
                 },
             }
         ),
@@ -209,6 +222,55 @@ def test_repository_theme_catalog_is_discovered_from_pack_directories() -> None:
     assert registry.diagnostics == ()
 
 
+def test_machine_schemas_publish_the_exact_runtime_contract() -> None:
+    root = Path(__file__).parent.parent
+    schema_root = root / "schemas" / "theme-pack-v1"
+    presentation = json.loads(
+        (schema_root / "presentation.schema.json").read_text(encoding="utf-8")
+    )
+    tiles = json.loads(
+        (schema_root / "tiles.schema.json").read_text(encoding="utf-8")
+    )
+
+    assert set(presentation["properties"]["board"]["required"]) == BOARD_PRESENTATION_TOKENS
+    assert set(presentation["properties"]["document"]["required"]) == DOCUMENT_PRESENTATION_TOKENS
+    assert set(tiles["properties"]["assignments"]["required"]) == BOARD_LOCATIONS
+
+
+def test_scaffolded_pack_validates_without_engine_source_changes(tmp_path: Path) -> None:
+    root = Path(__file__).parent.parent
+    subprocess.run(
+        [
+            sys.executable,
+            str(root / "scripts" / "scaffold_theme_pack.py"),
+            "fixture-world",
+            "Fixture World",
+            str(tmp_path),
+        ],
+        cwd=root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(root / "scripts" / "validate_theme_pack.py"),
+            str(tmp_path / "fixture-world"),
+        ],
+        cwd=root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    receipt = json.loads(result.stdout)
+
+    assert receipt["valid"] is True
+    assert receipt["id"] == "fixture-world"
+    assert receipt["tileCount"] == len(BOARD_LOCATIONS)
+    assert load_theme_pack(tmp_path / "fixture-world").id == "fixture-world"
+
+
 def test_registry_bundles_validated_compiled_tile_assets(tmp_path: Path) -> None:
     write_pack(tmp_path, "canonical", random_eligible=False)
     write_pack(
@@ -269,10 +331,26 @@ def test_pack_without_a_tile_content_safe_area_is_excluded(tmp_path: Path) -> No
     assert "content-safe area" in registry.diagnostics[0].message
 
 
-def test_repository_alternate_packs_have_all_compiled_board_assets() -> None:
+def test_visual_pack_missing_a_board_location_is_excluded(tmp_path: Path) -> None:
+    write_pack(tmp_path, "canonical", random_eligible=False)
+    write_pack(
+        tmp_path,
+        "incomplete",
+        extra={"tiles": "tiles.json", "presentation": "presentation.json"},
+    )
+    write_compiled_tiles(tmp_path, "incomplete", titles=("Home",))
+    write_presentation(tmp_path, "incomplete")
+
+    registry = ThemePackRegistry.discover(tmp_path)
+
+    assert registry.ids == ("canonical",)
+    assert "missing=" in registry.diagnostics[0].message
+
+
+def test_every_repository_pack_has_the_complete_visual_contract() -> None:
     registry = ThemePackRegistry.discover()
 
-    for pack_id in ("lily", "planets", "clouds", "islands"):
+    for pack_id in ("canonical", "lily", "planets", "clouds", "islands"):
         payload = registry.resolve(pack_id, enabled=True).client_payload()
         assert len(payload["tiles"]["assignments"]) == 17
         assert set(payload["variables"]["board"]) == BOARD_PRESENTATION_TOKENS
@@ -323,11 +401,31 @@ def test_theme_engine_contains_no_installed_world_names_or_drawing_grammar() -> 
         for name in ("board.css", "documents.css")
     ).lower()
 
-    for world in ("lily", "planets", "clouds", "islands"):
+    for world in ("canonical", "lily", "planets", "clouds", "islands"):
         assert world not in engine
         assert world not in shared_css
     for implementation_detail in ("themeadapters", "silhouettes", "palettes"):
         assert implementation_detail not in engine
+
+
+def test_shared_structure_has_no_world_palette_and_delegates_motion_style() -> None:
+    root = Path(__file__).parent.parent
+    structure = "\n".join(
+        (root / "static" / "css" / name).read_text(encoding="utf-8")
+        for name in ("theme-structure.css", "document-structure.css")
+    )
+
+    assert re.search(r"#[0-9a-fA-F]{3,8}|rgba?\(|hsla?\(", structure) is None
+    for token in (
+        "--theme-pack-navigation-transition-easing",
+        "--theme-pack-cover-enter-rotation",
+        "--theme-pack-cover-exit-scale",
+        "--theme-pack-viewer-enter-rotation",
+        "--theme-pack-viewer-exit-rotation",
+        "--theme-pack-home-hover-transform",
+        "--theme-pack-control-hover-transform",
+    ):
+        assert token in structure
 
 
 def test_files_only_fixture_pack_renders_without_engine_changes(

@@ -1,0 +1,632 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://davidlybeck.com/schemas/theme-pack-v1/tiles.schema.json",
+  "title": "Portfolio Theme Pack v1 tile catalog",
+  "type": "object",
+  "properties": {
+    "assignments": {
+      "type": "object",
+      "properties": {
+        "3D Printing": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "expanded": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "factors": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45
+            }
+          },
+          "required": [
+            "base",
+            "expanded",
+            "factors",
+            "rotationDegrees"
+          ],
+          "additionalProperties": false
+        },
+        "College": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "expanded": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "factors": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45
+            }
+          },
+          "required": [
+            "base",
+            "expanded",
+            "factors",
+            "rotationDegrees"
+          ],
+          "additionalProperties": false
+        },
+        "Digital Planner": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "expanded": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "factors": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45
+            }
+          },
+          "required": [
+            "base",
+            "expanded",
+            "factors",
+            "rotationDegrees"
+          ],
+          "additionalProperties": false
+        },
+        "Early Education": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "expanded": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "factors": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45
+            }
+          },
+          "required": [
+            "base",
+            "expanded",
+            "factors",
+            "rotationDegrees"
+          ],
+          "additionalProperties": false
+        },
+        "Education": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "expanded": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "factors": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45
+            }
+          },
+          "required": [
+            "base",
+            "expanded",
+            "factors",
+            "rotationDegrees"
+          ],
+          "additionalProperties": false
+        },
+        "Gaming": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "expanded": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "factors": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45
+            }
+          },
+          "required": [
+            "base",
+            "expanded",
+            "factors",
+            "rotationDegrees"
+          ],
+          "additionalProperties": false
+        },
+        "Hobbies": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "expanded": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "factors": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45
+            }
+          },
+          "required": [
+            "base",
+            "expanded",
+            "factors",
+            "rotationDegrees"
+          ],
+          "additionalProperties": false
+        },
+        "Home": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "expanded": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "factors": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45
+            }
+          },
+          "required": [
+            "base",
+            "expanded",
+            "factors",
+            "rotationDegrees"
+          ],
+          "additionalProperties": false
+        },
+        "Other Models": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "expanded": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "factors": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45
+            }
+          },
+          "required": [
+            "base",
+            "expanded",
+            "factors",
+            "rotationDegrees"
+          ],
+          "additionalProperties": false
+        },
+        "Programs": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "expanded": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "factors": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45
+            }
+          },
+          "required": [
+            "base",
+            "expanded",
+            "factors",
+            "rotationDegrees"
+          ],
+          "additionalProperties": false
+        },
+        "Projects": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "expanded": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "factors": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45
+            }
+          },
+          "required": [
+            "base",
+            "expanded",
+            "factors",
+            "rotationDegrees"
+          ],
+          "additionalProperties": false
+        },
+        "Puzzles": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "expanded": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "factors": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45
+            }
+          },
+          "required": [
+            "base",
+            "expanded",
+            "factors",
+            "rotationDegrees"
+          ],
+          "additionalProperties": false
+        },
+        "ScribbleScan": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "expanded": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "factors": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45
+            }
+          },
+          "required": [
+            "base",
+            "expanded",
+            "factors",
+            "rotationDegrees"
+          ],
+          "additionalProperties": false
+        },
+        "Tennis": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "expanded": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "factors": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45
+            }
+          },
+          "required": [
+            "base",
+            "expanded",
+            "factors",
+            "rotationDegrees"
+          ],
+          "additionalProperties": false
+        },
+        "This website": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "expanded": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "factors": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45
+            }
+          },
+          "required": [
+            "base",
+            "expanded",
+            "factors",
+            "rotationDegrees"
+          ],
+          "additionalProperties": false
+        },
+        "Websites": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "expanded": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "factors": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45
+            }
+          },
+          "required": [
+            "base",
+            "expanded",
+            "factors",
+            "rotationDegrees"
+          ],
+          "additionalProperties": false
+        },
+        "Work Experience": {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "expanded": {
+              "type": "string",
+              "pattern": "^assets/tiles/.+\\.svg$"
+            },
+            "factors": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": {
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "rotationDegrees": {
+              "type": "number",
+              "minimum": -45,
+              "maximum": 45
+            }
+          },
+          "required": [
+            "base",
+            "expanded",
+            "factors",
+            "rotationDegrees"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "3D Printing",
+        "College",
+        "Digital Planner",
+        "Early Education",
+        "Education",
+        "Gaming",
+        "Hobbies",
+        "Home",
+        "Other Models",
+        "Programs",
+        "Projects",
+        "Puzzles",
+        "ScribbleScan",
+        "Tennis",
+        "This website",
+        "Websites",
+        "Work Experience"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "assignments"
+  ],
+  "additionalProperties": false
+}

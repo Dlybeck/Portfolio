@@ -36,7 +36,7 @@
     const availableIds = new Set(
         catalog.map((pack) => pack.key)
     );
-    const canonicalArrowConfig = { ...(window.chalkArrowsConfig || {}) };
+    const relationshipDefaults = { ...(window.chalkArrowsConfig || {}) };
     const state = {
         current: initialPack?.id || fallbackId,
         pack: initialPack,
@@ -272,11 +272,11 @@
             delete tile.dataset.themeShape;
             delete tile.dataset.themePalette;
             delete tile.dataset.themeContentFit;
-            if (tile.dataset.canonicalRotation !== undefined) {
-                tile.style.setProperty("--rot", tile.dataset.canonicalRotation);
+            if (tile.dataset.preThemeRotation !== undefined) {
+                tile.style.setProperty("--rot", tile.dataset.preThemeRotation);
                 tile.style.setProperty(
                     "--rot-expanded",
-                    tile.dataset.canonicalExpandedRotation
+                    tile.dataset.preThemeExpandedRotation
                 );
             }
             tile.querySelectorAll(".paper-body").forEach((body) => {
@@ -316,9 +316,9 @@
             const title = tile.dataset.title;
             const assignment = assignments[title];
             const identity = `${pack.id}-${slug(title)}`;
-            if (tile.dataset.canonicalRotation === undefined) {
-                tile.dataset.canonicalRotation = tile.style.getPropertyValue("--rot");
-                tile.dataset.canonicalExpandedRotation = tile.style.getPropertyValue(
+            if (tile.dataset.preThemeRotation === undefined) {
+                tile.dataset.preThemeRotation = tile.style.getPropertyValue("--rot");
+                tile.dataset.preThemeExpandedRotation = tile.style.getPropertyValue(
                     "--rot-expanded"
                 );
             }
@@ -349,7 +349,7 @@
         if (!window.chalkArrowsConfig) return;
         Object.assign(
             window.chalkArrowsConfig,
-            canonicalArrowConfig,
+            relationshipDefaults,
             pack.connectors || {}
         );
         window.redrawChalkArrows?.();

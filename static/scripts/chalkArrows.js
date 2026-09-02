@@ -29,18 +29,26 @@
         // null = use this multiplier; numeric overrides to a fixed px.
         inset: null,
         insetTileUFactor: 9,
-        headStyle: 'open',
-        headPosition: 'both',
-        headLen: 15,
-        headHalf: 12,
-        strokeWidth: 5.2,
+        headStyle: 'none',
+        headPosition: 'none',
+        headLen: 0,
+        headHalf: 0,
+        strokeWidth: 2,
         opacity: 1,
-        color: '#f3efe2',
+        color: 'currentColor',
         // Wobble is a FRACTION of line length (not absolute px) so the
         // curvature looks similar regardless of how far apart the two
         // tiles are. 0.14 means each control-point offset can be up to
         // ±7% of line length on each side of the chord.
-        wobble: 0.14,
+        wobble: 0,
+        lineCap: 'round',
+        dashPattern: 'none',
+        curveStyle: 'straight',
+        texture: 'none',
+        textureColor: 'currentColor',
+        haloWidth: 1,
+        haloOpacity: 0,
+        insetFactor: 9,
     };
     const cfg = () => window.chalkArrowsConfig;
 
@@ -100,18 +108,25 @@
         //   filter region now spans -2000 to +5000 in both axes,
         //     comfortably larger than any viewport
         defs.innerHTML = `
-            <filter id="chalk-rough"
+            <filter id="relationship-rough"
                     filterUnits="userSpaceOnUse"
                     primitiveUnits="userSpaceOnUse"
                     x="-2000" y="-2000" width="7000" height="7000">
                 <feTurbulence type="fractalNoise" baseFrequency="0.35" numOctaves="3" seed="2" result="t"/>
-                <feDiffuseLighting in="t" surfaceScale="2.8" diffuseConstant="1.2" lighting-color="#f3efe2" result="light">
+                <feDiffuseLighting id="relationship-light" in="t" surfaceScale="2.8" diffuseConstant="1.2" lighting-color="currentColor" result="light">
                     <feDistantLight azimuth="45" elevation="55"/>
                 </feDiffuseLighting>
                 <feComposite in="light" in2="SourceGraphic" operator="in" result="lit"/>
                 <feMerge>
                     <feMergeNode in="SourceGraphic"/>
                     <feMergeNode in="lit"/>
+                </feMerge>
+            </filter>
+            <filter id="relationship-glow" x="-80%" y="-80%" width="260%" height="260%">
+                <feGaussianBlur stdDeviation="3" result="blur"/>
+                <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
                 </feMerge>
             </filter>
         `;
@@ -125,7 +140,6 @@
         // bitmap, then pan via composite-only translation. The earlier
         // assumption that this filter was the lag source was wrong —
         // the lag was per-tile left/top animation, now fixed.
-        arrowsGroup.setAttribute('filter', 'url(#chalk-rough)');
         // GPU compositing hint so transform animations don't re-rasterize
         // the (expensive, filtered) arrow content every frame.
         arrowsGroup.style.willChange = 'transform';
@@ -135,6 +149,20 @@
 
         layer.appendChild(svg);
         return svg;
+    }
+
+    function configureRelationshipTexture() {
+        if (!arrowsGroup || !svg) return;
+        const c = cfg();
+        const filter = c.texture === 'rough'
+            ? 'url(#relationship-rough)'
+            : c.texture === 'glow'
+                ? 'url(#relationship-glow)'
+                : null;
+        if (filter) arrowsGroup.setAttribute('filter', filter);
+        else arrowsGroup.removeAttribute('filter');
+        const light = svg.querySelector('#relationship-light');
+        if (light) light.setAttribute('lighting-color', c.textureColor);
     }
 
     /**
@@ -166,7 +194,7 @@
             const sample = document.querySelector('.tile-container');
             const tilePx = sample ? sample.getBoundingClientRect().width : 130;
             const tileU = tilePx / 13;
-            inset = (cfg().insetTileUFactor || 7.75) * tileU;
+            inset = (cfg().insetFactor ?? cfg().insetTileUFactor ?? 7.75) * tileU;
         }
         // For close tiles (small viewports especially), cap inset at
         // 30% of total distance so at least 40% of the line stays
@@ -211,13 +239,14 @@
             path.setAttribute('stroke', c.color);
             path.setAttribute('stroke-width', c.strokeWidth * 0.6);
             path.setAttribute('stroke-linejoin', 'round');
+            path.setAttribute('stroke-linecap', c.lineCap);
         } else {
             path.setAttribute('d',
                 `M${leftX},${leftY} L${tipX},${tipY} L${rightX},${rightY}`);
             path.setAttribute('fill', 'none');
             path.setAttribute('stroke', c.color);
             path.setAttribute('stroke-width', c.strokeWidth);
-            path.setAttribute('stroke-linecap', 'round');
+            path.setAttribute('stroke-linecap', c.lineCap);
             path.setAttribute('stroke-linejoin', 'round');
         }
         return path;
@@ -229,7 +258,7 @@
         path.setAttribute('stroke', color);
         path.setAttribute('stroke-width', width);
         path.setAttribute('fill', 'none');
-        path.setAttribute('stroke-linecap', 'round');
+        path.setAttribute('stroke-linecap', cfg().lineCap);
         path.setAttribute('vector-effect', 'non-scaling-stroke');
         path.setAttribute('opacity', opacity);
         if (dasharray) path.setAttribute('stroke-dasharray', dasharray);
@@ -242,11 +271,25 @@
      *   1. Halo — soft chalk-dust haze around the main stroke
      *   2. Main — primary chalk body
      */
-    function appendChalkLine(g, d) {
+    function dashArray(width) {
+        const pattern = cfg().dashPattern;
+        if (pattern === 'dot') return `${width * .25} ${width * 2.2}`;
+        if (pattern === 'short') return `${width * 2.2} ${width * 1.8}`;
+        if (pattern === 'long') return `${width * 5} ${width * 2.5}`;
+        return null;
+    }
+
+    function appendRelationshipLine(g, d) {
         const c = cfg();
         const mainWidth = c.strokeWidth;
-        g.appendChild(makeStrokePath(d, c.color, mainWidth * 1.55, c.opacity * 0.16));
-        g.appendChild(makeStrokePath(d, c.color, mainWidth, c.opacity));
+        const dash = dashArray(mainWidth);
+        if (c.haloOpacity > 0) {
+            g.appendChild(makeStrokePath(
+                d, c.textureColor, mainWidth * c.haloWidth,
+                c.opacity * c.haloOpacity, dash
+            ));
+        }
+        g.appendChild(makeStrokePath(d, c.color, mainWidth, c.opacity, dash));
     }
 
     /**
@@ -265,11 +308,22 @@
         const dy = toY - fromY;
         const lineLen = Math.sqrt(dx * dx + dy * dy);
 
+        if (c.curveStyle === 'straight') {
+            return `M${fromX},${fromY} L${toX},${toY}`;
+        }
+
         // Wobble is a FRACTION of line length, so curvature stays
         // visually consistent across short and long arrows.
         const w = c.wobble * lineLen;
         const off1 = (((seed % 100) / 100) - 0.5) * w;
         const off2 = (((seed >> 7) % 100) / 100 - 0.5) * w;
+
+        if (c.curveStyle === 'arc') {
+            const direction = seed % 2 ? 1 : -1;
+            const mx = fromX + dx * .5 + px * Math.max(Math.abs(off1), w * .28) * direction;
+            const my = fromY + dy * .5 + py * Math.max(Math.abs(off1), w * .28) * direction;
+            return `M${fromX},${fromY} Q${mx},${my} ${toX},${toY}`;
+        }
 
         const styleIdx = seed % 5;
 
@@ -342,7 +396,7 @@
         // filter once for all arrows. Major perf win.
 
         const lineD = buildLineD(e.fromX, e.fromY, e.toX, e.toY, e.ux, e.uy, seed);
-        appendChalkLine(g, lineD);
+        appendRelationshipLine(g, lineD);
 
         const showStart =
             c.headStyle !== 'none' &&
@@ -386,6 +440,7 @@
         if (!window.tilesData || !window.positions) return;
         const layerRect = updateViewBox();
         if (!layerRect) return;
+        configureRelationshipTexture();
         clearArrows();
 
         // Convert tile percentage positions to pixel coords.

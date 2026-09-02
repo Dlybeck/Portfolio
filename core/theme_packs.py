@@ -19,6 +19,14 @@ CANONICAL_THEME = "canonical"
 DEFAULT_THEME_ROOT = Path(__file__).parent.parent / "static" / "themes"
 MAX_SVG_BYTES = 256 * 1024
 MAX_THEME_VALUE_LENGTH = 500
+BOARD_LOCATIONS = frozenset(
+    {
+        "Home", "Hobbies", "Projects", "Work Experience", "Education",
+        "3D Printing", "Gaming", "Tennis", "Other Models", "Puzzles",
+        "Programs", "Websites", "Digital Planner", "This website",
+        "ScribbleScan", "College", "Early Education",
+    }
+)
 BOARD_PRESENTATION_TOKENS = frozenset(
     {
         "action-radius", "action-size", "ambient-after-bottom",
@@ -38,11 +46,45 @@ BOARD_PRESENTATION_TOKENS = frozenset(
         "selector-bg", "selector-border", "selector-ink", "selector-radius",
         "control-bg", "control-border", "control-ink", "control-radius",
         "control-shadow", "control-font", "control-icon-filter",
-        "action-transform", "hover-scale", "tile-transition-duration",
+        "action-transform", "hover-scale", "hover-rotation-factor", "hover-lift",
+        "tile-transition-duration", "navigation-transition-duration",
+        "navigation-transition-easing",
         "cover-enter-duration", "cover-exit-duration", "viewer-enter-duration",
-        "viewer-exit-duration",
+        "viewer-exit-duration", "cover-enter-easing", "cover-exit-easing",
+        "cover-enter-offset", "cover-enter-rotation", "cover-enter-scale",
+        "cover-exit-offset", "cover-exit-rotation", "cover-exit-scale",
+        "viewer-enter-easing", "viewer-exit-easing", "viewer-enter-offset",
+        "viewer-enter-rotation", "viewer-exit-offset", "viewer-exit-rotation",
+        "home-hidden-transform", "home-visible-transform",
+        "home-hover-transform", "home-transition-duration",
+        "control-transition-duration", "control-hover-transform",
         "ambient-display", "tape-display", "chrome-decoration-display",
         "title-underline-display",
+        "chrome-decoration-width", "chrome-decoration-height",
+        "chrome-decoration-bg", "chrome-decoration-border",
+        "chrome-decoration-shadow", "chrome-decoration-top",
+        "chrome-decoration-before-left", "chrome-decoration-before-transform",
+        "chrome-decoration-after-right", "chrome-decoration-after-transform",
+        "viewer-decoration-display", "viewer-decoration-width",
+        "viewer-decoration-height", "viewer-decoration-bg",
+        "viewer-decoration-border", "viewer-decoration-shadow",
+        "viewer-decoration-top", "viewer-decoration-before-left",
+        "viewer-decoration-before-transform", "viewer-decoration-after-right",
+        "viewer-decoration-after-transform",
+        "shell-bg", "font-navbar-weight", "font-base-title-weight",
+        "font-expanded-title-weight", "font-expanded-text-weight",
+        "font-action-weight", "base-title-line-height",
+        "expanded-title-line-height", "expanded-text-line-height",
+        "action-letter-spacing", "tile-size", "expanded-width",
+        "expanded-min-height", "phone-tile-size", "phone-expanded-width",
+        "phone-expanded-min-height", "expanded-gap", "expanded-justify",
+        "nav-padding", "nav-gap", "nav-rotation", "nav-logo-display",
+        "nav-title-display", "nav-logo-border", "nav-logo-size",
+        "nav-border-width", "nav-border-style", "selector-border-width",
+        "selector-border-style", "control-border-width", "control-border-style",
+        "control-hover-bg", "control-hover-shadow", "loading-display",
+        "loading-bg", "loading-ink", "loading-font", "loading-radius",
+        "loading-shadow", "loading-transform", "loading-padding", "loading-size",
     }
 )
 DOCUMENT_PRESENTATION_TOKENS = frozenset(
@@ -54,7 +96,19 @@ DOCUMENT_PRESENTATION_TOKENS = frozenset(
         "media-radius", "page-bg", "page-bg-image", "page-bg-size",
         "panel-bg", "panel-border", "panel-border-style", "panel-radius",
         "panel-shadow", "secondary-ink", "separator", "separator-display",
-        "title-size",
+        "title-size", "body-line-height", "title-weight", "heading-weight",
+        "heading-letter-spacing", "link-hover", "link-decoration",
+        "link-hover-decoration", "header-border", "header-shadow",
+        "header-radius", "panel-padding", "panel-border-width", "bullet",
+        "bullet-marker", "button-hover-bg", "button-hover-ink",
+        "button-border-style", "button-border-width", "button-font",
+        "button-padding", "field-bg", "field-ink", "field-border",
+        "field-radius", "field-font", "result-bg", "result-ink",
+        "result-border", "result-radius", "media-border-width",
+        "media-shadow", "code-border", "code-radius", "caption-ink",
+        "selection-bg", "selection-ink", "scrollbar-track",
+        "scrollbar-thumb", "separator-height", "separator-opacity",
+        "interaction-transition", "button-hover-transform",
     }
 )
 
@@ -104,6 +158,7 @@ SVG_ATTRIBUTES = frozenset(
         "opacity",
         "orient",
         "pathLength",
+        "patternUnits",
         "points",
         "preserveAspectRatio",
         "r",
@@ -175,6 +230,14 @@ class ConnectorPresentation(StrictModel):
     head_len: float = Field(alias="headLen", ge=0, le=40)
     head_half: float = Field(alias="headHalf", ge=0, le=30)
     wobble: float = Field(ge=0, le=0.5)
+    line_cap: Literal["butt", "round", "square"] = Field(alias="lineCap")
+    dash_pattern: Literal["none", "short", "long", "dot"] = Field(alias="dashPattern")
+    curve_style: Literal["straight", "arc", "varied"] = Field(alias="curveStyle")
+    texture: Literal["none", "rough", "glow"]
+    texture_color: str = Field(alias="textureColor")
+    halo_width: float = Field(alias="haloWidth", ge=1, le=4)
+    halo_opacity: float = Field(alias="haloOpacity", ge=0, le=1)
+    inset_factor: float = Field(alias="insetFactor", ge=0, le=20)
 
 
 class ThemePresentation(StrictModel):
@@ -381,6 +444,14 @@ def _compiled_tiles(pack_root: Path, reference: str | None) -> tuple[tuple[str, 
         raise InvalidThemeAsset(f"invalid tile catalog: {error}") from error
     if not catalog.assignments:
         raise InvalidThemeAsset("tile catalog must contain at least one assignment")
+    titles = set(catalog.assignments)
+    if titles != BOARD_LOCATIONS:
+        missing = sorted(BOARD_LOCATIONS - titles)
+        unknown = sorted(titles - BOARD_LOCATIONS)
+        raise InvalidThemeAsset(
+            f"tile assignments mismatch Board locations; missing={missing}, "
+            f"unknown={unknown}"
+        )
     return tuple(
         (
             title,
@@ -443,7 +514,46 @@ def _presentation(
         raise InvalidThemeAsset(
             f"Document presentation tokens mismatch; missing={missing}, unknown={unknown}"
         )
-    return board, document, presentation.connectors
+    connectors = presentation.connectors.model_copy(
+        update={
+            "color": _safe_theme_value("connector-color", presentation.connectors.color),
+            "texture_color": _safe_theme_value(
+                "connector-texture-color", presentation.connectors.texture_color
+            ),
+        }
+    )
+    return board, document, connectors
+
+
+def load_theme_pack(pack_dir: Path) -> LoadedThemePack:
+    """Validate one directory as an isolated Theme Pack."""
+    manifest_path = pack_dir / "theme.json"
+    if not manifest_path.is_file():
+        raise InvalidThemeAsset("Theme Pack is missing theme.json")
+    try:
+        raw = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest = ThemePackManifest.model_validate(raw)
+    except (OSError, json.JSONDecodeError, ValidationError) as error:
+        raise InvalidThemeAsset(f"invalid Theme Pack manifest: {error}") from error
+    if manifest.id != pack_dir.name:
+        raise InvalidThemeAsset(
+            f"manifest id {manifest.id!r} does not match directory "
+            f"{pack_dir.name!r}"
+        )
+    if bool(manifest.tiles) != bool(manifest.presentation):
+        raise InvalidThemeAsset(
+            "a visual Theme Pack must declare both tiles and presentation"
+        )
+    board_variables, document_variables, connectors = _presentation(
+        pack_dir, manifest.presentation
+    )
+    return LoadedThemePack(
+        manifest=manifest,
+        tiles=_compiled_tiles(pack_dir, manifest.tiles),
+        board_variables=board_variables,
+        document_variables=document_variables,
+        connectors=connectors,
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -461,29 +571,7 @@ class ThemePackRegistry:
                 if not manifest_path.is_file():
                     continue
                 try:
-                    raw = json.loads(manifest_path.read_text(encoding="utf-8"))
-                    manifest = ThemePackManifest.model_validate(raw)
-                    if manifest.id != pack_dir.name:
-                        raise ValueError(
-                            f"manifest id {manifest.id!r} does not match directory "
-                            f"{pack_dir.name!r}"
-                        )
-                    if bool(manifest.tiles) != bool(manifest.presentation):
-                        raise InvalidThemeAsset(
-                            "a visual Theme Pack must declare both tiles and presentation"
-                        )
-                    board_variables, document_variables, connectors = _presentation(
-                        pack_dir, manifest.presentation
-                    )
-                    packs.append(
-                        LoadedThemePack(
-                            manifest=manifest,
-                            tiles=_compiled_tiles(pack_dir, manifest.tiles),
-                            board_variables=board_variables,
-                            document_variables=document_variables,
-                            connectors=connectors,
-                        )
-                    )
+                    packs.append(load_theme_pack(pack_dir))
                 except (
                     OSError,
                     json.JSONDecodeError,

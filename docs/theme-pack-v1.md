@@ -50,6 +50,11 @@ static/themes/<pack-id>/
 │   │   └── <location>-expanded.svg
 │   └── ... future validated asset classes
 └── ... optional authoring sources ignored by runtime
+
+schemas/theme-pack-v1/
+├── theme.schema.json
+├── presentation.schema.json
+└── tiles.schema.json
 ```
 
 `theme.json` is the only discovery entrypoint. It references the presentation
@@ -107,9 +112,10 @@ requires an intentional versioned extension to the shared grammar.
 
 Font-family and size tokens are independent for navbar, controls, base title,
 expanded title, expanded summary, expanded action, document title, document
-heading, document body, document link, and code. Phone-specific expanded text
-size is also pack-owned. The currently approved fonts are loaded once by the
-stable shell; packs select among those inert font-family values.
+heading, document body, document link, fields, buttons, loader, and code.
+Weights, line heights, letter spacing, and phone-specific sizing are also
+pack-owned. The currently approved fonts are loaded once by the stable shell;
+packs select among those inert font-family values.
 
 ### Colors and surfaces
 
@@ -126,12 +132,16 @@ Chrome tokens own navbar, Personal Mark, controls, selector, viewer frame,
 states, radii, filters, padding, rotations, and shadows. The theme may show or
 hide declared decorative components such as ambient marks, tape, chrome
 decoration, and title underlines; it cannot hide semantic content or controls.
+Tile and expanded-cover dimensions have desktop and phone slots, so object
+geometry can vary while the invariant grid and Parent/Child model stay fixed.
 
 ### Connectors
 
-Connectors declare color, width, opacity, head style and placement, head
+Connectors declare color, width, opacity, cap, dash pattern, curve family,
+rough/glow/none texture, halo, endpoint inset, head style and placement, head
 dimensions, and wobble. The Theme Engine continues to calculate relationship
-endpoints from the invariant graph.
+endpoints from the invariant graph; no pack can change which locations are
+related.
 
 ### Tiles
 
@@ -160,8 +170,10 @@ creates repeated tile instances.
 
 Documents retain one semantic HTML grammar. A pack styles stable slots for the
 canvas, header, section, separator, link, action, media, caption, code/model,
-focus, and Back-to-Top control. The pack owns fonts, sizes, all text colors,
-backgrounds, borders, radii, and shadows. It cannot hide or reorder content.
+focus, form field, output/result, selection, scrollbar, bullet, and Back-to-Top
+control. The pack owns fonts, sizes, weights, spacing, hover states, all text
+colors, backgrounds, borders, radii, and shadows. It cannot hide or reorder
+content.
 
 Text-dense and media/model-rich Documents are mandatory validation fixtures.
 Document theming must be structurally visible; changing only colors does not
@@ -188,6 +200,18 @@ accessible control surface.
 - Variant choices inside a pack are deterministic for the pack seed and Board
   location. Random theme selection does not make individual objects flicker.
 
+Deployment enables the engine and selector independently:
+
+```text
+THEMES_ENABLED=true
+THEME_SELECTOR_ENABLED=false
+```
+
+For local authoring, `THEME_LAB_ENABLED=true` enables both. The theme-enabled
+shell loads only the neutral Board/Document structure stylesheets and the
+validated pack mapping; the original pre-pack CSS/JavaScript presenter is
+loaded only when the engine is disabled.
+
 ## Future AI seam
 
 An AI integration produces the exact same Theme Pack directory as a human. It
@@ -203,6 +227,36 @@ must pass, in order:
 
 The intended promise is zero engine changes for ordinary new worlds, not
 unlimited new behavior without ever extending the Theme Pack language.
+
+## Authoring and validation
+
+Create a complete random-ineligible starter pack outside the installed
+directory, then edit only its files. It remains available for deliberate
+selection once installed, but cannot appear on random refresh until its owner
+opts it in:
+
+```bash
+.venv/bin/python scripts/scaffold_theme_pack.py rain-garden "Rain Garden" /tmp/theme-work
+```
+
+Validate either human- or AI-authored output with the same runtime validator:
+
+```bash
+.venv/bin/python scripts/validate_theme_pack.py /tmp/theme-work/rain-garden
+```
+
+The validator emits a JSON receipt containing the installed file hashes,
+location count, presentation-token counts, and variation axes. It exits
+nonzero for an incomplete or unsafe pack. Generate the checked-in JSON Schemas
+from the runtime contract with:
+
+```bash
+.venv/bin/python scripts/export_theme_pack_schemas.py
+```
+
+The schema files are useful while generating JSON; the validator remains the
+authority because it also performs local-path and SVG safety checks that JSON
+Schema cannot express.
 
 ## Completion proof
 

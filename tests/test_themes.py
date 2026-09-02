@@ -10,6 +10,9 @@ from scripts.audit_theme_variants import (
 )
 
 
+VISUAL_THEMES = ["canonical", "lily", "planets", "clouds", "islands"]
+
+
 def test_theme_laboratory_is_absent_and_canonical_by_default(
     client: TestClient,
 ) -> None:
@@ -37,17 +40,22 @@ def test_enabled_theme_laboratory_renders_known_themes_and_fails_closed(
     unknown = client.get("/?theme=not-a-world")
     document = client.get("/_documents/projects/programs?theme=planets")
 
-    assert '<html lang="en" class="main" data-board-theme="lily">' in lily.text
+    assert '<html lang="en" class="main" data-board-theme="lily" data-theme-pack-visual' in lily.text
     assert 'select data-theme-selector' in lily.text
     assert lily.text.count('class="theme-selector-option"') == 5
     assert '<option class="theme-selector-option" value="canonical"' in lily.text
     assert '<option class="theme-selector-option" value="islands"' in lily.text
     assert '/static/css/themes/board.css' in lily.text
+    assert '/static/css/theme-structure.css' in lily.text
+    assert '/static/css/base.css' not in lily.text
+    assert '/static/css/map.css' not in lily.text
     assert '/static/scripts/themeEngine.js' in lily.text
 
-    assert '<html lang="en" class="main" data-board-theme="canonical">' in unknown.text
-    assert '<html lang="en" data-board-theme="planets">' in document.text
+    assert '<html lang="en" class="main" data-board-theme="canonical" data-theme-pack-visual' in unknown.text
+    assert '<html lang="en" data-board-theme="planets" data-theme-pack-visual' in document.text
     assert '/static/css/themes/documents.css' in document.text
+    assert '/static/css/document-structure.css' in document.text
+    assert '/static/css/page.css' not in document.text
 
 
 def test_runtime_themes_can_be_enabled_without_exposing_the_developer_selector(
@@ -123,7 +131,7 @@ def test_unpinned_refresh_selects_a_new_world_while_a_query_pin_is_stable(
     expect(page).to_have_url(f"{origin}/?theme=lily")
 
 
-@pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])
+@pytest.mark.parametrize("theme", VISUAL_THEMES)
 def test_theme_objects_are_stable_varied_and_matched_across_tile_states(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
@@ -190,17 +198,30 @@ def test_relationship_paths_belong_to_the_world_and_restore_canonical(
     page.goto(f"{origin}/?theme=planets", wait_until="domcontentloaded")
 
     expect(page.locator('.chalk-arrows path[stroke="#b7d9ff"]')).not_to_have_count(0)
+    expect(page.locator('.chalk-arrows .arrows-group')).to_have_attribute(
+        "filter", "url(#relationship-glow)"
+    )
+    assert page.locator('.chalk-arrows path[stroke="#b7d9ff"]').first.get_attribute(
+        "stroke-dasharray"
+    )
     assert page.locator(".chalk-arrows .arrows-group > g > path").first.evaluate(
         "node => node.parentElement.querySelectorAll('path').length"
     ) == 2
 
     page.locator("[data-theme-selector]").select_option("islands")
     expect(page.locator('.chalk-arrows path[stroke="#bce8e2"]')).not_to_have_count(0)
+    assert page.locator('.chalk-arrows .arrows-group').get_attribute("filter") is None
+    assert page.locator('.chalk-arrows path[stroke="#bce8e2"]').first.get_attribute(
+        "stroke-dasharray"
+    )
 
     page.locator("[data-theme-selector]").select_option("canonical")
     expect(page.locator('.chalk-arrows path[stroke="#f3efe2"]')).not_to_have_count(0)
-    expect(page.locator("[data-theme-object]")).to_have_count(0)
-    expect(page.locator("[data-theme-ambient]")).to_have_count(0)
+    expect(page.locator('.chalk-arrows .arrows-group')).to_have_attribute(
+        "filter", "url(#relationship-rough)"
+    )
+    expect(page.locator('[data-theme-object="canonical"]')).to_have_count(34)
+    expect(page.locator("[data-theme-ambient]")).to_have_count(1)
 
 
 def test_open_document_rethemes_in_place_without_stale_world_state(
@@ -224,10 +245,10 @@ def test_open_document_rethemes_in_place_without_stale_world_state(
 
     page.locator("[data-theme-selector]").select_option("canonical")
     expect(document.locator("html")).to_have_attribute("data-board-theme", "canonical")
-    expect(document.locator("html")).not_to_have_attribute("data-theme-pack-visual", "")
+    expect(document.locator("html")).to_have_attribute("data-theme-pack-visual", "")
 
 
-@pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])
+@pytest.mark.parametrize("theme", VISUAL_THEMES)
 @pytest.mark.parametrize(
     ("route", "heading", "content_selector"),
     [
@@ -268,7 +289,7 @@ def test_each_world_has_a_distinct_native_document_grammar(
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
     page, origin = browser_page
     signatures = {}
-    for theme in ("lily", "planets", "clouds", "islands"):
+    for theme in VISUAL_THEMES:
         page.goto(
             f"{origin}/projects/websites/this_website/v3?theme={theme}",
             wait_until="domcontentloaded",
@@ -293,10 +314,45 @@ def test_each_world_has_a_distinct_native_document_grammar(
             }"""
         )
 
-    assert len({tuple(signature) for signature in signatures.values()}) == 4
+    assert len({tuple(signature) for signature in signatures.values()}) == 5
 
 
-@pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])
+@pytest.mark.parametrize("theme", VISUAL_THEMES)
+def test_interactive_document_controls_use_the_active_pack(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+    theme: str,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(
+        f"{origin}/projects/nba_predictions?theme={theme}",
+        wait_until="domcontentloaded",
+    )
+    page.locator(".mini-window-container.open").wait_for()
+    document = page.frame_locator(".mini-window")
+
+    for selector, token in (
+        ("#predictBtn", "--theme-pack-button-bg"),
+        ("#team1", "--theme-pack-field-bg"),
+        ("#result", "--theme-pack-result-bg"),
+    ):
+        assert document.locator(selector).evaluate(
+            """(node, token) => {
+                const actual = getComputedStyle(node).backgroundColor;
+                const probe = document.createElement('span');
+                probe.style.backgroundColor = getComputedStyle(document.documentElement)
+                    .getPropertyValue(token);
+                document.body.appendChild(probe);
+                const expected = getComputedStyle(probe).backgroundColor;
+                probe.remove();
+                return actual === expected;
+            }""",
+            token,
+        )
+
+
+@pytest.mark.parametrize("theme", VISUAL_THEMES)
 def test_keyboard_hierarchy_is_unchanged_in_each_world(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
@@ -335,7 +391,7 @@ def test_keyboard_hierarchy_is_unchanged_in_each_world(
     expect(page).to_have_url(f"{origin}/?theme={theme}#Gaming")
 
 
-@pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])
+@pytest.mark.parametrize("theme", VISUAL_THEMES)
 def test_phone_objects_keep_home_and_nested_copy_inside_their_layout_box(
     mobile_browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
@@ -367,7 +423,7 @@ def test_phone_objects_keep_home_and_nested_copy_inside_their_layout_box(
 
 
 @pytest.mark.parametrize("page_fixture", ["browser_page", "mobile_browser_page"])
-@pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])
+@pytest.mark.parametrize("theme", VISUAL_THEMES)
 def test_every_tile_uses_a_fitted_content_safe_area(
     request: pytest.FixtureRequest,
     monkeypatch: pytest.MonkeyPatch,
@@ -457,9 +513,7 @@ def test_development_selector_has_an_explicit_keyboard_shortcut(
     expect(page).to_have_url(f"{origin}/?theme=clouds")
 
 
-@pytest.mark.parametrize(
-    "theme", ["canonical", "lily", "planets", "clouds", "islands"]
-)
+@pytest.mark.parametrize("theme", VISUAL_THEMES)
 def test_phone_theme_laboratory_keeps_the_personal_mark_visible(
     mobile_browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
@@ -499,7 +553,7 @@ def test_cloudscape_renders_deterministic_density_underside_and_wisp_axes(
     assert len({axis["wisp"] for axis in rendered_axes}) >= 4
 
 
-@pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])
+@pytest.mark.parametrize("theme", VISUAL_THEMES)
 def test_each_world_reaches_eighty_percent_of_canonical_variant_depth(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
@@ -523,7 +577,7 @@ def test_each_world_reaches_eighty_percent_of_canonical_variant_depth(
     assert report["passed"]
 
 
-@pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])
+@pytest.mark.parametrize("theme", VISUAL_THEMES)
 def test_neighbor_focus_follows_the_active_object_silhouette(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
@@ -541,7 +595,7 @@ def test_neighbor_focus_follows_the_active_object_silhouette(
     ) != "none"
 
 
-@pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])
+@pytest.mark.parametrize("theme", VISUAL_THEMES)
 def test_phone_touch_navigation_preserves_each_world(
     mobile_browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,

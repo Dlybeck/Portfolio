@@ -8,6 +8,25 @@ html[data-theme-pack-visual] body {
   color: var(--theme-pack-ink) !important;
   font-family: var(--theme-pack-font-body) !important;
   font-size: var(--theme-pack-body-size);
+  line-height: var(--theme-pack-body-line-height);
+}
+
+html[data-theme-pack-visual] ::selection {
+  color: var(--theme-pack-selection-ink);
+  background: var(--theme-pack-selection-bg);
+}
+
+html[data-theme-pack-visual] {
+  scrollbar-color: var(--theme-pack-scrollbar-thumb) var(--theme-pack-scrollbar-track);
+}
+
+html[data-theme-pack-visual] ::-webkit-scrollbar-track {
+  background: var(--theme-pack-scrollbar-track);
+}
+
+html[data-theme-pack-visual] ::-webkit-scrollbar-thumb {
+  background: var(--theme-pack-scrollbar-thumb);
+  border-radius: var(--theme-pack-button-radius);
 }
 
 html[data-theme-pack-visual] .container {
@@ -18,12 +37,15 @@ html[data-theme-pack-visual] #location {
   color: var(--theme-pack-ink) !important;
   font-family: var(--theme-pack-font-title) !important;
   font-size: var(--theme-pack-title-size) !important;
+  font-weight: var(--theme-pack-title-weight) !important;
 }
 
 html[data-theme-pack-visual] header {
   color: var(--theme-pack-header-ink) !important;
   background: var(--theme-pack-header-bg) !important;
-  border-radius: var(--theme-pack-panel-radius) var(--theme-pack-panel-radius) 0 0 !important;
+  border: var(--theme-pack-header-border) !important;
+  border-radius: var(--theme-pack-header-radius) !important;
+  box-shadow: var(--theme-pack-header-shadow) !important;
 }
 
 html[data-theme-pack-visual] header h1,
@@ -38,6 +60,8 @@ html[data-theme-pack-visual] h2,
 html[data-theme-pack-visual] h3,
 html[data-theme-pack-visual] h4 {
   font-size: var(--theme-pack-heading-size) !important;
+  font-weight: var(--theme-pack-heading-weight) !important;
+  letter-spacing: var(--theme-pack-heading-letter-spacing) !important;
 }
 
 html[data-theme-pack-visual] .section {
@@ -46,34 +70,54 @@ html[data-theme-pack-visual] .section {
   background: var(--theme-pack-panel-bg) !important;
   border-color: var(--theme-pack-panel-border) !important;
   border-style: var(--theme-pack-panel-border-style) !important;
+  border-width: var(--theme-pack-panel-border-width) !important;
   border-radius: var(--theme-pack-panel-radius) !important;
   box-shadow: var(--theme-pack-panel-shadow) !important;
+  padding: var(--theme-pack-panel-padding) !important;
 }
 
 html[data-theme-pack-visual] .section::after {
   content: "";
   display: block;
   width: min(38%, 180px);
-  height: 3px;
+  height: var(--theme-pack-separator-height);
   margin: 1.1rem auto -.35rem;
   border-radius: 50%;
   background: var(--theme-pack-separator);
-  opacity: .65;
+  opacity: var(--theme-pack-separator-opacity);
   display: var(--theme-pack-separator-display);
 }
 
 html[data-theme-pack-visual] p,
 html[data-theme-pack-visual] li,
-html[data-theme-pack-visual] figcaption,
-html[data-theme-pack-visual] .caption {
+html[data-theme-pack-visual] span,
+html[data-theme-pack-visual] label,
+html[data-theme-pack-visual] strong {
   color: var(--theme-pack-ink) !important;
   font-family: var(--theme-pack-font-body) !important;
+}
+
+html[data-theme-pack-visual] figcaption,
+html[data-theme-pack-visual] .caption {
+  color: var(--theme-pack-caption-ink) !important;
+  font-family: var(--theme-pack-font-body) !important;
+}
+
+html[data-theme-pack-visual] ul li::before {
+  content: var(--theme-pack-bullet-marker);
+  color: var(--theme-pack-bullet) !important;
 }
 
 html[data-theme-pack-visual] a {
   color: var(--theme-pack-link) !important;
   font-family: var(--theme-pack-font-link) !important;
-  text-decoration-thickness: 2px;
+  text-decoration: var(--theme-pack-link-decoration) !important;
+  text-decoration-thickness: 2px !important;
+}
+
+html[data-theme-pack-visual] a:hover {
+  color: var(--theme-pack-link-hover) !important;
+  text-decoration: var(--theme-pack-link-hover-decoration) !important;
 }
 
 html[data-theme-pack-visual] body .plain-internal-link {
@@ -81,12 +125,44 @@ html[data-theme-pack-visual] body .plain-internal-link {
 }
 
 html[data-theme-pack-visual] body .external-btn,
-html[data-theme-pack-visual] body .internal-link,
-html[data-theme-pack-visual] #topBtn {
+html[data-theme-pack-visual] body .internal-link:not(.plain-internal-link),
+html[data-theme-pack-visual] #topBtn,
+html[data-theme-pack-visual] button:not(.close-button) {
   color: var(--theme-pack-button-ink) !important;
   background: var(--theme-pack-button-bg) !important;
   border-color: var(--theme-pack-button-border) !important;
+  border-style: var(--theme-pack-button-border-style) !important;
+  border-width: var(--theme-pack-button-border-width) !important;
   border-radius: var(--theme-pack-button-radius) !important;
+  padding: var(--theme-pack-button-padding) !important;
+  font-family: var(--theme-pack-button-font) !important;
+}
+
+html[data-theme-pack-visual] body .external-btn:hover,
+html[data-theme-pack-visual] body .internal-link:not(.plain-internal-link):hover,
+html[data-theme-pack-visual] #topBtn:hover,
+html[data-theme-pack-visual] button:not(.close-button):hover {
+  color: var(--theme-pack-button-hover-ink) !important;
+  background: var(--theme-pack-button-hover-bg) !important;
+  transform: var(--theme-pack-button-hover-transform) !important;
+}
+
+html[data-theme-pack-visual] select,
+html[data-theme-pack-visual] input,
+html[data-theme-pack-visual] textarea {
+  color: var(--theme-pack-field-ink) !important;
+  background: var(--theme-pack-field-bg) !important;
+  border: var(--theme-pack-field-border) !important;
+  border-radius: var(--theme-pack-field-radius) !important;
+  font-family: var(--theme-pack-field-font) !important;
+}
+
+html[data-theme-pack-visual] #result,
+html[data-theme-pack-visual] output {
+  color: var(--theme-pack-result-ink) !important;
+  background: var(--theme-pack-result-bg) !important;
+  border: var(--theme-pack-result-border) !important;
+  border-radius: var(--theme-pack-result-radius) !important;
 }
 
 html[data-theme-pack-visual] img,
@@ -95,8 +171,9 @@ html[data-theme-pack-visual] video,
 html[data-theme-pack-visual] model-viewer {
   box-sizing: border-box;
   background: var(--theme-pack-media-bg) !important;
-  border: 3px solid var(--theme-pack-media-border) !important;
+  border: var(--theme-pack-media-border-width) solid var(--theme-pack-media-border) !important;
   border-radius: var(--theme-pack-media-radius) !important;
+  box-shadow: var(--theme-pack-media-shadow) !important;
 }
 
 html[data-theme-pack-visual] pre,
@@ -105,6 +182,8 @@ html[data-theme-pack-visual] .code {
   background: var(--theme-pack-code-bg) !important;
   color: var(--theme-pack-ink) !important;
   font-family: var(--theme-pack-font-code) !important;
+  border: var(--theme-pack-code-border) !important;
+  border-radius: var(--theme-pack-code-radius) !important;
 }
 
 html[data-theme-pack-visual] :focus-visible {

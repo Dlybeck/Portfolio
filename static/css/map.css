@@ -646,12 +646,14 @@
 @keyframes cover-enter {
   /* 0% → 25% : HOLD off-stage (the anticipation pause) */
   0% {
+    visibility: visible;
     transform: translate(-50%, -50%)
                translate(0, -80vh)
                rotate(calc(var(--rot-expanded, 0deg) + 12deg))
                scale(0.94);
   }
   25% {
+    visibility: visible;
     transform: translate(-50%, -50%)
                translate(0, -80vh)
                rotate(calc(var(--rot-expanded, 0deg) + 12deg))
@@ -659,6 +661,7 @@
   }
   /* 25% → 100% : slide in, decelerate onto the base */
   100% {
+    visibility: visible;
     transform: translate(-50%, -50%)
                translate(0, 0)
                rotate(var(--rot-expanded, 0deg))

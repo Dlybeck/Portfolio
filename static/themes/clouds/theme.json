@@ -4,6 +4,7 @@
   "label": "Cloudscape",
   "version": 1,
   "tiles": "tiles.json",
+  "presentation": "presentation.json",
   "selection": {
     "enabled": true,
     "randomEligible": true,

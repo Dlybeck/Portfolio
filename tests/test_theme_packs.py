@@ -2,11 +2,23 @@ import json
 from pathlib import Path
 
 import pytest
+from playwright.sync_api import Page, expect
 
+from core.config import settings
 from core.theme_packs import (
+    BOARD_PRESENTATION_TOKENS,
+    DOCUMENT_PRESENTATION_TOKENS,
     InvalidThemeAsset,
     ThemePackRegistry,
     sanitized_svg_asset,
+)
+
+
+BOARD_TITLES = (
+    "Home", "Hobbies", "Projects", "Work Experience", "Education",
+    "3D Printing", "Gaming", "Tennis", "Other Models", "Puzzles",
+    "Programs", "Websites", "Digital Planner", "This website",
+    "ScribbleScan", "College", "Early Education",
 )
 
 
@@ -36,7 +48,13 @@ def write_pack(
     (pack_dir / "theme.json").write_text(json.dumps(manifest), encoding="utf-8")
 
 
-def write_compiled_tiles(root: Path, pack_id: str, *, unsafe: bool = False) -> None:
+def write_compiled_tiles(
+    root: Path,
+    pack_id: str,
+    *,
+    unsafe: bool = False,
+    titles: tuple[str, ...] = ("Home",),
+) -> None:
     pack_dir = root / pack_id
     assets = pack_dir / "assets" / "tiles"
     assets.mkdir(parents=True)
@@ -47,16 +65,41 @@ def write_compiled_tiles(root: Path, pack_id: str, *, unsafe: bool = False) -> N
     )
     for state in ("base", "expanded"):
         (assets / f"home-{state}.svg").write_text(markup, encoding="utf-8")
+    assignments = {
+        title: {
+            "base": "assets/tiles/home-base.svg",
+            "expanded": "assets/tiles/home-expanded.svg",
+            "factors": {"silhouette": index, "palette": index % 3},
+            "rotationDegrees": index % 9 - 4,
+        }
+        for index, title in enumerate(titles)
+    }
     (pack_dir / "tiles.json").write_text(
         json.dumps(
+            {"assignments": assignments}
+        ),
+        encoding="utf-8",
+    )
+
+
+def write_presentation(root: Path, pack_id: str) -> None:
+    (root / pack_id / "presentation.json").write_text(
+        json.dumps(
             {
-                "assignments": {
-                    "Home": {
-                        "base": "assets/tiles/home-base.svg",
-                        "expanded": "assets/tiles/home-expanded.svg",
-                        "factors": {"silhouette": 0, "palette": 0},
-                    }
-                }
+                "board": {name: "initial" for name in BOARD_PRESENTATION_TOKENS},
+                "document": {
+                    name: "initial" for name in DOCUMENT_PRESENTATION_TOKENS
+                },
+                "connectors": {
+                    "color": "currentColor",
+                    "strokeWidth": 2,
+                    "opacity": 1,
+                    "headStyle": "none",
+                    "headPosition": "none",
+                    "headLen": 0,
+                    "headHalf": 0,
+                    "wobble": 0,
+                },
             }
         ),
         encoding="utf-8",
@@ -128,6 +171,31 @@ def test_random_candidates_exclude_canonical_disabled_and_ineligible(
     assert tuple(pack.id for pack in registry.random_candidates) == ("lily",)
 
 
+def test_unpinned_selection_is_weighted_while_an_explicit_pin_is_stable(
+    tmp_path: Path,
+) -> None:
+    write_pack(tmp_path, "canonical", random_eligible=False)
+    write_pack(tmp_path, "first", extra={"selection": {
+        "enabled": True, "randomEligible": True, "randomWeight": 1,
+    }})
+    write_pack(tmp_path, "second", extra={"selection": {
+        "enabled": True, "randomEligible": True, "randomWeight": 3,
+    }})
+    registry = ThemePackRegistry.discover(tmp_path)
+
+    assert registry.select_for_request(None, enabled=True, ticket=0).id == "first"
+    assert registry.select_for_request(None, enabled=True, ticket=1).id == "second"
+    assert registry.select_for_request(None, enabled=True, ticket=3).id == "second"
+    assert (
+        registry.select_for_request(
+            None, enabled=True, ticket=0, exclude_id="first"
+        ).id
+        == "second"
+    )
+    assert registry.select_for_request("first", enabled=True, ticket=3).id == "first"
+    assert registry.select_for_request(None, enabled=False, ticket=1).id == "canonical"
+
+
 def test_repository_theme_catalog_is_discovered_from_pack_directories() -> None:
     registry = ThemePackRegistry.discover()
 
@@ -143,8 +211,13 @@ def test_repository_theme_catalog_is_discovered_from_pack_directories() -> None:
 
 def test_registry_bundles_validated_compiled_tile_assets(tmp_path: Path) -> None:
     write_pack(tmp_path, "canonical", random_eligible=False)
-    write_pack(tmp_path, "rain-garden", extra={"tiles": "tiles.json"})
+    write_pack(
+        tmp_path,
+        "rain-garden",
+        extra={"tiles": "tiles.json", "presentation": "presentation.json"},
+    )
     write_compiled_tiles(tmp_path, "rain-garden")
+    write_presentation(tmp_path, "rain-garden")
 
     registry = ThemePackRegistry.discover(tmp_path)
     payload = registry.resolve("rain-garden", enabled=True).client_payload()
@@ -161,8 +234,13 @@ def test_registry_bundles_validated_compiled_tile_assets(tmp_path: Path) -> None
 
 def test_pack_with_unsafe_compiled_asset_is_excluded(tmp_path: Path) -> None:
     write_pack(tmp_path, "canonical", random_eligible=False)
-    write_pack(tmp_path, "unsafe", extra={"tiles": "tiles.json"})
+    write_pack(
+        tmp_path,
+        "unsafe",
+        extra={"tiles": "tiles.json", "presentation": "presentation.json"},
+    )
     write_compiled_tiles(tmp_path, "unsafe", unsafe=True)
+    write_presentation(tmp_path, "unsafe")
 
     registry = ThemePackRegistry.discover(tmp_path)
 
@@ -171,12 +249,120 @@ def test_pack_with_unsafe_compiled_asset_is_excluded(tmp_path: Path) -> None:
     assert "not allowed" in registry.diagnostics[0].message
 
 
+def test_pack_without_a_tile_content_safe_area_is_excluded(tmp_path: Path) -> None:
+    write_pack(tmp_path, "canonical", random_eligible=False)
+    write_pack(
+        tmp_path,
+        "unsafe",
+        extra={"tiles": "tiles.json", "presentation": "presentation.json"},
+    )
+    write_compiled_tiles(tmp_path, "unsafe")
+    write_presentation(tmp_path, "unsafe")
+    (tmp_path / "unsafe" / "assets" / "tiles" / "home-base.svg").write_text(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10"/></svg>',
+        encoding="utf-8",
+    )
+
+    registry = ThemePackRegistry.discover(tmp_path)
+
+    assert registry.ids == ("canonical",)
+    assert "content-safe area" in registry.diagnostics[0].message
+
+
 def test_repository_alternate_packs_have_all_compiled_board_assets() -> None:
     registry = ThemePackRegistry.discover()
 
     for pack_id in ("lily", "planets", "clouds", "islands"):
         payload = registry.resolve(pack_id, enabled=True).client_payload()
         assert len(payload["tiles"]["assignments"]) == 17
+        assert set(payload["variables"]["board"]) == BOARD_PRESENTATION_TOKENS
+        assert set(payload["variables"]["document"]) == DOCUMENT_PRESENTATION_TOKENS
+        assert payload["connectors"]["color"]
+
+
+def test_visual_pack_cannot_install_only_half_of_its_visual_language(
+    tmp_path: Path,
+) -> None:
+    write_pack(tmp_path, "canonical", random_eligible=False)
+    write_pack(tmp_path, "half-pack", extra={"tiles": "tiles.json"})
+    write_compiled_tiles(tmp_path, "half-pack")
+
+    registry = ThemePackRegistry.discover(tmp_path)
+
+    assert registry.ids == ("canonical",)
+    assert "both tiles and presentation" in registry.diagnostics[0].message
+
+
+def test_presentation_rejects_executable_css_values(tmp_path: Path) -> None:
+    write_pack(tmp_path, "canonical", random_eligible=False)
+    write_pack(
+        tmp_path,
+        "unsafe",
+        extra={"tiles": "tiles.json", "presentation": "presentation.json"},
+    )
+    write_compiled_tiles(tmp_path, "unsafe")
+    write_presentation(tmp_path, "unsafe")
+    path = tmp_path / "unsafe" / "presentation.json"
+    presentation = json.loads(path.read_text(encoding="utf-8"))
+    presentation["board"]["board-bg-image"] = "url(javascript:alert(1))"
+    path.write_text(json.dumps(presentation), encoding="utf-8")
+
+    registry = ThemePackRegistry.discover(tmp_path)
+
+    assert registry.ids == ("canonical",)
+    assert "unsafe CSS" in registry.diagnostics[0].message
+
+
+def test_theme_engine_contains_no_installed_world_names_or_drawing_grammar() -> None:
+    root = Path(__file__).parent.parent
+    engine = (root / "static" / "scripts" / "themeEngine.js").read_text(
+        encoding="utf-8"
+    ).lower()
+    shared_css = "\n".join(
+        (root / "static" / "css" / "themes" / name).read_text(encoding="utf-8")
+        for name in ("board.css", "documents.css")
+    ).lower()
+
+    for world in ("lily", "planets", "clouds", "islands"):
+        assert world not in engine
+        assert world not in shared_css
+    for implementation_detail in ("themeadapters", "silhouettes", "palettes"):
+        assert implementation_detail not in engine
+
+
+def test_files_only_fixture_pack_renders_without_engine_changes(
+    tmp_path: Path,
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    write_pack(tmp_path, "canonical", random_eligible=False)
+    write_pack(
+        tmp_path,
+        "fixture-world",
+        label="Fixture World",
+        extra={"tiles": "tiles.json", "presentation": "presentation.json"},
+    )
+    write_compiled_tiles(tmp_path, "fixture-world", titles=BOARD_TITLES)
+    write_presentation(tmp_path, "fixture-world")
+    registry = ThemePackRegistry.discover(tmp_path)
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    monkeypatch.setattr(
+        ThemePackRegistry,
+        "discover",
+        classmethod(lambda cls, root=None: registry),
+    )
+    page, origin = browser_page
+
+    page.goto(f"{origin}/?theme=fixture-world", wait_until="domcontentloaded")
+
+    expect(page.locator("html")).to_have_attribute(
+        "data-board-theme", "fixture-world"
+    )
+    expect(page.locator('[data-theme-object="fixture-world"]')).to_have_count(34)
+    expect(page.locator("[data-theme-selector]")).to_have_value("fixture-world")
+    assert page.locator("html").evaluate(
+        "node => node.style.getPropertyValue('--theme-pack-font-navbar')"
+    ) == "initial"
 
 
 def test_svg_asset_accepts_declarative_slots_and_local_references(

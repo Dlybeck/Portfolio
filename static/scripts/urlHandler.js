@@ -9,14 +9,16 @@ window.portfolioState = portfolioStateElement
         documentPrefix: '/_documents',
     };
 
-// Theme Lab (when enabled) installs one URL transform here. Navigation keeps
+// The Theme Engine (when enabled) installs URL transforms here. Navigation keeps
 // a single owner; callers never need theme-aware versions of these functions.
 window.portfolioUrlTransform = window.portfolioUrlTransform || ((route) => route);
+window.portfolioDocumentUrlTransform = window.portfolioDocumentUrlTransform
+    || ((route) => window.portfolioUrlTransform(route));
 
 window.documentUrlForRoute = function(route) {
     const prefix = window.portfolioState.documentPrefix || '/_documents';
     const documentRoute = `${prefix}${route.startsWith('/') ? route : `/${route}`}`;
-    return window.portfolioUrlTransform(documentRoute);
+    return window.portfolioDocumentUrlTransform(documentRoute);
 };
 
 window.setDestinationUrl = function(route, { replace = false } = {}) {

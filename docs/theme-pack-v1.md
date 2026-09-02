@@ -31,8 +31,8 @@ A Theme Pack owns the entire presentation:
 - Opened-document canvas, headings, body text, links, buttons, sections,
   separators, ornaments, media frames, code/model surfaces, captions,
   scrollbar, and Back-to-Top treatment.
-- Decorative motion, hover response, responsive substitutions, contrast
-  targets, random-selection eligibility, and preview metadata.
+- Decorative motion, hover response, responsive substitutions, focus
+  treatment, random-selection eligibility, and display label.
 
 Content, topology, semantic meaning, focus order, and routes are never
 theme-owned.
@@ -42,25 +42,24 @@ theme-owned.
 ```text
 static/themes/<pack-id>/
 ├── theme.json
+├── presentation.json
+├── tiles.json
 ├── assets/
-│   ├── board/
-│   ├── chrome/
-│   ├── connectors/
 │   ├── tiles/
-│   │   ├── base.svg
-│   │   ├── expanded.svg
-│   │   └── axes/
-│   └── documents/
-└── fonts/
+│   │   ├── <location>-base.svg
+│   │   └── <location>-expanded.svg
+│   └── ... future validated asset classes
+└── ... optional authoring sources ignored by runtime
 ```
 
-`theme.json` is the only entrypoint. Every referenced file must resolve below
-the pack directory. Parent traversal, remote URLs, scripts, event attributes,
-foreign objects, and external SVG references are invalid.
+`theme.json` is the only discovery entrypoint. It references the presentation
+and compiled tile catalogs using pack-local paths. Every referenced file must
+resolve below the pack directory. Parent traversal, remote URLs, scripts,
+event attributes, foreign objects, and external SVG references are invalid.
 
 ## Manifest sections
 
-Every manifest declares these top-level sections:
+Every manifest declares this strict top-level interface:
 
 ```json
 {
@@ -68,17 +67,13 @@ Every manifest declares these top-level sections:
   "id": "lily",
   "label": "Lily Pond",
   "version": 1,
-  "selection": {},
-  "typography": {},
-  "colors": {},
-  "board": {},
-  "chrome": {},
-  "connectors": {},
-  "tiles": {},
-  "documents": {},
-  "motion": {},
-  "responsive": {},
-  "accessibility": {}
+  "tiles": "tiles.json",
+  "presentation": "presentation.json",
+  "selection": {
+    "enabled": true,
+    "randomEligible": true,
+    "randomWeight": 1
+  }
 }
 ```
 
@@ -90,38 +85,53 @@ AI output visible rather than silently ignored.
 - `enabled`: whether the pack may be activated.
 - `randomEligible`: whether unpinned refresh selection may choose it.
 - `randomWeight`: a positive integer used by weighted selection.
-- `preview`: a local image used by development tooling.
 
 Canonical remains the fail-closed fallback. A missing, disabled, malformed, or
 unsafe requested pack never partially applies.
 
+### Presentation catalog
+
+`presentation.json` is the complete styling contract. Its `board` and
+`document` maps must contain the exact supported token sets; missing and
+unknown tokens both reject the pack. Its `connectors` object uses a bounded,
+typed grammar. Values are validated as inert values and cannot contain rules,
+selectors, external URLs, imports, expressions, markup, or executable code.
+
+The stable stylesheets translate these tokens onto semantic UI slots. They do
+not contain any installed theme ID, world-specific color, or world-specific
+geometry. This means an ordinary new visual world can replace every existing
+presentation choice using pack files, while a genuinely new visual capability
+requires an intentional versioned extension to the shared grammar.
+
 ### Typography
 
-Font sources are local pack assets or explicitly approved built-in families.
-Roles are declared independently for navbar, base title, expanded title,
-expanded summary, expanded action, document title, document heading, document
-body, document link, caption, and code. Each role includes family, weight,
-style, line height, letter spacing, and bounded responsive size.
+Font-family and size tokens are independent for navbar, controls, base title,
+expanded title, expanded summary, expanded action, document title, document
+heading, document body, document link, and code. Phone-specific expanded text
+size is also pack-owned. The currently approved fonts are loaded once by the
+stable shell; packs select among those inert font-family values.
 
 ### Colors and surfaces
 
 Semantic tokens describe ink, secondary ink, links, focus, borders, shadows,
-controls, viewer surfaces, document surfaces, and tile palette channels.
-Backgrounds are constrained layer descriptions—solid, linear gradient, radial
-gradient, repeating pattern, or local sanitized SVG—not unrestricted CSS.
+controls, viewer surfaces, document surfaces, and media/code surfaces.
+Background values may use inert colors and CSS gradient/pattern values but may
+not reference remote content or inject unrestricted CSS.
 
 ### Board and chrome
 
-The Board declares its background layer stack, ambient asset placements,
-parallax factors, and decorative motion. Chrome declares navbar geometry,
-Personal Mark treatment, controls, selector, viewer frame, states, and shadows.
-All geometry is bounded so chrome cannot cover the active Neighborhood.
+The Board declares its background stack, ambient-mark treatment and placement,
+tile typography and shadows, hover/motion treatment, and component visibility.
+Chrome tokens own navbar, Personal Mark, controls, selector, viewer frame,
+states, radii, filters, padding, rotations, and shadows. The theme may show or
+hide declared decorative components such as ambient marks, tape, chrome
+decoration, and title underlines; it cannot hide semantic content or controls.
 
 ### Connectors
 
-Connectors declare stroke tokens, width, opacity, dash/cap/head treatment,
-wobble, texture, layering, and motion. The Theme Engine continues to calculate
-relationship endpoints from the invariant graph.
+Connectors declare color, width, opacity, head style and placement, head
+dimensions, and wobble. The Theme Engine continues to calculate relationship
+endpoints from the invariant graph.
 
 ### Tiles
 
@@ -149,9 +159,9 @@ creates repeated tile instances.
 ### Documents
 
 Documents retain one semantic HTML grammar. A pack styles stable slots for the
-canvas, header, section, separator, link, action, media, caption, code, model,
-scrollbar, and Back-to-Top control. It may supply sanitized ornaments and
-constrained section geometry, but it cannot hide or reorder content.
+canvas, header, section, separator, link, action, media, caption, code/model,
+focus, and Back-to-Top control. The pack owns fonts, sizes, all text colors,
+backgrounds, borders, radii, and shadows. It cannot hide or reorder content.
 
 Text-dense and media/model-rich Documents are mandatory validation fixtures.
 Document theming must be structurally visible; changing only colors does not
@@ -159,14 +169,14 @@ satisfy the contract.
 
 ### Motion, responsive behavior, and accessibility
 
-Motion declarations select bounded durations, easing, transforms, and ambient
-effects. The Theme Engine disables decorative motion when reduced motion is
-requested. Responsive declarations may substitute assets, safe areas, font
-bounds, and ornament density without changing Interaction Structure.
+Board presentation tokens select bounded durations and transforms. The stable
+styles disable decorative motion when reduced motion is requested. Responsive
+tokens may adjust type sizing while SVG view boxes and content-safe areas keep
+tile art and text together without changing Interaction Structure.
 
-Every pack declares minimum contrast targets, a visible focus treatment, and
-whether each asset is decorative. Missing accessibility declarations fail the
-pack rather than inheriting an unknown state.
+Every pack must provide a visible focus color. Theme SVGs are inserted as
+decorative, pointer-inert artwork; the stable semantic HTML remains the
+accessible control surface.
 
 ## Runtime selection
 
@@ -185,7 +195,7 @@ has no privileged rendering path and cannot modify engine source. Its output
 must pass, in order:
 
 1. Manifest schema and path validation.
-2. SVG and font safety validation.
+2. SVG and inert presentation-value safety validation.
 3. Slot, token, axis, and safe-area completeness.
 4. Contrast, focus, reduced-motion, responsive, and text-fit checks.
 5. Board variation and document-grammar checks.

@@ -395,6 +395,11 @@ window.updateVisibility = function(centerTitle) {
         if (openLink) openLink.tabIndex = shouldBeExpanded ? 0 : -1;
         if (expanded) {
             expanded.setAttribute('aria-hidden', shouldBeExpanded ? 'false' : 'true');
+            // The cover-enter animation starts from a previously hidden
+            // element. Make its visible state explicit before focus moves
+            // into it; some browsers otherwise retain the inherited hidden
+            // visibility for the first animation frame.
+            expanded.style.visibility = shouldBeExpanded ? 'visible' : '';
         }
 
         // If a user re-selects a tile that's in the middle of its exit

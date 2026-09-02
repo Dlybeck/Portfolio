@@ -34,6 +34,14 @@ document.addEventListener('DOMContentLoaded', function() {
         tileElement.addEventListener('click', function(e) {
             window.handleTileClick(e, container);
         });
+        // Handle keyboard activation directly so the browser's synthesized
+        // button click cannot restore focus to a tile after the Board moves
+        // focus into the newly expanded center tile.
+        tileElement.addEventListener('keydown', function(e) {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            e.preventDefault();
+            window.handleTileClick(e, container);
+        });
 
         //check for go button click
         if (buttonElement) {

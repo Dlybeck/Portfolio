@@ -1,93 +1,113 @@
-/* Theme documents preserve the existing document grammar; only their world changes. */
+/* Stable semantic Document slots. Theme Packs supply every visual token. */
 
-html[data-board-theme="lily"] {
-  --document-page: #e4f1cd;
-  --document-ink: #173f35;
-  --document-link: #176784;
-  --document-header: #2f7254;
-  --document-panel: rgba(237, 249, 220, .9);
-  --document-border: #6c9c70;
-  background: #a7d0bc;
-}
-html[data-board-theme="lily"] body {
-  background-image: radial-gradient(circle at 12% 18%, rgba(255,255,255,.35), transparent 22%), linear-gradient(145deg, #dcecc5, #add3c1);
+html[data-theme-pack-visual],
+html[data-theme-pack-visual] body {
+  background-color: var(--theme-pack-page-bg) !important;
+  background-image: var(--theme-pack-page-bg-image) !important;
+  background-size: var(--theme-pack-page-bg-size) !important;
+  color: var(--theme-pack-ink) !important;
+  font-family: var(--theme-pack-font-body) !important;
+  font-size: var(--theme-pack-body-size);
 }
 
-html[data-board-theme="planets"] {
-  --document-page: #171d43;
-  --document-ink: #f5efdc;
-  --document-link: #9bdcf0;
-  --document-header: #303b79;
-  --document-panel: rgba(29, 36, 78, .92);
-  --document-border: #8393cd;
-  background: #11162f;
-}
-html[data-board-theme="planets"] body {
-  background-image: radial-gradient(circle at 12% 18%, #fff 0 1px, transparent 2px), radial-gradient(circle at 78% 61%, #b9d6ff 0 1px, transparent 2px), linear-gradient(145deg, #11162f, #252d62);
-  background-size: 110px 100px, 160px 140px, auto;
-}
-
-html[data-board-theme="clouds"] {
-  --document-page: #eaf3f7;
-  --document-ink: #28475f;
-  --document-link: #276e95;
-  --document-header: #5b819d;
-  --document-panel: rgba(250, 253, 255, .9);
-  --document-border: #8ba8b8;
-  background: #b8dce9;
-}
-html[data-board-theme="clouds"] body {
-  background-image: radial-gradient(ellipse at 18% 16%, rgba(255,255,255,.55) 0 8%, transparent 9%), linear-gradient(180deg, #a4d3e6, #e9f1f3);
-}
-
-html[data-board-theme="islands"] {
-  --document-page: #f3e7bc;
-  --document-ink: #173c38;
-  --document-link: #17657a;
-  --document-header: #267487;
-  --document-panel: rgba(248, 239, 204, .93);
-  --document-border: #3b867c;
-  background: #4a9bb0;
-}
-html[data-board-theme="islands"] body {
-  background-image: repeating-radial-gradient(ellipse at 20% 30%, transparent 0 35px, rgba(229,247,239,.18) 36px 38px, transparent 39px 70px), linear-gradient(145deg, #3c92aa, #79bdba);
-}
-
-html:not([data-board-theme="canonical"]) body {
-  color: var(--document-ink);
-}
-
-html:not([data-board-theme="canonical"]) .container {
+html[data-theme-pack-visual] .container {
   background: transparent;
 }
 
-html:not([data-board-theme="canonical"]) #location {
-  color: var(--document-ink);
+html[data-theme-pack-visual] #location {
+  color: var(--theme-pack-ink) !important;
+  font-family: var(--theme-pack-font-title) !important;
+  font-size: var(--theme-pack-title-size) !important;
 }
 
-html:not([data-board-theme="canonical"]) header {
-  background: var(--document-header);
+html[data-theme-pack-visual] header {
+  color: var(--theme-pack-header-ink) !important;
+  background: var(--theme-pack-header-bg) !important;
+  border-radius: var(--theme-pack-panel-radius) var(--theme-pack-panel-radius) 0 0 !important;
 }
 
-html:not([data-board-theme="canonical"]) .section {
-  color: var(--document-ink);
-  background: var(--document-panel);
-  border-color: var(--document-border);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, .16);
+html[data-theme-pack-visual] header h1,
+html[data-theme-pack-visual] h1,
+html[data-theme-pack-visual] h2,
+html[data-theme-pack-visual] h3,
+html[data-theme-pack-visual] h4 {
+  font-family: var(--theme-pack-font-heading) !important;
 }
 
-html:not([data-board-theme="canonical"]) a {
-  color: var(--document-link);
+html[data-theme-pack-visual] h2,
+html[data-theme-pack-visual] h3,
+html[data-theme-pack-visual] h4 {
+  font-size: var(--theme-pack-heading-size) !important;
+}
+
+html[data-theme-pack-visual] .section {
+  position: relative;
+  color: var(--theme-pack-ink) !important;
+  background: var(--theme-pack-panel-bg) !important;
+  border-color: var(--theme-pack-panel-border) !important;
+  border-style: var(--theme-pack-panel-border-style) !important;
+  border-radius: var(--theme-pack-panel-radius) !important;
+  box-shadow: var(--theme-pack-panel-shadow) !important;
+}
+
+html[data-theme-pack-visual] .section::after {
+  content: "";
+  display: block;
+  width: min(38%, 180px);
+  height: 3px;
+  margin: 1.1rem auto -.35rem;
+  border-radius: 50%;
+  background: var(--theme-pack-separator);
+  opacity: .65;
+  display: var(--theme-pack-separator-display);
+}
+
+html[data-theme-pack-visual] p,
+html[data-theme-pack-visual] li,
+html[data-theme-pack-visual] figcaption,
+html[data-theme-pack-visual] .caption {
+  color: var(--theme-pack-ink) !important;
+  font-family: var(--theme-pack-font-body) !important;
+}
+
+html[data-theme-pack-visual] a {
+  color: var(--theme-pack-link) !important;
+  font-family: var(--theme-pack-font-link) !important;
   text-decoration-thickness: 2px;
 }
 
-html:not([data-board-theme="canonical"]) body .plain-internal-link {
-  color: var(--document-link) !important;
+html[data-theme-pack-visual] body .plain-internal-link {
+  color: var(--theme-pack-link) !important;
 }
 
-html:not([data-board-theme="canonical"]) body .external-btn,
-html:not([data-board-theme="canonical"]) body .internal-link {
-  color: #fff !important;
-  background: var(--document-header) !important;
-  border-color: var(--document-border) !important;
+html[data-theme-pack-visual] body .external-btn,
+html[data-theme-pack-visual] body .internal-link,
+html[data-theme-pack-visual] #topBtn {
+  color: var(--theme-pack-button-ink) !important;
+  background: var(--theme-pack-button-bg) !important;
+  border-color: var(--theme-pack-button-border) !important;
+  border-radius: var(--theme-pack-button-radius) !important;
+}
+
+html[data-theme-pack-visual] img,
+html[data-theme-pack-visual] iframe,
+html[data-theme-pack-visual] video,
+html[data-theme-pack-visual] model-viewer {
+  box-sizing: border-box;
+  background: var(--theme-pack-media-bg) !important;
+  border: 3px solid var(--theme-pack-media-border) !important;
+  border-radius: var(--theme-pack-media-radius) !important;
+}
+
+html[data-theme-pack-visual] pre,
+html[data-theme-pack-visual] code,
+html[data-theme-pack-visual] .code {
+  background: var(--theme-pack-code-bg) !important;
+  color: var(--theme-pack-ink) !important;
+  font-family: var(--theme-pack-font-code) !important;
+}
+
+html[data-theme-pack-visual] :focus-visible {
+  outline: 3px solid var(--theme-pack-focus);
+  outline-offset: 3px;
 }

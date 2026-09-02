@@ -3,6 +3,7 @@ import pytest
 from playwright.sync_api import Page, expect
 
 from core.config import settings
+from core import theme_packs
 from scripts.audit_theme_variants import (
     MINIMUM_AXIS_COUNT,
     audit_world,
@@ -19,7 +20,7 @@ def test_theme_laboratory_is_absent_and_canonical_by_default(
     assert '<html lang="en" class="main" data-board-theme="canonical">' in board.text
     assert 'data-theme-selector' not in board.text
     assert '/static/css/themes/' not in board.text
-    assert '/static/scripts/themeLab.js' not in board.text
+    assert '/static/scripts/themeEngine.js' not in board.text
 
     assert document.status_code == 200
     assert '<html lang="en" data-board-theme="canonical">' in document.text
@@ -42,11 +43,28 @@ def test_enabled_theme_laboratory_renders_known_themes_and_fails_closed(
     assert '<option class="theme-selector-option" value="canonical"' in lily.text
     assert '<option class="theme-selector-option" value="islands"' in lily.text
     assert '/static/css/themes/board.css' in lily.text
-    assert '/static/scripts/themeLab.js' in lily.text
+    assert '/static/scripts/themeEngine.js' in lily.text
 
     assert '<html lang="en" class="main" data-board-theme="canonical">' in unknown.text
     assert '<html lang="en" data-board-theme="planets">' in document.text
     assert '/static/css/themes/documents.css' in document.text
+
+
+def test_runtime_themes_can_be_enabled_without_exposing_the_developer_selector(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", False)
+    monkeypatch.setattr(settings, "THEMES_ENABLED", True)
+    monkeypatch.setattr(settings, "THEME_SELECTOR_ENABLED", False)
+    monkeypatch.setattr(theme_packs.secrets, "randbelow", lambda total: 1)
+
+    board = client.get("/")
+
+    assert 'data-board-theme="clouds"' in board.text
+    assert 'data-theme-selector' not in board.text
+    assert 'id="theme-pack-catalog"' in board.text
+    assert '/static/scripts/themeEngine.js' in board.text
 
 
 def test_theme_switch_replaces_world_and_preserves_it_in_navigation(
@@ -77,6 +95,32 @@ def test_theme_switch_replaces_world_and_preserves_it_in_navigation(
     assert page.url == f"{origin}/projects/programs?theme=planets"
     document = page.frame_locator(".mini-window")
     expect(document.locator("html")).to_have_attribute("data-board-theme", "planets")
+
+
+def test_unpinned_refresh_selects_a_new_world_while_a_query_pin_is_stable(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    tickets = iter((1, 2, 3))
+    monkeypatch.setattr(theme_packs.secrets, "randbelow", lambda total: next(tickets))
+    page, origin = browser_page
+
+    page.goto(origin, wait_until="domcontentloaded")
+    first = page.locator("html").get_attribute("data-board-theme")
+    assert first == "clouds"
+    expect(page).to_have_url(f"{origin}/")
+
+    page.reload(wait_until="domcontentloaded")
+    second = page.locator("html").get_attribute("data-board-theme")
+    assert second == "lily"
+    assert second != first
+    expect(page).to_have_url(f"{origin}/")
+
+    page.goto(f"{origin}/?theme=lily", wait_until="domcontentloaded")
+    page.reload(wait_until="domcontentloaded")
+    expect(page.locator("html")).to_have_attribute("data-board-theme", "lily")
+    expect(page).to_have_url(f"{origin}/?theme=lily")
 
 
 @pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])
@@ -173,12 +217,14 @@ def test_open_document_rethemes_in_place_without_stale_world_state(
     page.locator("[data-theme-selector]").select_option("clouds")
     expect(page).to_have_url(f"{origin}/projects/programs?theme=clouds")
     expect(document.locator("html")).to_have_attribute("data-board-theme", "clouds")
-    expect(document.locator("style[data-theme-runtime='clouds']")).to_have_count(1)
-    expect(document.locator("[data-theme-runtime='lily']")).to_have_count(0)
+    expect(document.locator("html")).to_have_attribute("data-theme-pack-visual", "")
+    assert document.locator("html").evaluate(
+        "node => node.style.getPropertyValue('--theme-pack-font-body')"
+    ) == "'Kalam', cursive"
 
     page.locator("[data-theme-selector]").select_option("canonical")
     expect(document.locator("html")).to_have_attribute("data-board-theme", "canonical")
-    expect(document.locator("[data-theme-runtime]")).to_have_count(0)
+    expect(document.locator("html")).not_to_have_attribute("data-theme-pack-visual", "")
 
 
 @pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])
@@ -213,6 +259,41 @@ def test_document_grammar_covers_text_and_media_pages_in_every_world(
     assert document.locator(".section").first.evaluate(
         "node => getComputedStyle(node).backgroundColor"
     ) not in {"rgba(0, 0, 0, 0)", "transparent"}
+
+
+def test_each_world_has_a_distinct_native_document_grammar(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    signatures = {}
+    for theme in ("lily", "planets", "clouds", "islands"):
+        page.goto(
+            f"{origin}/projects/websites/this_website/v3?theme={theme}",
+            wait_until="domcontentloaded",
+        )
+        page.locator(".mini-window-container.open").wait_for()
+        document = page.frame_locator(".mini-window")
+        expect(document.locator("html")).to_have_attribute(
+            "data-theme-pack-visual", ""
+        )
+        signatures[theme] = document.locator(".section").first.evaluate(
+            """section => {
+                const root = getComputedStyle(document.documentElement);
+                const style = getComputedStyle(section);
+                const media = document.querySelector('img, video, iframe, model-viewer');
+                return [
+                    root.backgroundImage,
+                    style.backgroundColor,
+                    style.borderRadius,
+                    style.fontFamily,
+                    media ? getComputedStyle(media).borderRadius : '',
+                ];
+            }"""
+        )
+
+    assert len({tuple(signature) for signature in signatures.values()}) == 4
 
 
 @pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])
@@ -285,6 +366,68 @@ def test_phone_objects_keep_home_and_nested_copy_inside_their_layout_box(
         )
 
 
+@pytest.mark.parametrize("page_fixture", ["browser_page", "mobile_browser_page"])
+@pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])
+def test_every_tile_uses_a_fitted_content_safe_area(
+    request: pytest.FixtureRequest,
+    monkeypatch: pytest.MonkeyPatch,
+    theme: str,
+    page_fixture: str,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = request.getfixturevalue(page_fixture)
+    page.goto(f"{origin}/?theme={theme}", wait_until="domcontentloaded")
+    expect(page.locator('[data-theme-content-fit="true"]')).to_have_count(17)
+
+    violations = page.locator(".paper-body[data-theme-content-area]").evaluate_all(
+        """bodies => bodies.flatMap((body) => {
+            const style = getComputedStyle(body);
+            const left = parseFloat(style.paddingLeft);
+            const top = parseFloat(style.paddingTop);
+            const right = body.clientWidth - parseFloat(style.paddingRight);
+            const bottom = body.clientHeight - parseFloat(style.paddingBottom);
+            const textNodes = [...body.querySelectorAll(
+                '.scrap-title, .expanded-title, .expanded-text, .expanded-open'
+            )];
+            const textFailures = textNodes.filter((node) =>
+                node.offsetLeft < left - 1
+                || node.offsetTop < top - 1
+                || node.offsetLeft + node.offsetWidth > right + 1
+                || node.offsetTop + node.offsetHeight > bottom + 1
+                || (node.matches('.expanded-text') && (
+                    node.scrollWidth > node.clientWidth + 2
+                    || node.scrollHeight > node.clientHeight + 2
+                ))
+            ).map((node) => JSON.stringify({
+                title: body.closest('.tile-container').dataset.title,
+                className: node.className,
+                node: [node.offsetLeft, node.offsetTop, node.offsetWidth, node.offsetHeight],
+                safe: [left, top, right, bottom],
+                scroll: [node.scrollWidth, node.scrollHeight, node.clientWidth, node.clientHeight],
+                typography: [getComputedStyle(node).fontSize, getComputedStyle(node).lineHeight, getComputedStyle(node).wordBreak, getComputedStyle(node).whiteSpace],
+            }));
+
+            const svg = body.querySelector('[data-theme-size]');
+            const marker = svg.querySelector('[data-theme-content-area="content"]');
+            const silhouette = svg.querySelector('[data-visual-axis~="silhouette"]');
+            if (!silhouette?.isPointInFill) return [...textFailures, 'missing-silhouette'];
+            const x = Number(marker.getAttribute('x'));
+            const y = Number(marker.getAttribute('y'));
+            const width = Number(marker.getAttribute('width'));
+            const height = Number(marker.getAttribute('height'));
+            const corners = [
+                [x + 1, y + 1], [x + width - 1, y + 1],
+                [x + 1, y + height - 1], [x + width - 1, y + height - 1],
+            ];
+            const artFailure = corners.every(([pointX, pointY]) =>
+                silhouette.isPointInFill(new DOMPoint(pointX, pointY))
+            ) ? [] : [`${body.closest('.tile-container').dataset.title}:safe-area-art`];
+            return [...textFailures, ...artFailure];
+        })"""
+    )
+    assert violations == []
+
+
 def test_development_selector_does_not_enter_the_viewer_neighborhood_focus_cycle(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
@@ -344,13 +487,11 @@ def test_cloudscape_renders_deterministic_density_underside_and_wisp_axes(
     page, origin = browser_page
     page.goto(f"{origin}/?theme=clouds", wait_until="domcontentloaded")
 
-    rendered_axes = page.locator(
-        '[data-theme-size="base"] [data-cloud-grammar]'
-    ).evaluate_all(
+    rendered_axes = page.locator('[data-theme-size="base"]').evaluate_all(
         """nodes => nodes.map((node) => ({
-            density: node.dataset.cloudDensity,
-            underside: node.dataset.cloudUnderside,
-            wisp: node.dataset.cloudWisp,
+            density: node.dataset.variantDensity,
+            underside: node.dataset.variantUnderside,
+            wisp: node.dataset.variantWisp,
         }))"""
     )
     assert len({axis["density"] for axis in rendered_axes}) >= 3

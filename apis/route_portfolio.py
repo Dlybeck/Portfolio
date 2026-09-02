@@ -19,10 +19,18 @@ templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templa
 portfolio_router = APIRouter()
 
 
+def themes_enabled() -> bool:
+    return settings.THEMES_ENABLED or settings.THEME_LAB_ENABLED
+
+
+def theme_selector_enabled() -> bool:
+    return settings.THEME_SELECTOR_ENABLED or settings.THEME_LAB_ENABLED
+
+
 @portfolio_router.get("/_theme-packs/{pack_id}.json", include_in_schema=False)
 async def theme_pack_payload(pack_id: str):
     """Serve one fully validated pack to the development Theme Engine."""
-    if not settings.THEME_LAB_ENABLED:
+    if not themes_enabled():
         raise HTTPException(status_code=404, detail="Theme Laboratory is disabled")
     registry = ThemePackRegistry.discover()
     pack = next(
@@ -39,17 +47,32 @@ async def theme_pack_payload(pack_id: str):
 
 
 def render_board(request: Request, document: PortfolioDocument | None = None):
-    return templates.TemplateResponse(
+    context = {
+        "portfolio_state": portfolio_state(document),
+        "document": document,
+        "metadata": metadata_for(document),
+        "person_schema": PERSON_SCHEMA,
+        **theme_context(
+            request,
+            themes_enabled(),
+            selector_enabled=theme_selector_enabled(),
+        ),
+    }
+    remember_theme = context.pop("remember_theme")
+    response = templates.TemplateResponse(
         request,
         "pages/home.html",
-        {
-            "portfolio_state": portfolio_state(document),
-            "document": document,
-            "metadata": metadata_for(document),
-            "person_schema": PERSON_SCHEMA,
-            **theme_context(request, settings.THEME_LAB_ENABLED),
-        },
+        context,
     )
+    if remember_theme:
+        response.set_cookie(
+            "portfolio_theme",
+            remember_theme,
+            max_age=31_536_000,
+            httponly=True,
+            samesite="lax",
+        )
+    return response
 
 
 @portfolio_router.get("/")
@@ -62,14 +85,20 @@ async def embedded_document(request: Request, document_path: str):
     document = document_for_route(document_path)
     if document is None:
         raise HTTPException(status_code=404, detail="Unknown portfolio document")
+    context = {
+        "metadata": metadata_for(document),
+        "internal_document": True,
+        **theme_context(
+            request,
+            themes_enabled(),
+            selector_enabled=theme_selector_enabled(),
+        ),
+    }
+    context.pop("remember_theme")
     return templates.TemplateResponse(
         request,
         document.template,
-        {
-            "metadata": metadata_for(document),
-            "internal_document": True,
-            **theme_context(request, settings.THEME_LAB_ENABLED),
-        },
+        context,
     )
 
 

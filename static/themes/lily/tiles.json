@@ -10,7 +10,8 @@
         "notch": 2,
         "vein": 4,
         "accent": 0
-      }
+      },
+      "rotationDegrees": -7
     },
     "Hobbies": {
       "base": "assets/tiles/hobbies-base.svg",
@@ -22,7 +23,8 @@
         "notch": 3,
         "vein": 1,
         "accent": 3
-      }
+      },
+      "rotationDegrees": 1
     },
     "Projects": {
       "base": "assets/tiles/projects-base.svg",
@@ -34,7 +36,8 @@
         "notch": 5,
         "vein": 3,
         "accent": 5
-      }
+      },
+      "rotationDegrees": -6
     },
     "Work Experience": {
       "base": "assets/tiles/work-experience-base.svg",
@@ -46,7 +49,8 @@
         "notch": 2,
         "vein": 4,
         "accent": 0
-      }
+      },
+      "rotationDegrees": -1
     },
     "Education": {
       "base": "assets/tiles/education-base.svg",
@@ -58,7 +62,8 @@
         "notch": 5,
         "vein": 3,
         "accent": 3
-      }
+      },
+      "rotationDegrees": 7
     },
     "3D Printing": {
       "base": "assets/tiles/3d-printing-base.svg",
@@ -70,7 +75,8 @@
         "notch": 3,
         "vein": 1,
         "accent": 1
-      }
+      },
+      "rotationDegrees": 8
     },
     "Gaming": {
       "base": "assets/tiles/gaming-base.svg",
@@ -82,7 +88,8 @@
         "notch": 4,
         "vein": 0,
         "accent": 2
-      }
+      },
+      "rotationDegrees": 1
     },
     "Tennis": {
       "base": "assets/tiles/tennis-base.svg",
@@ -94,7 +101,8 @@
         "notch": 4,
         "vein": 0,
         "accent": 0
-      }
+      },
+      "rotationDegrees": 0
     },
     "Other Models": {
       "base": "assets/tiles/other-models-base.svg",
@@ -106,7 +114,8 @@
         "notch": 5,
         "vein": 3,
         "accent": 5
-      }
+      },
+      "rotationDegrees": -2
     },
     "Puzzles": {
       "base": "assets/tiles/puzzles-base.svg",
@@ -118,7 +127,8 @@
         "notch": 4,
         "vein": 2,
         "accent": 0
-      }
+      },
+      "rotationDegrees": -4
     },
     "Programs": {
       "base": "assets/tiles/programs-base.svg",
@@ -130,7 +140,8 @@
         "notch": 4,
         "vein": 2,
         "accent": 4
-      }
+      },
+      "rotationDegrees": 1
     },
     "Websites": {
       "base": "assets/tiles/websites-base.svg",
@@ -142,7 +153,8 @@
         "notch": 3,
         "vein": 1,
         "accent": 3
-      }
+      },
+      "rotationDegrees": -1
     },
     "Digital Planner": {
       "base": "assets/tiles/digital-planner-base.svg",
@@ -154,7 +166,8 @@
         "notch": 1,
         "vein": 3,
         "accent": 5
-      }
+      },
+      "rotationDegrees": 0
     },
     "This website": {
       "base": "assets/tiles/this-website-base.svg",
@@ -166,7 +179,8 @@
         "notch": 2,
         "vein": 0,
         "accent": 0
-      }
+      },
+      "rotationDegrees": -5
     },
     "ScribbleScan": {
       "base": "assets/tiles/scribblescan-base.svg",
@@ -178,7 +192,8 @@
         "notch": 4,
         "vein": 4,
         "accent": 2
-      }
+      },
+      "rotationDegrees": -3
     },
     "College": {
       "base": "assets/tiles/college-base.svg",
@@ -190,7 +205,8 @@
         "notch": 4,
         "vein": 0,
         "accent": 0
-      }
+      },
+      "rotationDegrees": 0
     },
     "Early Education": {
       "base": "assets/tiles/early-education-base.svg",
@@ -202,7 +218,8 @@
         "notch": 0,
         "vein": 4,
         "accent": 0
-      }
+      },
+      "rotationDegrees": -5
     }
   }
 }

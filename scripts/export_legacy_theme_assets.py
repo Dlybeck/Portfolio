@@ -14,11 +14,15 @@ from playwright.sync_api import sync_playwright
 ROOT = Path(__file__).resolve().parent.parent
 THEMES = ("lily", "planets", "clouds", "islands")
 ORIGIN = os.environ.get("PORTFOLIO_PREVIEW_ORIGIN", "http://127.0.0.1:8082")
-SAFE_AREAS = {
+FALLBACK_SAFE_AREAS = {
     "lily": {"base": (42, 48, 116, 70), "expanded": (34, 36, 132, 92)},
     "planets": {"base": (52, 48, 96, 70), "expanded": (38, 34, 124, 96)},
     "clouds": {"base": (38, 61, 124, 58), "expanded": (30, 48, 140, 80)},
     "islands": {"base": (44, 50, 112, 68), "expanded": (34, 38, 132, 90)},
+}
+VIEW_BOXES = {
+    ("planets", "expanded"): "25 15 150 130",
+    ("clouds", "expanded"): "20 15 160 130",
 }
 
 
@@ -48,7 +52,50 @@ def main() -> None:
                 for state in ("base", "expanded"):
                     node = tile.locator(f'[data-theme-size="{state}"]')
                     exported = node.evaluate(
-                        """(source, safeArea) => {
+                        """(source, options) => {
+                            function fittedSafeArea() {
+                                const silhouette = source.querySelector(
+                                    '[data-visual-axis~="silhouette"]'
+                                );
+                                if (!silhouette?.isPointInFill) return options.fallback;
+                                const targetRatio = options.state === 'base' ? 1.65 : 1.35;
+                                const candidates = [];
+                                for (let width = 144; width >= 44; width -= 4) {
+                                    for (let height = 112; height >= 36; height -= 4) {
+                                        for (let centerX = 92; centerX <= 108; centerX += 4) {
+                                            for (let centerY = 76; centerY <= 92; centerY += 4) {
+                                                const x = centerX - width / 2;
+                                                const y = centerY - height / 2;
+                                                const points = [];
+                                                for (let row = 0; row <= 6; row += 1) {
+                                                    for (let column = 0; column <= 6; column += 1) {
+                                                        points.push(new DOMPoint(
+                                                            x + width * column / 6,
+                                                            y + height * row / 6
+                                                        ));
+                                                    }
+                                                }
+                                                if (!points.every((point) => silhouette.isPointInFill(point))) {
+                                                    continue;
+                                                }
+                                                const ratioPenalty = 1 + Math.abs(
+                                                    Math.log(width / height / targetRatio)
+                                                );
+                                                candidates.push({
+                                                    x, y, width, height,
+                                                    score: width * height / ratioPenalty,
+                                                });
+                                            }
+                                        }
+                                    }
+                                }
+                                candidates.sort((left, right) => right.score - left.score);
+                                const best = candidates[0];
+                                return best
+                                    ? [best.x, best.y, best.width, best.height]
+                                    : options.fallback;
+                            }
+                            const safeArea = fittedSafeArea();
                             const clone = source.cloneNode(true);
                             const originals = [source, ...source.querySelectorAll('*')];
                             const copies = [clone, ...clone.querySelectorAll('*')];
@@ -72,7 +119,10 @@ def main() -> None:
                             });
                             clone.classList.remove(...[...clone.classList]
                                 .filter((name) => name.startsWith('theme-object-')));
+                            clone.querySelectorAll('[data-visual-axis~="palette"]')
+                                .forEach((carrier) => carrier.removeAttribute('data-visual-scope'));
                             clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                            if (options.viewBox) clone.setAttribute('viewBox', options.viewBox);
                             const marker = document.createElementNS(
                                 'http://www.w3.org/2000/svg', 'rect'
                             );
@@ -98,7 +148,11 @@ def main() -> None:
                                 ),
                             };
                         }""",
-                        SAFE_AREAS[theme][state],
+                        {
+                            "fallback": FALLBACK_SAFE_AREAS[theme][state],
+                            "state": state,
+                            "viewBox": VIEW_BOXES.get((theme, state)),
+                        },
                     )
                     asset_name = f"{slug(title)}-{state}.svg"
                     (output / asset_name).write_text(
@@ -106,7 +160,11 @@ def main() -> None:
                     )
                     paths[state] = f"assets/tiles/{asset_name}"
                     factors = factors or exported["factors"]
-                assignments[title] = {**paths, "factors": factors}
+                assignments[title] = {
+                    **paths,
+                    "factors": factors,
+                    "rotationDegrees": (factors or {}).get("orientation", 8) - 8,
+                }
             (ROOT / "static" / "themes" / theme / "tiles.json").write_text(
                 json.dumps({"assignments": assignments}, indent=2) + "\n",
                 encoding="utf-8",

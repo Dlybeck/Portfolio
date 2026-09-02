@@ -6,9 +6,12 @@
     {% block title %}
     {% endblock %}
     {% include "components/discovery_metadata.html" %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Gochi+Hand&family=Kalam:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/page.css">
     <link rel="stylesheet" href="/static/css/motion.css?v=1">
-    {% if theme_lab_enabled %}
+    {% if theme_engine_enabled %}
     <link rel="stylesheet" href="/static/css/themes/documents.css?v=2">
     {% endif %}
   </head>

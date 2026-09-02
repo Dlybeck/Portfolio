@@ -90,29 +90,21 @@ class MiniWindow {
         try { doc = this.page.contentDocument; } catch (_) {}
         if (!doc || !doc.body) { this._hideLoadingScrap(); return; }
 
-        // Inject paper theme. Keep scroll ENABLED inside the iframe —
-        // the iframe scrolls its own content internally; outer viewport
-        // stays fixed. `touch-action: pan-y` opts into native vertical
-        // touch panning so mobile feels smooth without any JS
-        // forwarding / custom momentum fighting the browser.
+        // Install only invariant iframe behavior here. Visual treatment is
+        // exclusively supplied by the active Theme Pack.
         const style = doc.createElement('style');
         style.setAttribute('data-paper-table', '');
         style.textContent = `
             html, body {
-                background: transparent !important;
-                font-family: Georgia, 'Times New Roman', Times, serif !important;
-                color: #1b1b1b !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 touch-action: pan-y !important;
             }
             body { overflow-y: auto !important; overflow-x: hidden !important; }
             #topBtn { display: none !important; }
-            .section { background-color: rgba(255,255,255,0.55) !important; border-color: rgba(0,0,0,0.3) !important; }
-            header { background-color: rgba(26, 58, 110, 0.85) !important; }
         `;
         doc.head.appendChild(style);
-        if (window.themeLab) window.themeLab.styleDocument(doc);
+        if (window.themeEngine) window.themeEngine.styleDocument(doc);
 
         doc.addEventListener('keydown', (event) => {
             if (event.key !== 'Escape') return;

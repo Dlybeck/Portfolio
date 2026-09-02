@@ -1,6 +1,9 @@
 {
   "board": {
     "font-navbar": "'Architects Daughter', sans-serif",
+    "font-navbar-size": "var(--font-navbar-title)",
+    "font-control-size": "1.25rem",
+    "font-selector-size": ".9rem",
     "font-base-title": "'Patrick Hand', sans-serif",
     "font-expanded-title": "'Kalam', sans-serif",
     "font-expanded-text": "'Patrick Hand', sans-serif",
@@ -34,6 +37,8 @@
     "ambient-after-transform": "none",
     "viewer-bg": "#f5eedd",
     "viewer-border": "transparent",
+    "viewer-border-width": "0",
+    "viewer-border-style": "solid",
     "nav-bg": "#fafaf3",
     "nav-border": "transparent",
     "nav-ink": "#1a3a6e",
@@ -199,6 +204,7 @@
     "link-hover": "#004477",
     "link-decoration": "underline",
     "link-hover-decoration": "underline double",
+    "link-size": "inherit",
     "header-border": "0",
     "header-shadow": "none",
     "header-radius": "50px 50px 0 0",
@@ -211,12 +217,14 @@
     "button-border-style": "solid",
     "button-border-width": "2px",
     "button-font": "Georgia, 'Times New Roman', serif",
+    "button-size": "1rem",
     "button-padding": "10px",
     "field-bg": "#ffffff",
     "field-ink": "#1b1b1b",
     "field-border": "2px solid #1b1b1b",
     "field-radius": "6px",
     "field-font": "Georgia, 'Times New Roman', serif",
+    "field-size": "1rem",
     "result-bg": "#f1f1f1",
     "result-ink": "#1b1b1b",
     "result-border": "3px solid #1b1b1b",
@@ -233,7 +241,8 @@
     "separator-height": "3px",
     "separator-opacity": ".65",
     "interaction-transition": ".2s ease-in-out",
-    "button-hover-transform": "scale(1.1)"
+    "button-hover-transform": "scale(1.1)",
+    "code-size": ".92em"
   },
   "connectors": {
     "color": "#f3efe2",

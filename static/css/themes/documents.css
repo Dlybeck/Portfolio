@@ -103,6 +103,13 @@ html[data-theme-pack-visual] .caption {
   font-family: var(--theme-pack-font-body) !important;
 }
 
+html[data-theme-pack-visual] small,
+html[data-theme-pack-visual] time,
+html[data-theme-pack-visual] .secondary-ink {
+  color: var(--theme-pack-secondary-ink) !important;
+  font-family: var(--theme-pack-font-body) !important;
+}
+
 html[data-theme-pack-visual] ul li::before {
   content: var(--theme-pack-bullet-marker);
   color: var(--theme-pack-bullet) !important;
@@ -111,6 +118,7 @@ html[data-theme-pack-visual] ul li::before {
 html[data-theme-pack-visual] a {
   color: var(--theme-pack-link) !important;
   font-family: var(--theme-pack-font-link) !important;
+  font-size: var(--theme-pack-link-size) !important;
   text-decoration: var(--theme-pack-link-decoration) !important;
   text-decoration-thickness: 2px !important;
 }
@@ -136,6 +144,7 @@ html[data-theme-pack-visual] button:not(.close-button) {
   border-radius: var(--theme-pack-button-radius) !important;
   padding: var(--theme-pack-button-padding) !important;
   font-family: var(--theme-pack-button-font) !important;
+  font-size: var(--theme-pack-button-size) !important;
 }
 
 html[data-theme-pack-visual] body .external-btn:hover,
@@ -155,6 +164,7 @@ html[data-theme-pack-visual] textarea {
   border: var(--theme-pack-field-border) !important;
   border-radius: var(--theme-pack-field-radius) !important;
   font-family: var(--theme-pack-field-font) !important;
+  font-size: var(--theme-pack-field-size) !important;
 }
 
 html[data-theme-pack-visual] #result,
@@ -182,6 +192,7 @@ html[data-theme-pack-visual] .code {
   background: var(--theme-pack-code-bg) !important;
   color: var(--theme-pack-ink) !important;
   font-family: var(--theme-pack-font-code) !important;
+  font-size: var(--theme-pack-code-size) !important;
   border: var(--theme-pack-code-border) !important;
   border-radius: var(--theme-pack-code-radius) !important;
 }

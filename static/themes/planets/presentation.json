@@ -1,6 +1,9 @@
 {
   "board": {
     "font-navbar": "'Architects Daughter', cursive",
+    "font-navbar-size": "var(--font-navbar-title)",
+    "font-control-size": "1.2rem",
+    "font-selector-size": ".88rem",
     "font-base-title": "'Architects Daughter', cursive",
     "font-expanded-title": "'Kalam', cursive",
     "font-expanded-text": "'Architects Daughter', cursive",
@@ -34,6 +37,8 @@
     "ambient-after-transform": "none",
     "viewer-bg": "#171d43",
     "viewer-border": "#7888c7",
+    "viewer-border-width": "2px",
+    "viewer-border-style": "solid",
     "nav-bg": "#202852",
     "nav-border": "#8b9bd4",
     "nav-ink": "#f4edda",
@@ -199,6 +204,7 @@
     "link-hover": "#d1f5ff",
     "link-decoration": "underline",
     "link-hover-decoration": "underline double",
+    "link-size": "inherit",
     "header-border": "2px solid #8393cd",
     "header-shadow": "0 0 22px rgba(139,154,211,.28)",
     "header-radius": "18px 18px 0 0",
@@ -211,12 +217,14 @@
     "button-border-style": "solid",
     "button-border-width": "2px",
     "button-font": "system-ui, sans-serif",
+    "button-size": "1rem",
     "button-padding": "10px 16px",
     "field-bg": "#11162f",
     "field-ink": "#f5efdc",
     "field-border": "2px solid #8393cd",
     "field-radius": "9px",
     "field-font": "system-ui, sans-serif",
+    "field-size": "1rem",
     "result-bg": "#0b1028",
     "result-ink": "#f5efdc",
     "result-border": "2px solid #8393cd",
@@ -233,7 +241,8 @@
     "separator-height": "2px",
     "separator-opacity": ".8",
     "interaction-transition": ".2s ease-in-out",
-    "button-hover-transform": "scale(1.04)"
+    "button-hover-transform": "scale(1.04)",
+    "code-size": ".9em"
   },
   "connectors": {
     "color": "#b7d9ff",

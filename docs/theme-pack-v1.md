@@ -233,7 +233,9 @@ unlimited new behavior without ever extending the Theme Pack language.
 Create a complete random-ineligible starter pack outside the installed
 directory, then edit only its files. It remains available for deliberate
 selection once installed, but cannot appear on random refresh until its owner
-opts it in:
+opts it in. Its neutral six-axis SVG grammar already passes the rendered
+variation and continuity baseline, so authors begin from a working contract
+rather than a deliberately failing placeholder:
 
 ```bash
 .venv/bin/python scripts/scaffold_theme_pack.py rain-garden "Rain Garden" /tmp/theme-work
@@ -257,6 +259,14 @@ from the runtime contract with:
 The schema files are useful while generating JSON; the validator remains the
 authority because it also performs local-path and SVG safety checks that JSON
 Schema cannot express.
+
+Once installed, no audit list needs updating. Both visual tools discover all
+enabled packs through the runtime registry:
+
+```bash
+.venv/bin/python scripts/audit_theme_variants.py
+.venv/bin/python scripts/capture_theme_matrix.py
+```
 
 ## Completion proof
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import math
 from pathlib import Path
 from pathlib import PurePosixPath
 import re
@@ -19,6 +20,8 @@ CANONICAL_THEME = "canonical"
 DEFAULT_THEME_ROOT = Path(__file__).parent.parent / "static" / "themes"
 MAX_SVG_BYTES = 256 * 1024
 MAX_THEME_VALUE_LENGTH = 500
+MIN_VARIATION_AXIS_COUNT = 5
+REQUIRED_VARIATION_FACTORS = frozenset({"silhouette", "palette", "orientation"})
 BOARD_LOCATIONS = frozenset(
     {
         "Home", "Hobbies", "Projects", "Work Experience", "Education",
@@ -37,12 +40,14 @@ BOARD_PRESENTATION_TOKENS = frozenset(
         "ambient-mark-width", "base-title-size", "board-bg-color",
         "board-bg-image", "board-bg-size", "expanded-text-size",
         "expanded-title-size", "focus", "font-action", "font-base-title",
-        "font-expanded-text", "font-expanded-title", "font-navbar", "ink",
+        "font-expanded-text", "font-expanded-title", "font-navbar",
+        "font-navbar-size", "font-control-size", "font-selector-size", "ink",
         "link", "link-bg", "nav-bg", "nav-border", "nav-ink",
         "nav-logo-filter", "nav-logo-radius", "nav-radius", "nav-shadow",
         "phone-expanded-text-size", "text-shadow", "tile-hover-shadow",
         "tile-shadow", "viewer-bg", "viewer-border", "viewer-bg-image",
-        "viewer-radius", "viewer-shadow", "viewer-rotation", "viewer-padding",
+        "viewer-border-width", "viewer-border-style", "viewer-radius",
+        "viewer-shadow", "viewer-rotation", "viewer-padding",
         "selector-bg", "selector-border", "selector-ink", "selector-radius",
         "control-bg", "control-border", "control-ink", "control-radius",
         "control-shadow", "control-font", "control-icon-filter",
@@ -98,17 +103,17 @@ DOCUMENT_PRESENTATION_TOKENS = frozenset(
         "panel-shadow", "secondary-ink", "separator", "separator-display",
         "title-size", "body-line-height", "title-weight", "heading-weight",
         "heading-letter-spacing", "link-hover", "link-decoration",
-        "link-hover-decoration", "header-border", "header-shadow",
+        "link-hover-decoration", "link-size", "header-border", "header-shadow",
         "header-radius", "panel-padding", "panel-border-width", "bullet",
         "bullet-marker", "button-hover-bg", "button-hover-ink",
         "button-border-style", "button-border-width", "button-font",
-        "button-padding", "field-bg", "field-ink", "field-border",
-        "field-radius", "field-font", "result-bg", "result-ink",
+        "button-size", "button-padding", "field-bg", "field-ink", "field-border",
+        "field-radius", "field-font", "field-size", "result-bg", "result-ink",
         "result-border", "result-radius", "media-border-width",
         "media-shadow", "code-border", "code-radius", "caption-ink",
         "selection-bg", "selection-ink", "scrollbar-track",
         "scrollbar-thumb", "separator-height", "separator-opacity",
-        "interaction-transition", "button-hover-transform",
+        "interaction-transition", "button-hover-transform", "code-size",
     }
 )
 
@@ -191,7 +196,12 @@ LOCAL_URL = re.compile(r"^url\(#[A-Za-z_][A-Za-z0-9_.:-]*\)$")
 
 
 class StrictModel(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, populate_by_name=True)
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+        populate_by_name=True,
+        strict=True,
+    )
 
 
 class ThemeSelection(StrictModel):
@@ -206,8 +216,8 @@ class ThemePackManifest(StrictModel):
     label: str = Field(min_length=1, max_length=64)
     version: Literal[1]
     selection: ThemeSelection
-    tiles: str | None = None
-    presentation: str | None = None
+    tiles: Literal["tiles.json"]
+    presentation: Literal["presentation.json"]
 
 
 class TileAssignment(StrictModel):
@@ -274,6 +284,15 @@ def sanitized_svg_asset(pack_root: Path, reference: str) -> str:
     markup = candidate.read_text(encoding="utf-8")
     if "<!DOCTYPE" in markup.upper() or "<!ENTITY" in markup.upper():
         raise InvalidThemeAsset("Theme SVG assets cannot declare entities")
+    markup_without_declaration = re.sub(
+        r"^\s*<\?xml\s+[^?]*\?>",
+        "",
+        markup,
+        count=1,
+        flags=re.IGNORECASE,
+    )
+    if "<?" in markup_without_declaration:
+        raise InvalidThemeAsset("Theme SVG processing instructions are not allowed")
     try:
         root_element = ElementTree.fromstring(markup)
     except ElementTree.ParseError as error:
@@ -312,6 +331,8 @@ def sanitized_svg_asset(pack_root: Path, reference: str) -> str:
 def _compiled_tile_svg(pack_root: Path, reference: str) -> str:
     markup = sanitized_svg_asset(pack_root, reference)
     root = ElementTree.fromstring(markup)
+    if _local_name(root.tag) != "svg":
+        raise InvalidThemeAsset("compiled tile asset root must be svg")
     view_box = root.attrib.get("viewBox", "").split()
     if len(view_box) != 4:
         raise InvalidThemeAsset("compiled tile SVG must declare a four-number viewBox")
@@ -336,7 +357,9 @@ def _compiled_tile_svg(pack_root: Path, reference: str) -> str:
     except (KeyError, ValueError) as error:
         raise InvalidThemeAsset("compiled tile content-safe area is invalid") from error
     if (
-        view_width <= 0
+        not all(math.isfinite(value) for value in (view_x, view_y, view_width, view_height))
+        or not all(math.isfinite(value) for value in (x, y, width, height))
+        or view_width <= 0
         or view_height <= 0
         or x < view_x
         or y < view_y
@@ -376,10 +399,10 @@ class LoadedThemePack:
     """A complete Theme Pack after every referenced asset has been validated."""
 
     manifest: ThemePackManifest
-    tiles: tuple[tuple[str, CompiledTileAssignment], ...] = ()
-    board_variables: tuple[tuple[str, str], ...] = ()
-    document_variables: tuple[tuple[str, str], ...] = ()
-    connectors: ConnectorPresentation | None = None
+    tiles: tuple[tuple[str, CompiledTileAssignment], ...]
+    board_variables: tuple[tuple[str, str], ...]
+    document_variables: tuple[tuple[str, str], ...]
+    connectors: ConnectorPresentation
 
     @property
     def id(self) -> str:
@@ -394,28 +417,24 @@ class LoadedThemePack:
         return self.manifest.selection
 
     def client_payload(self) -> dict[str, Any]:
-        payload: dict[str, Any] = {
+        return {
             "$schema": self.manifest.schema_id,
             "id": self.id,
             "label": self.label,
             "version": self.manifest.version,
             "selection": self.selection.model_dump(by_alias=True),
-        }
-        if self.tiles:
-            payload["tiles"] = {
+            "tiles": {
                 "assignments": {
                     title: assignment.client_payload()
                     for title, assignment in self.tiles
                 }
-            }
-        if self.board_variables or self.document_variables:
-            payload["variables"] = {
+            },
+            "variables": {
                 "board": dict(self.board_variables),
                 "document": dict(self.document_variables),
-            }
-        if self.connectors:
-            payload["connectors"] = self.connectors.model_dump(by_alias=True)
-        return payload
+            },
+            "connectors": self.connectors.model_dump(by_alias=True),
+        }
 
 
 def _local_json_asset(pack_root: Path, reference: str) -> Path:
@@ -433,9 +452,7 @@ def _local_json_asset(pack_root: Path, reference: str) -> Path:
     return candidate
 
 
-def _compiled_tiles(pack_root: Path, reference: str | None) -> tuple[tuple[str, CompiledTileAssignment], ...]:
-    if reference is None:
-        return ()
+def _compiled_tiles(pack_root: Path, reference: str) -> tuple[tuple[str, CompiledTileAssignment], ...]:
     catalog_path = _local_json_asset(pack_root, reference)
     try:
         raw = json.loads(catalog_path.read_text(encoding="utf-8"))
@@ -452,18 +469,64 @@ def _compiled_tiles(pack_root: Path, reference: str | None) -> tuple[tuple[str, 
             f"tile assignments mismatch Board locations; missing={missing}, "
             f"unknown={unknown}"
         )
-    return tuple(
-        (
-            title,
-            CompiledTileAssignment(
-                base_svg=_compiled_tile_svg(pack_root, assignment.base),
-                expanded_svg=_compiled_tile_svg(pack_root, assignment.expanded),
-                factors=tuple(sorted(assignment.factors.items())),
-                rotation_degrees=assignment.rotation_degrees,
-            ),
+    for title, assignment in catalog.assignments.items():
+        if not assignment.factors:
+            raise InvalidThemeAsset(
+                f"tile assignment {title!r} must declare variation factors"
+            )
+        invalid_factors = sorted(
+            name
+            for name in assignment.factors
+            if not re.fullmatch(r"[a-z][a-z0-9-]{0,63}", name)
         )
-        for title, assignment in sorted(catalog.assignments.items())
-    )
+        if invalid_factors:
+            raise InvalidThemeAsset(
+                f"tile assignment {title!r} has invalid variation factors: "
+                f"{invalid_factors}"
+            )
+    factor_sets = {frozenset(assignment.factors) for assignment in catalog.assignments.values()}
+    if len(factor_sets) != 1:
+        raise InvalidThemeAsset("tile assignments must declare one consistent factor set")
+    factor_names = next(iter(factor_sets))
+    if len(factor_names) < MIN_VARIATION_AXIS_COUNT:
+        raise InvalidThemeAsset(
+            f"tile assignments require at least {MIN_VARIATION_AXIS_COUNT} variation axes"
+        )
+    missing_factors = sorted(REQUIRED_VARIATION_FACTORS - factor_names)
+    if missing_factors:
+        raise InvalidThemeAsset(
+            f"tile assignments are missing required variation factors: {missing_factors}"
+        )
+    for factor in sorted(factor_names):
+        values = {
+            assignment.factors[factor]
+            for assignment in catalog.assignments.values()
+        }
+        if len(values) < 2:
+            raise InvalidThemeAsset(
+                f"variation factor {factor!r} does not vary across Board locations"
+            )
+
+    compiled: list[tuple[str, CompiledTileAssignment]] = []
+    for title, assignment in sorted(catalog.assignments.items()):
+        base_svg = _compiled_tile_svg(pack_root, assignment.base)
+        expanded_svg = _compiled_tile_svg(pack_root, assignment.expanded)
+        if base_svg == expanded_svg:
+            raise InvalidThemeAsset(
+                f"tile assignment {title!r} must provide distinct base and expanded artwork"
+            )
+        compiled.append(
+            (
+                title,
+                CompiledTileAssignment(
+                    base_svg=base_svg,
+                    expanded_svg=expanded_svg,
+                    factors=tuple(sorted(assignment.factors.items())),
+                    rotation_degrees=assignment.rotation_degrees,
+                ),
+            )
+        )
+    return tuple(compiled)
 
 
 def _safe_theme_value(name: str, value: str | int | float) -> str:
@@ -473,17 +536,29 @@ def _safe_theme_value(name: str, value: str | int | float) -> str:
     normalized = rendered.lower()
     if len(rendered) > MAX_THEME_VALUE_LENGTH:
         raise InvalidThemeAsset(f"presentation token {name!r} is too long")
-    if any(marker in normalized for marker in (";", "{", "}", "<", ">", "url(", "javascript:", "expression(", "@import")):
+    if any(ord(character) < 32 for character in rendered):
+        raise InvalidThemeAsset(
+            f"presentation token {name!r} contains control characters"
+        )
+    if any(
+        marker in normalized
+        for marker in (
+            ";", "{", "}", "<", ">", "/*", "*/", "url(",
+            "javascript:", "expression(", "@import",
+        )
+    ):
         raise InvalidThemeAsset(f"presentation token {name!r} contains unsafe CSS")
     return rendered
 
 
 def _presentation(
     pack_root: Path,
-    reference: str | None,
-) -> tuple[tuple[tuple[str, str], ...], tuple[tuple[str, str], ...], ConnectorPresentation | None]:
-    if reference is None:
-        return (), (), None
+    reference: str,
+) -> tuple[
+    tuple[tuple[str, str], ...],
+    tuple[tuple[str, str], ...],
+    ConnectorPresentation,
+]:
     path = _local_json_asset(pack_root, reference)
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
@@ -539,10 +614,6 @@ def load_theme_pack(pack_dir: Path) -> LoadedThemePack:
         raise InvalidThemeAsset(
             f"manifest id {manifest.id!r} does not match directory "
             f"{pack_dir.name!r}"
-        )
-    if bool(manifest.tiles) != bool(manifest.presentation):
-        raise InvalidThemeAsset(
-            "a visual Theme Pack must declare both tiles and presentation"
         )
     board_variables, document_variables, connectors = _presentation(
         pack_dir, manifest.presentation

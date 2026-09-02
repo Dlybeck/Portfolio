@@ -1,3 +1,11 @@
 # Keep a canonical theme while developing variants
 
-The current board theme remains the guaranteed public default because it is already familiar, responsive, and movement-legible. A navbar theme selector supports development and is disabled for deployment, allowing experiments without replacing or degrading that known experience. Themes may change any styling, including opened documents, but must preserve the navigation structure and general interaction experience. Public selection or random assignment remains a separate future decision after each variant proves equivalent quality.
+Status: superseded in part by ADR 0007 for runtime selection. Canonical remains
+the fail-closed fallback, but it is no longer the only unpinned public choice
+when the Theme Engine is enabled.
+
+The initial Theme Laboratory kept the current Board Theme as its guaranteed
+public default because it was already familiar, responsive, and
+movement-legible. A separately deployable navbar selector allowed experiments
+without replacing that known experience, while every candidate still had to
+preserve the navigation structure and general interaction experience.

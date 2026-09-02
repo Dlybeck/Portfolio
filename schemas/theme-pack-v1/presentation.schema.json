@@ -788,6 +788,17 @@
             }
           ]
         },
+        "font-control-size": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "font-expanded-text": {
           "oneOf": [
             {
@@ -843,7 +854,29 @@
             }
           ]
         },
+        "font-navbar-size": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "font-navbar-weight": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "font-selector-size": {
           "oneOf": [
             {
               "type": "string",
@@ -1492,6 +1525,28 @@
             }
           ]
         },
+        "viewer-border-style": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "viewer-border-width": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "viewer-decoration-after-right": {
           "oneOf": [
             {
@@ -1818,12 +1873,15 @@
         "font-action-weight",
         "font-base-title",
         "font-base-title-weight",
+        "font-control-size",
         "font-expanded-text",
         "font-expanded-text-weight",
         "font-expanded-title",
         "font-expanded-title-weight",
         "font-navbar",
+        "font-navbar-size",
         "font-navbar-weight",
+        "font-selector-size",
         "home-hidden-transform",
         "home-hover-transform",
         "home-transition-duration",
@@ -1882,6 +1940,8 @@
         "viewer-bg",
         "viewer-bg-image",
         "viewer-border",
+        "viewer-border-style",
+        "viewer-border-width",
         "viewer-decoration-after-right",
         "viewer-decoration-after-transform",
         "viewer-decoration-before-left",
@@ -2076,6 +2136,17 @@
             }
           ]
         },
+        "button-size": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "caption-ink": {
           "oneOf": [
             {
@@ -2110,6 +2181,17 @@
           ]
         },
         "code-radius": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "code-size": {
           "oneOf": [
             {
               "type": "string",
@@ -2165,6 +2247,17 @@
           ]
         },
         "field-radius": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "field-size": {
           "oneOf": [
             {
               "type": "string",
@@ -2385,6 +2478,17 @@
           ]
         },
         "link-hover-decoration": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "link-size": {
           "oneOf": [
             {
               "type": "string",
@@ -2742,15 +2846,18 @@
         "button-ink",
         "button-padding",
         "button-radius",
+        "button-size",
         "caption-ink",
         "code-bg",
         "code-border",
         "code-radius",
+        "code-size",
         "field-bg",
         "field-border",
         "field-font",
         "field-ink",
         "field-radius",
+        "field-size",
         "focus",
         "font-body",
         "font-code",
@@ -2771,6 +2878,7 @@
         "link-decoration",
         "link-hover",
         "link-hover-decoration",
+        "link-size",
         "media-bg",
         "media-border",
         "media-border-width",

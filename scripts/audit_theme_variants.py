@@ -19,12 +19,22 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from core.config import settings  # noqa: E402
+from core.theme_packs import ThemePackRegistry  # noqa: E402
 from main import app  # noqa: E402
 
 
-THEMES = ("canonical", "lily", "planets", "clouds", "islands")
-CANONICAL_AXIS_COUNT = 6
-MINIMUM_AXIS_COUNT = math.ceil(CANONICAL_AXIS_COUNT * 0.8)
+REFERENCE_AXIS_COUNT = 6
+MINIMUM_AXIS_COUNT = math.ceil(REFERENCE_AXIS_COUNT * 0.8)
+
+
+def audit_theme_ids(
+    registry: ThemePackRegistry | None = None,
+) -> tuple[str, ...]:
+    """Return every enabled visual world in registry order."""
+    active_registry = registry or ThemePackRegistry.discover()
+    return tuple(
+        pack.id for pack in active_registry.packs if pack.selection.enabled
+    )
 
 
 def audit_world(page, origin: str, theme: str) -> dict[str, object]:
@@ -162,6 +172,7 @@ def available_port() -> int:
 
 def main() -> None:
     settings.THEME_LAB_ENABLED = True
+    themes = audit_theme_ids()
     port = available_port()
     server = uvicorn.Server(
         uvicorn.Config(app, host="0.0.0.0", port=port, log_level="error")
@@ -179,7 +190,7 @@ def main() -> None:
     browser_host = os.environ.get("PLAYWRIGHT_BROWSER_HOST", "127.0.0.1")
     origin = f"http://{browser_host}:{port}"
     report: dict[str, object] = {
-        "canonical_axis_count": CANONICAL_AXIS_COUNT,
+        "reference_axis_count": REFERENCE_AXIS_COUNT,
         "minimum_axis_count": MINIMUM_AXIS_COUNT,
     }
 
@@ -193,7 +204,7 @@ def main() -> None:
             context = browser.new_context(viewport={"width": 1440, "height": 900})
             page = context.new_page()
             report["worlds"] = {
-                theme: audit_world(page, origin, theme) for theme in THEMES
+                theme: audit_world(page, origin, theme) for theme in themes
             }
             report["minimum_distinct_combinations"] = min(
                 world["minimum_distinct_combinations"]

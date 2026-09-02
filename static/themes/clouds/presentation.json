@@ -1,6 +1,9 @@
 {
   "board": {
     "font-navbar": "'Patrick Hand', cursive",
+    "font-navbar-size": "var(--font-navbar-title)",
+    "font-control-size": "1.2rem",
+    "font-selector-size": ".9rem",
     "font-base-title": "'Patrick Hand', cursive",
     "font-expanded-title": "'Patrick Hand', cursive",
     "font-expanded-text": "'Kalam', cursive",
@@ -34,6 +37,8 @@
     "ambient-after-transform": "none",
     "viewer-bg": "#eaf3f7",
     "viewer-border": "#789aad",
+    "viewer-border-width": "2px",
+    "viewer-border-style": "solid",
     "nav-bg": "rgba(249, 253, 255, .92)",
     "nav-border": "#7899ad",
     "nav-ink": "#31546c",
@@ -199,6 +204,7 @@
     "link-hover": "#185c82",
     "link-decoration": "underline",
     "link-hover-decoration": "underline wavy",
+    "link-size": "inherit",
     "header-border": "2px solid #8ba8b8",
     "header-shadow": "0 9px 18px rgba(61,99,118,.2)",
     "header-radius": "54px 40px 0 0",
@@ -211,12 +217,14 @@
     "button-border-style": "solid",
     "button-border-width": "2px",
     "button-font": "'Kalam', cursive",
+    "button-size": "1rem",
     "button-padding": "10px 16px",
     "field-bg": "#f9fdff",
     "field-ink": "#28475f",
     "field-border": "2px solid #8ba8b8",
     "field-radius": "999px",
     "field-font": "'Kalam', cursive",
+    "field-size": "1rem",
     "result-bg": "#dceaf0",
     "result-ink": "#28475f",
     "result-border": "2px solid #8ba8b8",
@@ -233,7 +241,8 @@
     "separator-height": "3px",
     "separator-opacity": ".65",
     "interaction-transition": ".2s ease-in-out",
-    "button-hover-transform": "translateY(-2px)"
+    "button-hover-transform": "translateY(-2px)",
+    "code-size": ".92em"
   },
   "connectors": {
     "color": "#f7fbff",

@@ -20,7 +20,12 @@
             },
             "factors": {
               "type": "object",
-              "minProperties": 1,
+              "minProperties": 5,
+              "required": [
+                "silhouette",
+                "palette",
+                "orientation"
+              ],
               "propertyNames": {
                 "pattern": "^[a-z][a-z0-9-]{0,63}$"
               },
@@ -55,7 +60,12 @@
             },
             "factors": {
               "type": "object",
-              "minProperties": 1,
+              "minProperties": 5,
+              "required": [
+                "silhouette",
+                "palette",
+                "orientation"
+              ],
               "propertyNames": {
                 "pattern": "^[a-z][a-z0-9-]{0,63}$"
               },
@@ -90,7 +100,12 @@
             },
             "factors": {
               "type": "object",
-              "minProperties": 1,
+              "minProperties": 5,
+              "required": [
+                "silhouette",
+                "palette",
+                "orientation"
+              ],
               "propertyNames": {
                 "pattern": "^[a-z][a-z0-9-]{0,63}$"
               },
@@ -125,7 +140,12 @@
             },
             "factors": {
               "type": "object",
-              "minProperties": 1,
+              "minProperties": 5,
+              "required": [
+                "silhouette",
+                "palette",
+                "orientation"
+              ],
               "propertyNames": {
                 "pattern": "^[a-z][a-z0-9-]{0,63}$"
               },
@@ -160,7 +180,12 @@
             },
             "factors": {
               "type": "object",
-              "minProperties": 1,
+              "minProperties": 5,
+              "required": [
+                "silhouette",
+                "palette",
+                "orientation"
+              ],
               "propertyNames": {
                 "pattern": "^[a-z][a-z0-9-]{0,63}$"
               },
@@ -195,7 +220,12 @@
             },
             "factors": {
               "type": "object",
-              "minProperties": 1,
+              "minProperties": 5,
+              "required": [
+                "silhouette",
+                "palette",
+                "orientation"
+              ],
               "propertyNames": {
                 "pattern": "^[a-z][a-z0-9-]{0,63}$"
               },
@@ -230,7 +260,12 @@
             },
             "factors": {
               "type": "object",
-              "minProperties": 1,
+              "minProperties": 5,
+              "required": [
+                "silhouette",
+                "palette",
+                "orientation"
+              ],
               "propertyNames": {
                 "pattern": "^[a-z][a-z0-9-]{0,63}$"
               },
@@ -265,7 +300,12 @@
             },
             "factors": {
               "type": "object",
-              "minProperties": 1,
+              "minProperties": 5,
+              "required": [
+                "silhouette",
+                "palette",
+                "orientation"
+              ],
               "propertyNames": {
                 "pattern": "^[a-z][a-z0-9-]{0,63}$"
               },
@@ -300,7 +340,12 @@
             },
             "factors": {
               "type": "object",
-              "minProperties": 1,
+              "minProperties": 5,
+              "required": [
+                "silhouette",
+                "palette",
+                "orientation"
+              ],
               "propertyNames": {
                 "pattern": "^[a-z][a-z0-9-]{0,63}$"
               },
@@ -335,7 +380,12 @@
             },
             "factors": {
               "type": "object",
-              "minProperties": 1,
+              "minProperties": 5,
+              "required": [
+                "silhouette",
+                "palette",
+                "orientation"
+              ],
               "propertyNames": {
                 "pattern": "^[a-z][a-z0-9-]{0,63}$"
               },
@@ -370,7 +420,12 @@
             },
             "factors": {
               "type": "object",
-              "minProperties": 1,
+              "minProperties": 5,
+              "required": [
+                "silhouette",
+                "palette",
+                "orientation"
+              ],
               "propertyNames": {
                 "pattern": "^[a-z][a-z0-9-]{0,63}$"
               },
@@ -405,7 +460,12 @@
             },
             "factors": {
               "type": "object",
-              "minProperties": 1,
+              "minProperties": 5,
+              "required": [
+                "silhouette",
+                "palette",
+                "orientation"
+              ],
               "propertyNames": {
                 "pattern": "^[a-z][a-z0-9-]{0,63}$"
               },
@@ -440,7 +500,12 @@
             },
             "factors": {
               "type": "object",
-              "minProperties": 1,
+              "minProperties": 5,
+              "required": [
+                "silhouette",
+                "palette",
+                "orientation"
+              ],
               "propertyNames": {
                 "pattern": "^[a-z][a-z0-9-]{0,63}$"
               },
@@ -475,7 +540,12 @@
             },
             "factors": {
               "type": "object",
-              "minProperties": 1,
+              "minProperties": 5,
+              "required": [
+                "silhouette",
+                "palette",
+                "orientation"
+              ],
               "propertyNames": {
                 "pattern": "^[a-z][a-z0-9-]{0,63}$"
               },
@@ -510,7 +580,12 @@
             },
             "factors": {
               "type": "object",
-              "minProperties": 1,
+              "minProperties": 5,
+              "required": [
+                "silhouette",
+                "palette",
+                "orientation"
+              ],
               "propertyNames": {
                 "pattern": "^[a-z][a-z0-9-]{0,63}$"
               },
@@ -545,7 +620,12 @@
             },
             "factors": {
               "type": "object",
-              "minProperties": 1,
+              "minProperties": 5,
+              "required": [
+                "silhouette",
+                "palette",
+                "orientation"
+              ],
               "propertyNames": {
                 "pattern": "^[a-z][a-z0-9-]{0,63}$"
               },
@@ -580,7 +660,12 @@
             },
             "factors": {
               "type": "object",
-              "minProperties": 1,
+              "minProperties": 5,
+              "required": [
+                "silhouette",
+                "palette",
+                "orientation"
+              ],
               "propertyNames": {
                 "pattern": "^[a-z][a-z0-9-]{0,63}$"
               },

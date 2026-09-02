@@ -17,15 +17,25 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from core.config import settings  # noqa: E402
+from core.theme_packs import ThemePackRegistry  # noqa: E402
 from main import app  # noqa: E402
 
 
 OUTPUT = ROOT / "tests/results/theme-lab/final"
-THEMES = ("canonical", "lily", "planets", "clouds", "islands")
 VIEWPORTS = {
     "desktop": {"width": 1440, "height": 900},
     "phone": {"width": 390, "height": 844},
 }
+
+
+def review_theme_ids(
+    registry: ThemePackRegistry | None = None,
+) -> tuple[str, ...]:
+    """Return every enabled visual world in registry order."""
+    active_registry = registry or ThemePackRegistry.discover()
+    return tuple(
+        pack.id for pack in active_registry.packs if pack.selection.enabled
+    )
 
 
 def available_port() -> int:
@@ -82,6 +92,7 @@ def visit_scene(page: Page, origin: str, theme: str, scene: str) -> None:
 
 def main() -> None:
     settings.THEME_LAB_ENABLED = True
+    themes = review_theme_ids()
     port = available_port()
     server = uvicorn.Server(
         uvicorn.Config(app, host="0.0.0.0", port=port, log_level="error")
@@ -100,6 +111,8 @@ def main() -> None:
     origin = f"http://{browser_host}:{port}"
     scenes = ("home", "nested", "text-document", "media-document", "focus")
     OUTPUT.mkdir(parents=True, exist_ok=True)
+    for previous_capture in OUTPUT.glob("*.webp"):
+        previous_capture.unlink()
 
     try:
         with sync_playwright() as playwright:
@@ -117,7 +130,7 @@ def main() -> None:
                     has_touch=viewport_name == "phone",
                 )
                 page = context.new_page()
-                for theme in THEMES:
+                for theme in themes:
                     for scene in scenes:
                         visit_scene(page, origin, theme, scene)
                         page.screenshot(
@@ -136,8 +149,12 @@ def main() -> None:
         thread.join(timeout=5)
 
     captures = sorted(OUTPUT.glob("*.webp"))
-    if len(captures) != 50:
-        raise RuntimeError(f"Expected 50 review captures, found {len(captures)}")
+    expected = len(themes) * len(VIEWPORTS) * len(scenes)
+    if len(captures) != expected:
+        raise RuntimeError(
+            f"Expected {expected} review captures for {len(themes)} packs, "
+            f"found {len(captures)}"
+        )
     print(f"Wrote {len(captures)} Theme Laboratory captures to {OUTPUT}")
 
 

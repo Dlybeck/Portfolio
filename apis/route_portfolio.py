@@ -29,7 +29,7 @@ def theme_selector_enabled() -> bool:
 
 @portfolio_router.get("/_theme-packs/{pack_id}.json", include_in_schema=False)
 async def theme_pack_payload(pack_id: str):
-    """Serve one fully validated pack to the development Theme Engine."""
+    """Serve one fully validated pack to the active Theme Engine."""
     if not themes_enabled():
         raise HTTPException(status_code=404, detail="Theme Laboratory is disabled")
     registry = ThemePackRegistry.discover()

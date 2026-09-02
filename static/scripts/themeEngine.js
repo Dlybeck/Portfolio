@@ -47,9 +47,14 @@
         return Object.keys(window.tileInfo || {});
     }
 
-    function packHasCompleteTiles(pack) {
+    function packIsComplete(pack) {
         const assignments = pack?.tiles?.assignments;
-        if (!assignments) return true;
+        if (
+            !assignments
+            || !pack?.variables?.board
+            || !pack?.variables?.document
+            || !pack?.connectors
+        ) return false;
         const titles = allTitles();
         return titles.length > 0
             && titles.every((title) => {
@@ -69,7 +74,7 @@
         });
         if (!response.ok) throw new Error(`Theme Pack ${id} was rejected`);
         const pack = await response.json();
-        if (pack.id !== id || !packHasCompleteTiles(pack)) {
+        if (pack.id !== id || !packIsComplete(pack)) {
             throw new Error(`Theme Pack ${id} is incomplete`);
         }
         packCache.set(id, pack);
@@ -309,7 +314,7 @@
         cleanWorld();
         const assignments = pack.tiles?.assignments;
         if (!assignments) return;
-        if (!packHasCompleteTiles(pack)) {
+        if (!packIsComplete(pack)) {
             throw new Error(`Theme Pack ${pack.id} does not cover every Board location`);
         }
         document.querySelectorAll(".tile-container").forEach((tile) => {
@@ -350,7 +355,7 @@
         Object.assign(
             window.chalkArrowsConfig,
             relationshipDefaults,
-            pack.connectors || {}
+            pack.connectors
         );
         window.redrawChalkArrows?.();
     }
@@ -368,11 +373,8 @@
     function styleDocument(doc, pack = state.pack) {
         if (!doc?.documentElement || !pack) return;
         doc.documentElement.dataset.boardTheme = pack.id;
-        doc.documentElement.toggleAttribute(
-            "data-theme-pack-visual",
-            Boolean(pack.variables?.document)
-        );
-        applyVariables(doc, pack.variables?.document);
+        doc.documentElement.setAttribute("data-theme-pack-visual", "");
+        applyVariables(doc, pack.variables.document);
     }
 
     function themedUrl(route, pack, includeTheme = state.pinned) {
@@ -396,7 +398,7 @@
         let pack;
         try {
             pack = await loadPack(requestedId);
-            if (!packHasCompleteTiles(pack)) throw new Error("Theme Pack is incomplete");
+            if (!packIsComplete(pack)) throw new Error("Theme Pack is incomplete");
         } catch (error) {
             console.error(error);
             pack = await loadPack(fallbackId);
@@ -406,12 +408,9 @@
         if (syncUrl) state.pinned = true;
 
         cleanWorld();
-        applyVariables(document, pack.variables?.board);
+        applyVariables(document, pack.variables.board);
         document.documentElement.dataset.boardTheme = pack.id;
-        document.documentElement.toggleAttribute(
-            "data-theme-pack-visual",
-            Boolean(pack.variables?.board)
-        );
+        document.documentElement.setAttribute("data-theme-pack-visual", "");
         decorate(pack);
         styleRelationships(pack);
         state.current = pack.id;

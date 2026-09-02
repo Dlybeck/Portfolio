@@ -33,7 +33,7 @@ A directly related narrower section one step farther from Home. A section has no
 _Avoid_: Subpage, menu item
 
 **Board Theme**:
-A coherent visual treatment of the board and its opened documents. A theme may change styling but never the navigation structure or general interaction experience; the current theme remains the canonical default.
+A coherent visual treatment of the board and its opened documents. A theme may change styling but never the navigation structure or general interaction experience; Canonical remains the fail-closed fallback.
 _Avoid_: Random skin, replacement theme
 
 **Theme Pack**:
@@ -41,7 +41,7 @@ A versioned, declarative bundle of visual tokens and sanitized assets that compl
 _Avoid_: Theme stylesheet, renderer plugin, skin
 
 **Theme Instance**:
-One Theme Pack combined with a deterministic seed and applied to a viewing session. The pack defines the world; the seed selects its variations.
+A selected Theme Pack and its deterministic per-location identities applied throughout one exploration. Refreshing without an explicit pin may select a new complete instance.
 _Avoid_: Theme, random skin
 
 **Theme Engine**:

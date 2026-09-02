@@ -318,6 +318,52 @@ def test_each_world_has_a_distinct_native_document_grammar(
 
 
 @pytest.mark.parametrize("theme", VISUAL_THEMES)
+def test_document_text_and_component_roles_are_owned_by_each_pack(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+    theme: str,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(f"{origin}/projects/programs?theme={theme}", wait_until="domcontentloaded")
+    page.locator(".mini-window-container.open").wait_for()
+    document = page.frame_locator(".mini-window")
+
+    for selector, property_name, token in (
+        ("html", "backgroundColor", "--theme-pack-page-bg"),
+        ("#location", "fontFamily", "--theme-pack-font-title"),
+        (".section span", "color", "--theme-pack-ink"),
+        ("a.link", "color", "--theme-pack-link"),
+        (".external-btn", "backgroundColor", "--theme-pack-button-bg"),
+        (".section", "borderRadius", "--theme-pack-panel-radius"),
+    ):
+        assert document.locator(selector).first.evaluate(
+            r"""(node, [propertyName, token]) => {
+                const root = getComputedStyle(document.documentElement);
+                const probe = document.createElement('span');
+                const cssProperty = propertyName.replace(
+                    /[A-Z]/g,
+                    (letter) => `-${letter.toLowerCase()}`
+                );
+                probe.style.setProperty(
+                    cssProperty,
+                    root.getPropertyValue(token),
+                    'important'
+                );
+                document.body.appendChild(probe);
+                const expected = getComputedStyle(probe)[propertyName];
+                probe.remove();
+                const actual = getComputedStyle(node)[propertyName];
+                const normalize = (value) => propertyName === 'fontFamily'
+                    ? value.replace(/["']/g, '').replace(/\s+/g, ' ').toLowerCase()
+                    : value;
+                return normalize(actual) === normalize(expected);
+            }""",
+            [property_name, token],
+        ), f"{theme} did not apply {token} to {selector}"
+
+
+@pytest.mark.parametrize("theme", VISUAL_THEMES)
 def test_interactive_document_controls_use_the_active_pack(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,

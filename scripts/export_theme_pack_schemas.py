@@ -15,6 +15,7 @@ from core.theme_packs import (
     BOARD_LOCATIONS,
     BOARD_PRESENTATION_TOKENS,
     DOCUMENT_PRESENTATION_TOKENS,
+    MIN_VARIATION_AXIS_COUNT,
     THEME_PACK_SCHEMA,
 )
 
@@ -131,7 +132,8 @@ def main() -> None:
             "expanded": {"type": "string", "pattern": "^assets/tiles/.+\\.svg$"},
             "factors": {
                 "type": "object",
-                "minProperties": 1,
+                "minProperties": MIN_VARIATION_AXIS_COUNT,
+                "required": ["silhouette", "palette", "orientation"],
                 "propertyNames": {"pattern": "^[a-z][a-z0-9-]{0,63}$"},
                 "additionalProperties": {"type": "integer"},
             },

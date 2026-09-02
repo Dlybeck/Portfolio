@@ -5,7 +5,7 @@
   align-items: center;
   gap: .35rem;
   margin-left: .35rem;
-  font: .9rem var(--theme-pack-font-navbar);
+  font: var(--theme-pack-font-selector-size) var(--theme-pack-font-navbar);
   color: var(--theme-pack-nav-ink);
   white-space: nowrap;
 }
@@ -246,6 +246,8 @@ html[data-theme-pack-visual] .tile-expanded .expanded-open {
 html[data-theme-pack-visual] .mini-window-container {
   background: var(--theme-pack-viewer-bg);
   background-image: var(--theme-pack-viewer-bg-image);
+  border-width: var(--theme-pack-viewer-border-width);
+  border-style: var(--theme-pack-viewer-border-style);
   border-color: var(--theme-pack-viewer-border);
   border-radius: var(--theme-pack-viewer-radius);
   box-shadow: var(--theme-pack-viewer-shadow);
@@ -316,6 +318,7 @@ html[data-theme-pack-visual] .theme-selector {
 
 html[data-theme-pack-visual] .navbar-title {
   display: var(--theme-pack-nav-title-display);
+  font-size: var(--theme-pack-font-navbar-size);
 }
 
 html[data-theme-pack-visual] .navbar-logo {
@@ -337,6 +340,7 @@ html[data-theme-pack-visual] .close-button {
   border-radius: var(--theme-pack-control-radius);
   box-shadow: var(--theme-pack-control-shadow);
   font-family: var(--theme-pack-control-font);
+  font-size: var(--theme-pack-font-control-size);
 }
 
 html[data-theme-pack-visual] .home-button img {

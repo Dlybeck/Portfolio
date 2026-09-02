@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 
@@ -17,6 +18,8 @@ from core.theme_packs import (
     load_theme_pack,
     sanitized_svg_asset,
 )
+from scripts.audit_theme_variants import audit_theme_ids, audit_world
+from scripts.capture_theme_matrix import review_theme_ids
 
 
 BOARD_TITLES = (
@@ -34,6 +37,7 @@ def write_pack(
     label: str | None = None,
     enabled: bool = True,
     random_eligible: bool = True,
+    complete: bool = True,
     extra: dict[str, object] | None = None,
 ) -> None:
     pack_dir = root / pack_id
@@ -43,6 +47,11 @@ def write_pack(
         "id": pack_id,
         "label": label or pack_id.title(),
         "version": 1,
+        **(
+            {"tiles": "tiles.json", "presentation": "presentation.json"}
+            if complete
+            else {}
+        ),
         "selection": {
             "enabled": enabled,
             "randomEligible": random_eligible,
@@ -51,6 +60,9 @@ def write_pack(
     }
     manifest.update(extra or {})
     (pack_dir / "theme.json").write_text(json.dumps(manifest), encoding="utf-8")
+    if complete:
+        write_compiled_tiles(root, pack_id)
+        write_presentation(root, pack_id)
 
 
 def write_compiled_tiles(
@@ -63,18 +75,29 @@ def write_compiled_tiles(
     pack_dir = root / pack_id
     assets = pack_dir / "assets" / "tiles"
     assets.mkdir(parents=True)
-    markup = (
-        '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'
-        if unsafe
-        else '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect data-theme-content-area="content" x="2" y="2" width="6" height="6"/></svg>'
-    )
     for state in ("base", "expanded"):
+        markup = (
+            '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'
+            if unsafe
+            else (
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">'
+                f'<circle cx="5" cy="5" r="{1 if state == "base" else 2}"/>'
+                '<rect data-theme-content-area="content" x="2" y="2" '
+                'width="6" height="6"/></svg>'
+            )
+        )
         (assets / f"home-{state}.svg").write_text(markup, encoding="utf-8")
     assignments = {
         title: {
             "base": "assets/tiles/home-base.svg",
             "expanded": "assets/tiles/home-expanded.svg",
-            "factors": {"silhouette": index, "palette": index % 3},
+            "factors": {
+                "silhouette": index,
+                "palette": index % 3,
+                "orientation": index % 9,
+                "accent": index % 5,
+                "detail": index % 7,
+            },
             "rotationDegrees": index % 9 - 4,
         }
         for index, title in enumerate(titles)
@@ -139,8 +162,7 @@ def test_registry_removes_a_pack_when_its_directory_is_removed(tmp_path: Path) -
     write_pack(tmp_path, "temporary")
     assert ThemePackRegistry.discover(tmp_path).ids == ("canonical", "temporary")
 
-    (tmp_path / "temporary" / "theme.json").unlink()
-    (tmp_path / "temporary").rmdir()
+    shutil.rmtree(tmp_path / "temporary")
 
     assert ThemePackRegistry.discover(tmp_path).ids == ("canonical",)
 
@@ -222,6 +244,13 @@ def test_repository_theme_catalog_is_discovered_from_pack_directories() -> None:
     assert registry.diagnostics == ()
 
 
+def test_authoring_audits_discover_every_enabled_pack_from_the_registry() -> None:
+    registry = ThemePackRegistry.discover()
+
+    assert audit_theme_ids(registry) == registry.ids
+    assert review_theme_ids(registry) == registry.ids
+
+
 def test_machine_schemas_publish_the_exact_runtime_contract() -> None:
     root = Path(__file__).parent.parent
     schema_root = root / "schemas" / "theme-pack-v1"
@@ -271,11 +300,50 @@ def test_scaffolded_pack_validates_without_engine_source_changes(tmp_path: Path)
     assert load_theme_pack(tmp_path / "fixture-world").id == "fixture-world"
 
 
+def test_scaffolded_pack_passes_the_rendered_variation_baseline(
+    tmp_path: Path,
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = Path(__file__).parent.parent
+    write_pack(tmp_path, "canonical", random_eligible=False)
+    subprocess.run(
+        [
+            sys.executable,
+            str(root / "scripts" / "scaffold_theme_pack.py"),
+            "fixture-world",
+            "Fixture World",
+            str(tmp_path),
+        ],
+        cwd=root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    registry = ThemePackRegistry.discover(tmp_path)
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    monkeypatch.setattr(
+        ThemePackRegistry,
+        "discover",
+        classmethod(lambda cls, root=None: registry),
+    )
+    page, origin = browser_page
+
+    report = audit_world(page, origin, "fixture-world")
+
+    assert report["locations"] == len(BOARD_LOCATIONS)
+    assert report["axis_count"] == 6
+    assert report["base_expanded_continuity"] is True
+    assert report["visible_evidence_complete"] is True
+    assert report["passed"] is True
+
+
 def test_registry_bundles_validated_compiled_tile_assets(tmp_path: Path) -> None:
     write_pack(tmp_path, "canonical", random_eligible=False)
     write_pack(
         tmp_path,
         "rain-garden",
+        complete=False,
         extra={"tiles": "tiles.json", "presentation": "presentation.json"},
     )
     write_compiled_tiles(tmp_path, "rain-garden")
@@ -285,6 +353,9 @@ def test_registry_bundles_validated_compiled_tile_assets(tmp_path: Path) -> None
     payload = registry.resolve("rain-garden", enabled=True).client_payload()
 
     assert payload["tiles"]["assignments"]["Home"]["factors"] == {
+        "accent": 0,
+        "detail": 0,
+        "orientation": 0,
         "palette": 0,
         "silhouette": 0,
     }
@@ -299,6 +370,7 @@ def test_pack_with_unsafe_compiled_asset_is_excluded(tmp_path: Path) -> None:
     write_pack(
         tmp_path,
         "unsafe",
+        complete=False,
         extra={"tiles": "tiles.json", "presentation": "presentation.json"},
     )
     write_compiled_tiles(tmp_path, "unsafe", unsafe=True)
@@ -316,6 +388,7 @@ def test_pack_without_a_tile_content_safe_area_is_excluded(tmp_path: Path) -> No
     write_pack(
         tmp_path,
         "unsafe",
+        complete=False,
         extra={"tiles": "tiles.json", "presentation": "presentation.json"},
     )
     write_compiled_tiles(tmp_path, "unsafe")
@@ -331,11 +404,83 @@ def test_pack_without_a_tile_content_safe_area_is_excluded(tmp_path: Path) -> No
     assert "content-safe area" in registry.diagnostics[0].message
 
 
+@pytest.mark.parametrize(
+    "markup",
+    [
+        '<g xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect data-theme-content-area="content" x="2" y="2" width="6" height="6"/></g>',
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 nan 10"><rect data-theme-content-area="content" x="2" y="2" width="6" height="6"/></svg>',
+    ],
+)
+def test_compiled_tile_rejects_renderer_incompatible_geometry(
+    tmp_path: Path,
+    markup: str,
+) -> None:
+    write_pack(tmp_path, "canonical", random_eligible=False)
+    write_pack(tmp_path, "unsafe")
+    (tmp_path / "unsafe" / "assets" / "tiles" / "home-base.svg").write_text(
+        markup,
+        encoding="utf-8",
+    )
+
+    registry = ThemePackRegistry.discover(tmp_path)
+
+    assert registry.ids == ("canonical",)
+    assert registry.diagnostics[0].pack_id == "unsafe"
+
+
+@pytest.mark.parametrize("factors", [{}, {"bad axis": 1}])
+def test_compiled_tile_rejects_missing_or_invalid_variation_axes(
+    tmp_path: Path,
+    factors: dict[str, int],
+) -> None:
+    write_pack(tmp_path, "canonical", random_eligible=False)
+    write_pack(tmp_path, "unsafe")
+    path = tmp_path / "unsafe" / "tiles.json"
+    catalog = json.loads(path.read_text(encoding="utf-8"))
+    catalog["assignments"]["Home"]["factors"] = factors
+    path.write_text(json.dumps(catalog), encoding="utf-8")
+
+    registry = ThemePackRegistry.discover(tmp_path)
+
+    assert registry.ids == ("canonical",)
+    assert registry.diagnostics[0].pack_id == "unsafe"
+
+
+def test_compiled_tiles_require_real_variation_and_expansion_detail(
+    tmp_path: Path,
+) -> None:
+    write_pack(tmp_path, "canonical", random_eligible=False)
+    write_pack(tmp_path, "flat-world")
+    catalog_path = tmp_path / "flat-world" / "tiles.json"
+    catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+    for assignment in catalog["assignments"].values():
+        assignment["factors"]["detail"] = 0
+    catalog_path.write_text(json.dumps(catalog), encoding="utf-8")
+
+    registry = ThemePackRegistry.discover(tmp_path)
+
+    assert registry.ids == ("canonical",)
+    assert "does not vary" in registry.diagnostics[0].message
+
+    shutil.rmtree(tmp_path / "flat-world")
+    write_pack(tmp_path, "flat-world")
+    catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+    for assignment in catalog["assignments"].values():
+        assignment["expanded"] = assignment["base"]
+    catalog_path.write_text(json.dumps(catalog), encoding="utf-8")
+
+    registry = ThemePackRegistry.discover(tmp_path)
+
+    assert registry.ids == ("canonical",)
+    assert "distinct base and expanded artwork" in registry.diagnostics[0].message
+
+
 def test_visual_pack_missing_a_board_location_is_excluded(tmp_path: Path) -> None:
     write_pack(tmp_path, "canonical", random_eligible=False)
     write_pack(
         tmp_path,
         "incomplete",
+        complete=False,
         extra={"tiles": "tiles.json", "presentation": "presentation.json"},
     )
     write_compiled_tiles(tmp_path, "incomplete", titles=("Home",))
@@ -362,13 +507,32 @@ def test_visual_pack_cannot_install_only_half_of_its_visual_language(
     tmp_path: Path,
 ) -> None:
     write_pack(tmp_path, "canonical", random_eligible=False)
-    write_pack(tmp_path, "half-pack", extra={"tiles": "tiles.json"})
+    write_pack(
+        tmp_path,
+        "half-pack",
+        complete=False,
+        extra={"tiles": "tiles.json"},
+    )
     write_compiled_tiles(tmp_path, "half-pack")
 
     registry = ThemePackRegistry.discover(tmp_path)
 
     assert registry.ids == ("canonical",)
-    assert "both tiles and presentation" in registry.diagnostics[0].message
+    assert "presentation" in registry.diagnostics[0].message
+
+
+def test_manifest_only_pack_is_rejected_instead_of_partially_applying(
+    tmp_path: Path,
+) -> None:
+    write_pack(tmp_path, "canonical", random_eligible=False)
+    write_pack(tmp_path, "empty-world", complete=False)
+
+    registry = ThemePackRegistry.discover(tmp_path)
+
+    assert registry.ids == ("canonical",)
+    assert registry.diagnostics[0].pack_id == "empty-world"
+    assert "tiles" in registry.diagnostics[0].message
+    assert "presentation" in registry.diagnostics[0].message
 
 
 def test_presentation_rejects_executable_css_values(tmp_path: Path) -> None:
@@ -376,6 +540,7 @@ def test_presentation_rejects_executable_css_values(tmp_path: Path) -> None:
     write_pack(
         tmp_path,
         "unsafe",
+        complete=False,
         extra={"tiles": "tiles.json", "presentation": "presentation.json"},
     )
     write_compiled_tiles(tmp_path, "unsafe")
@@ -389,6 +554,27 @@ def test_presentation_rejects_executable_css_values(tmp_path: Path) -> None:
 
     assert registry.ids == ("canonical",)
     assert "unsafe CSS" in registry.diagnostics[0].message
+
+
+@pytest.mark.parametrize(
+    "unsafe_value",
+    ["red/* swallow following tokens", "red\nbackground: blue"],
+)
+def test_presentation_rejects_values_that_can_corrupt_following_tokens(
+    tmp_path: Path,
+    unsafe_value: str,
+) -> None:
+    write_pack(tmp_path, "canonical", random_eligible=False)
+    write_pack(tmp_path, "unsafe")
+    path = tmp_path / "unsafe" / "presentation.json"
+    presentation = json.loads(path.read_text(encoding="utf-8"))
+    presentation["board"]["ink"] = unsafe_value
+    path.write_text(json.dumps(presentation), encoding="utf-8")
+
+    registry = ThemePackRegistry.discover(tmp_path)
+
+    assert registry.ids == ("canonical",)
+    assert registry.diagnostics[0].pack_id == "unsafe"
 
 
 def test_theme_engine_contains_no_installed_world_names_or_drawing_grammar() -> None:
@@ -428,6 +614,60 @@ def test_shared_structure_has_no_world_palette_and_delegates_motion_style() -> N
         assert token in structure
 
 
+def test_content_templates_cannot_reintroduce_legacy_theme_stylesheets() -> None:
+    root = Path(__file__).parent.parent
+    forbidden = (
+        "/static/css/base.css",
+        "/static/css/page.css",
+        "/static/css/map.css",
+    )
+
+    for template in (root / "templates" / "pages").rglob("*.html"):
+        source = template.read_text(encoding="utf-8")
+        if template.name == "home.html":
+            assert source.count("/static/css/map.css") == 1
+            assert "{% if not theme_engine_enabled %}" in source
+            source = source.replace("/static/css/map.css", "")
+        for legacy_stylesheet in forbidden:
+            assert legacy_stylesheet not in source, (
+                f"{template.relative_to(root)} bypasses the Theme Pack shell with "
+                f"{legacy_stylesheet}"
+            )
+
+
+def test_every_portfolio_page_inherits_one_of_the_themed_shells() -> None:
+    root = Path(__file__).parent.parent
+
+    for template in (root / "templates" / "pages").rglob("*.html"):
+        source = template.read_text(encoding="utf-8")
+        expected_shell = (
+            '{% extends "shared/base.html" %}'
+            if template.name == "home.html"
+            else '{% extends "shared/page.html" %}'
+        )
+        assert source.startswith(expected_shell), (
+            f"{template.relative_to(root)} bypasses the themed shell"
+        )
+
+
+def test_stable_styles_consume_every_published_presentation_token() -> None:
+    root = Path(__file__).parent.parent
+
+    def referenced_tokens(*paths: str) -> set[str]:
+        source = "\n".join(
+            (root / "static" / "css" / path).read_text(encoding="utf-8")
+            for path in paths
+        )
+        return set(re.findall(r"--theme-pack-([a-z0-9-]+)", source))
+
+    assert referenced_tokens(
+        "theme-structure.css", "themes/board.css"
+    ) == BOARD_PRESENTATION_TOKENS
+    assert referenced_tokens(
+        "document-structure.css", "themes/documents.css"
+    ) == DOCUMENT_PRESENTATION_TOKENS
+
+
 def test_files_only_fixture_pack_renders_without_engine_changes(
     tmp_path: Path,
     browser_page: tuple[Page, str],
@@ -438,6 +678,7 @@ def test_files_only_fixture_pack_renders_without_engine_changes(
         tmp_path,
         "fixture-world",
         label="Fixture World",
+        complete=False,
         extra={"tiles": "tiles.json", "presentation": "presentation.json"},
     )
     write_compiled_tiles(tmp_path, "fixture-world", titles=BOARD_TITLES)
@@ -504,6 +745,7 @@ def test_svg_asset_rejects_paths_outside_the_pack(
         '<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>',
         '<svg xmlns="http://www.w3.org/2000/svg"><use href="https://example.com/x.svg#x"/></svg>',
         '<svg xmlns="http://www.w3.org/2000/svg"><path style="fill:red"/></svg>',
+        '<?xml-stylesheet href="https://example.com/theme.css"?><svg xmlns="http://www.w3.org/2000/svg"/>',
     ],
 )
 def test_svg_asset_rejects_executable_or_unbounded_markup(

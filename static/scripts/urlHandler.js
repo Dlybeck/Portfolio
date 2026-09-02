@@ -9,14 +9,20 @@ window.portfolioState = portfolioStateElement
         documentPrefix: '/_documents',
     };
 
+// Theme Lab (when enabled) installs one URL transform here. Navigation keeps
+// a single owner; callers never need theme-aware versions of these functions.
+window.portfolioUrlTransform = window.portfolioUrlTransform || ((route) => route);
+
 window.documentUrlForRoute = function(route) {
     const prefix = window.portfolioState.documentPrefix || '/_documents';
-    return `${prefix}${route.startsWith('/') ? route : `/${route}`}`;
+    const documentRoute = `${prefix}${route.startsWith('/') ? route : `/${route}`}`;
+    return window.portfolioUrlTransform(documentRoute);
 };
 
 window.setDestinationUrl = function(route, { replace = false } = {}) {
     const method = replace ? 'replaceState' : 'pushState';
-    window.history[method]({ documentRoute: route }, '', route);
+    const destination = window.portfolioUrlTransform(route);
+    window.history[method]({ documentRoute: destination }, '', destination);
 };
 
 window.setBoardUrl = function(title, { replace = false } = {}) {
@@ -24,7 +30,11 @@ window.setBoardUrl = function(title, { replace = false } = {}) {
     const route = title && title !== 'Home'
         ? `/#${encodeURIComponent(title)}`
         : '/';
-    window.history[method]({ boardTitle: title || 'Home' }, '', route);
+    window.history[method](
+        { boardTitle: title || 'Home' },
+        '',
+        window.portfolioUrlTransform(route),
+    );
 };
 
 window.centerOnDestination = function(route) {

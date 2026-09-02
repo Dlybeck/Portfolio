@@ -104,16 +104,9 @@ html:not([data-board-theme="canonical"]) .expanded-open {
   text-shadow: none;
 }
 
-html:not([data-board-theme="canonical"]) .tile-container.sticky .tile-expanded,
-html:not([data-board-theme="canonical"]) .tile-container.scrap .tile-expanded {
-  width: min(calc(25 * var(--tile-u)), 410px);
-  min-height: min(calc(28 * var(--tile-u)), 455px);
-}
-
 html:not([data-board-theme="canonical"]) .tile-expanded > .paper-body {
   justify-content: center;
   gap: 0.4rem;
-  padding: 21% 17% 18%;
 }
 
 html:not([data-board-theme="canonical"]) .tile-expanded .expanded-title {
@@ -122,8 +115,6 @@ html:not([data-board-theme="canonical"]) .tile-expanded .expanded-title {
 
 html:not([data-board-theme="canonical"]) .tile-expanded .expanded-text {
   flex: 0 1 auto;
-  max-height: 7em;
-  overflow: hidden;
 }
 
 html:not([data-board-theme="canonical"]) .tile-expanded .expanded-open {
@@ -327,16 +318,7 @@ html[data-board-theme="islands"] .theme-ambient::after { right: 9%; bottom: 23%;
   .navbar-title { max-width: 22vw; }
   .theme-selector span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .theme-selector select { max-width: 46vw; }
-  html:not([data-board-theme="canonical"]) .tile-container.sticky .tile-expanded,
-  html:not([data-board-theme="canonical"]) .tile-container.scrap .tile-expanded {
-    width: min(calc(30 * var(--tile-u)), 410px);
-    min-height: min(calc(34 * var(--tile-u)), 455px);
-  }
-  html:not([data-board-theme="canonical"]) .tile-expanded > .paper-body {
-    padding: 18% 14% 15%;
-  }
   html:not([data-board-theme="canonical"]) .tile-expanded .expanded-text {
-    max-height: none;
     font-size: 0.8rem;
     line-height: 1.18;
   }

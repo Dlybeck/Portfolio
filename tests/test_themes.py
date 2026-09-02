@@ -102,14 +102,35 @@ def test_theme_objects_are_stable_varied_and_matched_across_tile_states(
         )
 
     first = home_profile()
+    programs_identity = page.locator(
+        '.tile-container[data-title="Programs"]'
+    ).get_attribute("data-theme-identity")
     assert first["identity"] == first["baseIdentity"] == first["expandedIdentity"]
     assert len(set(first["neighborShapes"])) == 4
 
     page.reload(wait_until="domcontentloaded")
     assert home_profile() == first
 
+    page.get_by_role("button", name="Go to Projects").click()
+    expect(page).to_have_url(f"{origin}/?theme={theme}#Projects")
+    page.keyboard.press("Escape")
+    expect(page).to_have_url(f"{origin}/?theme={theme}")
+    assert home_profile() == first
+
     page.set_viewport_size({"width": 390, "height": 844})
     assert home_profile() == first
+
+    page.goto(
+        f"{origin}/projects/programs?theme={theme}",
+        wait_until="domcontentloaded",
+    )
+    page.locator(".mini-window-container.open").wait_for()
+    assert page.locator(
+        '.tile-container[data-title="Programs"]'
+    ).get_attribute("data-theme-identity") == programs_identity
+    expect(page.frame_locator(".mini-window").locator("#location")).to_have_text(
+        "Programs"
+    )
 
 
 def test_relationship_paths_belong_to_the_world_and_restore_canonical(
@@ -157,6 +178,40 @@ def test_open_document_rethemes_in_place_without_stale_world_state(
 
 
 @pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])
+@pytest.mark.parametrize(
+    ("route", "heading", "content_selector"),
+    [
+        ("/projects/programs", "Programs", "a.link"),
+        (
+            "/projects/websites/this_website/v3",
+            "DavidLybeck.com Version 3",
+            "img.media",
+        ),
+    ],
+)
+def test_document_grammar_covers_text_and_media_pages_in_every_world(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+    theme: str,
+    route: str,
+    heading: str,
+    content_selector: str,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(f"{origin}{route}?theme={theme}", wait_until="domcontentloaded")
+    page.locator(".mini-window-container.open").wait_for()
+    document = page.frame_locator(".mini-window")
+
+    expect(document.locator("html")).to_have_attribute("data-board-theme", theme)
+    expect(document.locator("#location")).to_have_text(heading)
+    expect(document.locator(content_selector).first).to_be_visible()
+    assert document.locator(".section").first.evaluate(
+        "node => getComputedStyle(node).backgroundColor"
+    ) not in {"rgba(0, 0, 0, 0)", "transparent"}
+
+
+@pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])
 def test_keyboard_hierarchy_is_unchanged_in_each_world(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
@@ -166,7 +221,24 @@ def test_keyboard_hierarchy_is_unchanged_in_each_world(
     page, origin = browser_page
     page.goto(f"{origin}/?theme={theme}#Hobbies", wait_until="domcontentloaded")
 
-    page.get_by_role("button", name="Go to Gaming").focus()
+    names = []
+    for _ in range(5):
+        page.keyboard.press("Tab")
+        names.append(
+            page.evaluate(
+                "document.activeElement.getAttribute('aria-label')"
+                " || document.activeElement.textContent.trim()"
+            )
+        )
+    assert names == [
+        "Home",
+        "Go to Home",
+        "Go to 3D Printing",
+        "Go to Gaming",
+        "Go to Tennis",
+    ]
+    page.keyboard.press("Shift+Tab")
+    expect(page.get_by_role("button", name="Go to Gaming")).to_be_focused()
     page.keyboard.press("Enter")
     expect(page).to_have_url(f"{origin}/?theme={theme}#Gaming")
     expect(page.get_by_role("link", name="Open Gaming")).to_be_focused()
@@ -221,6 +293,43 @@ def test_development_selector_does_not_enter_the_viewer_neighborhood_focus_cycle
     assert page.evaluate(
         "document.activeElement.getAttribute('aria-label')"
     ) == "Go to Hobbies"
+
+
+def test_development_selector_has_an_explicit_keyboard_shortcut(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(f"{origin}/?theme=lily", wait_until="domcontentloaded")
+
+    page.keyboard.press("Alt+t")
+    selector = page.locator("[data-theme-selector]")
+    expect(selector).to_be_focused()
+    selector.select_option("clouds")
+    expect(page).to_have_url(f"{origin}/?theme=clouds")
+
+
+def test_cloudscape_renders_deterministic_density_underside_and_wisp_axes(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(f"{origin}/?theme=clouds", wait_until="domcontentloaded")
+
+    rendered_axes = page.locator(
+        '[data-theme-size="base"] [data-cloud-grammar]'
+    ).evaluate_all(
+        """nodes => nodes.map((node) => ({
+            density: node.dataset.cloudDensity,
+            underside: node.dataset.cloudUnderside,
+            wisp: node.dataset.cloudWisp,
+        }))"""
+    )
+    assert len({axis["density"] for axis in rendered_axes}) >= 3
+    assert len({axis["underside"] for axis in rendered_axes}) >= 3
+    assert len({axis["wisp"] for axis in rendered_axes}) >= 4
 
 
 @pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])

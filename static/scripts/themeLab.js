@@ -113,7 +113,8 @@
         const graph = adjacency();
         const assigned = new Map();
         allTitles().forEach((title) => {
-            const pool = shapes[theme];
+            const grammar = themeAdapters[theme].grammar;
+            const pool = grammar.silhouettes;
             const start = channel(title, theme, "shape", pool.length);
             const used = new Set(
                 [...(graph.get(title) || [])]
@@ -128,7 +129,7 @@
             assigned.set(title, {
                 identity: `${theme}-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
                 shape,
-                palette: channel(title, theme, "palette", palettes[theme].length),
+                palette: channel(title, theme, "palette", grammar.palettes.length),
                 detail: channel(title, theme, "detail", 6),
                 accent: channel(title, theme, "accent", 5),
                 rotation: channel(title, theme, "rotation", 17) - 8,
@@ -156,8 +157,9 @@
 
     const renderers = {
         lily(profile, expanded) {
-            const [dark, mid, light] = palettes.lily[profile.palette];
-            const padPath = shapes.lily[profile.shape];
+            const grammar = themeAdapters.lily.grammar;
+            const [dark, mid, light] = grammar.palettes[profile.palette];
+            const padPath = grammar.silhouettes[profile.shape];
             const maskId = `${profile.identity}-${expanded ? "expanded" : "base"}-mask`;
             const flower = profile.accent < 2
                 ? `<g class="theme-detail theme-detail-accent" transform="translate(${128 + profile.detail * 3} ${62 + profile.accent * 8})"><circle r="13" fill="#f5d7df"/><circle r="8" fill="#fff2f3"/><circle r="3.5" fill="#e6ad57"/></g>`
@@ -169,7 +171,7 @@
             return `<defs><mask id="${maskId}" maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="160"><rect width="200" height="160" fill="white"/><path d="M92 88L194 65L194 92Z" fill="black" transform="rotate(${notchAngle} 95 88)"/></mask></defs><g mask="url(#${maskId})"><path d="${padPath}" fill="${mid}" stroke="${dark}" stroke-width="5"/>${veins}</g>${flower}`;
         },
         planets(profile, expanded) {
-            const [dark, mid, light] = palettes.planets[profile.palette];
+            const [dark, mid, light] = themeAdapters.planets.grammar.palettes[profile.palette];
             const radiusX = 52 + (profile.shape % 3) * 5;
             const radiusY = 51 - (profile.shape % 2) * 4;
             const ring = profile.shape % 3 === 0
@@ -187,15 +189,37 @@
             return `${halo}${ring}<ellipse cx="100" cy="83" rx="${radiusX}" ry="${radiusY}" fill="${mid}" stroke="${dark}" stroke-width="5"/>${detail}${satellite}`;
         },
         clouds(profile, expanded) {
-            const [light, shade, dark] = palettes.clouds[profile.palette];
-            const shadow = expanded
-                ? `<path class="theme-detail" d="M42 111C70 123 128 127 165 105C156 130 129 139 88 136C61 135 45 126 42 111Z" fill="${shade}"/><path class="theme-detail" d="M60 143L50 154M98 143L89 157M139 141L132 153" stroke="${dark}" stroke-width="4" stroke-linecap="round"/>`
-                : `<path class="theme-detail" d="M43 111C78 124 130 124 164 104C153 128 111 136 75 130C57 127 46 120 43 111Z" fill="${shade}"/>`;
-            return `<path d="${shapes.clouds[profile.shape]}" fill="${light}" stroke="${dark}" stroke-width="5"/>${shadow}`;
+            const grammar = themeAdapters.clouds.grammar;
+            const [light, shade, dark] = grammar.palettes[profile.palette];
+            const density = profile.detail % 3;
+            const underside = profile.detail;
+            const wisp = profile.accent;
+            const undersideLift = underside % 3;
+            const undersideOpacity = 0.7 + (underside % 2) * 0.16;
+            const densityPuffs = [
+                "",
+                `<circle class="theme-detail" cx="${54 + profile.accent * 4}" cy="${73 - undersideLift * 3}" r="${15 + undersideLift}" fill="${light}"/>`,
+                `<circle class="theme-detail" cx="${50 + profile.accent * 3}" cy="${73 - undersideLift * 2}" r="${14 + undersideLift}" fill="${light}"/><circle class="theme-detail" cx="${139 - profile.accent * 2}" cy="${69 + undersideLift}" r="${17 - undersideLift}" fill="${light}"/>`,
+            ][density];
+            const wisps = [
+                `<path class="theme-detail" d="M157 88C181 84 187 74 175 68" fill="none" stroke="${dark}" stroke-width="3" stroke-linecap="round" opacity=".55"/>`,
+                `<path class="theme-detail" d="M43 91C18 88 12 77 24 69" fill="none" stroke="${dark}" stroke-width="3" stroke-linecap="round" opacity=".5"/>`,
+                `<path class="theme-detail" d="M158 96C184 99 191 90 182 82M153 107C172 112 181 108 181 100" fill="none" stroke="${dark}" stroke-width="3" stroke-linecap="round" opacity=".48"/>`,
+                `<path class="theme-detail" d="M45 100C20 105 11 96 18 86M49 111C30 119 20 114 20 106" fill="none" stroke="${dark}" stroke-width="3" stroke-linecap="round" opacity=".48"/>`,
+                `<path class="theme-detail" d="M158 91C180 85 190 74 181 66M44 104C22 111 13 103 19 94" fill="none" stroke="${dark}" stroke-width="3" stroke-linecap="round" opacity=".5"/>`,
+            ][wisp];
+            const expandedWisps = expanded
+                ? `<path class="theme-detail" d="M63 143C57 149 52 151 45 151M103 144C96 151 89 153 82 152M141 140C136 146 130 148 123 147" fill="none" stroke="${dark}" stroke-width="3" stroke-linecap="round" opacity=".42"/>`
+                : "";
+            const shadowPath = expanded
+                ? `M42 ${110 - undersideLift}C70 ${124 + undersideLift} 128 ${129 - undersideLift} 165 ${104 + undersideLift}C156 130 129 139 88 136C61 135 45 126 42 ${110 - undersideLift}Z`
+                : `M43 ${111 - undersideLift}C78 ${124 + undersideLift} 130 ${125 - undersideLift} 164 ${104 + undersideLift}C153 128 111 136 75 130C57 127 46 120 43 ${111 - undersideLift}Z`;
+            return `<g data-cloud-grammar="" data-cloud-density="${density}" data-cloud-underside="${underside}" data-cloud-wisp="${wisp}"><path d="${grammar.silhouettes[profile.shape]}" fill="${light}" stroke="${dark}" stroke-width="5"/>${densityPuffs}<path class="theme-detail" d="${shadowPath}" fill="${shade}" opacity="${undersideOpacity}"/>${wisps}${expandedWisps}</g>`;
         },
         islands(profile, expanded) {
-            const [land, sand, water] = palettes.islands[profile.palette];
-            const path = shapes.islands[profile.shape];
+            const grammar = themeAdapters.islands.grammar;
+            const [land, sand, water] = grammar.palettes[profile.palette];
+            const path = grammar.silhouettes[profile.shape];
             const innerScale = 0.82 + (profile.detail % 3) * 0.02;
             const islets = profile.accent < 3
                 ? `<ellipse cx="${166 - profile.accent * 8}" cy="${124 + profile.accent * 4}" rx="${8 + profile.accent}" ry="${5 + profile.accent}" fill="${sand}" stroke="${water}" stroke-width="3"/>`
@@ -227,18 +251,32 @@
     }
 
     const canonicalArrowConfig = { ...(window.chalkArrowsConfig || {}) };
-    const arrowTreatments = {
-        lily: { color: "#d7efbd", strokeWidth: 3.6, opacity: 0.78, headStyle: "none", wobble: 0.1 },
-        planets: { color: "#b7d9ff", strokeWidth: 2.4, opacity: 0.74, headStyle: "none", wobble: 0.035 },
-        clouds: { color: "#f7fbff", strokeWidth: 3.2, opacity: 0.68, headStyle: "none", wobble: 0.18 },
-        islands: { color: "#bce8e2", strokeWidth: 3.5, opacity: 0.72, headStyle: "none", wobble: 0.11 },
-    };
     const themeAdapters = {
         canonical: { key: "canonical", render: null, arrows: null },
-        lily: { key: "lily", render: renderers.lily, arrows: arrowTreatments.lily },
-        planets: { key: "planets", render: renderers.planets, arrows: arrowTreatments.planets },
-        clouds: { key: "clouds", render: renderers.clouds, arrows: arrowTreatments.clouds },
-        islands: { key: "islands", render: renderers.islands, arrows: arrowTreatments.islands },
+        lily: {
+            key: "lily",
+            grammar: { palettes: palettes.lily, silhouettes: shapes.lily },
+            render: renderers.lily,
+            arrows: { color: "#d7efbd", strokeWidth: 3.6, opacity: 0.78, headStyle: "none", wobble: 0.1 },
+        },
+        planets: {
+            key: "planets",
+            grammar: { palettes: palettes.planets, silhouettes: shapes.planets },
+            render: renderers.planets,
+            arrows: { color: "#b7d9ff", strokeWidth: 2.4, opacity: 0.74, headStyle: "none", wobble: 0.035 },
+        },
+        clouds: {
+            key: "clouds",
+            grammar: { palettes: palettes.clouds, silhouettes: shapes.clouds },
+            render: renderers.clouds,
+            arrows: { color: "#f7fbff", strokeWidth: 3.2, opacity: 0.68, headStyle: "none", wobble: 0.18 },
+        },
+        islands: {
+            key: "islands",
+            grammar: { palettes: palettes.islands, silhouettes: shapes.islands },
+            render: renderers.islands,
+            arrows: { color: "#bce8e2", strokeWidth: 3.5, opacity: 0.72, headStyle: "none", wobble: 0.11 },
+        },
     };
 
     function styleRelationships(theme) {
@@ -275,31 +313,14 @@
 
     function themedUrl(route, theme) {
         const parsed = new URL(route, window.location.origin);
+        if (parsed.origin !== window.location.origin) return route;
         if (theme === "canonical") parsed.searchParams.delete("theme");
         else parsed.searchParams.set("theme", theme);
         return `${parsed.pathname}${parsed.search}${parsed.hash}`;
     }
 
     function installNavigation(themeState) {
-        window.documentUrlForRoute = function (route) {
-            const prefix = window.portfolioState.documentPrefix || "/_documents";
-            const parsed = new URL(route, window.location.origin);
-            const documentRoute = `${prefix}${parsed.pathname.startsWith("/") ? parsed.pathname : `/${parsed.pathname}`}`;
-            return themedUrl(`${documentRoute}${parsed.search}`, themeState.current);
-        };
-
-        window.setDestinationUrl = function (route, { replace = false } = {}) {
-            const method = replace ? "replaceState" : "pushState";
-            const themed = themedUrl(route, themeState.current);
-            window.history[method]({ documentRoute: themed }, "", themed);
-        };
-
-        window.setBoardUrl = function (title, { replace = false } = {}) {
-            const method = replace ? "replaceState" : "pushState";
-            const hashPart = title && title !== "Home" ? `#${encodeURIComponent(title)}` : "";
-            const route = themedUrl(`/${hashPart}`, themeState.current);
-            window.history[method]({ boardTitle: title || "Home" }, "", route);
-        };
+        window.portfolioUrlTransform = (route) => themedUrl(route, themeState.current);
     }
 
     function styleDocument(doc, theme) {
@@ -344,6 +365,11 @@
         const selector = document.querySelector("[data-theme-selector]");
         selector?.addEventListener("change", (event) => {
             window.themeLab.activate(event.target.value);
+        });
+        document.addEventListener("keydown", (event) => {
+            if (!selector || !event.altKey || event.code !== "KeyT") return;
+            event.preventDefault();
+            selector.focus();
         });
         window.themeLab.activate(themeState.current, { syncUrl: false });
     });

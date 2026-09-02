@@ -31,8 +31,8 @@ SNAPSHOTS = (
     # Side-sliding paper viewer after the April 23 interaction polish.
     ("2.webp", "4fd2f2c", "/projects/websites/this_website"),
     # Public-only site immediately after the April 25 /dev removal, with the
-    # larger final paper viewer visible on the site's own history document.
-    ("3.webp", "0eacd53", "/projects/websites/this_website"),
+    # larger final paper viewer showing the personal side of the portfolio.
+    ("3.webp", "0eacd53", "/hobbies/tennis"),
 )
 
 
@@ -62,6 +62,7 @@ def historical_public_app(checkout: Path) -> FastAPI:
     template_by_path = {
         "": "pages/home.html",
         "projects/websites/this_website": "pages/projects/websites/this_website.html",
+        "hobbies/tennis": "pages/hobbies/tennis.html",
         "jobs": "pages/jobs.html",
     }
 

@@ -29,13 +29,13 @@ DOCUMENT_ROUTES = (
 )
 
 
-def test_final_v3_snapshot_captures_the_site_history_document() -> None:
-    """The final retrospective image must show v3, not an unpainted PDF embed."""
+def test_final_v3_snapshot_uses_a_distinct_public_document() -> None:
+    """The final retrospective image must add a new view, not repeat image 2."""
 
     filename, commit, open_route = SNAPSHOTS[-1]
 
     assert (filename, commit) == ("3.webp", "0eacd53")
-    assert open_route == "/projects/websites/this_website"
+    assert open_route not in {None, SNAPSHOTS[-2][2], "/jobs"}
 
 
 def document_response(client: TestClient, route: str):

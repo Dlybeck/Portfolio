@@ -19,11 +19,11 @@
     {% if not _is_private %}
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     {% endif %}
-    <meta
-    name="description"
-    content="A place to explore aspects of David Lybeck's Life">
-      {% block title %}
-    {% endblock %}
+    {% block title %}<title>{{ metadata.title }}</title>{% endblock %}
+    {% include "components/discovery_metadata.html" %}
+    {% if person_schema %}
+    <script type="application/ld+json">{{ person_schema | tojson }}</script>
+    {% endif %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Gochi+Hand&family=Kalam:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">

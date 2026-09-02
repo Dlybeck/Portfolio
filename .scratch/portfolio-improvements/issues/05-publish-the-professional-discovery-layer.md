@@ -1,7 +1,7 @@
 ---
 id: "05"
 title: Publish the Professional Discovery Layer
-status: ready-for-agent
+status: resolved
 phase: 1
 blocked_by:
   - "01"
@@ -42,4 +42,3 @@ Build metadata from a small authoritative identity model, then derive route-spec
 - Social sharing produces the intended Home Board preview and accurate copy.
 - No email address or excluded performance language appears in metadata.
 - Metadata validation and a representative search/social preview inspection pass.
-

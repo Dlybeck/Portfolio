@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
 
+from core.discovery import PERSON_SCHEMA, metadata_for
 from core.portfolio import DOCUMENTS, PortfolioDocument, document_for_route, portfolio_state
 
 
@@ -19,7 +20,12 @@ def render_board(request: Request, document: PortfolioDocument | None = None):
     return templates.TemplateResponse(
         request,
         "pages/home.html",
-        {"portfolio_state": portfolio_state(document), "document": document},
+        {
+            "portfolio_state": portfolio_state(document),
+            "document": document,
+            "metadata": metadata_for(document),
+            "person_schema": PERSON_SCHEMA,
+        },
     )
 
 
@@ -33,7 +39,14 @@ async def embedded_document(request: Request, document_path: str):
     document = document_for_route(document_path)
     if document is None:
         raise HTTPException(status_code=404, detail="Unknown portfolio document")
-    return templates.TemplateResponse(request, document.template, {})
+    return templates.TemplateResponse(
+        request,
+        document.template,
+        {
+            "metadata": metadata_for(document),
+            "internal_document": True,
+        },
+    )
 
 
 @portfolio_router.get("/favicon.ico", include_in_schema=False)

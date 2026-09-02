@@ -112,6 +112,7 @@ class MiniWindow {
             header { background-color: rgba(26, 58, 110, 0.85) !important; }
         `;
         doc.head.appendChild(style);
+        if (window.themeLab) window.themeLab.styleDocument(doc);
 
         doc.addEventListener('keydown', (event) => {
             if (event.key !== 'Escape') return;

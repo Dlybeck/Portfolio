@@ -6,6 +6,7 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str = "David Lybeck"
     PROJECT_VERSION: str = "1.0.0"
+    THEME_LAB_ENABLED: bool = False
 
 
 settings = Settings()

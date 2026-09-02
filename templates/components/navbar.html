@@ -5,5 +5,15 @@
     <button type="button" class="home-button" aria-label="Home" tabindex="-1" onclick="returnHome()">
       <img src="/static/images/home.webp" alt="">
     </button>
+    {% if theme_lab_enabled %}
+    <label class="theme-selector">
+      <span>Theme</span>
+      <select data-theme-selector aria-label="Board theme" tabindex="-1">
+        {% for theme in board_themes %}
+        <option class="theme-selector-option" value="{{ theme.key }}"{% if theme.key == active_theme %} selected{% endif %}>{{ theme.label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    {% endif %}
   </div>
 </nav>

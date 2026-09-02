@@ -1,0 +1,93 @@
+/* Theme documents preserve the existing document grammar; only their world changes. */
+
+html[data-board-theme="lily"] {
+  --document-page: #e4f1cd;
+  --document-ink: #173f35;
+  --document-link: #176784;
+  --document-header: #2f7254;
+  --document-panel: rgba(237, 249, 220, .9);
+  --document-border: #6c9c70;
+  background: #a7d0bc;
+}
+html[data-board-theme="lily"] body {
+  background-image: radial-gradient(circle at 12% 18%, rgba(255,255,255,.35), transparent 22%), linear-gradient(145deg, #dcecc5, #add3c1);
+}
+
+html[data-board-theme="planets"] {
+  --document-page: #171d43;
+  --document-ink: #f5efdc;
+  --document-link: #9bdcf0;
+  --document-header: #303b79;
+  --document-panel: rgba(29, 36, 78, .92);
+  --document-border: #8393cd;
+  background: #11162f;
+}
+html[data-board-theme="planets"] body {
+  background-image: radial-gradient(circle at 12% 18%, #fff 0 1px, transparent 2px), radial-gradient(circle at 78% 61%, #b9d6ff 0 1px, transparent 2px), linear-gradient(145deg, #11162f, #252d62);
+  background-size: 110px 100px, 160px 140px, auto;
+}
+
+html[data-board-theme="clouds"] {
+  --document-page: #eaf3f7;
+  --document-ink: #28475f;
+  --document-link: #276e95;
+  --document-header: #5b819d;
+  --document-panel: rgba(250, 253, 255, .9);
+  --document-border: #8ba8b8;
+  background: #b8dce9;
+}
+html[data-board-theme="clouds"] body {
+  background-image: radial-gradient(ellipse at 18% 16%, rgba(255,255,255,.55) 0 8%, transparent 9%), linear-gradient(180deg, #a4d3e6, #e9f1f3);
+}
+
+html[data-board-theme="islands"] {
+  --document-page: #f3e7bc;
+  --document-ink: #173c38;
+  --document-link: #17657a;
+  --document-header: #267487;
+  --document-panel: rgba(248, 239, 204, .93);
+  --document-border: #3b867c;
+  background: #4a9bb0;
+}
+html[data-board-theme="islands"] body {
+  background-image: repeating-radial-gradient(ellipse at 20% 30%, transparent 0 35px, rgba(229,247,239,.18) 36px 38px, transparent 39px 70px), linear-gradient(145deg, #3c92aa, #79bdba);
+}
+
+html:not([data-board-theme="canonical"]) body {
+  color: var(--document-ink);
+}
+
+html:not([data-board-theme="canonical"]) .container {
+  background: transparent;
+}
+
+html:not([data-board-theme="canonical"]) #location {
+  color: var(--document-ink);
+}
+
+html:not([data-board-theme="canonical"]) header {
+  background: var(--document-header);
+}
+
+html:not([data-board-theme="canonical"]) .section {
+  color: var(--document-ink);
+  background: var(--document-panel);
+  border-color: var(--document-border);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .16);
+}
+
+html:not([data-board-theme="canonical"]) a {
+  color: var(--document-link);
+  text-decoration-thickness: 2px;
+}
+
+html:not([data-board-theme="canonical"]) body .plain-internal-link {
+  color: var(--document-link) !important;
+}
+
+html:not([data-board-theme="canonical"]) body .external-btn,
+html:not([data-board-theme="canonical"]) body .internal-link {
+  color: #fff !important;
+  background: var(--document-header) !important;
+  border-color: var(--document-border) !important;
+}

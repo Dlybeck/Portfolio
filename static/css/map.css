@@ -181,6 +181,10 @@
   transition: transform 0.3s cubic-bezier(.2,.7,.2,1);
   will-change: transform;
   z-index: 1;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
 }
 
 .tile-base:hover,

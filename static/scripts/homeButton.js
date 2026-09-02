@@ -14,7 +14,9 @@ window.checkHomeButton = function () {
 
     if (onHome) {
         button.classList.remove("visible");
+        button.tabIndex = -1;
     } else {
         button.classList.add("visible");
+        button.tabIndex = 0;
     }
 };

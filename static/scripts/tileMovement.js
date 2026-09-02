@@ -72,6 +72,22 @@ window.centerOnTile = function(title) {
     updateVisibility(title);
 };
 
+window.parentTitleFor = function(title) {
+    return Object.entries(window.tilesData).find(([_, children]) =>
+        children.includes(title)
+    )?.[0] || null;
+};
+
+window.returnToParent = function() {
+    const current = window.currentTileTitle || 'Home';
+    const parent = window.parentTitleFor(current);
+    if (!parent) return false;
+
+    window.setBoardUrl(parent);
+    window.centerOnTile(parent);
+    return true;
+};
+
 /**
  * Reset all tiles to the Home layout.
  */
@@ -83,6 +99,7 @@ window.returnHome = function() {
     }
 
     if (window.closePage) window.closePage({ syncUrl: false });
+    window.currentTileTitle = 'Home';
     window.setBoardUrl('Home');
 
     const offsetX = 50 - homeTile.left;

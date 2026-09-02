@@ -157,3 +157,119 @@ def test_document_controls_preserve_board_aware_destinations(
     page.locator(".home-button").click()
     assert page.url == f"{origin}/"
     assert page.locator('.tile-container[data-title="Home"].expanded').count() == 1
+
+
+def focused_control_name(page: Page) -> str | None:
+    return page.evaluate(
+        """() => document.activeElement?.getAttribute('aria-label')
+            || document.activeElement?.textContent?.trim()
+            || null"""
+    )
+
+
+def test_keyboard_cycle_contains_only_the_visible_home_neighborhood(
+    browser_page: tuple[Page, str],
+) -> None:
+    page, origin = browser_page
+    page.goto(origin, wait_until="domcontentloaded")
+
+    names = []
+    for _ in range(4):
+        page.keyboard.press("Tab")
+        names.append(focused_control_name(page))
+
+    assert names == [
+        "Go to Hobbies",
+        "Go to Projects",
+        "Go to Work Experience",
+        "Go to Education",
+    ]
+    assert page.locator('.tile-base[tabindex="0"], .expanded-open[tabindex="0"]').count() == 4
+    page.keyboard.press("Shift+Tab")
+    assert focused_control_name(page) == "Go to Work Experience"
+
+
+def test_keyboard_activation_and_focus_order_follow_the_parent_child_model(
+    browser_page: tuple[Page, str],
+) -> None:
+    page, origin = browser_page
+    page.goto(f"{origin}/#Hobbies", wait_until="domcontentloaded")
+
+    names = []
+    for _ in range(5):
+        page.keyboard.press("Tab")
+        names.append(focused_control_name(page))
+    assert names == [
+        "Home",
+        "Go to Home",
+        "Go to 3D Printing",
+        "Go to Gaming",
+        "Go to Tennis",
+    ]
+
+    page.keyboard.press("Enter")
+    assert page.url == f"{origin}/#Tennis"
+    assert page.locator('.tile-container[data-title="Tennis"].expanded').count() == 1
+
+    page.goto(f"{origin}/#Tennis", wait_until="domcontentloaded")
+    page.reload(wait_until="domcontentloaded")
+    page.keyboard.press("Tab")
+    assert focused_control_name(page) == "Home"
+    page.keyboard.press("Tab")
+    assert focused_control_name(page) == "Go to Hobbies"
+    page.keyboard.press("Tab")
+    assert focused_control_name(page) == "Open Tennis"
+    page.keyboard.press("Space")
+    page.locator(".mini-window-container.open").wait_for()
+    assert page.url == f"{origin}/hobbies/tennis"
+
+
+def test_escape_moves_one_level_toward_home(
+    browser_page: tuple[Page, str],
+) -> None:
+    page, origin = browser_page
+
+    page.goto(f"{origin}/#Gaming", wait_until="domcontentloaded")
+    page.keyboard.press("Escape")
+    assert page.url == f"{origin}/#Hobbies"
+    assert page.locator('.tile-container[data-title="Hobbies"].expanded').count() == 1
+
+    page.keyboard.press("Escape")
+    assert page.url == f"{origin}/"
+    page.keyboard.press("Escape")
+    assert page.url == f"{origin}/"
+
+    page.goto(f"{origin}/hobbies/gaming", wait_until="domcontentloaded")
+    page.locator(".mini-window-container.open").wait_for()
+    page.keyboard.press("Escape")
+    assert page.url == f"{origin}/#Gaming"
+
+    page.goto(f"{origin}/#Programs", wait_until="domcontentloaded")
+    page.locator('.tile-container[data-title="Programs"] .expanded-open').click()
+    document = page.frame_locator(".mini-window")
+    document.locator("a", has_text="ScribbleScan").first.click()
+    assert page.url == f"{origin}/projects/websites/scribblescan"
+    document.locator("body").press("Escape")
+    assert page.url == f"{origin}/projects/programs"
+
+
+def test_primary_controls_are_semantic_named_and_visibly_focusable(
+    browser_page: tuple[Page, str],
+) -> None:
+    page, origin = browser_page
+    page.goto(f"{origin}/#Programs", wait_until="domcontentloaded")
+
+    home = page.get_by_role("button", name="Home")
+    assert home.evaluate("element => element.tagName") == "BUTTON"
+
+    tile = page.get_by_role("button", name="Go to Projects")
+    tile.focus()
+    assert tile.evaluate("element => getComputedStyle(element).outlineStyle") != "none"
+
+    page.get_by_role("link", name="Open Programs").click()
+    close = page.get_by_role("button", name="Close document")
+    assert close.evaluate("element => element.tagName") == "BUTTON"
+
+    document = page.frame_locator(".mini-window")
+    document.locator("a", has_text="ScribbleScan").first.click()
+    page.get_by_role("button", name="Go back to previous document").wait_for()

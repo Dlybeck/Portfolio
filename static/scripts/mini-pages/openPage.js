@@ -108,6 +108,12 @@ class MiniWindow {
         `;
         doc.head.appendChild(style);
 
+        doc.addEventListener('keydown', (event) => {
+            if (event.key !== 'Escape') return;
+            event.preventDefault();
+            window.handlePortfolioEscape();
+        });
+
         this._hideLoadingScrap();
     }
 
@@ -147,8 +153,10 @@ class MiniWindow {
         if (!this.closeLabel) return;
         if (this.navigationHistory.length > 1) {
             this.closeLabel.textContent = '← back';
+            this.closeButton.setAttribute('aria-label', 'Go back to previous document');
         } else {
             this.closeLabel.textContent = '✕ close';
+            this.closeButton.setAttribute('aria-label', 'Close document');
         }
     }
 
@@ -223,4 +231,15 @@ document.addEventListener("DOMContentLoaded", () => {
     window.openPage = (route, options) => miniWindow.open(route, options);
     window.navigateToPage = (route) => miniWindow.navigateTo(route);
     window.closePage = (options) => miniWindow.hide(options);
+    window.handlePortfolioEscape = () => {
+        if (miniWindow.isVisible()) {
+            if (!miniWindow.goBack()) miniWindow.hide();
+            return true;
+        }
+        return window.returnToParent ? window.returnToParent() : false;
+    };
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        if (window.handlePortfolioEscape()) event.preventDefault();
+    });
 });

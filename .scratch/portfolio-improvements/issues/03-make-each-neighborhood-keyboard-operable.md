@@ -1,7 +1,7 @@
 ---
 id: "03"
 title: Make each Neighborhood keyboard-operable
-status: ready-for-agent
+status: resolved
 phase: 1
 blocked_by: []
 ---
@@ -41,4 +41,3 @@ Model focus from the current Neighborhood rather than relying on incidental docu
 - Home, Close, and Back expose correct control semantics and accessible names.
 - Focus remains visible across supported viewport sizes.
 - Pointer and touch regression checks pass.
-

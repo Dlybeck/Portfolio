@@ -188,14 +188,17 @@ window.createTile = function(title) {
     //
     // The legacy .tile class stays on the outer element so map.js's
     // `.querySelector('.tile')` click binding keeps working.
-    const base = document.createElement('div');
+    const base = document.createElement('button');
     base.className = 'tile tile-base';
+    base.type = 'button';
+    base.tabIndex = -1;
+    base.setAttribute('aria-label', `Go to ${title}`);
 
     const baseBody = document.createElement('div');
     baseBody.className = 'paper-body';
     base.appendChild(baseBody);
 
-    const baseTitle = document.createElement('h2');
+    const baseTitle = document.createElement('span');
     baseTitle.className = 'scrap-title';
     baseTitle.textContent = title;
     baseBody.appendChild(baseTitle);
@@ -256,7 +259,15 @@ window.createTile = function(title) {
         const openLink = document.createElement('a');
         openLink.className = 'expanded-open';
         openLink.href = route;
+        openLink.tabIndex = -1;
+        openLink.setAttribute('aria-label', `Open ${title}`);
         openLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            window.openPage(route);
+        });
+        openLink.addEventListener('keydown', (event) => {
+            if (event.key !== ' ') return;
             event.preventDefault();
             event.stopPropagation();
             window.openPage(route);
@@ -302,6 +313,8 @@ window.createTile = function(title) {
     legacyButton.className = 'button';
     legacyButton.style.display = 'none';
     legacyButton.href = route || '';
+    legacyButton.tabIndex = -1;
+    legacyButton.setAttribute('aria-hidden', 'true');
     expandedBody.appendChild(legacyButton);
 
     // Tape as a sibling of expanded's paper-body (scraps only).
@@ -371,6 +384,19 @@ window.updateVisibility = function(centerTitle) {
 
         const wasExpanded = tile.classList.contains('expanded');
         const shouldBeExpanded = (tileTitle === centerTitle);
+        const base = tile.querySelector('.tile-base');
+        const expanded = tile.querySelector('.tile-expanded');
+        const openLink = tile.querySelector('.expanded-open');
+        const isConnected = visibleTiles.includes(tileTitle) && !shouldBeExpanded;
+
+        if (base) {
+            base.tabIndex = isConnected ? 0 : -1;
+            base.setAttribute('aria-hidden', isConnected ? 'false' : 'true');
+        }
+        if (openLink) openLink.tabIndex = shouldBeExpanded ? 0 : -1;
+        if (expanded) {
+            expanded.setAttribute('aria-hidden', shouldBeExpanded ? 'false' : 'true');
+        }
 
         // If a user re-selects a tile that's in the middle of its exit
         // sweep, cancel the sweep and re-enter cleanly.

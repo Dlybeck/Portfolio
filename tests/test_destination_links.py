@@ -289,6 +289,32 @@ def test_escape_moves_one_level_toward_home(
     expect(document.locator("#location")).to_have_text("Programs")
 
 
+def test_reopening_a_document_cancels_the_previous_delayed_teardown(
+    browser_page: tuple[Page, str],
+) -> None:
+    page, origin = browser_page
+
+    page.goto(f"{origin}/#Gaming", wait_until="domcontentloaded")
+    page.get_by_role("link", name="Open Gaming").click()
+    page.locator(".mini-window-container.open").wait_for()
+    page.keyboard.press("Escape")
+
+    # A hash-only destination change keeps the same MiniWindow instance alive.
+    # Reopening before its close animation finishes must retire that close's
+    # delayed iframe/history cleanup.
+    page.goto(f"{origin}/#Programs", wait_until="domcontentloaded")
+    page.get_by_role("link", name="Open Programs").click()
+    document = page.frame_locator(".mini-window")
+    expect(document.locator("#location")).to_have_text("Programs")
+    page.wait_for_timeout(500)
+
+    expect(page.locator(".mini-window-container")).to_have_class(
+        re.compile(r"\bopen\b")
+    )
+    expect(document.locator("#location")).to_have_text("Programs")
+    expect(page.get_by_role("button", name="Close document")).to_be_visible()
+
+
 def test_primary_controls_are_semantic_named_and_visibly_focusable(
     browser_page: tuple[Page, str],
 ) -> None:

@@ -22,6 +22,8 @@ class MiniWindow {
         this.closeButton = document.querySelector(".close-button");
         this.closeLabel  = this.closeButton ? this.closeButton.querySelector('.tab') : null;
         this.navigationHistory = [];
+        this.teardownTimer = null;
+        this.outsideHandlerTimer = null;
 
         this.setEvents();
     }
@@ -35,6 +37,16 @@ class MiniWindow {
     // ---------------------- open / close ----------------------
 
     open(route, options = {}) {
+        if (this.teardownTimer !== null) {
+            clearTimeout(this.teardownTimer);
+            this.teardownTimer = null;
+        }
+        if (this.outsideHandlerTimer !== null) {
+            clearTimeout(this.outsideHandlerTimer);
+            this.outsideHandlerTimer = null;
+        }
+        document.removeEventListener('click', this._outsideHandler, true);
+
         const normalized = this.normalizeUrl(route);
         this.initialRoute = normalized;
         this.navigationHistory = [normalized];
@@ -48,8 +60,11 @@ class MiniWindow {
         // small delay so the click that opened the page doesn't instantly
         // close it. Registered in capture phase so we see the event before
         // any child handler can stop it.
-        setTimeout(() => {
-            document.addEventListener('click', this._outsideHandler, true);
+        this.outsideHandlerTimer = setTimeout(() => {
+            this.outsideHandlerTimer = null;
+            if (this.isVisible()) {
+                document.addEventListener('click', this._outsideHandler, true);
+            }
         }, this.motionDuration(100));
 
     }
@@ -118,6 +133,10 @@ class MiniWindow {
     // ---------------------- show / hide ----------------------
 
     hide(options = {}) {
+        if (this.outsideHandlerTimer !== null) {
+            clearTimeout(this.outsideHandlerTimer);
+            this.outsideHandlerTimer = null;
+        }
         document.removeEventListener('click', this._outsideHandler, true);
         document.body.classList.remove('page-open');
         this.container.classList.remove('open');
@@ -132,7 +151,10 @@ class MiniWindow {
 
         // Wait for the slide-out animation to finish, then tear down.
         const EXIT_MS = this.motionDuration(420);
-        setTimeout(() => {
+        if (this.teardownTimer !== null) clearTimeout(this.teardownTimer);
+        this.teardownTimer = setTimeout(() => {
+            this.teardownTimer = null;
+            if (this.isVisible()) return;
             this.container.classList.remove('closing');
             this.page.setAttribute('src', '');
             this.navigationHistory = [];

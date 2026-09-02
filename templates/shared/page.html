@@ -16,5 +16,12 @@
     {% endblock %}
     <script src="/static/scripts/mini-pages/backToTop.js?v=2" type="text/javascript"></script>
     <script src="/static/scripts/mini-pages/handleRoutes.js?v=2" type="text/javascript"></script>
+    <script>
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.querySelectorAll('model-viewer[auto-rotate]').forEach((model) => {
+          model.removeAttribute('auto-rotate');
+        });
+      }
+    </script>
   </body>
 </html>

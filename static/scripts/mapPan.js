@@ -42,6 +42,13 @@
 
     function smoothTo(targetY, duration = 420, onDone) {
         cancelMomentum();
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            STATE.offsetY = targetY;
+            applyTransform();
+            STATE.el.classList.remove('panning');
+            if (onDone) onDone();
+            return;
+        }
         const startY = STATE.offsetY;
         const delta = targetY - startY;
         const startTime = performance.now();

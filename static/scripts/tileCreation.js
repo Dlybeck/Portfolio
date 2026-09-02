@@ -439,7 +439,9 @@ window.updateVisibility = function(centerTitle) {
                 const t = setTimeout(() => {
                     tile.classList.remove('cover-leaving-up', 'cover-leaving-down');
                     window._coverLeaveTimers.delete(tileTitle);
-                }, 540); // slightly longer than the 0.5s CSS animation
+                }, window.matchMedia('(prefers-reduced-motion: reduce)').matches
+                    ? 0
+                    : 540); // slightly longer than the 0.5s CSS animation
                 window._coverLeaveTimers.set(tileTitle, t);
             }
         }

@@ -249,8 +249,10 @@ def test_escape_moves_one_level_toward_home(
     document = page.frame_locator(".mini-window")
     document.locator("a", has_text="ScribbleScan").first.click()
     assert page.url == f"{origin}/projects/websites/scribblescan"
+    assert document.locator("#location").inner_text() == "ScribbleScan"
     document.locator("body").press("Escape")
     assert page.url == f"{origin}/projects/programs"
+    assert document.locator("#location").inner_text() == "Programs"
 
 
 def test_primary_controls_are_semantic_named_and_visibly_focusable(

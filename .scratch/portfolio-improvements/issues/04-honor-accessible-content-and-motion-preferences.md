@@ -1,7 +1,7 @@
 ---
 id: "04"
 title: Honor accessible content and motion preferences
-status: ready-for-agent
+status: resolved
 phase: 1
 blocked_by:
   - "03"
@@ -35,4 +35,3 @@ Classify media by purpose before assigning alternatives, then introduce a small 
 - Reduced-motion preference removes or substantially shortens disorienting transitions without hiding content or breaking navigation.
 - Default-preference visual comparison shows no unintended motion or styling regression.
 - Keyboard, pointer, and touch interactions continue to pass after the accessibility changes.
-

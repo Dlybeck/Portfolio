@@ -26,6 +26,12 @@ class MiniWindow {
         this.setEvents();
     }
 
+    motionDuration(defaultDuration) {
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+            ? 0
+            : defaultDuration;
+    }
+
     // ---------------------- open / close ----------------------
 
     open(route, options = {}) {
@@ -49,7 +55,7 @@ class MiniWindow {
         // any child handler can stop it.
         setTimeout(() => {
             document.addEventListener('click', this._outsideHandler, true);
-        }, 100);
+        }, this.motionDuration(100));
 
         this.updateCloseButtonLabel();
     }
@@ -130,7 +136,7 @@ class MiniWindow {
         }
 
         // Wait for the slide-out animation to finish, then tear down.
-        const EXIT_MS = 420;
+        const EXIT_MS = this.motionDuration(420);
         setTimeout(() => {
             this.container.classList.remove('closing');
             this.page.setAttribute('src', '');

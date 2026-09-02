@@ -68,7 +68,7 @@ window.tileInfo = {
         `
         Check out some of my favorite video games!
         <br><br>
-        I'll race you in Mariokart Wii
+        I'll race you in Mario Kart Wii
         `,
         `/hobbies/gaming`
     ],
@@ -120,7 +120,7 @@ window.tileInfo = {
     "Digital Planner": [
         [1, -3],
         `
-        A calander and to-do list mashed into one
+        A calendar and to-do list mashed into one
         <br><br>
         Made in partnership with Svetlana and Aleksandra Solodilov, Matthew Zou and Sumneet Brar
         `,

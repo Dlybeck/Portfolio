@@ -1,7 +1,7 @@
 ---
 id: "01"
 title: Restore trustworthy Historical Work
-status: ready-for-agent
+status: resolved
 phase: 1
 blocked_by: []
 ---
@@ -35,4 +35,3 @@ Inventory all locally referenced assets and malformed document structure first. 
 - A repeatable asset/reference and document-integrity check passes.
 - Visible links in the affected material have been exercised.
 - A manual desktop and phone review finds no unintended change in voice, layout, or historical meaning.
-

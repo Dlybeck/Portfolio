@@ -1,3 +1,5 @@
+import math
+
 from fastapi.testclient import TestClient
 import pytest
 from playwright.sync_api import Page, expect
@@ -352,6 +354,62 @@ def test_cloudscape_renders_deterministic_density_underside_and_wisp_axes(
     assert len({axis["density"] for axis in rendered_axes}) >= 3
     assert len({axis["underside"] for axis in rendered_axes}) >= 3
     assert len({axis["wisp"] for axis in rendered_axes}) >= 4
+
+
+@pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])
+def test_each_world_reaches_eighty_percent_of_canonical_variant_depth(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+    theme: str,
+) -> None:
+    """Rendered worlds must rival the six-axis canonical paper grammar."""
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(f"{origin}/?theme={theme}", wait_until="domcontentloaded")
+
+    variants = page.locator('[data-theme-size="base"]').evaluate_all(
+        """nodes => nodes.map((node) => Object.fromEntries(
+            [...node.attributes]
+                .filter((attribute) => attribute.name.startsWith('data-variant-'))
+                .map((attribute) => [
+                    attribute.name.replace('data-variant-', ''),
+                    attribute.value,
+                ])
+        ))"""
+    )
+    canonical_axis_count = 6
+    minimum_axis_count = math.ceil(canonical_axis_count * 0.8)
+    minimum_combination_count = math.ceil(len(variants) * 0.8)
+
+    assert len(variants) == 17
+    assert all(len(variant) >= minimum_axis_count for variant in variants)
+    factor_names = set.intersection(*(set(variant) for variant in variants))
+    assert len(factor_names) >= minimum_axis_count
+    for factor_name in factor_names:
+        assert len({variant[factor_name] for variant in variants}) >= 2
+    assert len(
+        {tuple(sorted(variant.items())) for variant in variants}
+    ) >= minimum_combination_count
+
+    for title in page.evaluate("Object.keys(window.tileInfo)"):
+        tile = page.locator(f'.tile-container[data-title="{title}"]')
+        base_factors = tile.locator('[data-theme-size="base"]').evaluate(
+            """node => Object.fromEntries(
+                [...node.attributes]
+                    .filter((attribute) => attribute.name.startsWith('data-variant-'))
+                    .map((attribute) => [attribute.name, attribute.value])
+            )"""
+        )
+        expanded_factors = tile.locator(
+            '[data-theme-size="expanded"]'
+        ).evaluate(
+            """node => Object.fromEntries(
+                [...node.attributes]
+                    .filter((attribute) => attribute.name.startsWith('data-variant-'))
+                    .map((attribute) => [attribute.name, attribute.value])
+            )"""
+        )
+        assert base_factors == expanded_factors
 
 
 @pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])

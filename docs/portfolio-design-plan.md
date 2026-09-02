@@ -81,6 +81,15 @@ The bundled resume is stale and predates the Denali role. Replacing it is worthw
 - Unknown or unavailable themes fall back to the canonical current theme.
 - Group alternate Board styling and any shared document-restyling prototype inside the same theme work.
 - Preserve the current theme unchanged as the comparison baseline.
+- Treat the canonical paper system as a six-axis variation grammar: material,
+  form, attachment, ink, orientation, and cover treatment. An alternate theme
+  reaches the 80% variation floor only when at least five independent visible
+  axes vary across the rendered Board; a seed or hidden identifier is not a
+  visible axis.
+- Preserve combination depth as well as axis count. At least 14 of the 17
+  Board locations must have a distinct rendered factor combination in each
+  alternate theme, and the same section must retain that combination between
+  its base and expanded presentation.
 - Prototype a replacement Document Grammar against at least two dissimilar content types before considering adoption.
 - Do not publicly randomize themes or ship an alternate theme until it independently meets the full acceptance gate and receives owner approval.
 

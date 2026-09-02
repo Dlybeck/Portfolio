@@ -35,7 +35,12 @@ def test_final_v3_snapshot_uses_a_distinct_public_document() -> None:
     filename, commit, open_route = SNAPSHOTS[-1]
 
     assert (filename, commit) == ("3.webp", "0eacd53")
-    assert open_route not in {None, SNAPSHOTS[-2][2], "/jobs"}
+    assert open_route not in {
+        None,
+        SNAPSHOTS[-2][2],
+        "/hobbies/tennis",
+        "/jobs",
+    }
 
 
 def document_response(client: TestClient, route: str):

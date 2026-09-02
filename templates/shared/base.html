@@ -29,6 +29,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Gochi+Hand&family=Kalam:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/base.css?v=27">
     <link rel="stylesheet" href="/static/css/motion.css?v=1">
+    {% if theme_prototype_enabled %}
+    <script src="/static/scripts/prototypes/themeWorlds.js?v=6"></script>
+    {% endif %}
   </head>
   <body>
     {% include "components/navbar.html" %}

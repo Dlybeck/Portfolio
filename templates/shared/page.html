@@ -8,6 +8,9 @@
     {% include "components/discovery_metadata.html" %}
     <link rel="stylesheet" href="/static/css/page.css">
     <link rel="stylesheet" href="/static/css/motion.css?v=1">
+    {% if theme_prototype_enabled %}
+    <link rel="stylesheet" href="/static/css/prototypes/theme-world-documents.css?v=3">
+    {% endif %}
   </head>
   <body>
     {% block content %}

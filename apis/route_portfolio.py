@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
 
+from core.config import settings
 from core.discovery import PERSON_SCHEMA, metadata_for
 from core.portfolio import DOCUMENTS, PortfolioDocument, document_for_route, portfolio_state
 
@@ -25,6 +26,7 @@ def render_board(request: Request, document: PortfolioDocument | None = None):
             "document": document,
             "metadata": metadata_for(document),
             "person_schema": PERSON_SCHEMA,
+            "theme_prototype_enabled": settings.THEME_PROTOTYPE_ENABLED,
         },
     )
 
@@ -45,6 +47,7 @@ async def embedded_document(request: Request, document_path: str):
         {
             "metadata": metadata_for(document),
             "internal_document": True,
+            "theme_prototype_enabled": settings.THEME_PROTOTYPE_ENABLED,
         },
     )
 

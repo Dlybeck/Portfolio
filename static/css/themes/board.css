@@ -314,10 +314,9 @@ html[data-board-theme="islands"] .theme-ambient::after { right: 9%; bottom: 23%;
 
 @media (max-width: 600px) {
   .navbar { max-width: calc(100vw - 20px); left: 10px; top: 10px; }
-  .navbar-logo { display: none; }
   .navbar-title { max-width: 22vw; }
   .theme-selector span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  .theme-selector select { max-width: 46vw; }
+  .theme-selector select { max-width: 42vw; }
   html:not([data-board-theme="canonical"]) .tile-expanded .expanded-text {
     font-size: 0.8rem;
     line-height: 1.18;

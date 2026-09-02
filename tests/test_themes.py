@@ -310,6 +310,28 @@ def test_development_selector_has_an_explicit_keyboard_shortcut(
     expect(page).to_have_url(f"{origin}/?theme=clouds")
 
 
+@pytest.mark.parametrize(
+    "theme", ["canonical", "lily", "planets", "clouds", "islands"]
+)
+def test_phone_theme_laboratory_keeps_the_personal_mark_visible(
+    mobile_browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+    theme: str,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = mobile_browser_page
+    page.goto(f"{origin}/?theme={theme}", wait_until="domcontentloaded")
+
+    logo = page.locator(".navbar-logo")
+    expect(logo).to_be_visible()
+    assert logo.evaluate(
+        """node => {
+            const rect = node.getBoundingClientRect();
+            return rect.left >= 0 && rect.right <= innerWidth && rect.height > 0;
+        }"""
+    )
+
+
 def test_cloudscape_renders_deterministic_density_underside_and_wisp_axes(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,

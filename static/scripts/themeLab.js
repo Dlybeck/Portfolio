@@ -9,8 +9,6 @@
     "use strict";
 
     const SVG_NS = "http://www.w3.org/2000/svg";
-    const THEME_KEYS = ["canonical", "lily", "planets", "clouds", "islands"];
-    const NON_CANONICAL = new Set(THEME_KEYS.slice(1));
 
     const palettes = {
         lily: [
@@ -278,6 +276,8 @@
             arrows: { color: "#bce8e2", strokeWidth: 3.5, opacity: 0.72, headStyle: "none", wobble: 0.11 },
         },
     };
+    const THEME_KEYS = Object.freeze(Object.keys(themeAdapters));
+    const NON_CANONICAL = new Set(THEME_KEYS.slice(1));
 
     function styleRelationships(theme) {
         if (!window.chalkArrowsConfig) return;

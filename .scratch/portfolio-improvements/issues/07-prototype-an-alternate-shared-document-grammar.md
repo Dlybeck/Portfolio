@@ -35,4 +35,3 @@ Choose two pages whose content pressures are meaningfully different, then build 
 - Content and interaction regression checks pass in both canonical and experimental presentations.
 - Side-by-side review artifacts and a concise recommendation are ready for owner evaluation.
 - No canonical styling has been replaced without explicit approval.
-

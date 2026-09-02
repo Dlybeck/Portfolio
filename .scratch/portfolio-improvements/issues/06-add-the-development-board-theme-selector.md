@@ -43,4 +43,3 @@ Introduce a declarative theme registry and a single environment-aware selector s
 - A deployment build contains no usable development selector.
 - The canonical theme passes visual comparison against the Phase 1 baseline.
 - Navigation, accessibility, direct destinations, and responsive behavior pass under both registered themes.
-

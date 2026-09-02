@@ -44,4 +44,3 @@ Run the automated checks contributed by each preceding ticket, then exercise one
 - The canonical experience has no unresolved regression against the approved interaction and visual baseline.
 - The experimental theme has a comparison result but remains non-production.
 - The owner receives one reproducible acceptance receipt and a clear statement that no deployment occurred.
-

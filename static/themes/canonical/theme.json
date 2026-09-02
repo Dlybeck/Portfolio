@@ -1,0 +1,11 @@
+{
+  "$schema": "portfolio-theme-pack/v1",
+  "id": "canonical",
+  "label": "Original",
+  "version": 1,
+  "selection": {
+    "enabled": true,
+    "randomEligible": true,
+    "randomWeight": 1
+  }
+}

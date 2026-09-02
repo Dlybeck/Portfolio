@@ -36,6 +36,18 @@ _Avoid_: Subpage, menu item
 A coherent visual treatment of the board and its opened documents. A theme may change styling but never the navigation structure or general interaction experience; the current theme remains the canonical default.
 _Avoid_: Random skin, replacement theme
 
+**Theme Pack**:
+A versioned, declarative bundle of visual tokens and sanitized assets that completely describes one Board Theme without executable theme-specific code.
+_Avoid_: Theme stylesheet, renderer plugin, skin
+
+**Theme Instance**:
+One Theme Pack combined with a deterministic seed and applied to a viewing session. The pack defines the world; the seed selects its variations.
+_Avoid_: Theme, random skin
+
+**Theme Engine**:
+The isolated system that discovers, validates, selects, and applies Theme Packs while preserving the Interaction Structure.
+_Avoid_: Theme switcher, theme script
+
 **Interaction Structure**:
 The invariant parent-child navigation, Neighborhood limits, document flow, and responsive behavior shared by every Board Theme.
 _Avoid_: Theme, visual treatment

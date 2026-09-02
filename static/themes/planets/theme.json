@@ -1,0 +1,11 @@
+{
+  "$schema": "portfolio-theme-pack/v1",
+  "id": "planets",
+  "label": "Planets / Constellation",
+  "version": 1,
+  "selection": {
+    "enabled": true,
+    "randomEligible": true,
+    "randomWeight": 1
+  }
+}

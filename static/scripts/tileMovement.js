@@ -85,6 +85,7 @@ window.returnToParent = function() {
 
     window.setBoardUrl(parent);
     window.centerOnTile(parent);
+    window.focusCenteredTile(parent);
     return true;
 };
 
@@ -136,6 +137,7 @@ window.returnHome = function() {
 
     updateVisibility('Home');
     window.checkHomeButton(document.body);
+    window.focusCenteredTile('Home');
 };
 
 /**

@@ -2,7 +2,7 @@ import json
 import re
 
 from fastapi.testclient import TestClient
-from playwright.sync_api import Page
+from playwright.sync_api import Page, expect
 import pytest
 
 
@@ -151,11 +151,11 @@ def test_document_controls_preserve_board_aware_destinations(
     document.locator("a", has_text="ScribbleScan").first.click()
     assert page.url == f"{origin}/projects/websites/scribblescan"
     assert page.locator('.tile-container[data-title="ScribbleScan"].expanded').count() == 1
-    assert document.locator("#location").inner_text() == "ScribbleScan"
+    expect(document.locator("#location")).to_have_text("ScribbleScan")
 
     page.locator(".close-button").click()
     assert page.url == f"{origin}/projects/programs"
-    assert document.locator("#location").inner_text() == "Programs"
+    expect(document.locator("#location")).to_have_text("Programs")
 
     page.locator(".close-button").click()
     page.locator(".mini-window-container:not(.open)").wait_for()
@@ -256,29 +256,37 @@ def test_escape_moves_one_level_toward_home(
     page, origin = browser_page
 
     page.goto(f"{origin}/#Gaming", wait_until="domcontentloaded")
+    page.get_by_role("button", name="Go to Hobbies").focus()
     page.keyboard.press("Escape")
     assert page.url == f"{origin}/#Hobbies"
     assert page.locator('.tile-container[data-title="Hobbies"].expanded').count() == 1
+    assert focused_control_name(page) == "Hobbies"
 
     page.keyboard.press("Escape")
     assert page.url == f"{origin}/"
+    assert focused_control_name(page) == "Home"
     page.keyboard.press("Escape")
     assert page.url == f"{origin}/"
+    assert focused_control_name(page) == "Home"
 
     page.goto(f"{origin}/hobbies/gaming", wait_until="domcontentloaded")
     page.locator(".mini-window-container.open").wait_for()
     page.keyboard.press("Escape")
     assert page.url == f"{origin}/#Gaming"
+    assert focused_control_name(page) == "Open Gaming"
 
     page.goto(f"{origin}/#Programs", wait_until="domcontentloaded")
     page.locator('.tile-container[data-title="Programs"] .expanded-open').click()
     document = page.frame_locator(".mini-window")
-    document.locator("a", has_text="ScribbleScan").first.click()
+    assert document.locator("#location").inner_text() == "Programs"
+    document.locator("a", has_text="ScribbleScan").first.evaluate(
+        "element => element.click()"
+    )
     assert page.url == f"{origin}/projects/websites/scribblescan"
-    assert document.locator("#location").inner_text() == "ScribbleScan"
+    expect(document.locator("#location")).to_have_text("ScribbleScan")
     document.locator("body").press("Escape")
     assert page.url == f"{origin}/projects/programs"
-    assert document.locator("#location").inner_text() == "Programs"
+    expect(document.locator("#location")).to_have_text("Programs")
 
 
 def test_primary_controls_are_semantic_named_and_visibly_focusable(

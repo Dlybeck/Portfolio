@@ -133,6 +133,9 @@ class MiniWindow {
         if (options.syncUrl !== false) {
             window.setBoardUrl(window.currentTileTitle || 'Home');
         }
+        if (window.focusCenteredTile) {
+            window.focusCenteredTile(window.currentTileTitle || 'Home');
+        }
 
         // Wait for the slide-out animation to finish, then tear down.
         const EXIT_MS = this.motionDuration(420);

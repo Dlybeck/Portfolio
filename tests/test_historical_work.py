@@ -2,6 +2,8 @@ import re
 
 from fastapi.testclient import TestClient
 
+from scripts.recover_v3_images import SNAPSHOTS
+
 
 HISTORICAL_ROUTES = (
     "/projects/websites/this_website/v1",
@@ -25,6 +27,15 @@ DOCUMENT_ROUTES = (
     "/projects/websites/this_website",
     *HISTORICAL_ROUTES,
 )
+
+
+def test_final_v3_snapshot_captures_the_site_history_document() -> None:
+    """The final retrospective image must show v3, not an unpainted PDF embed."""
+
+    filename, commit, open_route = SNAPSHOTS[-1]
+
+    assert (filename, commit) == ("3.webp", "0eacd53")
+    assert open_route == "/projects/websites/this_website"
 
 
 def document_response(client: TestClient, route: str):

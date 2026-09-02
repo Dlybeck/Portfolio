@@ -30,8 +30,9 @@ SNAPSHOTS = (
     ("1.webp", "31e2ba3", None),
     # Side-sliding paper viewer after the April 23 interaction polish.
     ("2.webp", "4fd2f2c", "/projects/websites/this_website"),
-    # Public-only site immediately after the April 25 /dev removal.
-    ("3.webp", "0eacd53", "/jobs"),
+    # Public-only site immediately after the April 25 /dev removal, with the
+    # larger final paper viewer visible on the site's own history document.
+    ("3.webp", "0eacd53", "/projects/websites/this_website"),
 )
 
 

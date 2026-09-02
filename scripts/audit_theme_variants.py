@@ -27,6 +27,170 @@ CANONICAL_AXIS_COUNT = 6
 MINIMUM_AXIS_COUNT = math.ceil(CANONICAL_AXIS_COUNT * 0.8)
 
 
+def audit_canonical(page, origin: str) -> dict[str, int]:
+    """Measure the existing paper Board without coupling it to theme metadata."""
+    page.goto(f"{origin}/?theme=canonical", wait_until="domcontentloaded")
+    page.locator('.tile-container[data-title="Home"].expanded').wait_for()
+    variants = page.locator(".tile-container").evaluate_all(
+        """tiles => tiles.map((tile) => {
+            const classes = [...tile.classList];
+            const expandedClasses = [...tile.querySelector('.tile-expanded').classList];
+            const material = classes.find((name) =>
+                /^sticky-(yellow|pink|blue|green|orange)$/.test(name)
+                || /^scrap-(ruled|graph|plain|kraft|index|legal|dotgrid|manila|receipt|napkin)$/.test(name)
+            );
+            const form = classes.find((name) =>
+                name.startsWith('sticky-fold-') || name.startsWith('shape-')
+            );
+            const cover = expandedClasses.filter((name) =>
+                /^sticky-(yellow|pink|blue|green|orange)$/.test(name)
+                || /^scrap-(ruled|graph|plain|kraft|index|legal|dotgrid|manila|receipt|napkin)$/.test(name)
+                || name.startsWith('shape-')
+            ).sort().join('+');
+            return {
+                material,
+                form,
+                attachment: tile.classList.contains('sticky') ? 'self-adhesive' : 'tape',
+                ink: tile.style.getPropertyValue('--ink-color'),
+                orientation: tile.style.getPropertyValue('--rot'),
+                cover,
+            };
+        })"""
+    )
+    signatures = {tuple(sorted(variant.items())) for variant in variants}
+    return {
+        "locations": len(variants),
+        "distinct_combinations": len(signatures),
+    }
+
+
+def audit_world(page, origin: str, theme: str) -> dict[str, object]:
+    """Prove declared factors have visible SVG evidence and stable expansion."""
+    page.goto(f"{origin}/?theme={theme}", wait_until="domcontentloaded")
+    page.locator('.tile-container[data-title="Home"].expanded').wait_for()
+    variants = page.locator('[data-theme-size="base"]').evaluate_all(
+        r"""nodes => nodes.map((node) => {
+            const factors = Object.fromEntries(
+                [...node.attributes]
+                    .filter((attribute) => attribute.name.startsWith('data-variant-'))
+                    .map((attribute) => [
+                        attribute.name.replace('data-variant-', ''),
+                        attribute.value,
+                    ])
+            );
+            const visible = Object.fromEntries(Object.entries(factors).map(
+                ([factorName, expectedValue]) => {
+                    const selector = `[data-visual-axis~="${factorName}"]`;
+                    const carrier = node.matches(selector) ? node : node.querySelector(selector);
+                    if (!carrier || carrier.dataset.visualValue !== expectedValue) {
+                        return [factorName, null];
+                    }
+                    const clone = carrier.cloneNode(true);
+                    if (carrier.dataset.visualScope === 'self') clone.replaceChildren();
+                    [clone, ...clone.querySelectorAll('*')].forEach((element) => {
+                        [...element.attributes]
+                            .filter((attribute) => attribute.name.startsWith('data-'))
+                            .forEach((attribute) => element.removeAttribute(attribute.name));
+                    });
+                    let fingerprint = clone.outerHTML;
+                    if (factorName !== 'palette') {
+                        fingerprint = fingerprint
+                            .replace(/#[0-9a-f]{3,8}/gi, '#color')
+                            .replace(/rgba?\([^)]*\)/gi, 'rgb(color)');
+                    }
+                    return [factorName, {
+                        value: expectedValue,
+                        fingerprint,
+                    }];
+                }
+            ));
+            return {
+                identity: node.dataset.themeIdentity,
+                factors,
+                visible,
+            };
+        })"""
+    )
+    expanded = page.locator('[data-theme-size="expanded"]').evaluate_all(
+        """nodes => Object.fromEntries(nodes.map((node) => [
+            node.dataset.themeIdentity,
+            Object.fromEntries(
+                [...node.attributes]
+                    .filter((attribute) => attribute.name.startsWith('data-variant-'))
+                    .map((attribute) => {
+                        const name = attribute.name.replace('data-variant-', '');
+                        const selector = `[data-visual-axis~="${name}"]`;
+                        const carrier = node.matches(selector) ? node : node.querySelector(selector);
+                        return [name, carrier?.dataset.visualValue ?? null];
+                    })
+            ),
+        ]))"""
+    )
+    factor_names = set.intersection(
+        *(set(variant["factors"]) for variant in variants)
+    )
+    factor_values = {
+        factor: len({variant["factors"][factor] for variant in variants})
+        for factor in sorted(factor_names)
+    }
+    visible_factor_values = {
+        factor: len(
+            {
+                variant["visible"][factor]["fingerprint"]
+                for variant in variants
+                if variant["visible"][factor]
+            }
+        )
+        for factor in sorted(factor_names)
+    }
+    visible_evidence_complete = all(
+        all(variant["visible"][factor] for factor in factor_names)
+        for variant in variants
+    )
+    visible_signatures = {
+        tuple(
+            sorted(
+                (
+                    factor,
+                    variant["visible"][factor]["fingerprint"]
+                    if variant["visible"][factor]
+                    else None,
+                )
+                for factor in factor_names
+            )
+        )
+        for variant in variants
+    }
+    continuity = all(
+        variant["identity"] in expanded
+        and all(
+            expanded[variant["identity"]].get(factor) == value
+            for factor, value in variant["factors"].items()
+        )
+        for variant in variants
+    )
+    minimum_combinations = math.ceil(len(variants) * 0.8)
+    passed = (
+        len(factor_names) >= MINIMUM_AXIS_COUNT
+        and visible_evidence_complete
+        and all(count >= 2 for count in factor_values.values())
+        and all(count >= 2 for count in visible_factor_values.values())
+        and len(visible_signatures) >= minimum_combinations
+        and continuity
+    )
+    return {
+        "locations": len(variants),
+        "axis_count": len(factor_names),
+        "factor_values": factor_values,
+        "visible_factor_values": visible_factor_values,
+        "visible_evidence_complete": visible_evidence_complete,
+        "visible_distinct_combinations": len(visible_signatures),
+        "minimum_distinct_combinations": minimum_combinations,
+        "base_expanded_continuity": continuity,
+        "passed": passed,
+    }
+
+
 def available_port() -> int:
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
@@ -65,78 +229,15 @@ def main() -> None:
             )
             context = browser.new_context(viewport={"width": 1440, "height": 900})
             page = context.new_page()
-            page.goto(f"{origin}/?theme=canonical", wait_until="domcontentloaded")
-            page.locator('.tile-container[data-title="Home"].expanded').wait_for()
-            canonical_variants = page.locator(".tile-container").evaluate_all(
-                """tiles => tiles.map((tile) => {
-                    const classes = [...tile.classList];
-                    const expandedClasses = [...tile.querySelector('.tile-expanded').classList];
-                    const material = classes.find((name) =>
-                        /^sticky-(yellow|pink|blue|green|orange)$/.test(name)
-                        || /^scrap-(ruled|graph|plain|kraft|index|legal|dotgrid|manila|receipt|napkin)$/.test(name)
-                    );
-                    const form = classes.find((name) =>
-                        name.startsWith('sticky-fold-') || name.startsWith('shape-')
-                    );
-                    const cover = expandedClasses.filter((name) =>
-                        /^sticky-(yellow|pink|blue|green|orange)$/.test(name)
-                        || /^scrap-(ruled|graph|plain|kraft|index|legal|dotgrid|manila|receipt|napkin)$/.test(name)
-                        || name.startsWith('shape-')
-                    ).sort().join('+');
-                    return {
-                        material,
-                        form,
-                        attachment: tile.classList.contains('sticky') ? 'self-adhesive' : 'tape',
-                        ink: tile.style.getPropertyValue('--ink-color'),
-                        orientation: tile.style.getPropertyValue('--rot'),
-                        cover,
-                    };
-                })"""
+            report["canonical"] = audit_canonical(page, origin)
+            minimum_combinations = math.ceil(
+                report["canonical"]["locations"] * 0.8
             )
-            canonical_signatures = {
-                tuple(sorted(variant.items())) for variant in canonical_variants
-            }
-            minimum_combinations = math.ceil(len(canonical_variants) * 0.8)
-            report["canonical"] = {
-                "locations": len(canonical_variants),
-                "distinct_combinations": len(canonical_signatures),
-            }
             report["minimum_distinct_combinations"] = minimum_combinations
 
-            worlds: dict[str, object] = {}
-            for theme in THEMES:
-                page.goto(f"{origin}/?theme={theme}", wait_until="domcontentloaded")
-                page.locator('.tile-container[data-title="Home"].expanded').wait_for()
-                variants = page.locator('[data-theme-size="base"]').evaluate_all(
-                    """nodes => nodes.map((node) => Object.fromEntries(
-                        [...node.attributes]
-                            .filter((attribute) => attribute.name.startsWith('data-variant-'))
-                            .map((attribute) => [
-                                attribute.name.replace('data-variant-', ''),
-                                attribute.value,
-                            ])
-                    ))"""
-                )
-                factor_names = set.intersection(*(set(variant) for variant in variants))
-                factor_values = {
-                    factor: len({variant[factor] for variant in variants})
-                    for factor in sorted(factor_names)
-                }
-                signatures = {
-                    tuple(sorted(variant.items())) for variant in variants
-                }
-                passed = (
-                    len(factor_names) >= MINIMUM_AXIS_COUNT
-                    and len(signatures) >= minimum_combinations
-                    and all(count >= 2 for count in factor_values.values())
-                )
-                worlds[theme] = {
-                    "axis_count": len(factor_names),
-                    "factor_values": factor_values,
-                    "distinct_combinations": len(signatures),
-                    "passed": passed,
-                }
-            report["worlds"] = worlds
+            report["worlds"] = {
+                theme: audit_world(page, origin, theme) for theme in THEMES
+            }
             context.close()
             browser.close()
     finally:

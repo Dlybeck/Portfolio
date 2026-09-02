@@ -1,10 +1,12 @@
-import math
-
 from fastapi.testclient import TestClient
 import pytest
 from playwright.sync_api import Page, expect
 
 from core.config import settings
+from scripts.audit_theme_variants import (
+    MINIMUM_AXIS_COUNT,
+    audit_world,
+)
 
 
 def test_theme_laboratory_is_absent_and_canonical_by_default(
@@ -365,51 +367,19 @@ def test_each_world_reaches_eighty_percent_of_canonical_variant_depth(
     """Rendered worlds must rival the six-axis canonical paper grammar."""
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
     page, origin = browser_page
-    page.goto(f"{origin}/?theme={theme}", wait_until="domcontentloaded")
+    report = audit_world(page, origin, theme)
 
-    variants = page.locator('[data-theme-size="base"]').evaluate_all(
-        """nodes => nodes.map((node) => Object.fromEntries(
-            [...node.attributes]
-                .filter((attribute) => attribute.name.startsWith('data-variant-'))
-                .map((attribute) => [
-                    attribute.name.replace('data-variant-', ''),
-                    attribute.value,
-                ])
-        ))"""
+    assert report["locations"] == 17
+    assert report["axis_count"] >= MINIMUM_AXIS_COUNT
+    assert report["visible_evidence_complete"]
+    assert all(count >= 2 for count in report["factor_values"].values())
+    assert all(count >= 2 for count in report["visible_factor_values"].values())
+    assert (
+        report["visible_distinct_combinations"]
+        >= report["minimum_distinct_combinations"]
     )
-    canonical_axis_count = 6
-    minimum_axis_count = math.ceil(canonical_axis_count * 0.8)
-    minimum_combination_count = math.ceil(len(variants) * 0.8)
-
-    assert len(variants) == 17
-    assert all(len(variant) >= minimum_axis_count for variant in variants)
-    factor_names = set.intersection(*(set(variant) for variant in variants))
-    assert len(factor_names) >= minimum_axis_count
-    for factor_name in factor_names:
-        assert len({variant[factor_name] for variant in variants}) >= 2
-    assert len(
-        {tuple(sorted(variant.items())) for variant in variants}
-    ) >= minimum_combination_count
-
-    for title in page.evaluate("Object.keys(window.tileInfo)"):
-        tile = page.locator(f'.tile-container[data-title="{title}"]')
-        base_factors = tile.locator('[data-theme-size="base"]').evaluate(
-            """node => Object.fromEntries(
-                [...node.attributes]
-                    .filter((attribute) => attribute.name.startsWith('data-variant-'))
-                    .map((attribute) => [attribute.name, attribute.value])
-            )"""
-        )
-        expanded_factors = tile.locator(
-            '[data-theme-size="expanded"]'
-        ).evaluate(
-            """node => Object.fromEntries(
-                [...node.attributes]
-                    .filter((attribute) => attribute.name.startsWith('data-variant-'))
-                    .map((attribute) => [attribute.name, attribute.value])
-            )"""
-        )
-        assert base_factors == expanded_factors
+    assert report["base_expanded_continuity"]
+    assert report["passed"]
 
 
 @pytest.mark.parametrize("theme", ["lily", "planets", "clouds", "islands"])

@@ -51,6 +51,7 @@
     <script src="/static/scripts/mapPan.js?v=6"></script>
     <script src="/static/scripts/map.js?v=4"></script>
     {% if theme_lab_enabled %}
+    <script id="active-theme-pack" type="application/json">{{ active_theme_pack | tojson }}</script>
     <script src="/static/scripts/themeLab.js?v=5"></script>
     {% endif %}
     {% block scripts %}

@@ -3,6 +3,7 @@
   "id": "planets",
   "label": "Planets / Constellation",
   "version": 1,
+  "tiles": "tiles.json",
   "selection": {
     "enabled": true,
     "randomEligible": true,

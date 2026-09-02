@@ -1,0 +1,208 @@
+{
+  "assignments": {
+    "Home": {
+      "base": "assets/tiles/home-base.svg",
+      "expanded": "assets/tiles/home-expanded.svg",
+      "factors": {
+        "silhouette": 7,
+        "palette": 3,
+        "orientation": 12,
+        "shore": 5,
+        "elevation": 1,
+        "islets": 4
+      }
+    },
+    "Hobbies": {
+      "base": "assets/tiles/hobbies-base.svg",
+      "expanded": "assets/tiles/hobbies-expanded.svg",
+      "factors": {
+        "silhouette": 0,
+        "palette": 1,
+        "orientation": 6,
+        "shore": 4,
+        "elevation": 0,
+        "islets": 1
+      }
+    },
+    "Projects": {
+      "base": "assets/tiles/projects-base.svg",
+      "expanded": "assets/tiles/projects-expanded.svg",
+      "factors": {
+        "silhouette": 6,
+        "palette": 2,
+        "orientation": 15,
+        "shore": 2,
+        "elevation": 2,
+        "islets": 3
+      }
+    },
+    "Work Experience": {
+      "base": "assets/tiles/work-experience-base.svg",
+      "expanded": "assets/tiles/work-experience-expanded.svg",
+      "factors": {
+        "silhouette": 1,
+        "palette": 0,
+        "orientation": 5,
+        "shore": 5,
+        "elevation": 5,
+        "islets": 4
+      }
+    },
+    "Education": {
+      "base": "assets/tiles/education-base.svg",
+      "expanded": "assets/tiles/education-expanded.svg",
+      "factors": {
+        "silhouette": 2,
+        "palette": 3,
+        "orientation": 6,
+        "shore": 2,
+        "elevation": 2,
+        "islets": 3
+      }
+    },
+    "3D Printing": {
+      "base": "assets/tiles/3d-printing-base.svg",
+      "expanded": "assets/tiles/3d-printing-expanded.svg",
+      "factors": {
+        "silhouette": 1,
+        "palette": 2,
+        "orientation": 11,
+        "shore": 4,
+        "elevation": 2,
+        "islets": 1
+      }
+    },
+    "Gaming": {
+      "base": "assets/tiles/gaming-base.svg",
+      "expanded": "assets/tiles/gaming-expanded.svg",
+      "factors": {
+        "silhouette": 3,
+        "palette": 1,
+        "orientation": 12,
+        "shore": 5,
+        "elevation": 1,
+        "islets": 0
+      }
+    },
+    "Tennis": {
+      "base": "assets/tiles/tennis-base.svg",
+      "expanded": "assets/tiles/tennis-expanded.svg",
+      "factors": {
+        "silhouette": 2,
+        "palette": 3,
+        "orientation": 9,
+        "shore": 1,
+        "elevation": 5,
+        "islets": 2
+      }
+    },
+    "Other Models": {
+      "base": "assets/tiles/other-models-base.svg",
+      "expanded": "assets/tiles/other-models-expanded.svg",
+      "factors": {
+        "silhouette": 0,
+        "palette": 3,
+        "orientation": 11,
+        "shore": 2,
+        "elevation": 0,
+        "islets": 1
+      }
+    },
+    "Puzzles": {
+      "base": "assets/tiles/puzzles-base.svg",
+      "expanded": "assets/tiles/puzzles-expanded.svg",
+      "factors": {
+        "silhouette": 3,
+        "palette": 3,
+        "orientation": 3,
+        "shore": 1,
+        "elevation": 3,
+        "islets": 0
+      }
+    },
+    "Programs": {
+      "base": "assets/tiles/programs-base.svg",
+      "expanded": "assets/tiles/programs-expanded.svg",
+      "factors": {
+        "silhouette": 5,
+        "palette": 4,
+        "orientation": 9,
+        "shore": 3,
+        "elevation": 1,
+        "islets": 0
+      }
+    },
+    "Websites": {
+      "base": "assets/tiles/websites-base.svg",
+      "expanded": "assets/tiles/websites-expanded.svg",
+      "factors": {
+        "silhouette": 7,
+        "palette": 2,
+        "orientation": 14,
+        "shore": 2,
+        "elevation": 4,
+        "islets": 5
+      }
+    },
+    "Digital Planner": {
+      "base": "assets/tiles/digital-planner-base.svg",
+      "expanded": "assets/tiles/digital-planner-expanded.svg",
+      "factors": {
+        "silhouette": 4,
+        "palette": 0,
+        "orientation": 0,
+        "shore": 4,
+        "elevation": 0,
+        "islets": 3
+      }
+    },
+    "This website": {
+      "base": "assets/tiles/this-website-base.svg",
+      "expanded": "assets/tiles/this-website-expanded.svg",
+      "factors": {
+        "silhouette": 1,
+        "palette": 0,
+        "orientation": 10,
+        "shore": 1,
+        "elevation": 1,
+        "islets": 2
+      }
+    },
+    "ScribbleScan": {
+      "base": "assets/tiles/scribblescan-base.svg",
+      "expanded": "assets/tiles/scribblescan-expanded.svg",
+      "factors": {
+        "silhouette": 3,
+        "palette": 4,
+        "orientation": 16,
+        "shore": 5,
+        "elevation": 5,
+        "islets": 4
+      }
+    },
+    "College": {
+      "base": "assets/tiles/college-base.svg",
+      "expanded": "assets/tiles/college-expanded.svg",
+      "factors": {
+        "silhouette": 7,
+        "palette": 1,
+        "orientation": 4,
+        "shore": 1,
+        "elevation": 5,
+        "islets": 2
+      }
+    },
+    "Early Education": {
+      "base": "assets/tiles/early-education-base.svg",
+      "expanded": "assets/tiles/early-education-expanded.svg",
+      "factors": {
+        "silhouette": 5,
+        "palette": 3,
+        "orientation": 14,
+        "shore": 1,
+        "elevation": 5,
+        "islets": 2
+      }
+    }
+  }
+}

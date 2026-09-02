@@ -5,17 +5,37 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
 from core.config import settings
 from core.discovery import PERSON_SCHEMA, metadata_for
 from core.portfolio import DOCUMENTS, PortfolioDocument, document_for_route, portfolio_state
+from core.theme_packs import ThemePackRegistry
 from core.themes import theme_context
 
 
 templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))
 portfolio_router = APIRouter()
+
+
+@portfolio_router.get("/_theme-packs/{pack_id}.json", include_in_schema=False)
+async def theme_pack_payload(pack_id: str):
+    """Serve one fully validated pack to the development Theme Engine."""
+    if not settings.THEME_LAB_ENABLED:
+        raise HTTPException(status_code=404, detail="Theme Laboratory is disabled")
+    registry = ThemePackRegistry.discover()
+    pack = next(
+        (
+            candidate
+            for candidate in registry.packs
+            if candidate.id == pack_id and candidate.selection.enabled
+        ),
+        None,
+    )
+    if pack is None:
+        raise HTTPException(status_code=404, detail="Unknown or invalid Theme Pack")
+    return JSONResponse(pack.client_payload())
 
 
 def render_board(request: Request, document: PortfolioDocument | None = None):

@@ -19,6 +19,7 @@ def theme_context(
     selected = registry.resolve(request.query_params.get("theme"), enabled=enabled)
     return {
         "active_theme": selected.id,
+        "active_theme_pack": selected.client_payload(),
         "theme_lab_enabled": enabled,
         "board_themes": registry.public_catalog(),
     }

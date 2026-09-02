@@ -3,6 +3,7 @@
   "id": "lily",
   "label": "Lily Pond",
   "version": 1,
+  "tiles": "tiles.json",
   "selection": {
     "enabled": true,
     "randomEligible": true,

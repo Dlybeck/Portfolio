@@ -3,6 +3,7 @@
   "id": "clouds",
   "label": "Cloudscape",
   "version": 1,
+  "tiles": "tiles.json",
   "selection": {
     "enabled": true,
     "randomEligible": true,

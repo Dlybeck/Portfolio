@@ -3,6 +3,7 @@
   "id": "islands",
   "label": "Island Chain",
   "version": 1,
+  "tiles": "tiles.json",
   "selection": {
     "enabled": true,
     "randomEligible": true,

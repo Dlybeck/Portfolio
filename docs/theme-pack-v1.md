@@ -125,11 +125,14 @@ relationship endpoints from the invariant graph.
 
 ### Tiles
 
-Each pack provides base and expanded SVG templates containing named slots.
-Variation axes provide lists of sanitized SVG fragments placed into those
-slots. Palette and orientation are standard axes; packs add semantic axes such
-as `notch`, `vein`, `surface`, `companion`, `density`, or `shore` without engine
-changes.
+Each installed pack provides compiled base and expanded SVG assets for every
+Board location. The manifest records each asset pair's semantic factor values.
+Palette and orientation are standard axes; packs add semantic axes such as
+`notch`, `vein`, `surface`, `companion`, `density`, or `shore` without engine
+changes. Human and AI authoring tools may use templates, fragments, or another
+internal representation, but compilation happens before installation; the
+runtime Theme Engine never interprets an executable or theme-specific drawing
+language.
 
 Each SVG state exposes an invisible `data-theme-content-area` geometry for its
 HTML content. The Theme Engine maps content into that safe area and fits long
@@ -138,7 +141,7 @@ safe area remains inside the rendered silhouette at desktop and phone sizes.
 Base and expanded states keep the same Theme Instance identity and factor
 selection even when their artwork differs.
 
-SVG templates and fragments may use pack color variables but cannot contain
+Compiled SVG assets may use pack color variables but cannot contain
 scripts, remote resources, event handlers, `foreignObject`, or navigation.
 The Theme Engine namespaces IDs and rewrites local fragment references when it
 creates repeated tile instances.

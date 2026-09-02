@@ -136,8 +136,6 @@
                 identity: `${theme}-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
                 shape,
                 palette: factors.palette,
-                detail: channel(title, theme, "detail", 6),
-                accent: channel(title, theme, "accent", 5),
                 rotation: factors.orientation - 8,
                 factors,
             });
@@ -155,7 +153,6 @@
         svg.dataset.themeObject = theme;
         svg.dataset.themeIdentity = profile.identity;
         svg.dataset.themeShape = String(profile.shape);
-        svg.dataset.themeDetail = String(profile.detail);
         svg.dataset.themeSize = expanded ? "expanded" : "base";
         Object.entries(profile.factors).forEach(([name, value]) => {
             svg.setAttribute(`data-variant-${name}`, String(value));

@@ -220,22 +220,10 @@ html, body {
 .home-button:focus-visible,
 .close-button:focus-visible,
 .tile-base:focus-visible,
+.expanded-title:focus-visible,
 .expanded-open:focus-visible {
   outline: 3px solid var(--chalk-white);
   outline-offset: 5px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-delay: 0s !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    transition-delay: 0s !important;
-    scroll-behavior: auto !important;
-  }
 }
 
 .home-button.visible {

@@ -88,6 +88,17 @@ window.returnToParent = function() {
     return true;
 };
 
+window.focusCenteredTile = function(title) {
+    const escapedTitle = window.CSS.escape(title);
+    const centered = document.querySelector(
+        `.tile-container[data-title="${escapedTitle}"]`
+    );
+    if (!centered) return;
+    const target = centered.querySelector('.expanded-open')
+        || centered.querySelector('.expanded-title');
+    if (target) target.focus({ preventScroll: true });
+};
+
 /**
  * Reset all tiles to the Home layout.
  */
@@ -144,4 +155,5 @@ window.handleTileClick = function(e, container) {
     const title = container.dataset.title;
     window.setBoardUrl(title);
     centerOnTile(title);
+    window.focusCenteredTile(title);
 };

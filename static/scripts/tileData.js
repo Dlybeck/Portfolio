@@ -11,7 +11,8 @@ window.tilesData = {
     "Education": ["College", "Early Education"],
 };
 
-// Set up all variables for each tile. Position (grid based), Text for the tile, and the URL for it's content (if applicable)
+// Set up each tile's grid position and text. Public document routes come from
+// the server-owned portfolio registry exposed through window.portfolioState.
 window.tileInfo = {
     "Home": [
         [0, 0],
@@ -20,7 +21,6 @@ window.tileInfo = {
         <br><br>
         Check out the neighboring tiles and look out for "Open" buttons for more info!
         `,
-        ``
     ],
 
     //Home
@@ -31,28 +31,24 @@ window.tileInfo = {
         <br><br>
         (Coding gets its own section)
         `,
-        `/`
     ],
     "Projects": [
         [1, -1],
         `
         Personal Projects I've developed
         `,
-        `/`
     ],
     "Work Experience": [
         [1, 1],
         `
         Junior Tennis Pro --> Innovation AI Developer
         `,
-        `/jobs`
     ],
     "Education": [
         [-1, 1],
         `
         Schools I've gone to and classes I've taken
         `,
-        `/`
     ],
     
     //Hobbies
@@ -61,7 +57,6 @@ window.tileInfo = {
         `
         Here's some 3d models I've designed and printed for fun
         `,
-        `/`
     ],
     "Gaming": [
         [0, -2],
@@ -70,7 +65,6 @@ window.tileInfo = {
         <br><br>
         I'll race you in Mario Kart Wii
         `,
-        `/hobbies/gaming`
     ],
     "Tennis": [
         [-2, 0],
@@ -79,7 +73,6 @@ window.tileInfo = {
         <br><br>
         Let me know if you want to hit
         `,
-        `/hobbies/tennis`
     ],
     
     //3D printing
@@ -88,7 +81,6 @@ window.tileInfo = {
         `
         Random models I've made over the years
         `,
-        `/hobbies/3d_printing/other_models`
     ],
     "Puzzles": [
         [-3, -3],
@@ -97,7 +89,6 @@ window.tileInfo = {
         <br><br>
         I bet you can't solve them.
         `,
-        `/hobbies/3d_printing/puzzles`
     ],
     
     //Projects
@@ -106,14 +97,12 @@ window.tileInfo = {
         `
         Code from side projects, old experiments and class
         `,
-        `/projects/programs`
     ],
     "Websites": [
         [2, -2],
         `
         Web apps I've developed, and how they were made.
         `,
-        `/`
     ],
     
     //Websites
@@ -124,7 +113,6 @@ window.tileInfo = {
         <br><br>
         Made in partnership with Svetlana and Aleksandra Solodilov, Matthew Zou and Sumneet Brar
         `,
-        `/projects/websites/digital_planner`
     ],
     "This website": [
         [3, -3],
@@ -133,7 +121,6 @@ window.tileInfo = {
         <br><br>
         Check out some old versions and how it was made
         `,
-        `/projects/websites/this_website`
     ],
     "ScribbleScan": [
         [3, -1],
@@ -142,7 +129,6 @@ window.tileInfo = {
         <br><br>
         Also my capstone project!
         `,
-        `/projects/websites/scribblescan`
     ],
 
     //Education
@@ -153,14 +139,12 @@ window.tileInfo = {
         <br><br>
         CS degree, math minor, tennis team
         `,
-        `/education/college`
     ],
     "Early Education": [
         [0, 2],
         `
         The classics.
         `,
-        `/education/early_education`
     ]
 };
 
@@ -194,8 +178,8 @@ window.stableHash = function(s) {
 };
 
 /**
- * Creates maps to acces data for positions, text contents, and routes, by tile title
- * @returns {positions map, pexts map, routes map}]
+ * Creates maps for positions, text content, and server-owned routes by title.
+ * @returns {[object, object, object]}
  */
 window.calculatePositions = function() {
     const positions = {};
@@ -203,13 +187,13 @@ window.calculatePositions = function() {
     const routes = {};
     
     for (const [title, tileData] of Object.entries(window.tileInfo)) {
-        const [coordinates, text, tileRoute] = tileData;
+        const [coordinates, text] = tileData;
         positions[title] = {
             left: (coordinates[0] * window.GRID_UNITS),
             top: (coordinates[1] * window.GRID_UNITS*.92) // vertical grid spacing — sized so 1-row corners stay on-screen and 2-rows-away tiles fall off, with offsetY=50 putting centered tile near viewport center
         };
         texts[title] = text;
-        routes[title] = tileRoute;
+        routes[title] = window.portfolioState.boardRoutes[title] || '/';
     }
     return [positions, texts, routes];
 };

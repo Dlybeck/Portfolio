@@ -1,7 +1,13 @@
 const portfolioStateElement = document.getElementById('portfolio-state');
 window.portfolioState = portfolioStateElement
     ? JSON.parse(portfolioStateElement.textContent)
-    : { initialDestination: null, destinationMap: {}, documentPrefix: '/_documents' };
+    : {
+        initialDestination: null,
+        destinationMap: {},
+        documentTitles: {},
+        boardRoutes: {},
+        documentPrefix: '/_documents',
+    };
 
 window.documentUrlForRoute = function(route) {
     const prefix = window.portfolioState.documentPrefix || '/_documents';

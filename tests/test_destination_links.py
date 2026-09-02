@@ -110,6 +110,13 @@ def test_direct_destination_opens_document_at_its_board_location(
     assert page.url == f"{origin}/projects/programs"
     assert page.locator('.tile-container[data-title="Programs"].expanded').count() == 1
     assert page.frame_locator(".mini-window").locator("#location").inner_text() == "Programs"
+    assert page.locator(".mini-window").get_attribute("title") == "Programs portfolio document"
+
+    page.reload(wait_until="domcontentloaded")
+    page.locator(".mini-window-container.open").wait_for()
+    assert page.url == f"{origin}/projects/programs"
+    assert page.locator('.tile-container[data-title="Programs"].expanded').count() == 1
+    assert page.frame_locator(".mini-window").locator("#location").inner_text() == "Programs"
 
 
 def test_every_direct_destination_opens_at_the_expected_board_location(
@@ -210,6 +217,7 @@ def test_keyboard_activation_and_focus_order_follow_the_parent_child_model(
     page.keyboard.press("Enter")
     assert page.url == f"{origin}/#Tennis"
     assert page.locator('.tile-container[data-title="Tennis"].expanded').count() == 1
+    assert focused_control_name(page) == "Open Tennis"
 
     page.goto(f"{origin}/#Tennis", wait_until="domcontentloaded")
     page.reload(wait_until="domcontentloaded")
@@ -222,6 +230,24 @@ def test_keyboard_activation_and_focus_order_follow_the_parent_child_model(
     page.keyboard.press("Space")
     page.locator(".mini-window-container.open").wait_for()
     assert page.url == f"{origin}/hobbies/tennis"
+
+
+def test_keyboard_hub_activation_moves_focus_to_visible_center_title(
+    browser_page: tuple[Page, str],
+) -> None:
+    page, origin = browser_page
+    page.goto(f"{origin}/#Hobbies", wait_until="domcontentloaded")
+
+    for _ in range(3):
+        page.keyboard.press("Tab")
+    assert focused_control_name(page) == "Go to 3D Printing"
+
+    page.keyboard.press("Enter")
+    assert page.url == f"{origin}/#3D%20Printing"
+    assert focused_control_name(page) == "3D Printing"
+    assert page.locator(
+        '.tile-container[data-title="3D Printing"] .expanded-title'
+    ).evaluate("element => getComputedStyle(element).outlineStyle") != "none"
 
 
 def test_escape_moves_one_level_toward_home(
@@ -275,3 +301,21 @@ def test_primary_controls_are_semantic_named_and_visibly_focusable(
     document = page.frame_locator(".mini-window")
     document.locator("a", has_text="ScribbleScan").first.click()
     page.get_by_role("button", name="Go back to previous document").wait_for()
+    assert page.locator(".mini-window").get_attribute("title") == "ScribbleScan portfolio document"
+
+
+def test_phone_touch_navigation_preserves_the_board_experience(
+    mobile_browser_page: tuple[Page, str],
+) -> None:
+    page, origin = mobile_browser_page
+    page.goto(origin, wait_until="domcontentloaded")
+
+    page.get_by_role("button", name="Go to Hobbies").tap()
+    assert page.url == f"{origin}/#Hobbies"
+    page.get_by_role("button", name="Go to Gaming").tap()
+    assert page.url == f"{origin}/#Gaming"
+    page.get_by_role("link", name="Open Gaming").tap()
+
+    page.locator(".mini-window-container.open").wait_for()
+    assert page.url == f"{origin}/hobbies/gaming"
+    assert page.frame_locator(".mini-window").locator("#location").inner_text() == "Gaming"

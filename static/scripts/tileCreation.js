@@ -242,6 +242,7 @@ window.createTile = function(title) {
     const expTitle = document.createElement('h2');
     expTitle.className = 'expanded-title';
     expTitle.textContent = title;
+    expTitle.tabIndex = -1;
     expandedBody.appendChild(expTitle);
 
     const expText = document.createElement('p');
@@ -371,9 +372,7 @@ window._coverLeaveTimers = window._coverLeaveTimers || new Map();
 
 window.updateVisibility = function(centerTitle) {
     const connectedTiles = tilesData[centerTitle] || [];
-    const parentTitle = Object.entries(tilesData).find(([_, children]) =>
-        children.includes(centerTitle)
-    )?.[0];
+    const parentTitle = window.parentTitleFor(centerTitle);
 
     const visibleTiles = [centerTitle, ...connectedTiles];
     if (parentTitle) visibleTiles.push(parentTitle);

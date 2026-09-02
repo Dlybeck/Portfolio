@@ -38,12 +38,7 @@ class MiniWindow {
         const normalized = this.normalizeUrl(route);
         this.initialRoute = normalized;
         this.navigationHistory = [normalized];
-        window.centerOnDestination(normalized);
-        this._loadInto(window.documentUrlForRoute(normalized));
-
-        if (options.syncUrl !== false) {
-            window.setDestinationUrl(normalized);
-        }
+        this._displayRoute(normalized, options);
 
         this.container.classList.remove('closing');
         this.container.classList.add('open');
@@ -57,27 +52,31 @@ class MiniWindow {
             document.addEventListener('click', this._outsideHandler, true);
         }, this.motionDuration(100));
 
-        this.updateCloseButtonLabel();
     }
 
     navigateTo(route) {
         const normalized = this.normalizeUrl(route);
         this.navigationHistory.push(normalized);
-        window.centerOnDestination(normalized);
-        this._loadInto(window.documentUrlForRoute(normalized));
-        window.setDestinationUrl(normalized);
-        this.updateCloseButtonLabel();
+        this._displayRoute(normalized);
     }
 
     goBack() {
         if (!this.isVisible() || this.navigationHistory.length <= 1) return false;
         this.navigationHistory.pop();
         const previousUrl = this.navigationHistory[this.navigationHistory.length - 1];
-        window.centerOnDestination(previousUrl);
-        this._loadInto(window.documentUrlForRoute(previousUrl));
-        window.setDestinationUrl(previousUrl);
-        this.updateCloseButtonLabel();
+        this._displayRoute(previousUrl);
         return true;
+    }
+
+    _displayRoute(route, options = {}) {
+        window.centerOnDestination(route);
+        const routePath = new URL(route, window.location.origin).pathname;
+        const documentTitle = window.portfolioState.documentTitles[routePath]
+            || 'Portfolio';
+        this.page.setAttribute('title', `${documentTitle} portfolio document`);
+        this._loadInto(window.documentUrlForRoute(route));
+        if (options.syncUrl !== false) window.setDestinationUrl(route);
+        this.updateCloseButtonLabel();
     }
 
     _loadInto(url) {

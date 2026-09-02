@@ -106,6 +106,10 @@ def document_for_route(route: str) -> PortfolioDocument | None:
 def portfolio_state(
     initial_document: PortfolioDocument | None = None,
 ) -> dict[str, object]:
+    board_routes: dict[str, str] = {}
+    for document in DOCUMENTS:
+        board_routes.setdefault(document.board_title, document.route)
+
     return {
         "initialDestination": (
             initial_document.destination_state() if initial_document else None
@@ -113,5 +117,9 @@ def portfolio_state(
         "destinationMap": {
             document.route: document.board_title for document in DOCUMENTS
         },
+        "documentTitles": {
+            document.route: document.page_title for document in DOCUMENTS
+        },
+        "boardRoutes": board_routes,
         "documentPrefix": "/_documents",
     }

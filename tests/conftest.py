@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from contextlib import contextmanager
 import os
 import socket
 import threading
@@ -44,8 +45,8 @@ def live_server_url() -> Iterator[str]:
         thread.join(timeout=5)
 
 
-@pytest.fixture
-def browser_page(live_server_url: str) -> Iterator[tuple[Page, str]]:
+@contextmanager
+def connected_page(**context_options) -> Iterator[Page]:
     endpoint = os.environ.get("PLAYWRIGHT_WS_ENDPOINT")
     with sync_playwright() as playwright:
         browser = (
@@ -53,10 +54,26 @@ def browser_page(live_server_url: str) -> Iterator[tuple[Page, str]]:
             if endpoint
             else playwright.chromium.launch(headless=True)
         )
-        context = browser.new_context(viewport={"width": 1440, "height": 900})
+        context = browser.new_context(**context_options)
         page = context.new_page()
         try:
-            yield page, live_server_url
+            yield page
         finally:
             context.close()
             browser.close()
+
+
+@pytest.fixture
+def browser_page(live_server_url: str) -> Iterator[tuple[Page, str]]:
+    with connected_page(viewport={"width": 1440, "height": 900}) as page:
+        yield page, live_server_url
+
+
+@pytest.fixture
+def mobile_browser_page(live_server_url: str) -> Iterator[tuple[Page, str]]:
+    with connected_page(
+        viewport={"width": 390, "height": 844},
+        is_mobile=True,
+        has_touch=True,
+    ) as page:
+        yield page, live_server_url

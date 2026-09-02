@@ -29,15 +29,14 @@ To add a new tile to the interactive map:
 "New Tile Title": ["ConnectedTile1", "ConnectedTile2"]
 ```
 
-2. Still in `static/scripts/tileData.js`, add a corresponding entry to the `window.tileInfo` object with position, HTML content, and route:
+2. Still in `static/scripts/tileData.js`, add a corresponding entry to the `window.tileInfo` object with position and HTML content:
 
 ```js
 "New Tile Title": [
     [xCoordinate, yCoordinate],
     `
     Your HTML content here.
-    `,
-    `/your/route`
+    `
 ]
 ```
 
@@ -54,4 +53,7 @@ Your HTML content here.
 {% endblock %}
 ```
 
-5. Add the route to the js for the tile.
+5. For a tile that opens a document, add a `PortfolioDocument` entry to
+   `core/portfolio.py`. That registry owns the public route, internal template,
+   Board title, search title, and search description. Hub-only tiles do not
+   need a document entry.

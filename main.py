@@ -1,11 +1,7 @@
 from fastapi import FastAPI, Request
 from core.config import settings
 from fastapi.staticfiles import StaticFiles
-from apis.route_general import general_router
-from apis.route_education import education_router
-from apis.route_hobbies import hobby_router
-from apis.route_other import other_router
-from apis.route_projects import project_router
+from apis.route_portfolio import portfolio_router
 from pathlib import Path
 import logging
 
@@ -16,11 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def include_router(app):
-    app.include_router(general_router)
-    app.include_router(education_router)
-    app.include_router(hobby_router)
-    app.include_router(other_router)
-    app.include_router(project_router)
+    app.include_router(portfolio_router)
 
 
 def configure_static(app):

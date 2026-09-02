@@ -1,7 +1,7 @@
 ---
 id: "02"
 title: Open destination links inside the Board
-status: ready-for-agent
+status: resolved
 phase: 1
 blocked_by: []
 ---
@@ -35,4 +35,3 @@ Define one canonical mapping between a destination and its Board location, then 
 - Home, Open, Close, Back, and nested controls pass an interaction matrix from both Home and direct-entry states.
 - Existing desktop and phone Board navigation remains recognizable and functional.
 - Automated routing and interaction checks pass.
-

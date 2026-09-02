@@ -28,12 +28,16 @@ class MiniWindow {
 
     // ---------------------- open / close ----------------------
 
-    open(route) {
-        this.initialRoute = route;
-        this.navigationHistory = [route];
-
+    open(route, options = {}) {
         const normalized = this.normalizeUrl(route);
-        this._loadInto(normalized);
+        this.initialRoute = normalized;
+        this.navigationHistory = [normalized];
+        window.centerOnDestination(normalized);
+        this._loadInto(window.documentUrlForRoute(normalized));
+
+        if (options.syncUrl !== false) {
+            window.setDestinationUrl(normalized);
+        }
 
         this.container.classList.remove('closing');
         this.container.classList.add('open');
@@ -53,7 +57,9 @@ class MiniWindow {
     navigateTo(route) {
         const normalized = this.normalizeUrl(route);
         this.navigationHistory.push(normalized);
-        this._loadInto(normalized);
+        window.centerOnDestination(normalized);
+        this._loadInto(window.documentUrlForRoute(normalized));
+        window.setDestinationUrl(normalized);
         this.updateCloseButtonLabel();
     }
 
@@ -61,7 +67,9 @@ class MiniWindow {
         if (!this.isVisible() || this.navigationHistory.length <= 1) return false;
         this.navigationHistory.pop();
         const previousUrl = this.navigationHistory[this.navigationHistory.length - 1];
-        this._loadInto(previousUrl);
+        window.centerOnDestination(previousUrl);
+        this._loadInto(window.documentUrlForRoute(previousUrl));
+        window.setDestinationUrl(previousUrl);
         this.updateCloseButtonLabel();
         return true;
     }
@@ -105,11 +113,15 @@ class MiniWindow {
 
     // ---------------------- show / hide ----------------------
 
-    hide() {
+    hide(options = {}) {
         document.removeEventListener('click', this._outsideHandler, true);
         document.body.classList.remove('page-open');
         this.container.classList.remove('open');
         this.container.classList.add('closing');
+
+        if (options.syncUrl !== false) {
+            window.setBoardUrl(window.currentTileTitle || 'Home');
+        }
 
         // Wait for the slide-out animation to finish, then tear down.
         const EXIT_MS = 420;
@@ -168,10 +180,8 @@ class MiniWindow {
 
     normalizeUrl(url) {
         if (url.startsWith('/')) {
-            const protocol = window.location.protocol;
-            const hostname = window.location.hostname;
-            if (protocol === 'https:') return `https://${hostname}${url}`;
-            return url;
+            const parsed = new URL(url, window.location.origin);
+            return parsed.pathname + parsed.search;
         }
         if (url.startsWith('http://')) return url.replace('http://', 'https://');
         if (url.startsWith('//'))      return 'https:' + url;
@@ -210,6 +220,7 @@ class MiniWindow {
 
 document.addEventListener("DOMContentLoaded", () => {
     const miniWindow = new MiniWindow();
-    window.openPage = (route) => miniWindow.open(route);
+    window.openPage = (route, options) => miniWindow.open(route, options);
     window.navigateToPage = (route) => miniWindow.navigateTo(route);
+    window.closePage = (options) => miniWindow.hide(options);
 });

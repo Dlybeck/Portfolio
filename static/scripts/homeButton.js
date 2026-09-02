@@ -7,8 +7,10 @@ window.checkHomeButton = function () {
     const button = document.querySelector(".home-button");
     if (!button) return;
 
-    const hash = decodeURIComponent((window.location.hash || '').replace(/^#/, ''));
-    const onHome = !hash || hash === 'Home';
+    const current = window.currentTileTitle
+        || decodeURIComponent((window.location.hash || '').replace(/^#/, ''))
+        || 'Home';
+    const onHome = current === 'Home';
 
     if (onHome) {
         button.classList.remove("visible");

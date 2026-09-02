@@ -54,7 +54,7 @@ def visible_external_links() -> list[str]:
     collector = AnchorCollector()
     with TestClient(app, base_url="http://testserver") as client:
         for route in DOCUMENT_ROUTES:
-            response = client.get(route)
+            response = client.get(f"/_documents{route}")
             response.raise_for_status()
             collector.feed(response.text)
     return sorted(collector.links)

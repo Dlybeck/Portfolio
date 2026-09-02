@@ -39,6 +39,7 @@ window.centerOnTile = function(title) {
         console.error(`No position found for tile: ${title}`);
         return;
     }
+    window.currentTileTitle = title;
 
     const offsetX = 50 - centerPos.left;
     const offsetY = 50 - centerPos.top;
@@ -81,7 +82,8 @@ window.returnHome = function() {
         return;
     }
 
-    window.location.hash = encodeURIComponent('Home');
+    if (window.closePage) window.closePage({ syncUrl: false });
+    window.setBoardUrl('Home');
 
     const offsetX = 50 - homeTile.left;
     const offsetY = 50 - homeTile.top;
@@ -123,6 +125,6 @@ window.handleTileClick = function(e, container) {
 
     e.preventDefault();
     const title = container.dataset.title;
-    window.location.hash = encodeURIComponent(title);
+    window.setBoardUrl(title);
     centerOnTile(title);
 };

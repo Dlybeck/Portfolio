@@ -27,11 +27,15 @@ DOCUMENT_ROUTES = (
 )
 
 
+def document_response(client: TestClient, route: str):
+    return client.get(f"/_documents{route}")
+
+
 def test_historical_work_has_no_missing_local_media(client: TestClient) -> None:
     missing: list[tuple[str, str, int]] = []
 
     for route in HISTORICAL_ROUTES:
-        page = client.get(route)
+        page = document_response(client, route)
         assert page.status_code == 200
 
         sources = re.findall(r'<(?:img|source)[^>]+src="(/static/[^"#?]+)', page.text)
@@ -46,7 +50,7 @@ def test_historical_work_has_no_missing_local_media(client: TestClient) -> None:
 def test_work_history_uses_confirmed_technology_services_end_date(
     client: TestClient,
 ) -> None:
-    page = client.get("/jobs")
+    page = document_response(client, "/jobs")
 
     assert page.status_code == 200
     assert "August 2022 - May 2025" in page.text
@@ -54,7 +58,7 @@ def test_work_history_uses_confirmed_technology_services_end_date(
 
 
 def test_other_models_document_has_its_own_title(client: TestClient) -> None:
-    page = client.get("/hobbies/3d_printing/other_models")
+    page = document_response(client, "/hobbies/3d_printing/other_models")
 
     assert page.status_code == 200
     assert "<title>Other Models | David Lybeck</title>" in page.text
@@ -65,7 +69,7 @@ def test_3d_model_documents_do_not_repeat_element_ids(client: TestClient) -> Non
         "/hobbies/3d_printing/puzzles",
         "/hobbies/3d_printing/other_models",
     ):
-        page = client.get(route)
+        page = document_response(client, route)
         assert page.status_code == 200
 
         identifiers = re.findall(r'\sid="([^"]+)"', page.text)
@@ -92,7 +96,7 @@ def test_confirmed_mechanical_copy_errors_are_absent(client: TestClient) -> None
     }
 
     for route, mistakes in checks.items():
-        page = client.get(route)
+        page = document_response(client, route)
         assert page.status_code == 200
         copy = page.text.lower()
         for mistake in mistakes:
@@ -117,17 +121,17 @@ def test_scribblescan_is_labeled_as_a_preserved_demo(client: TestClient) -> None
         "/projects/programs",
         "/projects/websites/scribblescan",
     ):
-        page = client.get(route)
+        page = document_response(client, route)
         assert page.status_code == 200
         assert "preserved demo" in page.text.lower(), route
 
-    work_history = client.get("/jobs").text.lower()
+    work_history = document_response(client, "/jobs").text.lower()
     assert "you can try it now" not in work_history
 
 
 def test_documents_avoid_known_invalid_markup(client: TestClient) -> None:
     for route in DOCUMENT_ROUTES:
-        page = client.get(route)
+        page = document_response(client, route)
         assert page.status_code == 200
 
         identifiers = re.findall(r'\sid="([^"]+)"', page.text)
@@ -146,7 +150,7 @@ def test_visible_local_document_links_resolve(client: TestClient) -> None:
     failures: list[tuple[str, str, int]] = []
 
     for route in DOCUMENT_ROUTES:
-        page = client.get(route)
+        page = document_response(client, route)
         assert page.status_code == 200
         local_links = re.findall(r'<a\b[^>]+href="(/[^"]+)', page.text)
         for link in local_links:

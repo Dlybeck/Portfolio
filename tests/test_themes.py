@@ -449,6 +449,24 @@ def test_planets_use_irregular_background_stars_and_relationships(
     assert len(set(connector_profiles)) >= 8
 
 
+def test_lily_uses_sparse_pack_owned_water_instead_of_a_tiled_ripple_pattern(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(f"{origin}/?theme=lily", wait_until="domcontentloaded")
+
+    board_background = page.locator(".map").evaluate(
+        "node => getComputedStyle(node, '::before').backgroundImage"
+    )
+    assert "repeating-radial-gradient" not in board_background
+
+    water = page.locator('[data-theme-background="lily"]')
+    expect(water).to_have_count(1)
+    expect(water.locator("pattern")).to_have_count(0)
+
+
 def test_open_document_rethemes_in_place_without_stale_world_state(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,

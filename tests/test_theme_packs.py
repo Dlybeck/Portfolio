@@ -576,7 +576,8 @@ def test_repository_background_art_is_pack_owned_and_irregular() -> None:
     assert payloads["planets"]["backgroundSvg"].count("<circle") == 520
     assert "<pattern" not in payloads["planets"]["backgroundSvg"]
     assert payloads["islands"]["backgroundSvg"].count("<path") == 46
-    assert payloads["lily"]["backgroundSvg"] is None
+    assert payloads["lily"]["backgroundSvg"].count("<ellipse") == 20
+    assert "<pattern" not in payloads["lily"]["backgroundSvg"]
 
 
 def test_visual_pack_cannot_install_only_half_of_its_visual_language(

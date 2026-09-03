@@ -13,6 +13,49 @@ from scripts.audit_theme_variants import (
 VISUAL_THEMES = ["canonical", "lily", "planets", "islands"]
 
 
+def test_original_paper_does_not_invent_sticky_stripes(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Canonical stickies must preserve the pre-pack surface treatment."""
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(f"{origin}/?theme=canonical", wait_until="domcontentloaded")
+
+    # The original sticky surface used color/shading; it did not draw a
+    # visible SVG stripe layer through every note.
+    sticky_surface_marks = page.locator(
+        '.tile-container[data-title="Home"] '
+        '[data-theme-size="expanded"] defs path'
+    )
+    expect(sticky_surface_marks).to_have_count(0)
+
+
+def test_original_paper_page_texture_is_not_doubled(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Canonical must paint one physical paper texture, not nested sheets."""
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+
+    page.goto(
+        f"{origin}/projects/programs?theme=canonical",
+        wait_until="domcontentloaded",
+    )
+    page.locator(".mini-window-container.open").wait_for()
+    outer_texture = page.locator(".mini-window-container").evaluate(
+        "node => getComputedStyle(node).backgroundImage"
+    )
+    inner_texture = page.frame_locator(".mini-window").locator("html").evaluate(
+        "node => getComputedStyle(node).backgroundImage"
+    )
+
+    # One physical sheet may own the paper grain. Painting it on both the
+    # viewer and iframe produces the doubled texture reported in review.
+    assert "none" in {outer_texture, inner_texture}
+
+
 def test_theme_laboratory_is_absent_and_canonical_by_default(
     client: TestClient,
 ) -> None:

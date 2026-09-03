@@ -307,9 +307,6 @@ def add_sticky(
                    width=200, height=height)
     node(pattern, "rect", width=200, height=height, fill=fill)
     node(pattern, "rect", width=200, height=height, fill=f"url(#{gradient_id})")
-    fibers = "".join(f"M{x} 0L{x + 2} {height}" for x in range(1, 200, 5))
-    node(pattern, "path", d=fibers, stroke="#1b1b1b",
-         **{"stroke-width": .5, "stroke-opacity": .018})
     group = visual_carriers(svg, factors, (
         "family", "palette", "surface", "shape", "fold", "tape", "detail",
     ))
@@ -332,12 +329,11 @@ def add_sticky(
             "M3 3.6Q22 2 42 4Q60 5.6 78 3.4Q88 2.4 96 4.6",
         )
         width = min(132, max(58, len(title) * 11))
-        x = (200 - width) / 2
         flip = 1 if underline_seed_2 % 2 == 0 else -1
         rotation = ((underline_seed_3 % 100) / 100 - .5) * 4
         transform = (
-            f"translate({x:.1f} 100) rotate({rotation:.2f} 50 3.5) "
-            f"translate({50 if flip < 0 else 0} 0) scale({flip * width / 100:.3f} 1)"
+            f"translate(100 104) rotate({rotation:.2f}) "
+            f"scale({flip * width / 100:.3f} 1) translate(-50 -3.5)"
         )
         node(group, "path", d=paths[underline_seed_1 % len(paths)], fill="none",
              stroke="#364b66",

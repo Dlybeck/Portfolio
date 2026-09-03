@@ -48,6 +48,15 @@ def main() -> None:
                 f"connector {name} expected original {expected!r}, got {actual!r}"
             )
 
+    board = presentation["board"]
+    document = presentation["document"]
+    if board.get("viewer-bg-image") == "none":
+        failures.append("Canonical viewer lost the original ruled outer paper")
+    if document.get("page-bg") != "#ffffff":
+        failures.append("Canonical document is no longer the original white page")
+    if document.get("page-bg-image") != "none":
+        failures.append("Canonical document duplicates the outer paper texture")
+
     for title, assignment in tiles["assignments"].items():
         transforms = assignment.get("transforms", {})
         base = transforms.get("base", {})
@@ -68,6 +77,8 @@ def main() -> None:
                 failures.append(f"{title} incorrectly tapes a self-adhesive note")
             if "<linearGradient" not in base_markup:
                 failures.append(f"{title} lost the shaded sticky-note surface")
+            if "<path" in expanded_markup:
+                failures.append(f"{title} gained an invented sticky-surface line")
         else:
             if "data-theme-detail=\"tape\"" not in base_markup:
                 failures.append(f"{title} lost its base tape")

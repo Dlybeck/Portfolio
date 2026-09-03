@@ -10,7 +10,7 @@ from scripts.audit_theme_variants import (
 )
 
 
-VISUAL_THEMES = ["canonical", "lily", "planets", "clouds", "islands"]
+VISUAL_THEMES = ["canonical", "lily", "planets", "islands"]
 
 
 def test_theme_laboratory_is_absent_and_canonical_by_default(
@@ -37,14 +37,16 @@ def test_enabled_theme_laboratory_renders_known_themes_and_fails_closed(
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
 
     lily = client.get("/?theme=lily")
+    disabled = client.get("/?theme=clouds")
     unknown = client.get("/?theme=not-a-world")
     document = client.get("/_documents/projects/programs?theme=planets")
 
     assert '<html lang="en" class="main" data-board-theme="lily" data-theme-pack-visual' in lily.text
     assert 'select data-theme-selector' in lily.text
-    assert lily.text.count('class="theme-selector-option"') == 5
+    assert lily.text.count('class="theme-selector-option"') == 4
     assert '<option class="theme-selector-option" value="canonical"' in lily.text
     assert '<option class="theme-selector-option" value="islands"' in lily.text
+    assert '<option class="theme-selector-option" value="clouds"' not in lily.text
     assert '/static/css/themes/board.css' in lily.text
     assert '/static/css/theme-structure.css' in lily.text
     assert '/static/css/base.css' not in lily.text
@@ -52,6 +54,7 @@ def test_enabled_theme_laboratory_renders_known_themes_and_fails_closed(
     assert '/static/scripts/themeEngine.js' in lily.text
 
     assert '<html lang="en" class="main" data-board-theme="canonical" data-theme-pack-visual' in unknown.text
+    assert '<html lang="en" class="main" data-board-theme="canonical" data-theme-pack-visual' in disabled.text
     assert '<html lang="en" data-board-theme="planets" data-theme-pack-visual' in document.text
     assert '/static/css/themes/documents.css' in document.text
     assert '/static/css/document-structure.css' in document.text
@@ -69,7 +72,7 @@ def test_runtime_themes_can_be_enabled_without_exposing_the_developer_selector(
 
     board = client.get("/")
 
-    assert 'data-board-theme="clouds"' in board.text
+    assert 'data-board-theme="islands"' in board.text
     assert 'data-theme-selector' not in board.text
     assert 'id="theme-pack-catalog"' in board.text
     assert '/static/scripts/themeEngine.js' in board.text
@@ -113,7 +116,6 @@ def test_theme_switch_replaces_world_and_preserves_it_in_navigation(
         ("canonical", "cover", "cover-enter"),
         ("lily", "grow", "focus-grow-enter"),
         ("planets", "grow", "focus-grow-enter"),
-        ("clouds", "settle", "focus-settle-enter"),
         ("islands", "settle", "focus-settle-enter"),
     ],
 )
@@ -145,7 +147,6 @@ def test_each_theme_selects_its_declared_focus_motion(
         ("canonical", "cover-sweep"),
         ("lily", "focus-grow-exit"),
         ("planets", "focus-grow-exit"),
-        ("clouds", "focus-settle-exit"),
         ("islands", "focus-settle-exit"),
     ],
 )
@@ -192,12 +193,12 @@ def test_unpinned_refresh_selects_a_new_world_while_a_query_pin_is_stable(
 
     page.goto(origin, wait_until="domcontentloaded")
     first = page.locator("html").get_attribute("data-board-theme")
-    assert first == "clouds"
+    assert first == "islands"
     expect(page).to_have_url(f"{origin}/")
 
     page.reload(wait_until="domcontentloaded")
     second = page.locator("html").get_attribute("data-board-theme")
-    assert second == "lily"
+    assert second == "planets"
     assert second != first
     expect(page).to_have_url(f"{origin}/")
 
@@ -302,6 +303,109 @@ def test_relationship_paths_belong_to_the_world_and_restore_canonical(
     expect(page.locator("[data-theme-ambient]")).to_have_count(1)
 
 
+def test_canonical_pack_restores_independent_object_variation(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(f"{origin}/?theme=canonical", wait_until="domcontentloaded")
+    expect(page.locator("[data-theme-content-fit]")).to_have_count(17)
+
+    profiles = page.locator(".tile-container").evaluate_all(
+        """tiles => tiles.map((tile) => ({
+            baseRotation: tile.style.getPropertyValue('--rot'),
+            expandedRotation: tile.style.getPropertyValue('--rot-expanded'),
+            jitterX: tile.style.getPropertyValue('--jitter-x'),
+            jitterY: tile.style.getPropertyValue('--jitter-y'),
+            detailRotation: tile.style.getPropertyValue('--theme-detail-rotation'),
+            font: tile.style.getPropertyValue('--theme-location-base-font'),
+            ink: tile.style.getPropertyValue('--theme-location-ink'),
+        }))"""
+    )
+
+    for channel in (
+        "baseRotation", "expandedRotation", "jitterX", "jitterY",
+        "detailRotation", "font", "ink",
+    ):
+        assert len({profile[channel] for profile in profiles}) >= 3
+    assert sum(
+        profile["baseRotation"] != profile["expandedRotation"]
+        for profile in profiles
+    ) >= 12
+
+
+def test_planet_titles_wrap_only_between_words_and_use_at_most_two_lines(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(f"{origin}/?theme=planets#Hobbies", wait_until="domcontentloaded")
+    expect(page.locator('[data-theme-content-fit="true"]')).to_have_count(17)
+
+    reports = page.locator(".tile-base .scrap-title").evaluate_all(
+        r"""titles => titles.map((title) => {
+            const textNode = [...title.childNodes].find(
+                (node) => node.nodeType === Node.TEXT_NODE
+            );
+            const text = textNode?.textContent || '';
+            const full = document.createRange();
+            full.selectNodeContents(title);
+            const lineCount = new Set(
+                [...full.getClientRects()].map((rect) => Math.round(rect.top))
+            ).size;
+            const splitWords = [...text.matchAll(/\S+/g)].flatMap((match) => {
+                const range = document.createRange();
+                range.setStart(textNode, match.index);
+                range.setEnd(textNode, match.index + match[0].length);
+                const lines = new Set(
+                    [...range.getClientRects()].map((rect) => Math.round(rect.top))
+                );
+                return lines.size > 1 ? [match[0]] : [];
+            });
+            return {text, lineCount, splitWords};
+        })"""
+    )
+
+    assert all(report["splitWords"] == [] for report in reports)
+    assert all(1 <= report["lineCount"] <= 2 for report in reports)
+    printing = next(report for report in reports if report["text"] == "3D Printing")
+    assert printing["lineCount"] <= 2
+
+
+def test_planets_use_irregular_background_stars_and_relationships(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(f"{origin}/?theme=planets", wait_until="domcontentloaded")
+
+    stars = page.locator('[data-theme-background="planets"] circle')
+    expect(stars).to_have_count(520)
+    star_profiles = stars.evaluate_all(
+        """nodes => nodes.map((node) => [
+            node.getAttribute('cx'), node.getAttribute('cy'), node.getAttribute('r')
+        ])"""
+    )
+    assert len({profile[0] for profile in star_profiles}) >= 500
+    assert len({profile[1] for profile in star_profiles}) >= 500
+    assert len({profile[2] for profile in star_profiles}) == 4
+    expect(page.locator('[data-theme-background="planets"] pattern')).to_have_count(0)
+
+    relationships = page.locator(".chalk-arrows .arrows-group > g")
+    expect(relationships).not_to_have_count(0)
+    connector_profiles = relationships.evaluate_all(
+        """nodes => nodes.map((node) => [
+            node.dataset.relationshipStrokeWidth,
+            node.dataset.relationshipWobble,
+            node.dataset.relationshipDashScale,
+        ].join('|'))"""
+    )
+    assert len(set(connector_profiles)) >= 8
+
+
 def test_open_document_rethemes_in_place_without_stale_world_state(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
@@ -313,13 +417,13 @@ def test_open_document_rethemes_in_place_without_stale_world_state(
     document = page.frame_locator(".mini-window")
     expect(document.locator("html")).to_have_attribute("data-board-theme", "lily")
 
-    page.locator("[data-theme-selector]").select_option("clouds")
-    expect(page).to_have_url(f"{origin}/projects/programs?theme=clouds")
-    expect(document.locator("html")).to_have_attribute("data-board-theme", "clouds")
+    page.locator("[data-theme-selector]").select_option("planets")
+    expect(page).to_have_url(f"{origin}/projects/programs?theme=planets")
+    expect(document.locator("html")).to_have_attribute("data-board-theme", "planets")
     expect(document.locator("html")).to_have_attribute("data-theme-pack-visual", "")
     assert document.locator("html").evaluate(
         "node => node.style.getPropertyValue('--theme-pack-font-body')"
-    ) == "'Kalam', cursive"
+    ) == "system-ui, sans-serif"
 
     page.locator("[data-theme-selector]").select_option("canonical")
     expect(document.locator("html")).to_have_attribute("data-board-theme", "canonical")
@@ -392,7 +496,9 @@ def test_each_world_has_a_distinct_native_document_grammar(
             }"""
         )
 
-    assert len({tuple(signature) for signature in signatures.values()}) == 5
+    assert len({tuple(signature) for signature in signatures.values()}) == len(
+        VISUAL_THEMES
+    )
 
 
 @pytest.mark.parametrize("theme", VISUAL_THEMES)
@@ -636,8 +742,8 @@ def test_development_selector_has_an_explicit_keyboard_shortcut(
     page.keyboard.press("Alt+t")
     selector = page.locator("[data-theme-selector]")
     expect(selector).to_be_focused()
-    selector.select_option("clouds")
-    expect(page).to_have_url(f"{origin}/?theme=clouds")
+    selector.select_option("islands")
+    expect(page).to_have_url(f"{origin}/?theme=islands")
 
 
 @pytest.mark.parametrize("theme", VISUAL_THEMES)
@@ -660,24 +766,15 @@ def test_phone_theme_laboratory_keeps_the_personal_mark_visible(
     )
 
 
-def test_cloudscape_renders_deterministic_density_underside_and_wisp_axes(
-    browser_page: tuple[Page, str],
+def test_cloudscape_is_not_a_viewer_selectable_board_theme(
+    client: TestClient,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
-    page, origin = browser_page
-    page.goto(f"{origin}/?theme=clouds", wait_until="domcontentloaded")
+    board = client.get("/?theme=clouds")
 
-    rendered_axes = page.locator('[data-theme-size="base"]').evaluate_all(
-        """nodes => nodes.map((node) => ({
-            density: node.dataset.variantDensity,
-            underside: node.dataset.variantUnderside,
-            wisp: node.dataset.variantWisp,
-        }))"""
-    )
-    assert len({axis["density"] for axis in rendered_axes}) >= 3
-    assert len({axis["underside"] for axis in rendered_axes}) >= 3
-    assert len({axis["wisp"] for axis in rendered_axes}) >= 4
+    assert 'data-board-theme="canonical"' in board.text
+    assert '<option class="theme-selector-option" value="clouds"' not in board.text
 
 
 @pytest.mark.parametrize("theme", VISUAL_THEMES)

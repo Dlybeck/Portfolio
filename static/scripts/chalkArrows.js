@@ -49,6 +49,13 @@
         haloWidth: 1,
         haloOpacity: 0,
         insetFactor: 9,
+        variation: {
+            strokeWidth: 0,
+            wobble: 0,
+            dash: 0,
+            opacity: 0,
+            markerScale: 0,
+        },
     };
     const cfg = () => window.chalkArrowsConfig;
 
@@ -59,6 +66,34 @@
             h = Math.imul(h, 16777619);
         }
         return h >>> 0;
+    }
+
+    function signedChannel(seed, channel) {
+        return hash(`${seed}|${channel}`) / 0x7fffffff - 1;
+    }
+
+    function relationshipStyle(seed) {
+        const c = cfg();
+        const variation = c.variation || {};
+        return {
+            strokeWidth: c.strokeWidth * (
+                1 + signedChannel(seed, 'stroke') * (variation.strokeWidth || 0)
+            ),
+            wobble: Math.max(
+                0,
+                c.wobble + signedChannel(seed, 'wobble') * (variation.wobble || 0)
+            ),
+            dashScale: 1 + signedChannel(seed, 'dash') * (variation.dash || 0),
+            opacity: Math.max(0, Math.min(
+                1,
+                c.opacity * (
+                    1 + signedChannel(seed, 'opacity') * (variation.opacity || 0)
+                )
+            )),
+            markerScale: 1 + signedChannel(seed, 'marker') * (
+                variation.markerScale || 0
+            ),
+        };
     }
 
     // ONE chalk roughness filter, applied identically to every arrow —
@@ -218,26 +253,28 @@
      * <path> for an arrowhead at (tipX, tipY) pointing in (dirX, dirY).
      * style: 'open' = stroked V, 'closed' = filled triangle.
      */
-    function makeHeadPath(tipX, tipY, dirX, dirY, style) {
+    function makeHeadPath(tipX, tipY, dirX, dirY, style, visual) {
         const c = cfg();
         const apx = -dirY;
         const apy = dirX;
-        const baseX = tipX - dirX * c.headLen;
-        const baseY = tipY - dirY * c.headLen;
-        const leftX = baseX + apx * c.headHalf;
-        const leftY = baseY + apy * c.headHalf;
-        const rightX = baseX - apx * c.headHalf;
-        const rightY = baseY - apy * c.headHalf;
+        const headLen = c.headLen * visual.markerScale;
+        const headHalf = c.headHalf * visual.markerScale;
+        const baseX = tipX - dirX * headLen;
+        const baseY = tipY - dirY * headLen;
+        const leftX = baseX + apx * headHalf;
+        const leftY = baseY + apy * headHalf;
+        const rightX = baseX - apx * headHalf;
+        const rightY = baseY - apy * headHalf;
 
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         path.setAttribute('vector-effect', 'non-scaling-stroke');
-        path.setAttribute('opacity', c.opacity);
+        path.setAttribute('opacity', visual.opacity);
         if (style === 'closed') {
             path.setAttribute('d',
                 `M${leftX},${leftY} L${tipX},${tipY} L${rightX},${rightY} Z`);
             path.setAttribute('fill', c.color);
             path.setAttribute('stroke', c.color);
-            path.setAttribute('stroke-width', c.strokeWidth * 0.6);
+            path.setAttribute('stroke-width', visual.strokeWidth * 0.6);
             path.setAttribute('stroke-linejoin', 'round');
             path.setAttribute('stroke-linecap', c.lineCap);
         } else {
@@ -245,7 +282,7 @@
                 `M${leftX},${leftY} L${tipX},${tipY} L${rightX},${rightY}`);
             path.setAttribute('fill', 'none');
             path.setAttribute('stroke', c.color);
-            path.setAttribute('stroke-width', c.strokeWidth);
+            path.setAttribute('stroke-width', visual.strokeWidth);
             path.setAttribute('stroke-linecap', c.lineCap);
             path.setAttribute('stroke-linejoin', 'round');
         }
@@ -271,25 +308,26 @@
      *   1. Halo — soft chalk-dust haze around the main stroke
      *   2. Main — primary chalk body
      */
-    function dashArray(width) {
+    function dashArray(width, visual) {
         const pattern = cfg().dashPattern;
-        if (pattern === 'dot') return `${width * .25} ${width * 2.2}`;
-        if (pattern === 'short') return `${width * 2.2} ${width * 1.8}`;
-        if (pattern === 'long') return `${width * 5} ${width * 2.5}`;
+        const scale = visual.dashScale;
+        if (pattern === 'dot') return `${width * .25} ${width * 2.2 * scale}`;
+        if (pattern === 'short') return `${width * 2.2 * scale} ${width * 1.8 / scale}`;
+        if (pattern === 'long') return `${width * 5 * scale} ${width * 2.5 / scale}`;
         return null;
     }
 
-    function appendRelationshipLine(g, d) {
+    function appendRelationshipLine(g, d, visual) {
         const c = cfg();
-        const mainWidth = c.strokeWidth;
-        const dash = dashArray(mainWidth);
+        const mainWidth = visual.strokeWidth;
+        const dash = dashArray(mainWidth, visual);
         if (c.haloOpacity > 0) {
             g.appendChild(makeStrokePath(
                 d, c.textureColor, mainWidth * c.haloWidth,
-                c.opacity * c.haloOpacity, dash
+                visual.opacity * c.haloOpacity, dash
             ));
         }
-        g.appendChild(makeStrokePath(d, c.color, mainWidth, c.opacity, dash));
+        g.appendChild(makeStrokePath(d, c.color, mainWidth, visual.opacity, dash));
     }
 
     /**
@@ -300,7 +338,7 @@
      * double-bump, big sweep, gentle squiggle. Reads as "different lines
      * drawn by hand," not "machine-stamped identical curves."
      */
-    function buildLineD(fromX, fromY, toX, toY, ux, uy, seed) {
+    function buildLineD(fromX, fromY, toX, toY, ux, uy, seed, visual) {
         const c = cfg();
         const px = -uy;
         const py = ux;
@@ -314,7 +352,7 @@
 
         // Wobble is a FRACTION of line length, so curvature stays
         // visually consistent across short and long arrows.
-        const w = c.wobble * lineLen;
+        const w = visual.wobble * lineLen;
         const off1 = (((seed % 100) / 100) - 0.5) * w;
         const off2 = (((seed >> 7) % 100) / 100 - 0.5) * w;
 
@@ -392,11 +430,17 @@
         if (e.len === 0) return null;
 
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        const visual = relationshipStyle(seed);
+        g.dataset.relationshipStrokeWidth = visual.strokeWidth.toFixed(3);
+        g.dataset.relationshipWobble = visual.wobble.toFixed(4);
+        g.dataset.relationshipDashScale = visual.dashScale.toFixed(3);
         // No per-arrow filter — the parent arrowsGroup carries the
         // filter once for all arrows. Major perf win.
 
-        const lineD = buildLineD(e.fromX, e.fromY, e.toX, e.toY, e.ux, e.uy, seed);
-        appendRelationshipLine(g, lineD);
+        const lineD = buildLineD(
+            e.fromX, e.fromY, e.toX, e.toY, e.ux, e.uy, seed, visual
+        );
+        appendRelationshipLine(g, lineD, visual);
 
         const showStart =
             c.headStyle !== 'none' &&
@@ -406,10 +450,14 @@
             (c.headPosition === 'end' || c.headPosition === 'both');
 
         if (showEnd) {
-            g.appendChild(makeHeadPath(e.toX, e.toY, e.ux, e.uy, c.headStyle));
+            g.appendChild(makeHeadPath(
+                e.toX, e.toY, e.ux, e.uy, c.headStyle, visual
+            ));
         }
         if (showStart) {
-            g.appendChild(makeHeadPath(e.fromX, e.fromY, -e.ux, -e.uy, c.headStyle));
+            g.appendChild(makeHeadPath(
+                e.fromX, e.fromY, -e.ux, -e.uy, c.headStyle, visual
+            ));
         }
         return g;
     }

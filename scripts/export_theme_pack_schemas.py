@@ -61,6 +61,10 @@ def main() -> None:
                 "version": {"const": 1},
                 "tiles": {"const": "tiles.json"},
                 "presentation": {"const": "presentation.json"},
+                "background": {
+                    "type": ["string", "null"],
+                    "pattern": "^assets/.+\\.svg$",
+                },
                 "selection": {
                     "type": "object",
                     "properties": {
@@ -99,12 +103,25 @@ def main() -> None:
             "haloWidth": {"type": "number", "minimum": 1, "maximum": 4},
             "haloOpacity": {"type": "number", "minimum": 0, "maximum": 1},
             "insetFactor": {"type": "number", "minimum": 0, "maximum": 20},
+            "variation": {
+                "type": "object",
+                "properties": {
+                    "strokeWidth": {"type": "number", "minimum": 0, "maximum": .5},
+                    "wobble": {"type": "number", "minimum": 0, "maximum": .25},
+                    "dash": {"type": "number", "minimum": 0, "maximum": .5},
+                    "opacity": {"type": "number", "minimum": 0, "maximum": .5},
+                    "markerScale": {"type": "number", "minimum": 0, "maximum": .5},
+                },
+                "required": ["strokeWidth", "wobble", "dash", "opacity", "markerScale"],
+                "additionalProperties": False,
+            },
         },
         "required": [
             "color", "strokeWidth", "opacity", "headStyle", "headPosition",
             "headLen", "headHalf", "wobble",
             "lineCap", "dashPattern", "curveStyle", "texture",
             "textureColor", "haloWidth", "haloOpacity", "insetFactor",
+            "variation",
         ],
         "additionalProperties": False,
     }
@@ -125,6 +142,88 @@ def main() -> None:
         },
     )
 
+    transform = {
+        "type": "object",
+        "properties": {
+            "rotationDegrees": {"type": "number", "minimum": -45, "maximum": 45},
+            "offsetXPixels": {"type": "number", "minimum": -24, "maximum": 24},
+            "offsetYPixels": {"type": "number", "minimum": -24, "maximum": 24},
+        },
+        "required": ["rotationDegrees", "offsetXPixels", "offsetYPixels"],
+        "additionalProperties": False,
+    }
+    transforms = {
+        "type": "object",
+        "properties": {
+            "base": transform,
+            "expanded": transform,
+            "detailRotationDegrees": {
+                "type": "number", "minimum": -45, "maximum": 45,
+            },
+        },
+        "required": ["base", "expanded", "detailRotationDegrees"],
+        "additionalProperties": False,
+    }
+    motion = {
+        "type": "object",
+        "properties": {
+            "durationOffsetMilliseconds": {
+                "type": "integer", "minimum": -150, "maximum": 150,
+            },
+            "rotationOffsetDegrees": {
+                "type": "number", "minimum": -12, "maximum": 12,
+            },
+            "offsetXPixels": {"type": "number", "minimum": -24, "maximum": 24},
+            "offsetYPixels": {"type": "number", "minimum": -24, "maximum": 24},
+            "scaleOffset": {"type": "number", "minimum": -.15, "maximum": .15},
+        },
+        "required": [
+            "durationOffsetMilliseconds", "rotationOffsetDegrees",
+            "offsetXPixels", "offsetYPixels", "scaleOffset",
+        ],
+        "additionalProperties": False,
+    }
+    typography = {
+        "type": ["object", "null"],
+        "properties": {
+            "baseFontFamily": {"type": "string", "minLength": 1, "maxLength": 200},
+            "expandedTitleFontFamily": {
+                "type": "string", "minLength": 1, "maxLength": 200,
+            },
+            "expandedTextFontFamily": {
+                "type": "string", "minLength": 1, "maxLength": 200,
+            },
+            "inkColor": {"type": "string", "minLength": 1, "maxLength": 200},
+            "baseLetterSpacing": {
+                "type": ["string", "null"], "minLength": 1, "maxLength": 200,
+            },
+        },
+        "required": [
+            "baseFontFamily", "expandedTitleFontFamily",
+            "expandedTextFontFamily", "inkColor",
+        ],
+        "additionalProperties": False,
+    }
+    layout = {
+        "type": ["object", "null"],
+        "properties": {
+            "expandedWidth": {"type": "string", "minLength": 1, "maxLength": 200},
+            "expandedMinHeight": {
+                "type": "string", "minLength": 1, "maxLength": 200,
+            },
+            "phoneExpandedWidth": {
+                "type": "string", "minLength": 1, "maxLength": 200,
+            },
+            "phoneExpandedMinHeight": {
+                "type": "string", "minLength": 1, "maxLength": 200,
+            },
+        },
+        "required": [
+            "expandedWidth", "expandedMinHeight",
+            "phoneExpandedWidth", "phoneExpandedMinHeight",
+        ],
+        "additionalProperties": False,
+    }
     assignment = {
         "type": "object",
         "properties": {
@@ -137,9 +236,12 @@ def main() -> None:
                 "propertyNames": {"pattern": "^[a-z][a-z0-9-]{0,63}$"},
                 "additionalProperties": {"type": "integer"},
             },
-            "rotationDegrees": {"type": "number", "minimum": -45, "maximum": 45},
+            "transforms": transforms,
+            "motion": motion,
+            "typography": typography,
+            "layout": layout,
         },
-        "required": ["base", "expanded", "factors", "rotationDegrees"],
+        "required": ["base", "expanded", "factors", "transforms", "motion"],
         "additionalProperties": False,
     }
     locations = sorted(BOARD_LOCATIONS)

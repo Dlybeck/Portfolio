@@ -26,6 +26,13 @@
     "presentation": {
       "const": "presentation.json"
     },
+    "background": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^assets/.+\\.svg$"
+    },
     "selection": {
       "type": "object",
       "properties": {

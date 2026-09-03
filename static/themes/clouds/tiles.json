@@ -11,7 +11,26 @@
         "underside": 1,
         "wisp": 2
       },
-      "rotationDegrees": -6
+      "transforms": {
+        "base": {
+          "rotationDegrees": -6,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": -6,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 0,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
     },
     "Hobbies": {
       "base": "assets/tiles/hobbies-base.svg",
@@ -24,7 +43,26 @@
         "underside": 0,
         "wisp": 1
       },
-      "rotationDegrees": -7
+      "transforms": {
+        "base": {
+          "rotationDegrees": -7,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": -7,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 0,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
     },
     "Projects": {
       "base": "assets/tiles/projects-base.svg",
@@ -37,7 +75,26 @@
         "underside": 2,
         "wisp": 4
       },
-      "rotationDegrees": -2
+      "transforms": {
+        "base": {
+          "rotationDegrees": -2,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": -2,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 0,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
     },
     "Work Experience": {
       "base": "assets/tiles/work-experience-base.svg",
@@ -50,7 +107,26 @@
         "underside": 5,
         "wisp": 3
       },
-      "rotationDegrees": 5
+      "transforms": {
+        "base": {
+          "rotationDegrees": 5,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 5,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 0,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
     },
     "Education": {
       "base": "assets/tiles/education-base.svg",
@@ -63,7 +139,26 @@
         "underside": 2,
         "wisp": 3
       },
-      "rotationDegrees": -1
+      "transforms": {
+        "base": {
+          "rotationDegrees": -1,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": -1,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 0,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
     },
     "3D Printing": {
       "base": "assets/tiles/3d-printing-base.svg",
@@ -76,7 +171,26 @@
         "underside": 0,
         "wisp": 3
       },
-      "rotationDegrees": 3
+      "transforms": {
+        "base": {
+          "rotationDegrees": 3,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 3,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 0,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
     },
     "Gaming": {
       "base": "assets/tiles/gaming-base.svg",
@@ -89,7 +203,26 @@
         "underside": 3,
         "wisp": 4
       },
-      "rotationDegrees": -5
+      "transforms": {
+        "base": {
+          "rotationDegrees": -5,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": -5,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 0,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
     },
     "Tennis": {
       "base": "assets/tiles/tennis-base.svg",
@@ -102,7 +235,26 @@
         "underside": 1,
         "wisp": 1
       },
-      "rotationDegrees": -7
+      "transforms": {
+        "base": {
+          "rotationDegrees": -7,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": -7,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 0,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
     },
     "Other Models": {
       "base": "assets/tiles/other-models-base.svg",
@@ -115,7 +267,26 @@
         "underside": 2,
         "wisp": 0
       },
-      "rotationDegrees": -8
+      "transforms": {
+        "base": {
+          "rotationDegrees": -8,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": -8,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 0,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
     },
     "Puzzles": {
       "base": "assets/tiles/puzzles-base.svg",
@@ -128,7 +299,26 @@
         "underside": 3,
         "wisp": 3
       },
-      "rotationDegrees": 8
+      "transforms": {
+        "base": {
+          "rotationDegrees": 8,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 8,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 0,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
     },
     "Programs": {
       "base": "assets/tiles/programs-base.svg",
@@ -141,7 +331,26 @@
         "underside": 3,
         "wisp": 3
       },
-      "rotationDegrees": 5
+      "transforms": {
+        "base": {
+          "rotationDegrees": 5,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 5,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 0,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
     },
     "Websites": {
       "base": "assets/tiles/websites-base.svg",
@@ -154,7 +363,26 @@
         "underside": 2,
         "wisp": 3
       },
-      "rotationDegrees": -7
+      "transforms": {
+        "base": {
+          "rotationDegrees": -7,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": -7,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 0,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
     },
     "Digital Planner": {
       "base": "assets/tiles/digital-planner-base.svg",
@@ -167,7 +395,26 @@
         "underside": 2,
         "wisp": 0
       },
-      "rotationDegrees": 2
+      "transforms": {
+        "base": {
+          "rotationDegrees": 2,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 2,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 0,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
     },
     "This website": {
       "base": "assets/tiles/this-website-base.svg",
@@ -180,7 +427,26 @@
         "underside": 3,
         "wisp": 4
       },
-      "rotationDegrees": 5
+      "transforms": {
+        "base": {
+          "rotationDegrees": 5,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 5,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 0,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
     },
     "ScribbleScan": {
       "base": "assets/tiles/scribblescan-base.svg",
@@ -193,7 +459,26 @@
         "underside": 3,
         "wisp": 1
       },
-      "rotationDegrees": -4
+      "transforms": {
+        "base": {
+          "rotationDegrees": -4,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": -4,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 0,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
     },
     "College": {
       "base": "assets/tiles/college-base.svg",
@@ -206,7 +491,26 @@
         "underside": 1,
         "wisp": 4
       },
-      "rotationDegrees": 4
+      "transforms": {
+        "base": {
+          "rotationDegrees": 4,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 4,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 0,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
     },
     "Early Education": {
       "base": "assets/tiles/early-education-base.svg",
@@ -219,7 +523,26 @@
         "underside": 1,
         "wisp": 1
       },
-      "rotationDegrees": -8
+      "transforms": {
+        "base": {
+          "rotationDegrees": -8,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": -8,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 0,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
     }
   }
 }

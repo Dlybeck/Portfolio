@@ -14,7 +14,38 @@
         "silhouette": 3,
         "orientation": 8
       },
-      "rotationDegrees": 2.9
+      "transforms": {
+        "base": {
+          "rotationDegrees": 2.9,
+          "offsetXPixels": -2.22,
+          "offsetYPixels": -2.65
+        },
+        "expanded": {
+          "rotationDegrees": -0.82,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 7.09
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -10,
+        "rotationOffsetDegrees": 0.48,
+        "offsetXPixels": 1.7,
+        "offsetYPixels": 0.39,
+        "scaleOffset": -0.003
+      },
+      "typography": {
+        "baseFontFamily": "var(--font-hand-marker)",
+        "expandedTitleFontFamily": "var(--font-hand-marker)",
+        "expandedTextFontFamily": "var(--font-hand-neat)",
+        "inkColor": "var(--ink-black)"
+      },
+      "layout": {
+        "expandedWidth": "min(calc(24 * var(--tile-u)), 400px)",
+        "expandedMinHeight": "min(calc(31.2 * var(--tile-u)), 520px)",
+        "phoneExpandedWidth": "min(calc(24 * var(--tile-u)), 400px)",
+        "phoneExpandedMinHeight": "min(calc(31.2 * var(--tile-u)), 520px)"
+      }
     },
     "Hobbies": {
       "base": "assets/tiles/hobbies-base.svg",
@@ -30,7 +61,38 @@
         "silhouette": 7,
         "orientation": 8
       },
-      "rotationDegrees": 3.49
+      "transforms": {
+        "base": {
+          "rotationDegrees": 3.49,
+          "offsetXPixels": 1.26,
+          "offsetYPixels": -0.26
+        },
+        "expanded": {
+          "rotationDegrees": 3.82,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": -4.7
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -22,
+        "rotationOffsetDegrees": 0.21,
+        "offsetXPixels": 0.06,
+        "offsetYPixels": -1.15,
+        "scaleOffset": -0.009
+      },
+      "typography": {
+        "baseFontFamily": "var(--font-hand-marker)",
+        "expandedTitleFontFamily": "var(--font-hand-marker)",
+        "expandedTextFontFamily": "var(--font-hand-neat)",
+        "inkColor": "var(--ink-blue)"
+      },
+      "layout": {
+        "expandedWidth": "min(calc(24 * var(--tile-u)), 400px)",
+        "expandedMinHeight": "min(calc(31.2 * var(--tile-u)), 520px)",
+        "phoneExpandedWidth": "min(calc(24 * var(--tile-u)), 400px)",
+        "phoneExpandedMinHeight": "min(calc(31.2 * var(--tile-u)), 520px)"
+      }
     },
     "Projects": {
       "base": "assets/tiles/projects-base.svg",
@@ -46,7 +108,38 @@
         "silhouette": 3,
         "orientation": 4
       },
-      "rotationDegrees": -0.93
+      "transforms": {
+        "base": {
+          "rotationDegrees": -0.93,
+          "offsetXPixels": 2.1,
+          "offsetYPixels": -3.46
+        },
+        "expanded": {
+          "rotationDegrees": -2.39,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": -1.62
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -21,
+        "rotationOffsetDegrees": -0.81,
+        "offsetXPixels": 1.84,
+        "offsetYPixels": 1.44,
+        "scaleOffset": -0.003
+      },
+      "typography": {
+        "baseFontFamily": "var(--font-hand-marker)",
+        "expandedTitleFontFamily": "var(--font-hand-marker)",
+        "expandedTextFontFamily": "var(--font-hand-casual)",
+        "inkColor": "var(--ink-blue)"
+      },
+      "layout": {
+        "expandedWidth": "min(calc(24 * var(--tile-u)), 400px)",
+        "expandedMinHeight": "min(calc(31.2 * var(--tile-u)), 520px)",
+        "phoneExpandedWidth": "min(calc(24 * var(--tile-u)), 400px)",
+        "phoneExpandedMinHeight": "min(calc(31.2 * var(--tile-u)), 520px)"
+      }
     },
     "Work Experience": {
       "base": "assets/tiles/work-experience-base.svg",
@@ -62,7 +155,38 @@
         "silhouette": 7,
         "orientation": 0
       },
-      "rotationDegrees": -4.96
+      "transforms": {
+        "base": {
+          "rotationDegrees": -4.96,
+          "offsetXPixels": -3.86,
+          "offsetYPixels": 2.94
+        },
+        "expanded": {
+          "rotationDegrees": -0.57,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 2.66
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -16,
+        "rotationOffsetDegrees": 0.73,
+        "offsetXPixels": 0.94,
+        "offsetYPixels": -1.78,
+        "scaleOffset": -0.009
+      },
+      "typography": {
+        "baseFontFamily": "var(--font-hand-thin)",
+        "expandedTitleFontFamily": "var(--font-hand-thin)",
+        "expandedTextFontFamily": "var(--font-hand-thin)",
+        "inkColor": "var(--ink-pencil)"
+      },
+      "layout": {
+        "expandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "expandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)",
+        "phoneExpandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "phoneExpandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)"
+      }
     },
     "Education": {
       "base": "assets/tiles/education-base.svg",
@@ -78,7 +202,38 @@
         "silhouette": 3,
         "orientation": 5
       },
-      "rotationDegrees": 0.01
+      "transforms": {
+        "base": {
+          "rotationDegrees": 0.01,
+          "offsetXPixels": 2.86,
+          "offsetYPixels": -0.5
+        },
+        "expanded": {
+          "rotationDegrees": 2.28,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 2.42
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 11,
+        "rotationOffsetDegrees": 0.05,
+        "offsetXPixels": 1.21,
+        "offsetYPixels": 1.45,
+        "scaleOffset": 0.0
+      },
+      "typography": {
+        "baseFontFamily": "var(--font-hand-marker)",
+        "expandedTitleFontFamily": "var(--font-hand-marker)",
+        "expandedTextFontFamily": "var(--font-hand-thin)",
+        "inkColor": "var(--ink-red)"
+      },
+      "layout": {
+        "expandedWidth": "min(calc(24 * var(--tile-u)), 400px)",
+        "expandedMinHeight": "min(calc(31.2 * var(--tile-u)), 520px)",
+        "phoneExpandedWidth": "min(calc(24 * var(--tile-u)), 400px)",
+        "phoneExpandedMinHeight": "min(calc(31.2 * var(--tile-u)), 520px)"
+      }
     },
     "3D Printing": {
       "base": "assets/tiles/3d-printing-base.svg",
@@ -94,7 +249,38 @@
         "silhouette": 2,
         "orientation": 4
       },
-      "rotationDegrees": -0.67
+      "transforms": {
+        "base": {
+          "rotationDegrees": -0.67,
+          "offsetXPixels": 2.25,
+          "offsetYPixels": 0.34
+        },
+        "expanded": {
+          "rotationDegrees": 1.06,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0.61
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -11,
+        "rotationOffsetDegrees": -0.38,
+        "offsetXPixels": -1.18,
+        "offsetYPixels": 1.4,
+        "scaleOffset": 0.006
+      },
+      "typography": {
+        "baseFontFamily": "var(--font-hand-marker)",
+        "expandedTitleFontFamily": "var(--font-hand-marker)",
+        "expandedTextFontFamily": "var(--font-hand-neat)",
+        "inkColor": "var(--ink-blue)"
+      },
+      "layout": {
+        "expandedWidth": "min(calc(24 * var(--tile-u)), 400px)",
+        "expandedMinHeight": "min(calc(31.2 * var(--tile-u)), 520px)",
+        "phoneExpandedWidth": "min(calc(24 * var(--tile-u)), 400px)",
+        "phoneExpandedMinHeight": "min(calc(31.2 * var(--tile-u)), 520px)"
+      }
     },
     "Gaming": {
       "base": "assets/tiles/gaming-base.svg",
@@ -110,7 +296,38 @@
         "silhouette": 3,
         "orientation": 6
       },
-      "rotationDegrees": 1.24
+      "transforms": {
+        "base": {
+          "rotationDegrees": 1.24,
+          "offsetXPixels": 0.77,
+          "offsetYPixels": 2.77
+        },
+        "expanded": {
+          "rotationDegrees": 0.14,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": -3.02
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 26,
+        "rotationOffsetDegrees": -0.15,
+        "offsetXPixels": 1.32,
+        "offsetYPixels": 0.7,
+        "scaleOffset": -0.001
+      },
+      "typography": {
+        "baseFontFamily": "var(--font-hand-casual)",
+        "expandedTitleFontFamily": "var(--font-hand-casual)",
+        "expandedTextFontFamily": "var(--font-hand-casual)",
+        "inkColor": "var(--ink-pencil)"
+      },
+      "layout": {
+        "expandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "expandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)",
+        "phoneExpandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "phoneExpandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)"
+      }
     },
     "Tennis": {
       "base": "assets/tiles/tennis-base.svg",
@@ -126,7 +343,38 @@
         "silhouette": 3,
         "orientation": 5
       },
-      "rotationDegrees": 0.46
+      "transforms": {
+        "base": {
+          "rotationDegrees": 0.46,
+          "offsetXPixels": -1.81,
+          "offsetYPixels": -0.95
+        },
+        "expanded": {
+          "rotationDegrees": -1.1,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": -4.62
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 3,
+        "rotationOffsetDegrees": -0.04,
+        "offsetXPixels": -1.54,
+        "offsetYPixels": 1.21,
+        "scaleOffset": 0.008
+      },
+      "typography": {
+        "baseFontFamily": "var(--font-hand-casual)",
+        "expandedTitleFontFamily": "var(--font-hand-casual)",
+        "expandedTextFontFamily": "var(--font-hand-casual)",
+        "inkColor": "var(--ink-black)"
+      },
+      "layout": {
+        "expandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "expandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)",
+        "phoneExpandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "phoneExpandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)"
+      }
     },
     "Other Models": {
       "base": "assets/tiles/other-models-base.svg",
@@ -142,7 +390,38 @@
         "silhouette": 6,
         "orientation": 10
       },
-      "rotationDegrees": 4.95
+      "transforms": {
+        "base": {
+          "rotationDegrees": 4.95,
+          "offsetXPixels": -2.95,
+          "offsetYPixels": -3.25
+        },
+        "expanded": {
+          "rotationDegrees": 3.99,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 4.4
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 20,
+        "rotationOffsetDegrees": -0.96,
+        "offsetXPixels": -0.23,
+        "offsetYPixels": 0.1,
+        "scaleOffset": 0.006
+      },
+      "typography": {
+        "baseFontFamily": "var(--font-hand-thin)",
+        "expandedTitleFontFamily": "var(--font-hand-thin)",
+        "expandedTextFontFamily": "var(--font-hand-thin)",
+        "inkColor": "var(--ink-blue)"
+      },
+      "layout": {
+        "expandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "expandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)",
+        "phoneExpandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "phoneExpandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)"
+      }
     },
     "Puzzles": {
       "base": "assets/tiles/puzzles-base.svg",
@@ -158,7 +437,38 @@
         "silhouette": 3,
         "orientation": 5
       },
-      "rotationDegrees": 0.42
+      "transforms": {
+        "base": {
+          "rotationDegrees": 0.42,
+          "offsetXPixels": 3.93,
+          "offsetYPixels": 3.18
+        },
+        "expanded": {
+          "rotationDegrees": 1.18,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": -5.63
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -30,
+        "rotationOffsetDegrees": 0.52,
+        "offsetXPixels": 0.44,
+        "offsetYPixels": 1.45,
+        "scaleOffset": 0.0
+      },
+      "typography": {
+        "baseFontFamily": "var(--font-hand-neat)",
+        "expandedTitleFontFamily": "var(--font-hand-neat)",
+        "expandedTextFontFamily": "var(--font-hand-neat)",
+        "inkColor": "var(--ink-pencil)"
+      },
+      "layout": {
+        "expandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "expandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)",
+        "phoneExpandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "phoneExpandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)"
+      }
     },
     "Programs": {
       "base": "assets/tiles/programs-base.svg",
@@ -174,7 +484,38 @@
         "silhouette": 0,
         "orientation": 10
       },
-      "rotationDegrees": 4.92
+      "transforms": {
+        "base": {
+          "rotationDegrees": 4.92,
+          "offsetXPixels": 2.49,
+          "offsetYPixels": 3.81
+        },
+        "expanded": {
+          "rotationDegrees": 0.56,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": -2.32
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 4,
+        "rotationOffsetDegrees": 0.61,
+        "offsetXPixels": 1.03,
+        "offsetYPixels": -0.55,
+        "scaleOffset": 0.009
+      },
+      "typography": {
+        "baseFontFamily": "var(--font-hand-neat)",
+        "expandedTitleFontFamily": "var(--font-hand-neat)",
+        "expandedTextFontFamily": "var(--font-hand-neat)",
+        "inkColor": "var(--ink-blue)"
+      },
+      "layout": {
+        "expandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "expandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)",
+        "phoneExpandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "phoneExpandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)"
+      }
     },
     "Websites": {
       "base": "assets/tiles/websites-base.svg",
@@ -190,7 +531,38 @@
         "silhouette": 3,
         "orientation": 7
       },
-      "rotationDegrees": 2.09
+      "transforms": {
+        "base": {
+          "rotationDegrees": 2.09,
+          "offsetXPixels": 0.63,
+          "offsetYPixels": -3.86
+        },
+        "expanded": {
+          "rotationDegrees": 2.52,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": -3.23
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 28,
+        "rotationOffsetDegrees": -0.28,
+        "offsetXPixels": 1.61,
+        "offsetYPixels": 1.89,
+        "scaleOffset": -0.003
+      },
+      "typography": {
+        "baseFontFamily": "var(--font-hand-marker)",
+        "expandedTitleFontFamily": "var(--font-hand-marker)",
+        "expandedTextFontFamily": "var(--font-hand-thin)",
+        "inkColor": "var(--ink-black)"
+      },
+      "layout": {
+        "expandedWidth": "min(calc(24 * var(--tile-u)), 400px)",
+        "expandedMinHeight": "min(calc(31.2 * var(--tile-u)), 520px)",
+        "phoneExpandedWidth": "min(calc(24 * var(--tile-u)), 400px)",
+        "phoneExpandedMinHeight": "min(calc(31.2 * var(--tile-u)), 520px)"
+      }
     },
     "Digital Planner": {
       "base": "assets/tiles/digital-planner-base.svg",
@@ -206,7 +578,38 @@
         "silhouette": 0,
         "orientation": 9
       },
-      "rotationDegrees": 3.71
+      "transforms": {
+        "base": {
+          "rotationDegrees": 3.71,
+          "offsetXPixels": 2.17,
+          "offsetYPixels": -3.37
+        },
+        "expanded": {
+          "rotationDegrees": -1.86,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 6.26
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -4,
+        "rotationOffsetDegrees": 0.85,
+        "offsetXPixels": -0.71,
+        "offsetYPixels": 1.43,
+        "scaleOffset": 0.001
+      },
+      "typography": {
+        "baseFontFamily": "var(--font-hand-thin)",
+        "expandedTitleFontFamily": "var(--font-hand-thin)",
+        "expandedTextFontFamily": "var(--font-hand-thin)",
+        "inkColor": "var(--ink-pencil)"
+      },
+      "layout": {
+        "expandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "expandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)",
+        "phoneExpandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "phoneExpandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)"
+      }
     },
     "This website": {
       "base": "assets/tiles/this-website-base.svg",
@@ -222,7 +625,38 @@
         "silhouette": 8,
         "orientation": 3
       },
-      "rotationDegrees": -1.96
+      "transforms": {
+        "base": {
+          "rotationDegrees": -1.96,
+          "offsetXPixels": 1.78,
+          "offsetYPixels": -3.12
+        },
+        "expanded": {
+          "rotationDegrees": 0.91,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 6.19
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -3,
+        "rotationOffsetDegrees": -0.86,
+        "offsetXPixels": 1.29,
+        "offsetYPixels": 0.49,
+        "scaleOffset": 0.007
+      },
+      "typography": {
+        "baseFontFamily": "var(--font-hand-neat)",
+        "expandedTitleFontFamily": "var(--font-hand-neat)",
+        "expandedTextFontFamily": "var(--font-hand-neat)",
+        "inkColor": "var(--ink-blue)"
+      },
+      "layout": {
+        "expandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "expandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)",
+        "phoneExpandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "phoneExpandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)"
+      }
     },
     "ScribbleScan": {
       "base": "assets/tiles/scribblescan-base.svg",
@@ -238,7 +672,38 @@
         "silhouette": 7,
         "orientation": 1
       },
-      "rotationDegrees": -3.64
+      "transforms": {
+        "base": {
+          "rotationDegrees": -3.64,
+          "offsetXPixels": 0.7,
+          "offsetYPixels": -1.76
+        },
+        "expanded": {
+          "rotationDegrees": -3.85,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0.98
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -5,
+        "rotationOffsetDegrees": 0.09,
+        "offsetXPixels": -1.04,
+        "offsetYPixels": 1.41,
+        "scaleOffset": -0.004
+      },
+      "typography": {
+        "baseFontFamily": "var(--font-hand-thin)",
+        "expandedTitleFontFamily": "var(--font-hand-thin)",
+        "expandedTextFontFamily": "var(--font-hand-thin)",
+        "inkColor": "var(--ink-blue)"
+      },
+      "layout": {
+        "expandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "expandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)",
+        "phoneExpandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "phoneExpandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)"
+      }
     },
     "College": {
       "base": "assets/tiles/college-base.svg",
@@ -254,7 +719,38 @@
         "silhouette": 4,
         "orientation": 3
       },
-      "rotationDegrees": -1.98
+      "transforms": {
+        "base": {
+          "rotationDegrees": -1.98,
+          "offsetXPixels": 3.44,
+          "offsetYPixels": -0.16
+        },
+        "expanded": {
+          "rotationDegrees": -1.38,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 1.63
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 19,
+        "rotationOffsetDegrees": -0.89,
+        "offsetXPixels": 0.98,
+        "offsetYPixels": -1.52,
+        "scaleOffset": -0.003
+      },
+      "typography": {
+        "baseFontFamily": "var(--font-hand-neat)",
+        "expandedTitleFontFamily": "var(--font-hand-neat)",
+        "expandedTextFontFamily": "var(--font-hand-neat)",
+        "inkColor": "var(--ink-black)"
+      },
+      "layout": {
+        "expandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "expandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)",
+        "phoneExpandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "phoneExpandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)"
+      }
     },
     "Early Education": {
       "base": "assets/tiles/early-education-base.svg",
@@ -270,7 +766,38 @@
         "silhouette": 0,
         "orientation": 5
       },
-      "rotationDegrees": -0.14
+      "transforms": {
+        "base": {
+          "rotationDegrees": -0.14,
+          "offsetXPixels": -0.3,
+          "offsetYPixels": -2.05
+        },
+        "expanded": {
+          "rotationDegrees": 1.12,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": -3.63
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -13,
+        "rotationOffsetDegrees": -0.25,
+        "offsetXPixels": 0.57,
+        "offsetYPixels": 1.3,
+        "scaleOffset": 0.007
+      },
+      "typography": {
+        "baseFontFamily": "var(--font-hand-neat)",
+        "expandedTitleFontFamily": "var(--font-hand-neat)",
+        "expandedTextFontFamily": "var(--font-hand-neat)",
+        "inkColor": "var(--ink-blue)"
+      },
+      "layout": {
+        "expandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "expandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)",
+        "phoneExpandedWidth": "min(calc(26 * var(--tile-u)), 430px)",
+        "phoneExpandedMinHeight": "min(calc(33.8 * var(--tile-u)), 559px)"
+      }
     }
   }
 }

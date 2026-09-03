@@ -40,6 +40,10 @@ _Avoid_: Random skin, replacement theme
 A versioned, declarative bundle of visual tokens and sanitized assets that completely describes one Board Theme without executable theme-specific code.
 _Avoid_: Theme stylesheet, renderer plugin, skin
 
+Current implementation and review authority for Theme Pack naturalism is
+recorded in `docs/theme-naturalism-restoration.md`. It is the active source of
+truth when it conflicts with the earlier refinement specification.
+
 **Theme Instance**:
 A selected Theme Pack and its deterministic per-location identities applied throughout one exploration. Refreshing without an explicit pin may select a new complete instance.
 _Avoid_: Theme, random skin

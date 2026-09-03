@@ -44,6 +44,13 @@ SCRAP_SHAPES = (
     "rect", "rect", "rect", "rect", "torn-bottom", "torn-top",
     "torn-both", "corner-bite", "ripped-side",
 )
+TILE_FONTS = (
+    "var(--font-hand-casual)",
+    "var(--font-hand-neat)",
+    "var(--font-hand-thin)",
+)
+SCRAP_INKS = ("var(--ink-blue)", "var(--ink-black)", "var(--ink-pencil)")
+STICKY_INKS = ("var(--ink-black)", "var(--ink-blue)", "var(--ink-red)")
 
 
 def slug(title: str) -> str:
@@ -71,12 +78,55 @@ def style_seed(title: str) -> dict[str, int | float]:
     return {
         "rotation": (value % 1000) / 100 - 5,
         "expanded_rotation": ((value // 7) % 1000) / 125 - 4,
+        "jitter_x": ((value // 53) % 1000) / 125 - 4,
+        "jitter_y": ((value // 211) % 1000) / 125 - 4,
         "tape_angle": ((value // 1031) % 1000) / 62.5 - 8,
         "color": value,
         "variant": value // 7,
         "expanded_variant": value // 3779,
         "shape": value // 19937,
         "expanded_shape": value // 39119,
+        "font": value // 53,
+        "ink": value // 211,
+    }
+
+
+def motion_variation(title: str) -> dict[str, int | float]:
+    value = rehash(stable_hash(f"{title}|motion"))
+    return {
+        "durationOffsetMilliseconds": value % 61 - 30,
+        "rotationOffsetDegrees": round(((value // 61) % 401) / 200 - 1, 2),
+        "offsetXPixels": round(((value // 401) % 401) / 100 - 2, 2),
+        "offsetYPixels": round(((value // 160801) % 401) / 100 - 2, 2),
+        "scaleOffset": round(((value // 809) % 21) / 1000 - .01, 3),
+    }
+
+
+def typography(title: str, seed: dict[str, int | float]) -> dict[str, str]:
+    font = TILE_FONTS[int(seed["font"]) % len(TILE_FONTS)]
+    ink_pool = STICKY_INKS if title in HUBS else SCRAP_INKS
+    ink = ink_pool[int(seed["ink"]) % len(ink_pool)]
+    title_font = "var(--font-hand-marker)" if title in HUBS else font
+    return {
+        "baseFontFamily": title_font,
+        "expandedTitleFontFamily": title_font,
+        "expandedTextFontFamily": font,
+        "inkColor": ink,
+    }
+
+
+def layout(title: str) -> dict[str, str]:
+    if title in HUBS:
+        width = "min(calc(24 * var(--tile-u)), 400px)"
+        height = "min(calc(31.2 * var(--tile-u)), 520px)"
+    else:
+        width = "min(calc(26 * var(--tile-u)), 430px)"
+        height = "min(calc(33.8 * var(--tile-u)), 559px)"
+    return {
+        "expandedWidth": width,
+        "expandedMinHeight": height,
+        "phoneExpandedWidth": width,
+        "phoneExpandedMinHeight": height,
     }
 
 
@@ -101,8 +151,11 @@ def visual_carriers(
     return current
 
 
-def sticky_points(fold: int, height: int) -> str:
-    small, large = 14, 22
+def sticky_points(fold: int, height: int, state: str) -> str:
+    # The original folds were CSS pixels on a 104px base note and a roughly
+    # 192px cover.  Convert those proportions back into this asset's viewBox
+    # instead of reusing one SVG-unit cut for both sizes.
+    small, large = ((27, 42) if state == "base" else (15, 23))
     if fold == 0:
         return f"0,0 200,0 200,{height-small} {200-small},{height} 0,{height}"
     if fold == 1:
@@ -162,35 +215,53 @@ def scrap_points(shape: str, height: int) -> str:
 def add_surface_pattern(
     defs: ET.Element, pattern_id: str, kind: int, color: str
 ) -> str:
+    pattern_sizes = {
+        0: (200, 23), 1: (16, 16), 2: (24, 24), 3: (12, 12),
+        4: (200, 21), 5: (200, 23), 6: (14, 14), 7: (18, 18),
+        8: (24, 24), 9: (12, 12),
+    }
+    width, height = pattern_sizes[kind]
     pattern = node(
         defs, "pattern", id=pattern_id, patternUnits="userSpaceOnUse",
-        width=24, height=24,
+        width=width, height=height,
     )
-    node(pattern, "rect", width=24, height=24, fill=color)
-    if kind in {0, 4, 5}:
-        node(pattern, "line", x1=0, y1=22, x2=24, y2=22,
-             stroke="#7890b4", **{"stroke-width": .8, "stroke-opacity": .32})
+    node(pattern, "rect", width=width, height=height, fill=color)
+    if kind == 0:
+        node(pattern, "line", x1=0, y1=22, x2=200, y2=22,
+             stroke="#5a78b4", **{"stroke-width": 1, "stroke-opacity": .28})
+        node(pattern, "line", x1=18, y1=0, x2=18, y2=23,
+             stroke="#c83c3c", **{"stroke-width": 1, "stroke-opacity": .3})
     elif kind == 1:
-        for position in (0, 16):
-            node(pattern, "line", x1=position, y1=0, x2=position, y2=24,
-                 stroke="#88a88c", **{"stroke-width": .8, "stroke-opacity": .3})
-            node(pattern, "line", x1=0, y1=position, x2=24, y2=position,
-                 stroke="#88a88c", **{"stroke-width": .8, "stroke-opacity": .3})
-    elif kind in {3, 7}:
-        node(pattern, "path", d="M-6 6L6-6M0 24L24 0M18 30L30 18",
-             stroke="#6f5738", fill="none",
-             **{"stroke-width": .8, "stroke-opacity": .1})
+        node(pattern, "path", d="M0 0H16V16H0Z", fill="none",
+             stroke="#648c64", **{"stroke-width": 1, "stroke-opacity": .25})
+    elif kind == 3:
+        node(pattern, "path", d="M-4 4L4-4M0 12L12 0M8 16L16 8",
+             stroke="#604521", fill="none",
+             **{"stroke-width": 1.1, "stroke-opacity": .09})
+    elif kind == 4:
+        node(pattern, "line", x1=0, y1=20, x2=200, y2=20,
+             stroke="#5a78b4", **{"stroke-width": 1, "stroke-opacity": .25})
+    elif kind == 5:
+        node(pattern, "line", x1=0, y1=22, x2=200, y2=22,
+             stroke="#5a78b4", **{"stroke-width": 1.2, "stroke-opacity": .35})
+        node(pattern, "line", x1=22, y1=0, x2=22, y2=23,
+             stroke="#c83232", **{"stroke-width": 1.5, "stroke-opacity": .45})
     elif kind == 6:
-        for x, y in ((5, 5), (17, 17)):
-            node(pattern, "circle", cx=x, cy=y, r=1, fill="#7f8d9b",
-                 **{"fill-opacity": .38})
+        node(pattern, "circle", cx=1, cy=1, r=1, fill="#788caa",
+             **{"fill-opacity": .5})
+    elif kind == 7:
+        node(pattern, "path", d="M-3 3L3-3M0 18L18 0M15 21L21 15",
+             stroke="#503c20", fill="none",
+             **{"stroke-width": .9, "stroke-opacity": .06})
+        node(pattern, "path", d="M4 0L6 18M12 0L14 18", stroke="#fff8d8",
+             fill="none", **{"stroke-width": .8, "stroke-opacity": .08})
     elif kind == 8:
         node(pattern, "line", x1=0, y1=21, x2=24, y2=21,
              stroke="#725f49",
              **{"stroke-width": .8, "stroke-dasharray": "5 5", "stroke-opacity": .3})
     elif kind == 9:
         node(pattern, "path",
-             d="M-6 6L6-6M0 24L24 0M18 30L30 18M-6 18L6 30M0 0L24 24M18-6L30 6",
+             d="M-3 3L3-3M0 12L12 0M9 15L15 9M-3 9L3 15M0 0L12 12M9-3L15 3",
              stroke="#846f52", fill="none",
              **{"stroke-width": .7, "stroke-opacity": .09})
     return f"url(#{pattern_id})"
@@ -228,31 +299,51 @@ def add_sticky(
             palette = (palette + 1) % len(STICKY_PALETTES)
     fill, edge = STICKY_PALETTES[palette]
     pattern_id = f"sticky-{slug(title)}-{state}"
+    gradient_id = f"{pattern_id}-shade"
+    gradient = node(defs, "linearGradient", id=gradient_id, x1=0, y1=0, x2=1, y2=1)
+    node(gradient, "stop", offset="0%", **{"stop-color": "#ffffff", "stop-opacity": .25})
+    node(gradient, "stop", offset="100%", **{"stop-color": "#000000", "stop-opacity": .05})
     pattern = node(defs, "pattern", id=pattern_id, patternUnits="userSpaceOnUse",
-                   width=10, height=10)
-    node(pattern, "rect", width=10, height=10, fill=fill)
-    node(pattern, "path", d="M1 0L3 10M6 0L8 10", stroke="#1b1b1b",
-         **{"stroke-width": .5, "stroke-opacity": .025})
+                   width=200, height=height)
+    node(pattern, "rect", width=200, height=height, fill=fill)
+    node(pattern, "rect", width=200, height=height, fill=f"url(#{gradient_id})")
+    fibers = "".join(f"M{x} 0L{x + 2} {height}" for x in range(1, 200, 5))
+    node(pattern, "path", d=fibers, stroke="#1b1b1b",
+         **{"stroke-width": .5, "stroke-opacity": .018})
     group = visual_carriers(svg, factors, (
         "family", "palette", "surface", "shape", "fold", "tape", "detail",
     ))
-    node(group, "polygon", points=sticky_points(factors["fold"], height),
-         fill=f"url(#{pattern_id})", stroke=edge,
-         **{"stroke-width": 2, "stroke-linejoin": "round",
+    node(group, "polygon", points=sticky_points(factors["fold"], height, state),
+         fill=f"url(#{pattern_id})", stroke="none",
+         **{"stroke-width": 0, "stroke-linejoin": "round",
             "data-visual-axis": "silhouette",
             "data-visual-value": factors["silhouette"],
             "data-visual-scope": "self"})
     if state == "base":
+        underline_seed_1 = rehash(stable_hash(title))
+        underline_seed_2 = rehash(underline_seed_1)
+        underline_seed_3 = rehash(underline_seed_2)
         paths = (
-            "M42 126Q68 120 92 126T158 125",
-            "M40 124Q78 121 108 125T160 124M44 129Q88 126 156 128",
-            "M38 126C58 119 72 132 92 126S124 119 162 126",
-            "M40 126Q98 121 154 126Q160 127 165 123",
+            "M2 4Q15 1 28 4Q40 7 55 3Q70 1 85 4Q93 5 98 3",
+            "M3 3Q30 2 50 3.5T96 3M5 5.2Q35 4 60 5.4T94 5",
+            "M1 4C12 1 22 6 32 4S52 1 64 4S84 7 99 3.5",
+            "M2 4.5Q35 2 70 4Q85 5 95 3Q97 2.6 99 2",
+            "M2 3L12 5L22 3L34 5.5L46 2.8L58 5.2L70 3L82 5L94 3.2L98 4",
+            "M3 3.6Q22 2 42 4Q60 5.6 78 3.4Q88 2.4 96 4.6",
         )
-        node(group, "path", d=paths[factors["detail"]], fill="none",
+        width = min(132, max(58, len(title) * 11))
+        x = (200 - width) / 2
+        flip = 1 if underline_seed_2 % 2 == 0 else -1
+        rotation = ((underline_seed_3 % 100) / 100 - .5) * 4
+        transform = (
+            f"translate({x:.1f} 100) rotate({rotation:.2f} 50 3.5) "
+            f"translate({50 if flip < 0 else 0} 0) scale({flip * width / 100:.3f} 1)"
+        )
+        node(group, "path", d=paths[underline_seed_1 % len(paths)], fill="none",
              stroke="#364b66",
+             transform=transform,
              **{"stroke-width": 2.1, "stroke-linecap": "round",
-                "stroke-linejoin": "round", "stroke-opacity": .72})
+                "stroke-linejoin": "round", "stroke-opacity": .9})
 
 
 def add_scrap(
@@ -274,21 +365,24 @@ def add_scrap(
         "family", "palette", "surface", "shape", "fold", "tape", "detail",
     ))
     node(group, "polygon", points=scrap_points(SCRAP_SHAPES[shape_index], height),
-         fill=paper_fill, stroke=edge,
-         **{"stroke-width": 1.6, "stroke-linejoin": "round",
+         fill=paper_fill, stroke="none",
+         **{"stroke-width": 0, "stroke-linejoin": "round",
             "data-visual-axis": "silhouette",
             "data-visual-value": factors["silhouette"],
             "data-visual-scope": "self"})
-    tape_width = 58 if state == "base" else 84
-    tape_height = 18 if state == "base" else 22
+    # Match the old CSS tape's *rendered* proportions, not its raw numbers.
+    tape_width = 112 if state == "base" else 88
+    tape_height = 35 if state == "base" else 28
     tape_x = (200 - tape_width) / 2
-    tape_y = -8 if state == "base" else -10
-    tape = node(group, "g", transform=(
-        f"rotate({float(seed['tape_angle']):.2f} 100 {tape_y + tape_height / 2})"
-    ))
+    tape_y = -15 if state == "base" else -13
+    gradient_id = f"tape-{slug(title)}-{state}"
+    gradient = node(defs, "linearGradient", id=gradient_id, x1=0, y1=0, x2=0, y2=1)
+    node(gradient, "stop", offset="0%", **{"stop-color": "#fffad2", "stop-opacity": .85})
+    node(gradient, "stop", offset="100%", **{"stop-color": "#e6d79b", "stop-opacity": .85})
+    tape = node(group, "g", **{"data-theme-detail": "tape"})
     node(tape, "rect", x=tape_x, y=tape_y, width=tape_width,
-         height=tape_height, rx=1.5, fill="#eee0aa", stroke="#aa955d",
-         **{"stroke-width": .8, "fill-opacity": .82, "stroke-opacity": .45})
+         height=tape_height, rx=1.5, fill=f"url(#{gradient_id})", stroke="#a59155",
+         **{"stroke-width": 1.2, "stroke-opacity": .4})
     node(tape, "line", x1=tape_x + 4, y1=tape_y + 4,
          x2=tape_x + tape_width - 4, y2=tape_y + 4,
          stroke="#fff8d1", **{"stroke-width": .8, "stroke-opacity": .65})
@@ -325,18 +419,33 @@ def main() -> None:
     for title in TITLES:
         paths: dict[str, str] = {}
         identity_factors: dict[str, int] | None = None
-        base_rotation = 0.0
+        rotations: dict[str, float] = {}
         for state in ("base", "expanded"):
             markup, factors, rotation = build_svg(title, state)
             asset_name = f"{slug(title)}-{state}.svg"
             (output / asset_name).write_text(markup + "\n", encoding="utf-8")
             paths[state] = f"assets/tiles/{asset_name}"
             identity_factors = identity_factors or factors
-            if state == "base":
-                base_rotation = rotation
+            rotations[state] = rotation
+        seed = style_seed(title)
         assignments[title] = {
             **paths, "factors": identity_factors,
-            "rotationDegrees": base_rotation,
+            "transforms": {
+                "base": {
+                    "rotationDegrees": rotations["base"],
+                    "offsetXPixels": round(float(seed["jitter_x"]), 2),
+                    "offsetYPixels": round(float(seed["jitter_y"]), 2),
+                },
+                "expanded": {
+                    "rotationDegrees": rotations["expanded"],
+                    "offsetXPixels": 0,
+                    "offsetYPixels": 0,
+                },
+                "detailRotationDegrees": round(float(seed["tape_angle"]), 2),
+            },
+            "motion": motion_variation(title),
+            "typography": typography(title, seed),
+            "layout": layout(title),
         }
     (PACK_ROOT / "tiles.json").write_text(
         json.dumps({"assignments": assignments}, indent=2) + "\n",

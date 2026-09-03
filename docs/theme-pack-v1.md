@@ -48,6 +48,7 @@ static/themes/<pack-id>/
 │   ├── tiles/
 │   │   ├── <location>-base.svg
 │   │   └── <location>-expanded.svg
+│   ├── background.svg       # optional pack-owned non-repeating field
 │   └── ... future validated asset classes
 └── ... optional authoring sources ignored by runtime
 
@@ -141,7 +142,10 @@ Connectors declare color, width, opacity, cap, dash pattern, curve family,
 rough/glow/none texture, halo, endpoint inset, head style and placement, head
 dimensions, and wobble. The Theme Engine continues to calculate relationship
 endpoints from the invariant graph; no pack can change which locations are
-related.
+related. A bounded `variation` block independently perturbs width, wobble,
+dash rhythm, opacity, and marker scale from a stable relationship seed. This
+keeps a hand-made or natural network from becoming machine-stamped without
+making a connector flicker between renders.
 
 ### Tiles
 
@@ -160,6 +164,19 @@ titles within declared minimum and maximum sizes. The validator proves the
 safe area remains inside the rendered silhouette at desktop and phone sizes.
 Base and expanded states keep the same Theme Instance identity and factor
 selection even when their artwork differs.
+
+Each location also declares inert transform and motion channels. `transforms`
+owns independent base and expanded rotation and X/Y offset plus a detail
+rotation for real-world elements such as tape. `motion` provides small bounded
+per-location offsets to the pack-selected motion preset. Optional `typography`
+and `layout` blocks let a pack fit a difficult real title or choose a different
+expanded object proportion without runtime knowledge of the theme or title.
+
+When `theme.json` references a pack-local `background` SVG, the engine renders
+that sanitized artwork across the moving Board field. This is the preferred
+slot for irregular stars, water currents, paper grain, or another
+non-repeating environment. CSS background tokens remain available for real
+materials whose repetition is intentional.
 
 Compiled SVG assets may use pack color variables but cannot contain
 scripts, remote resources, event handlers, `foreignObject`, or navigation.
@@ -285,7 +302,7 @@ enabled packs through the runtime registry:
 
 Theme Pack v1 is complete only when:
 
-- Canonical and all four alternate themes render through the Theme Engine with
+- Canonical and every enabled alternate theme render through the Theme Engine with
   no theme IDs, colors, SVG geometry, or document styling hardcoded in engine
   source.
 - A test fixture pack is installed and discovered using pack files alone.

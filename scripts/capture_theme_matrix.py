@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Capture the 50-view owner-review matrix for the Theme Laboratory."""
+"""Capture the enabled-theme owner-review matrix for the Theme Laboratory."""
 
 from __future__ import annotations
 
@@ -111,8 +111,9 @@ def main() -> None:
     origin = f"http://{browser_host}:{port}"
     scenes = ("home", "nested", "text-document", "media-document", "focus")
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    for previous_capture in OUTPUT.glob("*.webp"):
-        previous_capture.unlink()
+    for suffix in ("*.webp", "*.png"):
+        for previous_capture in OUTPUT.glob(suffix):
+            previous_capture.unlink()
 
     try:
         with sync_playwright() as playwright:

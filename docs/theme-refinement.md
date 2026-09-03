@@ -1,6 +1,6 @@
 # Theme Refinement Specification
 
-Status: **Implementation complete — awaiting owner review**
+Status: **Superseded in part by `theme-naturalism-restoration.md`**
 
 This is the source of truth for the current theme-refinement discussion. It
 exists so an implementation goal can reference a stable artifact instead of
@@ -10,6 +10,12 @@ soon as they are made; unresolved choices remain explicit.
 The active goal authorizes source changes, tests, captures, local hosting, and
 commits on `pilot/modular-theme-engine`. It does not authorize pushing, merging,
 deployment, production changes, or changes to `main`.
+
+Owner review after this pass approved Lily Pond and Planets and Constellations,
+retained Island Chain with targeted cleanup, rejected the current Cloudscape,
+and found that Canonical Paper still failed to preserve the original's natural
+variation. `docs/theme-naturalism-restoration.md` is authoritative for that
+follow-up goal and its updated theme dispositions.
 
 ## Working process
 

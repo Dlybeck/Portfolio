@@ -6,8 +6,8 @@
   "tiles": "tiles.json",
   "presentation": "presentation.json",
   "selection": {
-    "enabled": true,
-    "randomEligible": true,
+    "enabled": false,
+    "randomEligible": false,
     "randomWeight": 1
   }
 }

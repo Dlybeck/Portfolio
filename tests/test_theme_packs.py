@@ -98,7 +98,26 @@ def write_compiled_tiles(
                 "accent": index % 5,
                 "detail": index % 7,
             },
-            "rotationDegrees": index % 9 - 4,
+            "transforms": {
+                "base": {
+                    "rotationDegrees": index % 9 - 4,
+                    "offsetXPixels": index % 5 - 2,
+                    "offsetYPixels": index % 7 - 3,
+                },
+                "expanded": {
+                    "rotationDegrees": (index * 3) % 9 - 4,
+                    "offsetXPixels": (index * 2) % 5 - 2,
+                    "offsetYPixels": (index * 3) % 7 - 3,
+                },
+                "detailRotationDegrees": index % 11 - 5,
+            },
+            "motion": {
+                "durationOffsetMilliseconds": index % 21 - 10,
+                "rotationOffsetDegrees": index % 5 - 2,
+                "offsetXPixels": index % 3 - 1,
+                "offsetYPixels": (index * 2) % 3 - 1,
+                "scaleOffset": 0,
+            },
         }
         for index, title in enumerate(titles)
     }
@@ -137,6 +156,13 @@ def write_presentation(root: Path, pack_id: str) -> None:
                     "haloWidth": 1,
                     "haloOpacity": 0,
                     "insetFactor": 9,
+                    "variation": {
+                        "strokeWidth": 0,
+                        "wobble": 0,
+                        "dash": 0,
+                        "opacity": 0,
+                        "markerScale": 0,
+                    },
                 },
             }
         ),
@@ -262,9 +288,13 @@ def test_repository_theme_catalog_is_discovered_from_pack_directories() -> None:
 
 def test_authoring_audits_discover_every_enabled_pack_from_the_registry() -> None:
     registry = ThemePackRegistry.discover()
+    enabled_ids = tuple(
+        pack.id for pack in registry.packs if pack.selection.enabled
+    )
 
-    assert audit_theme_ids(registry) == registry.ids
-    assert review_theme_ids(registry) == registry.ids
+    assert audit_theme_ids(registry) == enabled_ids
+    assert review_theme_ids(registry) == enabled_ids
+    assert "clouds" not in enabled_ids
 
 
 def test_machine_schemas_publish_the_exact_runtime_contract() -> None:
@@ -279,7 +309,10 @@ def test_machine_schemas_publish_the_exact_runtime_contract() -> None:
 
     assert set(presentation["properties"]["board"]["required"]) == BOARD_PRESENTATION_TOKENS
     assert set(presentation["properties"]["document"]["required"]) == DOCUMENT_PRESENTATION_TOKENS
+    assert "variation" in presentation["properties"]["connectors"]["required"]
     assert set(tiles["properties"]["assignments"]["required"]) == BOARD_LOCATIONS
+    assignment = tiles["properties"]["assignments"]["properties"]["Home"]
+    assert {"transforms", "motion"} <= set(assignment["required"])
 
 
 def test_scaffolded_pack_validates_without_engine_source_changes(tmp_path: Path) -> None:
@@ -517,6 +550,33 @@ def test_every_repository_pack_has_the_complete_visual_contract() -> None:
         assert set(payload["variables"]["board"]) == BOARD_PRESENTATION_TOKENS
         assert set(payload["variables"]["document"]) == DOCUMENT_PRESENTATION_TOKENS
         assert payload["connectors"]["color"]
+        assert "variation" in payload["connectors"]
+        assert all(
+            {"transforms", "motion"} <= set(assignment)
+            for assignment in payload["tiles"]["assignments"].values()
+        )
+
+
+def test_repository_selection_excludes_disabled_cloudscape() -> None:
+    registry = ThemePackRegistry.discover()
+
+    assert registry.resolve("clouds", enabled=True).id == "canonical"
+    assert "clouds" not in {pack.id for pack in registry.random_candidates}
+    assert "clouds" not in {entry["key"] for entry in registry.public_catalog()}
+
+
+def test_repository_background_art_is_pack_owned_and_irregular() -> None:
+    registry = ThemePackRegistry.discover()
+    payloads = {
+        pack_id: registry.resolve(pack_id, enabled=True).client_payload()
+        for pack_id in ("canonical", "planets", "islands", "lily")
+    }
+
+    assert "feTurbulence" in payloads["canonical"]["backgroundSvg"]
+    assert payloads["planets"]["backgroundSvg"].count("<circle") == 520
+    assert "<pattern" not in payloads["planets"]["backgroundSvg"]
+    assert payloads["islands"]["backgroundSvg"].count("<path") == 46
+    assert payloads["lily"]["backgroundSvg"] is None
 
 
 def test_visual_pack_cannot_install_only_half_of_its_visual_language(

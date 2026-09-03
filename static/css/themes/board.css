@@ -118,8 +118,8 @@ html[data-theme-pack-visual] .tile-container.expanded:hover {
 html[data-theme-pack-visual] .tile-expanded,
 html[data-theme-pack-visual] .tile-container.sticky .tile-expanded,
 html[data-theme-pack-visual] .tile-container.scrap .tile-expanded {
-  width: var(--theme-pack-expanded-width);
-  min-height: var(--theme-pack-expanded-min-height);
+  width: var(--theme-location-expanded-width, var(--theme-pack-expanded-width));
+  min-height: var(--theme-location-expanded-min-height, var(--theme-pack-expanded-min-height));
 }
 
 html[data-theme-pack-visual] .tile-base > .tape,
@@ -181,30 +181,37 @@ html[data-theme-pack-visual] .tile-container .scrap-title::after {
 }
 
 html[data-theme-pack-visual] .scrap-title {
-  color: var(--theme-pack-ink) !important;
-  font-family: var(--theme-pack-font-base-title) !important;
+  color: var(--theme-location-ink, var(--theme-pack-ink)) !important;
+  font-family: var(--theme-location-base-font, var(--theme-pack-font-base-title)) !important;
   font-size: var(--theme-pack-base-title-size);
   font-weight: var(--theme-pack-font-base-title-weight);
+  letter-spacing: var(--theme-location-base-letter-spacing, normal);
   line-height: var(--theme-pack-base-title-line-height);
   text-shadow: var(--theme-pack-text-shadow);
   max-width: 100%;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+  text-wrap: balance;
 }
 
 html[data-theme-pack-visual] .expanded-title {
-  color: var(--theme-pack-ink) !important;
-  font-family: var(--theme-pack-font-expanded-title) !important;
+  color: var(--theme-location-ink, var(--theme-pack-ink)) !important;
+  font-family: var(--theme-location-expanded-title-font, var(--theme-pack-font-expanded-title)) !important;
   font-size: var(--theme-pack-expanded-title-size);
   font-weight: var(--theme-pack-font-expanded-title-weight);
   line-height: var(--theme-pack-expanded-title-line-height);
   text-shadow: var(--theme-pack-text-shadow);
   max-width: 100%;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+  text-wrap: balance;
 }
 
 html[data-theme-pack-visual] .expanded-text {
-  color: var(--theme-pack-ink) !important;
-  font-family: var(--theme-pack-font-expanded-text) !important;
+  color: var(--theme-location-ink, var(--theme-pack-ink)) !important;
+  font-family: var(--theme-location-expanded-text-font, var(--theme-pack-font-expanded-text)) !important;
   font-size: var(--theme-pack-expanded-text-size);
   font-weight: var(--theme-pack-font-expanded-text-weight);
   line-height: var(--theme-pack-expanded-text-line-height);
@@ -293,12 +300,18 @@ html[data-theme-pack-visual] .mini-window-container.closing {
 }
 
 html[data-theme-pack-visual] .tile-container.expanded .tile-expanded {
-  animation-duration: var(--theme-pack-cover-enter-duration);
+  animation-duration: var(--theme-motion-enter-duration, var(--theme-pack-cover-enter-duration));
 }
 
 html[data-theme-pack-visual] .tile-container.cover-leaving-up .tile-expanded,
 html[data-theme-pack-visual] .tile-container.cover-leaving-down .tile-expanded {
-  animation-duration: var(--theme-pack-cover-exit-duration);
+  animation-duration: var(--theme-motion-exit-duration, var(--theme-pack-cover-exit-duration));
+}
+
+html[data-theme-pack-visual] [data-theme-detail] {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(var(--theme-detail-rotation, 0deg));
 }
 
 html[data-theme-pack-visual] .navbar {
@@ -419,8 +432,8 @@ html[data-theme-pack-visual] .tile-base:focus-visible .theme-object {
   html[data-theme-pack-visual] .tile-expanded,
   html[data-theme-pack-visual] .tile-container.sticky .tile-expanded,
   html[data-theme-pack-visual] .tile-container.scrap .tile-expanded {
-    width: var(--theme-pack-phone-expanded-width);
-    min-height: var(--theme-pack-phone-expanded-min-height);
+    width: var(--theme-location-phone-expanded-width, var(--theme-pack-phone-expanded-width));
+    min-height: var(--theme-location-phone-expanded-min-height, var(--theme-pack-phone-expanded-min-height));
   }
   html[data-theme-pack-visual] .tile-expanded .expanded-text {
     font-size: var(--theme-pack-phone-expanded-text-size);

@@ -23,8 +23,8 @@
     "focus": "#8fe9ff",
     "text-shadow": "0 2px 3px rgba(13, 18, 49, .85)",
     "board-bg-color": "#10152f",
-    "board-bg-image": "radial-gradient(circle at 18% 23%, #fff 0 1px, transparent 1.8px), radial-gradient(circle at 76% 38%, #b7d9ff 0 1.2px, transparent 2px), radial-gradient(circle at 44% 78%, #ffe5a6 0 1px, transparent 2px), radial-gradient(ellipse at 52% 47%, rgba(84, 66, 133, .45), transparent 60%), linear-gradient(145deg, #0c1028, #1c2454 58%, #10142d)",
-    "board-bg-size": "92px 87px, 151px 129px, 207px 173px, auto, auto",
+    "board-bg-image": "radial-gradient(ellipse at 52% 47%, rgba(84, 66, 133, .45), transparent 60%), linear-gradient(145deg, #0c1028, #1c2454 58%, #10142d)",
+    "board-bg-size": "auto, auto",
     "ambient-bg": "linear-gradient(28deg, transparent 48%, rgba(144, 183, 226, .12) 49%, rgba(144, 183, 226, .12) 50%, transparent 51%)",
     "ambient-mark-width": "0px",
     "ambient-mark-height": "0px",
@@ -139,7 +139,7 @@
     "tile-size": "var(--tile-size)",
     "expanded-width": "360px",
     "expanded-min-height": "320px",
-    "phone-tile-size": "116px",
+    "phone-tile-size": "128px",
     "phone-expanded-width": "350px",
     "phone-expanded-min-height": "330px",
     "expanded-gap": "9px",
@@ -265,6 +265,13 @@
     "textureColor": "#b7d9ff",
     "haloWidth": 2.2,
     "haloOpacity": 0.28,
-    "insetFactor": 9
+    "insetFactor": 9,
+    "variation": {
+      "strokeWidth": 0.18,
+      "wobble": 0.025,
+      "dash": 0.32,
+      "opacity": 0.12,
+      "markerScale": 0
+    }
   }
 }

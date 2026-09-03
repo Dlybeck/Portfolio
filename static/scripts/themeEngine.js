@@ -61,7 +61,10 @@
                 const assignment = assignments[title];
                 return assignment
                     && typeof assignment.baseSvg === "string"
-                    && typeof assignment.expandedSvg === "string";
+                    && typeof assignment.expandedSvg === "string"
+                    && assignment.transforms?.base
+                    && assignment.transforms?.expanded
+                    && assignment.motion;
             });
     }
 
@@ -89,7 +92,9 @@
             renamed.set(oldId, newId);
             element.id = newId;
         });
-        const referenceAttributes = ["href", "mask", "clip-path", "fill", "stroke"];
+        const referenceAttributes = [
+            "href", "mask", "clip-path", "fill", "stroke", "filter"
+        ];
         svg.querySelectorAll("*").forEach((element) => {
             referenceAttributes.forEach((name) => {
                 const value = element.getAttribute(name);
@@ -132,7 +137,10 @@
             .sort(([left], [right]) => left.localeCompare(right))
             .map(([name, value]) => `${name}:${value}`)
             .join("|");
-        const rotation = Number(assignment.rotation || 0);
+        const transform = expanded
+            ? assignment.transforms?.expanded
+            : assignment.transforms?.base;
+        const rotation = Number(transform?.rotationDegrees || 0);
         svg.style.setProperty("--theme-rotation-degrees", `${rotation}deg`);
         return svg;
     }
@@ -283,7 +291,9 @@
     }
 
     function cleanWorld() {
-        document.querySelectorAll("[data-theme-object], [data-theme-ambient]")
+        document.querySelectorAll(
+            "[data-theme-object], [data-theme-ambient], [data-theme-background]"
+        )
             .forEach((node) => node.remove());
         document.querySelectorAll(".tile-container").forEach((tile) => {
             delete tile.dataset.themeIdentity;
@@ -309,7 +319,36 @@
             });
             tile.querySelectorAll(".scrap-title, .expanded-title, .expanded-text, .expanded-open")
                 .forEach((element) => element.style.removeProperty("font-size"));
+            [
+                "--theme-detail-rotation", "--theme-motion-enter-duration",
+                "--theme-motion-exit-duration", "--theme-motion-rotation-offset",
+                "--theme-motion-offset-x", "--theme-motion-offset-y",
+                "--theme-motion-scale-offset", "--theme-location-base-font",
+                "--theme-location-expanded-title-font",
+                "--theme-location-expanded-text-font", "--theme-location-ink",
+                "--theme-location-base-letter-spacing",
+                "--theme-location-expanded-width",
+                "--theme-location-expanded-min-height",
+                "--theme-location-phone-expanded-width",
+                "--theme-location-phone-expanded-min-height",
+            ].forEach((name) => tile.style.removeProperty(name));
         });
+    }
+
+    function addBackground(pack) {
+        if (!pack.backgroundSvg) return;
+        const parser = new DOMParser();
+        const parsed = parser.parseFromString(pack.backgroundSvg, "image/svg+xml");
+        if (parsed.querySelector("parsererror") || parsed.documentElement.localName !== "svg") {
+            throw new Error(`Theme Pack ${pack.id} supplied an invalid background SVG`);
+        }
+        const background = document.importNode(parsed.documentElement, true);
+        namespaceSvgIds(background, `${pack.id}-background`);
+        background.classList.add("theme-background");
+        background.dataset.themeBackground = pack.id;
+        background.setAttribute("aria-hidden", "true");
+        background.setAttribute("focusable", "false");
+        document.querySelector(".map")?.prepend(background);
     }
 
     function addAmbient(pack) {
@@ -347,9 +386,96 @@
             const expandedBody = tile.querySelector(".tile-expanded .paper-body");
             const baseSvg = svgElement(pack, title, assignment, false);
             const expandedSvg = svgElement(pack, title, assignment, true);
-            const rotation = `${Number(assignment.rotation || 0)}deg`;
-            tile.style.setProperty("--rot", rotation);
-            tile.style.setProperty("--rot-expanded", rotation);
+            const baseTransform = assignment.transforms.base;
+            const expandedTransform = assignment.transforms.expanded;
+            const motion = assignment.motion;
+            tile.style.setProperty(
+                "--rot", `${Number(baseTransform.rotationDegrees || 0)}deg`
+            );
+            tile.style.setProperty(
+                "--rot-expanded",
+                `${Number(expandedTransform.rotationDegrees || 0)}deg`
+            );
+            tile.style.setProperty(
+                "--jitter-x", `${Number(baseTransform.offsetXPixels || 0)}px`
+            );
+            tile.style.setProperty(
+                "--jitter-y", `${Number(baseTransform.offsetYPixels || 0)}px`
+            );
+            tile.style.setProperty(
+                "--expanded-jitter-x",
+                `${Number(expandedTransform.offsetXPixels || 0)}px`
+            );
+            tile.style.setProperty(
+                "--expanded-jitter-y",
+                `${Number(expandedTransform.offsetYPixels || 0)}px`
+            );
+            tile.style.setProperty(
+                "--theme-detail-rotation",
+                `${Number(assignment.transforms.detailRotationDegrees || 0)}deg`
+            );
+            const durationOffset = Number(motion.durationOffsetMilliseconds || 0);
+            tile.style.setProperty(
+                "--theme-motion-enter-duration",
+                `calc(var(--theme-pack-cover-enter-duration) + ${durationOffset}ms)`
+            );
+            tile.style.setProperty(
+                "--theme-motion-exit-duration",
+                `calc(var(--theme-pack-cover-exit-duration) + ${Math.round(durationOffset * .7)}ms)`
+            );
+            tile.style.setProperty(
+                "--theme-motion-rotation-offset",
+                `${Number(motion.rotationOffsetDegrees || 0)}deg`
+            );
+            tile.style.setProperty(
+                "--theme-motion-offset-x", `${Number(motion.offsetXPixels || 0)}px`
+            );
+            tile.style.setProperty(
+                "--theme-motion-offset-y", `${Number(motion.offsetYPixels || 0)}px`
+            );
+            tile.style.setProperty(
+                "--theme-motion-scale-offset", Number(motion.scaleOffset || 0)
+            );
+            if (assignment.typography) {
+                tile.style.setProperty(
+                    "--theme-location-base-font", assignment.typography.baseFontFamily
+                );
+                tile.style.setProperty(
+                    "--theme-location-expanded-title-font",
+                    assignment.typography.expandedTitleFontFamily
+                );
+                tile.style.setProperty(
+                    "--theme-location-expanded-text-font",
+                    assignment.typography.expandedTextFontFamily
+                );
+                tile.style.setProperty(
+                    "--theme-location-ink", assignment.typography.inkColor
+                );
+                if (assignment.typography.baseLetterSpacing) {
+                    tile.style.setProperty(
+                        "--theme-location-base-letter-spacing",
+                        assignment.typography.baseLetterSpacing
+                    );
+                }
+            }
+            if (assignment.layout) {
+                tile.style.setProperty(
+                    "--theme-location-expanded-width",
+                    assignment.layout.expandedWidth
+                );
+                tile.style.setProperty(
+                    "--theme-location-expanded-min-height",
+                    assignment.layout.expandedMinHeight
+                );
+                tile.style.setProperty(
+                    "--theme-location-phone-expanded-width",
+                    assignment.layout.phoneExpandedWidth
+                );
+                tile.style.setProperty(
+                    "--theme-location-phone-expanded-min-height",
+                    assignment.layout.phoneExpandedMinHeight
+                );
+            }
             if (baseBody) {
                 applyContentArea(baseBody, baseSvg);
                 baseBody.prepend(baseSvg);
@@ -359,6 +485,7 @@
                 expandedBody.prepend(expandedSvg);
             }
         });
+        addBackground(pack);
         addAmbient(pack);
         scheduleContentFit();
     }

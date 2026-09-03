@@ -23,8 +23,8 @@
     "focus": "#fff19b",
     "text-shadow": "0 2px 2px rgba(18, 66, 58, .9)",
     "board-bg-color": "#287f9d",
-    "board-bg-image": "repeating-radial-gradient(ellipse at 22% 31%, transparent 0 35px, rgba(207, 242, 237, .16) 36px 38px, transparent 39px 75px), repeating-radial-gradient(ellipse at 76% 69%, transparent 0 44px, rgba(207, 242, 237, .12) 45px 47px, transparent 48px 91px), linear-gradient(145deg, #1d6f91, #3a93a9 55%, #226f91)",
-    "board-bg-size": "420px 280px, 520px 360px, auto",
+    "board-bg-image": "linear-gradient(145deg, #1d6f91, #3a93a9 55%, #226f91)",
+    "board-bg-size": "auto",
     "ambient-bg": "transparent",
     "ambient-mark-width": "230px",
     "ambient-mark-height": "100px",
@@ -265,6 +265,13 @@
     "textureColor": "#bce8e2",
     "haloWidth": 1.25,
     "haloOpacity": 0.1,
-    "insetFactor": 9
+    "insetFactor": 9,
+    "variation": {
+      "strokeWidth": 0.16,
+      "wobble": 0.035,
+      "dash": 0.24,
+      "opacity": 0.1,
+      "markerScale": 0
+    }
   }
 }

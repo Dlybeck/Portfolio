@@ -140,7 +140,26 @@ def main() -> int:
             "base": f"assets/tiles/{name}-base.svg",
             "expanded": f"assets/tiles/{name}-expanded.svg",
             "factors": factors,
-            "rotationDegrees": (value % 9) - 4,
+            "transforms": {
+                "base": {
+                    "rotationDegrees": (value % 9) - 4,
+                    "offsetXPixels": (value // 11) % 7 - 3,
+                    "offsetYPixels": (value // 17) % 7 - 3,
+                },
+                "expanded": {
+                    "rotationDegrees": (value // 23) % 9 - 4,
+                    "offsetXPixels": (value // 29) % 7 - 3,
+                    "offsetYPixels": (value // 37) % 7 - 3,
+                },
+                "detailRotationDegrees": (value // 43) % 13 - 6,
+            },
+            "motion": {
+                "durationOffsetMilliseconds": (value // 47) % 61 - 30,
+                "rotationOffsetDegrees": (value // 53) % 5 - 2,
+                "offsetXPixels": (value // 59) % 5 - 2,
+                "offsetYPixels": (value // 67) % 5 - 2,
+                "scaleOffset": 0,
+            },
         }
     write_json(pack / "tiles.json", {"assignments": assignments})
     print(pack)

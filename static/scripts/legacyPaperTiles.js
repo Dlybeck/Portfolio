@@ -21,6 +21,13 @@
         textureColor: "#f3efe2",
         haloWidth: 1.55,
         haloOpacity: .16,
+        variation: {
+            strokeWidth: 0,
+            wobble: 0,
+            dash: 0,
+            opacity: 0,
+            markerScale: 0,
+        },
     };
 
     const STICKY_COLORS = [

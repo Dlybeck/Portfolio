@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 from pathlib import Path
 import re
@@ -28,6 +29,50 @@ VIEW_BOXES = {
 
 def slug(title: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+
+
+def deterministic_value(theme: str, title: str, channel: str) -> int:
+    digest = hashlib.sha256(f"{theme}|{title}|{channel}".encode()).digest()
+    return int.from_bytes(digest[:4], "big")
+
+
+def assignment_variation(
+    theme: str, title: str, rotation: float
+) -> tuple[dict[str, object], dict[str, int | float]]:
+    # Preserve the accepted static alternate artwork. The separate fields are
+    # available to future packs without forcing motion or placement changes on
+    # worlds that already passed owner review.
+    transforms = {
+        "base": {
+            "rotationDegrees": rotation,
+            "offsetXPixels": 0,
+            "offsetYPixels": 0,
+        },
+        "expanded": {
+            "rotationDegrees": rotation,
+            "offsetXPixels": 0,
+            "offsetYPixels": 0,
+        },
+        "detailRotationDegrees": 0,
+    }
+    if theme in {"planets", "islands"}:
+        seed = deterministic_value(theme, title, "motion")
+        motion = {
+            "durationOffsetMilliseconds": seed % 41 - 20,
+            "rotationOffsetDegrees": round(((seed // 41) % 201) / 200 - .5, 2),
+            "offsetXPixels": round(((seed // 201) % 201) / 100 - 1, 2),
+            "offsetYPixels": round(((seed // 40401) % 201) / 100 - 1, 2),
+            "scaleOffset": round(((seed // 809) % 11) / 1000 - .005, 3),
+        }
+    else:
+        motion = {
+            "durationOffsetMilliseconds": 0,
+            "rotationOffsetDegrees": 0,
+            "offsetXPixels": 0,
+            "offsetYPixels": 0,
+            "scaleOffset": 0,
+        }
+    return transforms, motion
 
 
 def main() -> None:
@@ -134,7 +179,7 @@ def main() -> None:
                                     ? [best.x, best.y, best.width, best.height]
                                     : options.fallback;
                             }
-                            const safeArea = fittedSafeArea();
+                            const safeArea = options.safeOverride || fittedSafeArea();
                             const clone = source.cloneNode(true);
                             const originals = [source, ...source.querySelectorAll('*')];
                             const copies = [clone, ...clone.querySelectorAll('*')];
@@ -211,6 +256,13 @@ def main() -> None:
                             "theme": theme,
                             "slug": slug(title),
                             "viewBox": VIEW_BOXES.get((theme, state)),
+                            "safeOverride": (
+                                [56, 62, 88, 42]
+                                if theme == "planets"
+                                and state == "base"
+                                and title in {"Work Experience", "ScribbleScan"}
+                                else None
+                            ),
                         },
                     )
                     asset_name = f"{slug(title)}-{state}.svg"
@@ -219,10 +271,15 @@ def main() -> None:
                     )
                     paths[state] = f"assets/tiles/{asset_name}"
                     factors = factors or exported["factors"]
+                rotation = (factors or {}).get("orientation", 8) - 8
+                transforms, motion = assignment_variation(
+                    theme, title, rotation
+                )
                 assignments[title] = {
                     **paths,
                     "factors": factors,
-                    "rotationDegrees": (factors or {}).get("orientation", 8) - 8,
+                    "transforms": transforms,
+                    "motion": motion,
                 }
             (ROOT / "static" / "themes" / theme / "tiles.json").write_text(
                 json.dumps({"assignments": assignments}, indent=2) + "\n",

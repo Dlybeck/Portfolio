@@ -127,6 +127,9 @@ SVG_TAGS = frozenset(
         "defs",
         "desc",
         "ellipse",
+        "feColorMatrix",
+        "feTurbulence",
+        "filter",
         "g",
         "line",
         "linearGradient",
@@ -146,6 +149,7 @@ SVG_TAGS = frozenset(
 SVG_ATTRIBUTES = frozenset(
     {
         "aria-hidden",
+        "baseFrequency",
         "class",
         "clip-path",
         "clipPathUnits",
@@ -154,6 +158,8 @@ SVG_ATTRIBUTES = frozenset(
         "d",
         "fill",
         "fill-opacity",
+        "filter",
+        "filterUnits",
         "focusable",
         "gradientTransform",
         "gradientUnits",
@@ -162,6 +168,7 @@ SVG_ATTRIBUTES = frozenset(
         "id",
         "mask",
         "maskUnits",
+        "numOctaves",
         "offset",
         "opacity",
         "orient",
@@ -173,7 +180,9 @@ SVG_ATTRIBUTES = frozenset(
         "role",
         "rx",
         "ry",
+        "seed",
         "spreadMethod",
+        "stitchTiles",
         "stop-color",
         "stop-opacity",
         "stroke",
@@ -185,6 +194,8 @@ SVG_ATTRIBUTES = frozenset(
         "stroke-opacity",
         "stroke-width",
         "transform",
+        "type",
+        "values",
         "viewBox",
         "width",
         "x",
@@ -221,17 +232,84 @@ class ThemePackManifest(StrictModel):
     selection: ThemeSelection
     tiles: Literal["tiles.json"]
     presentation: Literal["presentation.json"]
+    background: str | None = None
+
+
+class TileTransform(StrictModel):
+    rotation_degrees: float = Field(alias="rotationDegrees", ge=-45, le=45)
+    offset_x_pixels: float = Field(alias="offsetXPixels", ge=-24, le=24)
+    offset_y_pixels: float = Field(alias="offsetYPixels", ge=-24, le=24)
+
+
+class TileTransforms(StrictModel):
+    base: TileTransform
+    expanded: TileTransform
+    detail_rotation_degrees: float = Field(
+        alias="detailRotationDegrees", ge=-45, le=45
+    )
+
+
+class TileMotionVariation(StrictModel):
+    duration_offset_milliseconds: int = Field(
+        alias="durationOffsetMilliseconds", ge=-150, le=150
+    )
+    rotation_offset_degrees: float = Field(
+        alias="rotationOffsetDegrees", ge=-12, le=12
+    )
+    offset_x_pixels: float = Field(alias="offsetXPixels", ge=-24, le=24)
+    offset_y_pixels: float = Field(alias="offsetYPixels", ge=-24, le=24)
+    scale_offset: float = Field(alias="scaleOffset", ge=-0.15, le=0.15)
+
+
+class TileTypography(StrictModel):
+    base_font_family: str = Field(
+        alias="baseFontFamily", min_length=1, max_length=200
+    )
+    expanded_title_font_family: str = Field(
+        alias="expandedTitleFontFamily", min_length=1, max_length=200
+    )
+    expanded_text_font_family: str = Field(
+        alias="expandedTextFontFamily", min_length=1, max_length=200
+    )
+    ink_color: str = Field(alias="inkColor", min_length=1, max_length=200)
+    base_letter_spacing: str | None = Field(
+        default=None, alias="baseLetterSpacing", min_length=1, max_length=200
+    )
+
+
+class TileLayout(StrictModel):
+    expanded_width: str = Field(alias="expandedWidth", min_length=1, max_length=200)
+    expanded_min_height: str = Field(
+        alias="expandedMinHeight", min_length=1, max_length=200
+    )
+    phone_expanded_width: str = Field(
+        alias="phoneExpandedWidth", min_length=1, max_length=200
+    )
+    phone_expanded_min_height: str = Field(
+        alias="phoneExpandedMinHeight", min_length=1, max_length=200
+    )
 
 
 class TileAssignment(StrictModel):
     base: str
     expanded: str
     factors: dict[str, int]
-    rotation_degrees: float = Field(alias="rotationDegrees", ge=-45, le=45)
+    transforms: TileTransforms
+    motion: TileMotionVariation
+    typography: TileTypography | None = None
+    layout: TileLayout | None = None
 
 
 class TileCatalog(StrictModel):
     assignments: dict[str, TileAssignment]
+
+
+class ConnectorVariation(StrictModel):
+    stroke_width: float = Field(alias="strokeWidth", ge=0, le=0.5)
+    wobble: float = Field(ge=0, le=0.25)
+    dash: float = Field(ge=0, le=0.5)
+    opacity: float = Field(ge=0, le=0.5)
+    marker_scale: float = Field(alias="markerScale", ge=0, le=0.5)
 
 
 class ConnectorPresentation(StrictModel):
@@ -251,6 +329,7 @@ class ConnectorPresentation(StrictModel):
     halo_width: float = Field(alias="haloWidth", ge=1, le=4)
     halo_opacity: float = Field(alias="haloOpacity", ge=0, le=1)
     inset_factor: float = Field(alias="insetFactor", ge=0, le=20)
+    variation: ConnectorVariation
 
 
 class ThemePresentation(StrictModel):
@@ -386,14 +465,28 @@ class CompiledTileAssignment:
     base_svg: str
     expanded_svg: str
     factors: tuple[tuple[str, int], ...]
-    rotation_degrees: float
+    transforms: TileTransforms
+    motion: TileMotionVariation
+    typography: TileTypography | None
+    layout: TileLayout | None
 
     def client_payload(self) -> dict[str, object]:
         return {
             "baseSvg": self.base_svg,
             "expandedSvg": self.expanded_svg,
             "factors": dict(self.factors),
-            "rotation": self.rotation_degrees,
+            "transforms": self.transforms.model_dump(by_alias=True),
+            "motion": self.motion.model_dump(by_alias=True),
+            "typography": (
+                self.typography.model_dump(by_alias=True, exclude_none=True)
+                if self.typography is not None
+                else None
+            ),
+            "layout": (
+                self.layout.model_dump(by_alias=True)
+                if self.layout is not None
+                else None
+            ),
         }
 
 
@@ -406,6 +499,7 @@ class LoadedThemePack:
     board_variables: tuple[tuple[str, str], ...]
     document_variables: tuple[tuple[str, str], ...]
     connectors: ConnectorPresentation
+    background_svg: str | None
 
     @property
     def id(self) -> str:
@@ -437,6 +531,7 @@ class LoadedThemePack:
                 "document": dict(self.document_variables),
             },
             "connectors": self.connectors.model_dump(by_alias=True),
+            "backgroundSvg": self.background_svg,
         }
 
 
@@ -518,6 +613,49 @@ def _compiled_tiles(pack_root: Path, reference: str) -> tuple[tuple[str, Compile
             raise InvalidThemeAsset(
                 f"tile assignment {title!r} must provide distinct base and expanded artwork"
             )
+        typography = assignment.typography
+        if typography is not None:
+            typography = typography.model_copy(update={
+                "base_font_family": _safe_theme_value(
+                    "tile-base-font-family", typography.base_font_family
+                ),
+                "expanded_title_font_family": _safe_theme_value(
+                    "tile-expanded-title-font-family",
+                    typography.expanded_title_font_family,
+                ),
+                "expanded_text_font_family": _safe_theme_value(
+                    "tile-expanded-text-font-family",
+                    typography.expanded_text_font_family,
+                ),
+                "ink_color": _safe_theme_value(
+                    "tile-ink-color", typography.ink_color
+                ),
+                "base_letter_spacing": (
+                    _safe_theme_value(
+                        "tile-base-letter-spacing",
+                        typography.base_letter_spacing,
+                    )
+                    if typography.base_letter_spacing is not None
+                    else None
+                ),
+            })
+        layout = assignment.layout
+        if layout is not None:
+            layout = layout.model_copy(update={
+                "expanded_width": _safe_theme_value(
+                    "tile-expanded-width", layout.expanded_width
+                ),
+                "expanded_min_height": _safe_theme_value(
+                    "tile-expanded-min-height", layout.expanded_min_height
+                ),
+                "phone_expanded_width": _safe_theme_value(
+                    "tile-phone-expanded-width", layout.phone_expanded_width
+                ),
+                "phone_expanded_min_height": _safe_theme_value(
+                    "tile-phone-expanded-min-height",
+                    layout.phone_expanded_min_height,
+                ),
+            })
         compiled.append(
             (
                 title,
@@ -525,7 +663,10 @@ def _compiled_tiles(pack_root: Path, reference: str) -> tuple[tuple[str, Compile
                     base_svg=base_svg,
                     expanded_svg=expanded_svg,
                     factors=tuple(sorted(assignment.factors.items())),
-                    rotation_degrees=assignment.rotation_degrees,
+                    transforms=assignment.transforms,
+                    motion=assignment.motion,
+                    typography=typography,
+                    layout=layout,
                 ),
             )
         )
@@ -626,12 +767,18 @@ def load_theme_pack(pack_dir: Path) -> LoadedThemePack:
     board_variables, document_variables, connectors = _presentation(
         pack_dir, manifest.presentation
     )
+    background_svg = (
+        sanitized_svg_asset(pack_dir, manifest.background)
+        if manifest.background is not None
+        else None
+    )
     return LoadedThemePack(
         manifest=manifest,
         tiles=_compiled_tiles(pack_dir, manifest.tiles),
         board_variables=board_variables,
         document_variables=document_variables,
         connectors=connectors,
+        background_svg=background_svg,
     )
 
 

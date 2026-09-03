@@ -3068,6 +3068,44 @@
           "type": "number",
           "minimum": 0,
           "maximum": 20
+        },
+        "variation": {
+          "type": "object",
+          "properties": {
+            "strokeWidth": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 0.5
+            },
+            "wobble": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 0.25
+            },
+            "dash": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 0.5
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 0.5
+            },
+            "markerScale": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 0.5
+            }
+          },
+          "required": [
+            "strokeWidth",
+            "wobble",
+            "dash",
+            "opacity",
+            "markerScale"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
@@ -3086,7 +3124,8 @@
         "textureColor",
         "haloWidth",
         "haloOpacity",
-        "insetFactor"
+        "insetFactor",
+        "variation"
       ],
       "additionalProperties": false
     }

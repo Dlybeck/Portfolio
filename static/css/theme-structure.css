@@ -124,6 +124,22 @@ body,
   transition: transform var(--theme-pack-navigation-transition-duration) var(--theme-pack-navigation-transition-easing);
 }
 
+.theme-background {
+  position: absolute;
+  top: -100vh;
+  left: -100vw;
+  width: 300vw;
+  height: 300vh;
+  z-index: 0;
+  pointer-events: none;
+  will-change: transform;
+  transform: translate3d(var(--wall-shift-x), var(--wall-shift-y), 0);
+}
+
+.map.wall-transition-ready .theme-background {
+  transition: transform var(--theme-pack-navigation-transition-duration) var(--theme-pack-navigation-transition-easing);
+}
+
 .map.panning { transition: none; }
 
 .tile-layer {
@@ -163,7 +179,8 @@ body,
   border: 0;
   background: transparent;
   font: inherit;
-  transform: rotate(var(--rot, 0deg));
+  transform: rotate(var(--rot, 0deg))
+    translate(var(--jitter-x, 0px), var(--jitter-y, 0px));
   transform-origin: center;
   transition: transform var(--theme-pack-tile-transition-duration) var(--theme-pack-navigation-transition-easing);
   will-change: transform;
@@ -185,7 +202,10 @@ body,
 .scrap-title {
   margin: 0;
   text-align: center;
-  word-break: break-word;
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
+  text-wrap: balance;
 }
 
 .tile-expanded {
@@ -214,21 +234,21 @@ body,
   visibility: visible;
   pointer-events: auto;
   z-index: 120;
-  animation: cover-enter var(--theme-pack-cover-enter-duration) var(--theme-pack-cover-enter-easing) both;
+  animation: cover-enter var(--theme-motion-enter-duration, var(--theme-pack-cover-enter-duration)) var(--theme-pack-cover-enter-easing) both;
 }
 
 .tile-container.cover-leaving-up .tile-expanded {
   visibility: visible;
   pointer-events: none;
   z-index: 110;
-  animation: cover-sweep-up var(--theme-pack-cover-exit-duration) var(--theme-pack-cover-exit-easing) both;
+  animation: cover-sweep-up var(--theme-motion-exit-duration, var(--theme-pack-cover-exit-duration)) var(--theme-pack-cover-exit-easing) both;
 }
 
 .tile-container.cover-leaving-down .tile-expanded {
   visibility: visible;
   pointer-events: none;
   z-index: 110;
-  animation: cover-sweep-down var(--theme-pack-cover-exit-duration) var(--theme-pack-cover-exit-easing) both;
+  animation: cover-sweep-down var(--theme-motion-exit-duration, var(--theme-pack-cover-exit-duration)) var(--theme-pack-cover-exit-easing) both;
 }
 
 .expanded-title { text-align: center; }
@@ -238,31 +258,53 @@ body,
 @keyframes cover-enter {
   0%, 25% {
     visibility: visible;
-    transform: translate(-50%, -50%) translateY(var(--theme-pack-cover-enter-offset))
-      rotate(calc(var(--rot-expanded, 0deg) + var(--theme-pack-cover-enter-rotation)))
-      scale(var(--theme-pack-cover-enter-scale));
+    transform: translate(-50%, -50%)
+      translate(
+        calc(var(--expanded-jitter-x, 0px) + var(--theme-motion-offset-x, 0px)),
+        calc(var(--expanded-jitter-y, 0px) + var(--theme-pack-cover-enter-offset) + var(--theme-motion-offset-y, 0px))
+      )
+      rotate(calc(var(--rot-expanded, 0deg) + var(--theme-pack-cover-enter-rotation) + var(--theme-motion-rotation-offset, 0deg)))
+      scale(calc(var(--theme-pack-cover-enter-scale) + var(--theme-motion-scale-offset, 0)));
   }
   100% {
     visibility: visible;
-    transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg));
+    transform: translate(-50%, -50%)
+      translate(var(--expanded-jitter-x, 0px), var(--expanded-jitter-y, 0px))
+      rotate(var(--rot-expanded, 0deg));
   }
 }
 
 @keyframes cover-sweep-up {
-  0%, 30% { transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg)); }
+  0%, 30% {
+    transform: translate(-50%, -50%)
+      translate(var(--expanded-jitter-x, 0px), var(--expanded-jitter-y, 0px))
+      rotate(var(--rot-expanded, 0deg));
+  }
   100% {
-    transform: translate(-50%, -50%) translateY(calc(0px - var(--theme-pack-cover-exit-offset)))
-      rotate(calc(var(--rot-expanded, 0deg) + var(--theme-pack-cover-exit-rotation)))
-      scale(var(--theme-pack-cover-exit-scale));
+    transform: translate(-50%, -50%)
+      translate(
+        calc(var(--expanded-jitter-x, 0px) + var(--theme-motion-offset-x, 0px)),
+        calc(var(--expanded-jitter-y, 0px) - var(--theme-pack-cover-exit-offset) + var(--theme-motion-offset-y, 0px))
+      )
+      rotate(calc(var(--rot-expanded, 0deg) + var(--theme-pack-cover-exit-rotation) + var(--theme-motion-rotation-offset, 0deg)))
+      scale(calc(var(--theme-pack-cover-exit-scale) + var(--theme-motion-scale-offset, 0)));
   }
 }
 
 @keyframes cover-sweep-down {
-  0%, 30% { transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg)); }
+  0%, 30% {
+    transform: translate(-50%, -50%)
+      translate(var(--expanded-jitter-x, 0px), var(--expanded-jitter-y, 0px))
+      rotate(var(--rot-expanded, 0deg));
+  }
   100% {
-    transform: translate(-50%, -50%) translateY(var(--theme-pack-cover-exit-offset))
-      rotate(calc(var(--rot-expanded, 0deg) - var(--theme-pack-cover-exit-rotation)))
-      scale(var(--theme-pack-cover-exit-scale));
+    transform: translate(-50%, -50%)
+      translate(
+        calc(var(--expanded-jitter-x, 0px) + var(--theme-motion-offset-x, 0px)),
+        calc(var(--expanded-jitter-y, 0px) + var(--theme-pack-cover-exit-offset) + var(--theme-motion-offset-y, 0px))
+      )
+      rotate(calc(var(--rot-expanded, 0deg) - var(--theme-pack-cover-exit-rotation) - var(--theme-motion-rotation-offset, 0deg)))
+      scale(calc(var(--theme-pack-cover-exit-scale) + var(--theme-motion-scale-offset, 0)));
   }
 }
 
@@ -270,13 +312,20 @@ body,
   0% {
     visibility: visible;
     opacity: .82;
-    transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg))
-      scale(var(--theme-pack-cover-enter-scale));
+    transform: translate(-50%, -50%)
+      translate(
+        calc(var(--expanded-jitter-x, 0px) + var(--theme-motion-offset-x, 0px)),
+        calc(var(--expanded-jitter-y, 0px) + var(--theme-motion-offset-y, 0px))
+      )
+      rotate(calc(var(--rot-expanded, 0deg) + var(--theme-motion-rotation-offset, 0deg)))
+      scale(calc(var(--theme-pack-cover-enter-scale) + var(--theme-motion-scale-offset, 0)));
   }
   100% {
     visibility: visible;
     opacity: 1;
-    transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg)) scale(1);
+    transform: translate(-50%, -50%)
+      translate(var(--expanded-jitter-x, 0px), var(--expanded-jitter-y, 0px))
+      rotate(var(--rot-expanded, 0deg)) scale(1);
   }
 }
 
@@ -284,13 +333,20 @@ body,
   0% {
     visibility: visible;
     opacity: 1;
-    transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg)) scale(1);
+    transform: translate(-50%, -50%)
+      translate(var(--expanded-jitter-x, 0px), var(--expanded-jitter-y, 0px))
+      rotate(var(--rot-expanded, 0deg)) scale(1);
   }
   100% {
     visibility: visible;
     opacity: .82;
-    transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg))
-      scale(var(--theme-pack-cover-exit-scale));
+    transform: translate(-50%, -50%)
+      translate(
+        calc(var(--expanded-jitter-x, 0px) + var(--theme-motion-offset-x, 0px)),
+        calc(var(--expanded-jitter-y, 0px) + var(--theme-motion-offset-y, 0px))
+      )
+      rotate(calc(var(--rot-expanded, 0deg) + var(--theme-motion-rotation-offset, 0deg)))
+      scale(calc(var(--theme-pack-cover-exit-scale) + var(--theme-motion-scale-offset, 0)));
   }
 }
 
@@ -298,13 +354,20 @@ body,
   0% {
     visibility: visible;
     opacity: 0;
-    transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg))
-      scale(var(--theme-pack-cover-enter-scale));
+    transform: translate(-50%, -50%)
+      translate(
+        calc(var(--expanded-jitter-x, 0px) + var(--theme-motion-offset-x, 0px)),
+        calc(var(--expanded-jitter-y, 0px) + var(--theme-motion-offset-y, 0px))
+      )
+      rotate(calc(var(--rot-expanded, 0deg) + var(--theme-motion-rotation-offset, 0deg)))
+      scale(calc(var(--theme-pack-cover-enter-scale) + var(--theme-motion-scale-offset, 0)));
   }
   100% {
     visibility: visible;
     opacity: 1;
-    transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg)) scale(1);
+    transform: translate(-50%, -50%)
+      translate(var(--expanded-jitter-x, 0px), var(--expanded-jitter-y, 0px))
+      rotate(var(--rot-expanded, 0deg)) scale(1);
   }
 }
 
@@ -312,13 +375,20 @@ body,
   0% {
     visibility: visible;
     opacity: 1;
-    transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg)) scale(1);
+    transform: translate(-50%, -50%)
+      translate(var(--expanded-jitter-x, 0px), var(--expanded-jitter-y, 0px))
+      rotate(var(--rot-expanded, 0deg)) scale(1);
   }
   100% {
     visibility: visible;
     opacity: 0;
-    transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg))
-      scale(var(--theme-pack-cover-exit-scale));
+    transform: translate(-50%, -50%)
+      translate(
+        calc(var(--expanded-jitter-x, 0px) + var(--theme-motion-offset-x, 0px)),
+        calc(var(--expanded-jitter-y, 0px) + var(--theme-motion-offset-y, 0px))
+      )
+      rotate(calc(var(--rot-expanded, 0deg) + var(--theme-motion-rotation-offset, 0deg)))
+      scale(calc(var(--theme-pack-cover-exit-scale) + var(--theme-motion-scale-offset, 0)));
   }
 }
 

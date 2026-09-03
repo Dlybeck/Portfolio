@@ -175,8 +175,9 @@ The goal is complete only when all of the following are demonstrated:
 
 ## Completion audit
 
-Current implementation commits: `f8b139b` (modular naturalism) and `01485d2`
-(literal Original Paper surface correction) on `pilot/modular-theme-engine`.
+Current implementation commits: `f8b139b` (modular naturalism), `01485d2`
+(literal Original Paper surface correction), and `a5bc9f3` (quiet Lily Pond
+water) on `pilot/modular-theme-engine`.
 
 | Proof | Current evidence | State |
 | --- | --- | --- |
@@ -184,11 +185,11 @@ Current implementation commits: `f8b139b` (modular naturalism) and `01485d2`
 | 2. Fidelity guard | `.venv/bin/python scripts/check_canonical_fidelity.py` reports `PASS: Canonical retains the original organic-variation controls`. | Complete |
 | 3. Declarative contract | Strict Pydantic models, generated JSON Schemas, SVG sanitization, pack discovery, and Theme Engine consumption cover background, transforms, detail rotation, motion variation, typography, layout, and connector variation. Runtime source contains no installed alternate-theme IDs. | Complete |
 | 4. Planets | Browser tests exercise every real title at phone and desktop sizes, including `3D Printing`; all remain whole and use at most two lines. The pack owns a deterministic 520-star non-pattern field and varied relationship styling. | Complete; owner visual confirmation pending |
-| 5. Lily | Only neutral contract fields were added to the accepted Lily assets and presentation. Current phone/desktop captures retain the approved art and Grow behavior. | Complete; owner visual confirmation pending |
+| 5. Lily | Current phone/desktop captures retain the approved pad art and Grow behavior. Owner feedback replaced the busy tiled water pattern with a sparse, non-repeating pack-owned ripple field. | Complete; owner visual confirmation pending |
 | 6. Islands | Generated assets remove arbitrary interior detail, retain the accepted coastlines and chain, and add an irregular 46-current background plus bounded connector variation. | Complete; owner visual confirmation pending |
 | 7. Clouds disabled | Cloudscape remains valid dormant material but has both `enabled` and `randomEligible` set false. Registry, selector, direct-request fallback, and random-selection tests cover the exclusion. | Complete |
 | 8. Interaction Structure | Pointer, touch, Tab, Shift+Tab, Enter, Space, Escape, direct entry, history, neighbor visibility/hit targets, reduced motion, document flow, and phone/desktop fitting are exercised by the browser suite. | Complete |
-| 9. Final evidence | The corrected repository run reports `182 passed in 161.11s`; all five installed packs validate; the fidelity guard passes; `tests/results/theme-lab/final` contains exactly 40 current WebP captures and no stale PNG captures. | Machine gates complete; owner review pending |
+| 9. Final evidence | The corrected repository run reports `183 passed in 163.68s`; all five installed packs validate; the fidelity guard passes; `tests/results/theme-lab/final` contains exactly 40 current WebP captures and no stale PNG captures. | Machine gates complete; owner review pending |
 
 The preview is served from this worktree on `0.0.0.0:51353`. The goal must
 remain active until the owner either approves these rendered states or gives
@@ -220,6 +221,25 @@ The focused browser regressions are:
 Both tests were observed failing before the correction and passing afterward.
 No Lily, Planets, or Islands presentation or asset was changed in this
 correction.
+
+### Owner correction: quiet Lily Pond water
+
+Owner phone review found Lily Pond's water background visually busy and
+repetitive. The cause was a fixed repeating-radial ripple layer combined with
+two separately tiled dot layers and two ambient rings. Lily now keeps the
+accepted pads, typography, connectors, Grow motion, documents, and navigation,
+while the water uses only its depth gradient plus a sparse deterministic SVG
+of ten uniquely placed ripple events across the full movable world. The SVG
+contains no pattern element, and the ambient rings are disabled.
+
+The focused regression was observed failing before the correction and passing
+afterward:
+
+```bash
+.venv/bin/pytest -q \
+  tests/test_themes.py::test_lily_uses_sparse_pack_owned_water_instead_of_a_tiled_ripple_pattern \
+  tests/test_theme_packs.py::test_repository_background_art_is_pack_owned_and_irregular
+```
 
 ## Scope, authority, and delivery
 

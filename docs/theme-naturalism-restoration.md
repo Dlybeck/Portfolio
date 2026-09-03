@@ -175,7 +175,8 @@ The goal is complete only when all of the following are demonstrated:
 
 ## Completion audit
 
-Current implementation commit: `f8b139b` on `pilot/modular-theme-engine`.
+Current implementation commits: `f8b139b` (modular naturalism) and `01485d2`
+(literal Original Paper surface correction) on `pilot/modular-theme-engine`.
 
 | Proof | Current evidence | State |
 | --- | --- | --- |
@@ -187,11 +188,38 @@ Current implementation commit: `f8b139b` on `pilot/modular-theme-engine`.
 | 6. Islands | Generated assets remove arbitrary interior detail, retain the accepted coastlines and chain, and add an irregular 46-current background plus bounded connector variation. | Complete; owner visual confirmation pending |
 | 7. Clouds disabled | Cloudscape remains valid dormant material but has both `enabled` and `randomEligible` set false. Registry, selector, direct-request fallback, and random-selection tests cover the exclusion. | Complete |
 | 8. Interaction Structure | Pointer, touch, Tab, Shift+Tab, Enter, Space, Escape, direct entry, history, neighbor visibility/hit targets, reduced motion, document flow, and phone/desktop fitting are exercised by the browser suite. | Complete |
-| 9. Final evidence | The final repository run reports `180 passed in 159.54s`; all five installed packs validate; the fidelity guard passes; `tests/results/theme-lab/final` contains exactly 40 current WebP captures and no stale PNG captures. | Machine gates complete; owner review pending |
+| 9. Final evidence | The corrected repository run reports `182 passed in 161.11s`; all five installed packs validate; the fidelity guard passes; `tests/results/theme-lab/final` contains exactly 40 current WebP captures and no stale PNG captures. | Machine gates complete; owner review pending |
 
 The preview is served from this worktree on `0.0.0.0:51353`. The goal must
 remain active until the owner either approves these rendered states or gives
 specific feedback that is resolved and revalidated.
+
+### Owner correction: preserve Original literally
+
+The first review of the restoration found two remaining Canonical-only
+reinterpretations. They are regressions, not new design directions:
+
+- The SVG compiler had added a visible fiber/stripe path to every sticky.
+  That path is removed. The original handwritten title underlines remain, but
+  their asset transform is centered to reproduce the old title-relative
+  placement.
+- The modular document tokens painted ruled paper on both the long outer
+  viewer and its iframe page. Commit `77f4e59` proves the outer viewer owned
+  the ruled/grain texture while the inner document was plain white with gray
+  rounded sections, black borders, blue actions, and default serif document
+  typography. Canonical now reproduces that split.
+
+The focused browser regressions are:
+
+```bash
+.venv/bin/pytest -q \
+  tests/test_themes.py::test_original_paper_does_not_invent_sticky_stripes \
+  tests/test_themes.py::test_original_paper_page_texture_is_not_doubled
+```
+
+Both tests were observed failing before the correction and passing afterward.
+No Lily, Planets, or Islands presentation or asset was changed in this
+correction.
 
 ## Scope, authority, and delivery
 

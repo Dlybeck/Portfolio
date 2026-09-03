@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="main" data-board-theme="{{ active_theme }}"{% if theme_engine_enabled %} data-theme-pack-visual style="{% for name, value in theme_board_variables.items() %}--theme-pack-{{ name }}: {{ value }};{% endfor %}"{% endif %}>
+<html lang="en" class="main" data-board-theme="{{ active_theme }}"{% if theme_engine_enabled %} data-theme-pack-visual data-theme-focus-motion="{{ theme_board_variables['focus-motion'] }}" style="{% for name, value in theme_board_variables.items() %}--theme-pack-{{ name }}: {{ value }};{% endfor %}"{% endif %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

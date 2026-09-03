@@ -7,6 +7,28 @@
     "board": {
       "type": "object",
       "properties": {
+        "action-decoration-style": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "action-decoration-thickness": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "action-letter-spacing": {
           "oneOf": [
             {
@@ -40,7 +62,29 @@
             }
           ]
         },
+        "action-text-decoration": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "action-transform": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "action-underline-offset": {
           "oneOf": [
             {
               "type": "string",
@@ -734,6 +778,17 @@
           ]
         },
         "focus": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "focus-motion": {
           "oneOf": [
             {
               "type": "string",
@@ -1802,10 +1857,14 @@
         }
       },
       "required": [
+        "action-decoration-style",
+        "action-decoration-thickness",
         "action-letter-spacing",
         "action-radius",
         "action-size",
+        "action-text-decoration",
         "action-transform",
+        "action-underline-offset",
         "ambient-after-bottom",
         "ambient-after-right",
         "ambient-after-transform",
@@ -1869,6 +1928,7 @@
         "expanded-title-size",
         "expanded-width",
         "focus",
+        "focus-motion",
         "font-action",
         "font-action-weight",
         "font-base-title",

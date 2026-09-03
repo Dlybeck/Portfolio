@@ -181,10 +181,23 @@ satisfy the contract.
 
 ### Motion, responsive behavior, and accessibility
 
-Board presentation tokens select bounded durations and transforms. The stable
-styles disable decorative motion when reduced motion is requested. Responsive
-tokens may adjust type sizing while SVG view boxes and content-safe areas keep
-tile art and text together without changing Interaction Structure.
+The `focus-motion` Board token selects one stable focus preset: `cover`, `grow`,
+or `settle`. `cover` places and removes a larger surface, `grow` expands and
+reverses the selected object itself, and `settle` resolves the focused form in
+place without a camera move. Timing, easing, offsets, scale, and rotation remain
+pack-owned presentation tokens. Adding an ordinary theme therefore requires a
+preset selection and parameters, not theme-specific runtime code.
+
+The stable styles disable decorative motion when reduced motion is requested.
+Responsive tokens may adjust type sizing while SVG view boxes and content-safe
+areas keep tile art and text together without changing Interaction Structure.
+
+Motion never owns navigation. During focus, entry, and exit transitions, every
+neighboring destination in the current Neighborhood remains visible and
+directly actionable through the same pointer, touch, and keyboard relationship.
+No motion recipe may globally pan, zoom, crop, cover, disable, reorder, or move
+those destinations in a way that changes their availability or established
+spatial relationship.
 
 Every pack must provide a visible focus color. Theme SVGs are inserted as
 decorative, pointer-inert artwork; the stable semantic HTML remains the

@@ -53,37 +53,76 @@ def main() -> None:
                     node = tile.locator(f'[data-theme-size="{state}"]')
                     exported = node.evaluate(
                         """(source, options) => {
+                            // A full radial cut reaches the center of a lily
+                            // pad and bisects every possible text carrier.
+                            // Keep the recognizable notch, but make it the
+                            // shallow natural edge cut used by the final pack.
+                            if (options.theme === 'lily') {
+                                source.querySelectorAll(
+                                    '[data-visual-axis~="notch"]'
+                                ).forEach((notch) => {
+                                    notch.setAttribute(
+                                        'd', 'M145 88L194 65L194 92Z'
+                                    );
+                                });
+                            }
                             function fittedSafeArea() {
                                 const silhouette = source.querySelector(
                                     '[data-visual-axis~="silhouette"]'
                                 );
                                 if (!silhouette?.isPointInFill) return options.fallback;
+                                const cutouts = [...source.querySelectorAll(
+                                    'mask path[fill="black"]'
+                                )].filter((shape) => shape.isPointInFill);
+                                const pointBelongsTo = (shape, point) => {
+                                    const screenPoint = point.matrixTransform(
+                                        source.getScreenCTM()
+                                    );
+                                    const localPoint = screenPoint.matrixTransform(
+                                        shape.getScreenCTM().inverse()
+                                    );
+                                    return shape.isPointInFill(localPoint);
+                                };
                                 const targetRatio = options.state === 'base' ? 1.65 : 1.35;
                                 const candidates = [];
-                                for (let width = 144; width >= 44; width -= 4) {
-                                    for (let height = 112; height >= 36; height -= 4) {
-                                        for (let centerX = 92; centerX <= 108; centerX += 4) {
-                                            for (let centerY = 76; centerY <= 92; centerY += 4) {
+                                const centerXs = cutouts.length
+                                    ? [76, 88, 100, 112, 124]
+                                    : [92, 100, 108];
+                                const centerYs = cutouts.length
+                                    ? [64, 76, 88, 100]
+                                    : [76, 84, 92];
+                                for (let width = 136; width >= 48; width -= 8) {
+                                    for (let height = 104; height >= 40; height -= 8) {
+                                        for (const centerX of centerXs) {
+                                            for (const centerY of centerYs) {
                                                 const x = centerX - width / 2;
                                                 const y = centerY - height / 2;
                                                 const points = [];
-                                                for (let row = 0; row <= 6; row += 1) {
-                                                    for (let column = 0; column <= 6; column += 1) {
+                                                for (let row = 0; row <= 2; row += 1) {
+                                                    for (let column = 0; column <= 2; column += 1) {
                                                         points.push(new DOMPoint(
-                                                            x + width * column / 6,
-                                                            y + height * row / 6
+                                                            x + width * column / 2,
+                                                            y + height * row / 2
                                                         ));
                                                     }
                                                 }
-                                                if (!points.every((point) => silhouette.isPointInFill(point))) {
+                                                if (!points.every((point) => (
+                                                    pointBelongsTo(silhouette, point)
+                                                    && !cutouts.some((cutout) => (
+                                                        pointBelongsTo(cutout, point)
+                                                    ))
+                                                ))) {
                                                     continue;
                                                 }
                                                 const ratioPenalty = 1 + Math.abs(
                                                     Math.log(width / height / targetRatio)
                                                 );
+                                                const centerPenalty = 1 + Math.hypot(
+                                                    centerX - 100, centerY - 82
+                                                ) / 180;
                                                 candidates.push({
                                                     x, y, width, height,
-                                                    score: width * height / ratioPenalty,
+                                                    score: width * height / ratioPenalty / centerPenalty,
                                                 });
                                             }
                                         }
@@ -119,6 +158,24 @@ def main() -> None:
                             });
                             clone.classList.remove(...[...clone.classList]
                                 .filter((name) => name.startsWith('theme-object-')));
+                            const runtimePrefix = `${options.theme}-${options.slug}-${options.state}-`;
+                            clone.querySelectorAll('[id]').forEach((element) => {
+                                if (element.id.startsWith(runtimePrefix)) {
+                                    element.id = element.id.slice(runtimePrefix.length);
+                                }
+                            });
+                            clone.querySelectorAll('*').forEach((element) => {
+                                for (const name of ['href', 'mask', 'clip-path', 'fill', 'stroke']) {
+                                    const value = element.getAttribute(name);
+                                    if (!value) continue;
+                                    element.setAttribute(
+                                        name,
+                                        value.replace(`#${runtimePrefix}`, '#'),
+                                    );
+                                }
+                            });
+                            clone.querySelectorAll('[data-theme-content-area]')
+                                .forEach((marker) => marker.remove());
                             clone.querySelectorAll('[data-visual-axis~="palette"]')
                                 .forEach((carrier) => carrier.removeAttribute('data-visual-scope'));
                             clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -151,6 +208,8 @@ def main() -> None:
                         {
                             "fallback": FALLBACK_SAFE_AREAS[theme][state],
                             "state": state,
+                            "theme": theme,
+                            "slug": slug(title),
                             "viewBox": VIEW_BOXES.get((theme, state)),
                         },
                     )

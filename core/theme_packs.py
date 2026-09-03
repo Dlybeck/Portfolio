@@ -32,7 +32,9 @@ BOARD_LOCATIONS = frozenset(
 )
 BOARD_PRESENTATION_TOKENS = frozenset(
     {
-        "action-radius", "action-size", "ambient-after-bottom",
+        "action-radius", "action-size", "action-text-decoration",
+        "action-decoration-style", "action-decoration-thickness",
+        "action-underline-offset", "ambient-after-bottom",
         "ambient-after-right", "ambient-after-transform", "ambient-before-left",
         "ambient-before-top", "ambient-before-transform", "ambient-bg",
         "ambient-mark-bg", "ambient-mark-border", "ambient-mark-border-color",
@@ -52,6 +54,7 @@ BOARD_PRESENTATION_TOKENS = frozenset(
         "control-bg", "control-border", "control-ink", "control-radius",
         "control-shadow", "control-font", "control-icon-filter",
         "action-transform", "hover-scale", "hover-rotation-factor", "hover-lift",
+        "focus-motion",
         "tile-transition-duration", "navigation-transition-duration",
         "navigation-transition-easing",
         "cover-enter-duration", "cover-exit-duration", "viewer-enter-duration",
@@ -582,6 +585,11 @@ def _presentation(
         unknown = sorted(board_names - BOARD_PRESENTATION_TOKENS)
         raise InvalidThemeAsset(
             f"Board presentation tokens mismatch; missing={missing}, unknown={unknown}"
+        )
+    focus_motion = dict(board).get("focus-motion")
+    if focus_motion not in {"cover", "grow", "settle"}:
+        raise InvalidThemeAsset(
+            "Board presentation token 'focus-motion' must be cover, grow, or settle"
         )
     if document_names != DOCUMENT_PRESENTATION_TOKENS:
         missing = sorted(DOCUMENT_PRESENTATION_TOKENS - document_names)

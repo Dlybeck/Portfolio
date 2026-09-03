@@ -183,7 +183,7 @@
     }
 
     function fitText(element, minimumPixels) {
-        if (!element) return;
+        if (!element) return true;
         element.style.removeProperty("font-size");
         let size = Number.parseFloat(getComputedStyle(element).fontSize);
         const body = element.closest(".paper-body");
@@ -202,12 +202,15 @@
         while (
             size > minimumPixels
             && (!fitsSafeArea()
-                || element.scrollWidth > element.clientWidth + 1
-                || element.scrollHeight > element.clientHeight + 1)
+                || element.scrollWidth > element.clientWidth + 4
+                || element.scrollHeight > element.clientHeight + 4)
         ) {
             size -= 0.5;
             element.style.fontSize = `${size}px`;
         }
+        return fitsSafeArea()
+            && element.scrollWidth <= element.clientWidth + 4
+            && element.scrollHeight <= element.clientHeight + 4;
     }
 
     function fitExpandedContent(body) {
@@ -233,28 +236,38 @@
             && node.offsetLeft + node.offsetWidth <= safe.right + 1
             && node.offsetTop + node.offsetHeight <= safe.bottom + 1
             && (!node.matches(".expanded-text")
-                || (node.scrollWidth <= node.clientWidth + 1
-                    && node.scrollHeight <= node.clientHeight + 1))
+                || (node.scrollWidth <= node.clientWidth + 4
+                    && node.scrollHeight <= node.clientHeight + 4))
         ));
         for (let scale = 1; scale >= 0.3; scale -= 0.05) {
             nodes.forEach((node, index) => {
-                const minimum = node.matches(".expanded-title") ? 10 : 8;
+                const minimum = node.matches(".expanded-title")
+                    ? 20
+                    : (node.matches(".expanded-open") ? 14 : 13);
                 node.style.fontSize = `${Math.max(minimum, initialSizes[index] * scale)}px`;
             });
-            if (fits()) return;
+            if (fits()) return true;
         }
+        return fits();
     }
 
     function fitTileContent() {
         document.querySelectorAll(".tile-container[data-theme-identity]").forEach((tile) => {
             tile.querySelectorAll(".paper-body[data-theme-content-area]")
                 .forEach(sizeContentArea);
-            fitText(tile.querySelector(".tile-base .scrap-title"), 7);
+            const baseFits = fitText(
+                tile.querySelector(".tile-base .scrap-title"),
+                11
+            );
             const expandedBody = tile.querySelector(
                 ".tile-expanded .paper-body[data-theme-content-area]"
             );
-            if (expandedBody) fitExpandedContent(expandedBody);
-            tile.dataset.themeContentFit = fontsReady ? "true" : "pending";
+            const expandedFits = expandedBody
+                ? fitExpandedContent(expandedBody)
+                : true;
+            tile.dataset.themeContentFit = fontsReady
+                ? String(baseFits && expandedFits)
+                : "pending";
         });
     }
 
@@ -410,6 +423,8 @@
         cleanWorld();
         applyVariables(document, pack.variables.board);
         document.documentElement.dataset.boardTheme = pack.id;
+        document.documentElement.dataset.themeFocusMotion =
+            pack.variables.board["focus-motion"];
         document.documentElement.setAttribute("data-theme-pack-visual", "");
         decorate(pack);
         styleRelationships(pack);

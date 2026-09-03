@@ -109,9 +109,7 @@ window.tileInfo = {
     "Digital Planner": [
         [1, -3],
         `
-        A calendar and to-do list mashed into one
-        <br><br>
-        Made in partnership with Svetlana and Aleksandra Solodilov, Matthew Zou and Sumneet Brar
+        A calendar and to-do list built with a four-person class team
         `,
     ],
     "This website": [

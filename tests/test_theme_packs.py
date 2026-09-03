@@ -111,10 +111,12 @@ def write_compiled_tiles(
 
 
 def write_presentation(root: Path, pack_id: str) -> None:
+    board = {name: "initial" for name in BOARD_PRESENTATION_TOKENS}
+    board["focus-motion"] = "cover"
     (root / pack_id / "presentation.json").write_text(
         json.dumps(
             {
-                "board": {name: "initial" for name in BOARD_PRESENTATION_TOKENS},
+                "board": board,
                 "document": {
                     name: "initial" for name in DOCUMENT_PRESENTATION_TOKENS
                 },
@@ -181,6 +183,20 @@ def test_invalid_pack_is_excluded_with_actionable_diagnostic(tmp_path: Path) -> 
         "wrong-directory",
     }
     assert all(diagnostic.message for diagnostic in registry.diagnostics)
+
+
+def test_pack_rejects_an_unknown_focus_motion_preset(tmp_path: Path) -> None:
+    write_pack(tmp_path, "canonical", random_eligible=False)
+    presentation_path = tmp_path / "canonical" / "presentation.json"
+    presentation = json.loads(presentation_path.read_text(encoding="utf-8"))
+    presentation["board"]["focus-motion"] = "camera-zoom"
+    presentation_path.write_text(json.dumps(presentation), encoding="utf-8")
+
+    with pytest.raises(
+        InvalidThemeAsset,
+        match="must be cover, grow, or settle",
+    ):
+        load_theme_pack(tmp_path / "canonical")
 
 
 def test_resolution_fails_closed_to_canonical(tmp_path: Path) -> None:
@@ -662,7 +678,11 @@ def test_stable_styles_consume_every_published_presentation_token() -> None:
 
     assert referenced_tokens(
         "theme-structure.css", "themes/board.css"
-    ) == BOARD_PRESENTATION_TOKENS
+    ) == BOARD_PRESENTATION_TOKENS - {"focus-motion"}
+    theme_engine = (
+        root / "static" / "scripts" / "themeEngine.js"
+    ).read_text(encoding="utf-8")
+    assert 'pack.variables.board["focus-motion"]' in theme_engine
     assert referenced_tokens(
         "document-structure.css", "themes/documents.css"
     ) == DOCUMENT_PRESENTATION_TOKENS

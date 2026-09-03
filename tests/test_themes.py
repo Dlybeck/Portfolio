@@ -85,12 +85,14 @@ def test_theme_switch_replaces_world_and_preserves_it_in_navigation(
     page.goto(f"{origin}/?theme=lily", wait_until="domcontentloaded")
 
     expect(page.locator("html")).to_have_attribute("data-board-theme", "lily")
+    expect(page.locator("html")).to_have_attribute("data-theme-focus-motion", "grow")
     expect(page.locator('[data-theme-object="lily"]')).to_have_count(34)
     expect(page.locator('[data-theme-ambient][aria-hidden="true"]')).to_have_count(1)
 
     page.locator("[data-theme-selector]").select_option("planets")
 
     expect(page.locator("html")).to_have_attribute("data-board-theme", "planets")
+    expect(page.locator("html")).to_have_attribute("data-theme-focus-motion", "grow")
     expect(page).to_have_url(f"{origin}/?theme=planets")
     expect(page.locator('[data-theme-object="lily"]')).to_have_count(0)
     expect(page.locator('[data-theme-object="planets"]')).to_have_count(34)
@@ -103,6 +105,80 @@ def test_theme_switch_replaces_world_and_preserves_it_in_navigation(
     assert page.url == f"{origin}/projects/programs?theme=planets"
     document = page.frame_locator(".mini-window")
     expect(document.locator("html")).to_have_attribute("data-board-theme", "planets")
+
+
+@pytest.mark.parametrize(
+    ("theme", "recipe", "enter_animation"),
+    [
+        ("canonical", "cover", "cover-enter"),
+        ("lily", "grow", "focus-grow-enter"),
+        ("planets", "grow", "focus-grow-enter"),
+        ("clouds", "settle", "focus-settle-enter"),
+        ("islands", "settle", "focus-settle-enter"),
+    ],
+)
+def test_each_theme_selects_its_declared_focus_motion(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+    theme: str,
+    recipe: str,
+    enter_animation: str,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+
+    page.goto(f"{origin}/?theme={theme}", wait_until="domcontentloaded")
+
+    expect(page.locator("html")).to_have_attribute("data-theme-focus-motion", recipe)
+    assert page.locator(
+        '.tile-container[data-title="Home"] .tile-expanded'
+    ).evaluate("node => getComputedStyle(node).animationName") == enter_animation
+    expected_base_opacity = "1" if recipe == "cover" else "0"
+    assert page.locator(
+        '.tile-container[data-title="Home"] .tile-base'
+    ).evaluate("node => getComputedStyle(node).opacity") == expected_base_opacity
+
+
+@pytest.mark.parametrize(
+    ("theme", "exit_animation"),
+    [
+        ("canonical", "cover-sweep"),
+        ("lily", "focus-grow-exit"),
+        ("planets", "focus-grow-exit"),
+        ("clouds", "focus-settle-exit"),
+        ("islands", "focus-settle-exit"),
+    ],
+)
+def test_focus_exit_finishes_once_and_keeps_neighbors_actionable(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+    theme: str,
+    exit_animation: str,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(f"{origin}/?theme={theme}", wait_until="domcontentloaded")
+    home_cover = page.locator('.tile-container[data-title="Home"] .tile-expanded')
+
+    page.get_by_role("button", name="Go to Projects").click()
+
+    expect(page.get_by_role("button", name="Go to Programs")).to_be_visible()
+    expect(page.get_by_role("button", name="Go to Websites")).to_be_visible()
+    expect(page.get_by_role("button", name="Go to Home")).to_be_visible()
+    expect(page.get_by_role("button", name="Go to Programs")).to_be_enabled()
+    assert exit_animation in home_cover.evaluate(
+        "node => getComputedStyle(node).animationName"
+    )
+    # This is a real pointer action while the former center is exiting; it
+    # proves the motion layer does not steal the neighboring destination.
+    page.get_by_role("button", name="Go to Websites").click()
+    expect(page).to_have_url(f"{origin}/?theme={theme}#Websites")
+    home_cover.evaluate(
+        "node => node.dispatchEvent(new AnimationEvent('animationend', {bubbles: true}))"
+    )
+    expect(home_cover).to_be_hidden()
+    page.wait_for_timeout(100)
+    expect(home_cover).to_be_hidden()
 
 
 def test_unpinned_refresh_selects_a_new_world_while_a_query_pin_is_stable(
@@ -150,8 +226,10 @@ def test_theme_objects_are_stable_varied_and_matched_across_tile_states(
                     identity: home.dataset.themeIdentity,
                     baseIdentity: home.querySelector('.tile-base [data-theme-identity]').dataset.themeIdentity,
                     expandedIdentity: home.querySelector('.tile-expanded [data-theme-identity]').dataset.themeIdentity,
-                    neighborShapes: neighbors.map((title) =>
-                        document.querySelector(`.tile-container[data-title="${title}"]`).dataset.themeShape
+                    neighborVariants: neighbors.map((title) =>
+                        document.querySelector(
+                            `.tile-container[data-title="${title}"] .tile-base [data-theme-variant]`
+                        ).dataset.themeVariant
                     ),
                 };
             }"""
@@ -162,7 +240,7 @@ def test_theme_objects_are_stable_varied_and_matched_across_tile_states(
         '.tile-container[data-title="Programs"]'
     ).get_attribute("data-theme-identity")
     assert first["identity"] == first["baseIdentity"] == first["expandedIdentity"]
-    assert len(set(first["neighborShapes"])) == 4
+    assert len(set(first["neighborVariants"])) == 4
 
     page.reload(wait_until="domcontentloaded")
     assert home_profile() == first
@@ -497,8 +575,11 @@ def test_every_tile_uses_a_fitted_content_safe_area(
                 || node.offsetLeft + node.offsetWidth > right + 1
                 || node.offsetTop + node.offsetHeight > bottom + 1
                 || (node.matches('.expanded-text') && (
-                    node.scrollWidth > node.clientWidth + 2
-                    || node.scrollHeight > node.clientHeight + 2
+                        // Handwriting fonts can report glyph overhang beyond
+                        // their line box. Four pixels catches real clipping
+                        // without failing on that harmless font metric.
+                        node.scrollWidth > node.clientWidth + 4
+                        || node.scrollHeight > node.clientHeight + 4
                 ))
             ).map((node) => JSON.stringify({
                 title: body.closest('.tile-container').dataset.title,

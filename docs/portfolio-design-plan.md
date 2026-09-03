@@ -106,7 +106,7 @@ The bundled resume is stale and predates the Denali role. Replacing it is worthw
 
 - Canonical desktop and phone captures remain visually equivalent unless an individually approved repair requires a visible change.
 - Pointer and touch navigation behave as before.
-- Every Board location retains one center and at most four neighbors.
+- Every Board location retains one center and at most four neighbors, and those neighboring destinations remain visible and directly actionable throughout Board focus and theme motion.
 - Direct content links open the intended document within the Board.
 - All routes and visible buttons pass a link check.
 - Keyboard behavior matches ADR 0004.

@@ -49,8 +49,12 @@ The isolated system that discovers, validates, selects, and applies Theme Packs 
 _Avoid_: Theme switcher, theme script
 
 **Interaction Structure**:
-The invariant parent-child navigation, Neighborhood limits, document flow, and responsive behavior shared by every Board Theme.
+The invariant parent-child navigation, Neighborhood limits, document flow, and responsive behavior shared by every Board Theme. During Board focus and motion, neighboring destinations remain visible and directly actionable through the same pointer, touch, and keyboard relationships.
 _Avoid_: Theme, visual treatment
+
+**Real-World Coherence**:
+The rule that a Board Theme's objects, surfaces, and motion follow a familiar real-life metaphor closely enough for the Viewer to recognize them and infer their behavior. A decorative or readability treatment needs an understandable in-world reason rather than existing only to solve an interface problem.
+_Avoid_: Abstract visual consistency, arbitrary decoration
 
 **Personal Mark**:
 The stable visual identifier representing David across themes and asset sizes. A Board Theme may alter its border, badge, or surrounding treatment without replacing its recognizable core.

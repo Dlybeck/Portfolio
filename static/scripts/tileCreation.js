@@ -152,7 +152,65 @@ window.positionTile = function(tile, title) {
  * can't catch up with it and freeze it mid-screen.
  * @param {string} centerTitle
  */
-window._coverLeaveTimers = window._coverLeaveTimers || new Map();
+window._coverLeaveCleanups = window._coverLeaveCleanups || new Map();
+
+function clearCoverLeave(tile, tileTitle) {
+    const cleanup = window._coverLeaveCleanups.get(tileTitle);
+    if (cleanup) cleanup();
+    tile.classList.remove('cover-leaving-up', 'cover-leaving-down');
+}
+
+function animationMilliseconds(value) {
+    const trimmed = value.trim();
+    if (trimmed.endsWith('ms')) return Number.parseFloat(trimmed) || 0;
+    if (trimmed.endsWith('s')) return (Number.parseFloat(trimmed) || 0) * 1000;
+    return 0;
+}
+
+function animationFallbackMilliseconds(element) {
+    if (!element) return 200;
+    const style = getComputedStyle(element);
+    const durations = style.animationDuration.split(',').map(animationMilliseconds);
+    const delays = style.animationDelay.split(',').map(animationMilliseconds);
+    const count = Math.max(durations.length, delays.length);
+    let longest = 0;
+    for (let index = 0; index < count; index += 1) {
+        longest = Math.max(
+            longest,
+            durations[index % durations.length] + delays[index % delays.length],
+        );
+    }
+    return longest + 200;
+}
+
+function startCoverLeave(tile, expanded, tileTitle, leaveClass) {
+    clearCoverLeave(tile, tileTitle);
+    tile.classList.add(leaveClass);
+
+    let finished = false;
+    let fallback = null;
+    const finish = () => {
+        if (finished) return;
+        finished = true;
+        expanded?.removeEventListener('animationend', onAnimationEnd);
+        if (fallback !== null) clearTimeout(fallback);
+        tile.classList.remove('cover-leaving-up', 'cover-leaving-down');
+        window._coverLeaveCleanups.delete(tileTitle);
+    };
+    const onAnimationEnd = (event) => {
+        if (event.target === expanded) finish();
+    };
+
+    expanded?.addEventListener('animationend', onAnimationEnd);
+    // Animation completion owns the normal lifecycle. This timeout is only a
+    // fail-closed escape hatch for browsers that suppress animation events.
+    fallback = setTimeout(finish, animationFallbackMilliseconds(expanded));
+    window._coverLeaveCleanups.set(tileTitle, finish);
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        requestAnimationFrame(finish);
+    }
+}
 
 window.updateVisibility = function(centerTitle) {
     const connectedTiles = tilesData[centerTitle] || [];
@@ -189,9 +247,7 @@ window.updateVisibility = function(centerTitle) {
         // If a user re-selects a tile that's in the middle of its exit
         // sweep, cancel the sweep and re-enter cleanly.
         if (shouldBeExpanded) {
-            tile.classList.remove('cover-leaving-up', 'cover-leaving-down');
-            const pending = window._coverLeaveTimers.get(tileTitle);
-            if (pending) { clearTimeout(pending); window._coverLeaveTimers.delete(tileTitle); }
+            clearCoverLeave(tile, tileTitle);
         }
 
         tile.classList.remove('expanded', 'connected', 'dimmed');
@@ -220,17 +276,7 @@ window.updateVisibility = function(centerTitle) {
                     else if (thisPos.top < centerPos.top) leaveClass = 'cover-leaving-up';
                     else if ((window._lastScrollDir || 0) < 0) leaveClass = 'cover-leaving-down';
                 }
-                tile.classList.add(leaveClass);
-
-                const prev = window._coverLeaveTimers.get(tileTitle);
-                if (prev) clearTimeout(prev);
-                const t = setTimeout(() => {
-                    tile.classList.remove('cover-leaving-up', 'cover-leaving-down');
-                    window._coverLeaveTimers.delete(tileTitle);
-                }, window.matchMedia('(prefers-reduced-motion: reduce)').matches
-                    ? 0
-                    : 540); // slightly longer than the 0.5s CSS animation
-                window._coverLeaveTimers.set(tileTitle, t);
+                startCoverLeave(tile, expanded, tileTitle, leaveClass);
             }
         }
     });

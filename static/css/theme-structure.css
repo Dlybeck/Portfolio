@@ -266,6 +266,85 @@ body,
   }
 }
 
+@keyframes focus-grow-enter {
+  0% {
+    visibility: visible;
+    opacity: .82;
+    transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg))
+      scale(var(--theme-pack-cover-enter-scale));
+  }
+  100% {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg)) scale(1);
+  }
+}
+
+@keyframes focus-grow-exit {
+  0% {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg)) scale(1);
+  }
+  100% {
+    visibility: visible;
+    opacity: .82;
+    transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg))
+      scale(var(--theme-pack-cover-exit-scale));
+  }
+}
+
+@keyframes focus-settle-enter {
+  0% {
+    visibility: visible;
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg))
+      scale(var(--theme-pack-cover-enter-scale));
+  }
+  100% {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg)) scale(1);
+  }
+}
+
+@keyframes focus-settle-exit {
+  0% {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg)) scale(1);
+  }
+  100% {
+    visibility: visible;
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--rot-expanded, 0deg))
+      scale(var(--theme-pack-cover-exit-scale));
+  }
+}
+
+html[data-theme-focus-motion="grow"] .tile-container.expanded .tile-expanded {
+  animation-name: focus-grow-enter;
+}
+
+html[data-theme-focus-motion="grow"] .tile-container.expanded .tile-base,
+html[data-theme-focus-motion="settle"] .tile-container.expanded .tile-base {
+  opacity: 0;
+}
+
+html[data-theme-focus-motion="grow"] .tile-container.cover-leaving-up .tile-expanded,
+html[data-theme-focus-motion="grow"] .tile-container.cover-leaving-down .tile-expanded {
+  animation-name: focus-grow-exit;
+}
+
+html[data-theme-focus-motion="settle"] .tile-container.expanded .tile-expanded {
+  animation-name: focus-settle-enter;
+}
+
+html[data-theme-focus-motion="settle"] .tile-container.cover-leaving-up .tile-expanded,
+html[data-theme-focus-motion="settle"] .tile-container.cover-leaving-down .tile-expanded {
+  animation-name: focus-settle-exit;
+}
+
 .mini-window-container {
   display: none;
   position: fixed;

@@ -1,3 +1,5 @@
+import re
+
 from fastapi.testclient import TestClient
 import pytest
 from playwright.sync_api import Page, expect
@@ -447,6 +449,35 @@ def test_planets_use_irregular_background_stars_and_relationships(
         ].join('|'))"""
     )
     assert len(set(connector_profiles)) >= 8
+
+
+def test_planets_keep_distant_glare_fixed_while_the_star_map_moves(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(f"{origin}/?theme=planets", wait_until="domcontentloaded")
+
+    map_node = page.locator(".map")
+    ambient = page.locator('[data-theme-ambient="planets"]')
+    moving_background = map_node.evaluate(
+        "node => getComputedStyle(node, '::before').backgroundImage"
+    )
+    fixed_background = ambient.evaluate(
+        "node => getComputedStyle(node).backgroundImage"
+    )
+
+    assert moving_background == "none"
+    assert "radial-gradient" in fixed_background
+    assert fixed_background.count("linear-gradient") >= 2
+
+    before = ambient.bounding_box()
+    page.locator('[data-title="Projects"]').click()
+    expect(page).to_have_url(re.compile(r"#Projects$"))
+    page.wait_for_timeout(500)
+    after = ambient.bounding_box()
+    assert before == after
 
 
 def test_lily_uses_balanced_pack_owned_water_without_a_tiled_ripple_pattern(

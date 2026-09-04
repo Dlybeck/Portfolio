@@ -175,21 +175,22 @@ The goal is complete only when all of the following are demonstrated:
 
 ## Completion audit
 
-Current implementation commits: `f8b139b` (modular naturalism), `01485d2`
-(literal Original Paper surface correction), and `a5bc9f3` (quiet Lily Pond
-water) on `pilot/modular-theme-engine`.
+Current implementation commits include `f8b139b` (modular naturalism),
+`01485d2` (literal Original Paper surface correction), `a5bc9f3` and `4012c25`
+(balanced Lily Pond water), and `ad13a41` (stationary Constellation lighting)
+on `pilot/modular-theme-engine`.
 
 | Proof | Current evidence | State |
 | --- | --- | --- |
 | 1. Canonical fidelity | The generated Canonical assets were compared at phone and desktop sizes with the `77f4e59` reference. The two-scale board grain, original connector values, ten scrap materials, eight folds, nine rip forms, full-size tape, six underline families, and independent transforms are present in the current captures. | Machine and agent review complete; owner verdict pending |
 | 2. Fidelity guard | `.venv/bin/python scripts/check_canonical_fidelity.py` reports `PASS: Canonical retains the original organic-variation controls`. | Complete |
 | 3. Declarative contract | Strict Pydantic models, generated JSON Schemas, SVG sanitization, pack discovery, and Theme Engine consumption cover background, transforms, detail rotation, motion variation, typography, layout, and connector variation. Runtime source contains no installed alternate-theme IDs. | Complete |
-| 4. Planets | Browser tests exercise every real title at phone and desktop sizes, including `3D Printing`; all remain whole and use at most two lines. The pack owns a deterministic 520-star non-pattern field and varied relationship styling. | Complete; owner visual confirmation pending |
-| 5. Lily | Current phone/desktop captures retain the approved pad art and Grow behavior. Owner feedback replaced the busy tiled water pattern with a sparse, non-repeating pack-owned ripple field. | Complete; owner visual confirmation pending |
+| 4. Planets | Browser tests exercise every real title at phone and desktop sizes, including `3D Printing`; all remain whole and use at most two lines. The pack owns a deterministic 520-star non-pattern field and varied relationship styling. Its distant glow and diagonal lighting remain fixed while navigable objects move. | Complete; owner visual confirmation pending |
+| 5. Lily | Current phone/desktop captures retain the approved pad art and Grow behavior. Owner feedback replaced the busy tiled water pattern with a balanced, non-repeating pack-owned ripple field. | Complete; owner visual confirmation pending |
 | 6. Islands | Generated assets remove arbitrary interior detail, retain the accepted coastlines and chain, and add an irregular 46-current background plus bounded connector variation. | Complete; owner visual confirmation pending |
 | 7. Clouds disabled | Cloudscape remains valid dormant material but has both `enabled` and `randomEligible` set false. Registry, selector, direct-request fallback, and random-selection tests cover the exclusion. | Complete |
 | 8. Interaction Structure | Pointer, touch, Tab, Shift+Tab, Enter, Space, Escape, direct entry, history, neighbor visibility/hit targets, reduced motion, document flow, and phone/desktop fitting are exercised by the browser suite. | Complete |
-| 9. Final evidence | The corrected repository run reports `183 passed in 163.68s`; all five installed packs validate; the fidelity guard passes; `tests/results/theme-lab/final` contains exactly 40 current WebP captures and no stale PNG captures. | Machine gates complete; owner review pending |
+| 9. Final evidence | The corrected repository run reports `184 passed in 163.92s`; all five installed packs validate; the fidelity guard passes; `tests/results/theme-lab/final` contains exactly 40 current WebP captures and no stale PNG captures. | Machine gates complete; owner review pending |
 
 The preview is served from this worktree on `0.0.0.0:51353`. The goal must
 remain active until the owner either approves these rendered states or gives
@@ -243,6 +244,25 @@ afterward:
 .venv/bin/pytest -q \
   tests/test_themes.py::test_lily_uses_balanced_pack_owned_water_without_a_tiled_ripple_pattern \
   tests/test_theme_packs.py::test_repository_background_art_is_pack_owned_and_irregular
+```
+
+### Owner correction: anchor Constellation lighting
+
+Owner review identified a broad diagonal glare in Planets / Constellation that
+looked good but appeared to travel when the centered location changed. The
+glow and base color field were attached to the deliberately moving board
+pseudo-element, while only the narrow highlight was attached to the stationary
+ambient layer. All three lighting layers now live together on that stationary
+ambient surface. The pack-owned stars, planets, relationships, and navigation
+continue to move as before. This is a Theme Pack data correction; it adds no
+theme-name branch to the engine.
+
+The focused browser regression was observed failing before the correction and
+passing afterward:
+
+```bash
+.venv/bin/pytest -q \
+  tests/test_themes.py::test_planets_keep_distant_glare_fixed_while_the_star_map_moves
 ```
 
 ## Scope, authority, and delivery

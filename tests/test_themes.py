@@ -101,11 +101,11 @@ def test_paper_artifacts_use_grounded_paper_not_blue_world_surfaces(
     )
 
 
-def test_grounded_paper_artifacts_use_minimum_sufficient_detail(
+def test_grounded_paper_artifacts_keep_functional_detail_not_surface_clutter(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Notebook/log recognition does not depend on decorative clutter."""
+    """Construction cues remain while arbitrary stains and creases stay out."""
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
     page, origin = browser_page
 
@@ -113,8 +113,8 @@ def test_grounded_paper_artifacts_use_minimum_sufficient_detail(
         f"{origin}/hobbies/tennis?theme=lily&shellvariant=A",
         wait_until="domcontentloaded",
     )
-    expect(page.locator(".viewer-shell-prototype-hardware")).to_have_css(
-        "display", "none"
+    expect(page.locator(".viewer-shell-prototype-hardware")).not_to_have_css(
+        "background-image", "none"
     )
 
     page.goto(

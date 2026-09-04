@@ -132,12 +132,12 @@ not reference remote content or inject unrestricted CSS.
 
 ### Grounded restraint for generated packs
 
-A coherent pack uses the minimum sufficient visual evidence for its real-world
-metaphor. Start with material and silhouette, then add no more than the few
-construction details needed for recognition. If removing a crease, ring, grid,
-texture, badge, or hardware mark does not make the object less recognizable,
-leave it out. This constraint is especially important for generated Theme
-Packs: the target is clean solid-color SVG art, not decorative accumulation or
+A coherent pack uses visual evidence that belongs to its real-world metaphor.
+Start with material and silhouette, then add functional details that explain
+the object's identity, construction, or use. A notebook's binding rings belong;
+a generic coffee stain or arbitrary crease does not. This constraint is
+especially important for generated Theme Packs: the target is clean
+solid-color SVG art with purposeful realism, not decorative accumulation or
 simulated photorealism.
 
 ### Board and chrome

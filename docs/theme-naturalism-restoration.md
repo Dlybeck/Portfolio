@@ -150,12 +150,12 @@ during an exploration, but natural-looking independent channels should keep
 the whole Neighborhood from appearing machine-stamped.
 
 Grounding does not mean maximizing literal detail. Theme Packs—and any future
-theme generator—must seek the minimum sufficient set of high-signal cues:
-usually the material, silhouette, and at most one or two construction details
-that make the object recognizable. Decorative creases, rings, grids, texture,
-or hardware are removed when recognition survives without them. The shared
-visual language remains clean, solid-color, SVG-like art rather than simulated
-photorealism or accumulated ornamental evidence.
+theme generator—start with material and silhouette, then add details that
+explain the object's identity, construction, or use. Functional cues such as a
+notebook's binding rings are welcome realism. Generic coffee stains, arbitrary
+creases, registration marks, and other unrelated surface clutter are not. The
+shared visual language remains clean, solid-color, SVG-like art rather than
+simulated photorealism or accumulated ornamental evidence.
 
 ## Proof conditions
 

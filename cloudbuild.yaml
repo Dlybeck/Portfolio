@@ -31,6 +31,8 @@ steps:
       - '80'
       - '--min-instances'
       - '1'
+      - '--update-env-vars'
+      - 'THEMES_ENABLED=True'
 
 images:
   - 'gcr.io/$PROJECT_ID/portfolio:$BUILD_ID'

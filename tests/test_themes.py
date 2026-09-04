@@ -449,7 +449,7 @@ def test_planets_use_irregular_background_stars_and_relationships(
     assert len(set(connector_profiles)) >= 8
 
 
-def test_lily_uses_sparse_pack_owned_water_instead_of_a_tiled_ripple_pattern(
+def test_lily_uses_balanced_pack_owned_water_without_a_tiled_ripple_pattern(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -465,6 +465,14 @@ def test_lily_uses_sparse_pack_owned_water_instead_of_a_tiled_ripple_pattern(
     water = page.locator('[data-theme-background="lily"]')
     expect(water).to_have_count(1)
     expect(water.locator("pattern")).to_have_count(0)
+    visible_ripples = water.locator("ellipse").evaluate_all(
+        """nodes => nodes.filter((node) => {
+            const rect = node.getBoundingClientRect();
+            return rect.right > 0 && rect.bottom > 0
+                && rect.left < innerWidth && rect.top < innerHeight;
+        }).length"""
+    )
+    assert 6 <= visible_ripples <= 14
 
 
 def test_open_document_rethemes_in_place_without_stale_world_state(

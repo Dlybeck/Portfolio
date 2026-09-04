@@ -576,7 +576,7 @@ def test_repository_background_art_is_pack_owned_and_irregular() -> None:
     assert payloads["planets"]["backgroundSvg"].count("<circle") == 520
     assert "<pattern" not in payloads["planets"]["backgroundSvg"]
     assert payloads["islands"]["backgroundSvg"].count("<path") == 46
-    assert payloads["lily"]["backgroundSvg"].count("<ellipse") == 20
+    assert payloads["lily"]["backgroundSvg"].count("<ellipse") == 72
     assert "<pattern" not in payloads["lily"]["backgroundSvg"]
 
 

@@ -96,25 +96,30 @@ def islands() -> str:
 
 
 def lily() -> str:
-    """Sparse, unique water rings without a repeating wallpaper cadence."""
+    """Evenly distributed, unique water rings without a tiled cadence."""
     rng = random.Random(314159)
     ripples = []
-    for _ in range(10):
-        x = rng.uniform(120, 2880)
-        y = rng.uniform(120, 2880)
-        width = rng.uniform(150, 430)
-        height = width * rng.uniform(.22, .38)
-        rotation = rng.uniform(-18, 18)
-        opacity = rng.uniform(.07, .14)
-        for ring in (1.0, 1.34):
-            ripples.append(
-                f'<ellipse cx="{x:.1f}" cy="{y:.1f}" '
-                f'rx="{width * ring / 2:.1f}" ry="{height * ring / 2:.1f}" '
-                'fill="none" stroke="#def7ed" '
-                f'stroke-width="{rng.uniform(2.0, 4.2):.1f}" '
-                f'stroke-opacity="{opacity / ring:.2f}" '
-                f'transform="rotate({rotation:.1f} {x:.1f} {y:.1f})"/>'
-            )
+    # Four independently varied events in each viewport-sized sector keep
+    # every navigable neighborhood alive without repeating one visual tile.
+    for sector_y in range(3):
+        for sector_x in range(3):
+            for _ in range(4):
+                x = sector_x * 1000 + rng.uniform(150, 850)
+                y = sector_y * 1000 + rng.uniform(150, 850)
+                width = rng.uniform(150, 430)
+                height = width * rng.uniform(.22, .38)
+                rotation = rng.uniform(-18, 18)
+                opacity = rng.uniform(.09, .16)
+                for ring in (1.0, 1.34):
+                    ripples.append(
+                        f'<ellipse cx="{x:.1f}" cy="{y:.1f}" '
+                        f'rx="{width * ring / 2:.1f}" '
+                        f'ry="{height * ring / 2:.1f}" '
+                        'fill="none" stroke="#def7ed" '
+                        f'stroke-width="{rng.uniform(2.0, 4.2):.1f}" '
+                        f'stroke-opacity="{opacity / ring:.2f}" '
+                        f'transform="rotate({rotation:.1f} {x:.1f} {y:.1f})"/>'
+                    )
     return "".join(ripples)
 
 

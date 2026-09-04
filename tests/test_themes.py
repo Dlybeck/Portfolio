@@ -76,7 +76,7 @@ def test_reviewed_space_shell_defaults_to_observation_window(
     ("theme", "page_color", "section_radius"),
     [
         ("lily", "rgb(242, 237, 207)", "0px"),
-        ("islands", "rgb(242, 227, 184)", "2px"),
+        ("islands", "rgb(242, 227, 184)", "0px"),
     ],
 )
 def test_paper_artifacts_use_grounded_paper_not_blue_world_surfaces(
@@ -99,6 +99,31 @@ def test_paper_artifacts_use_grounded_paper_not_blue_world_surfaces(
     expect(document.locator(".section").first).to_have_css(
         "border-radius", section_radius
     )
+
+
+def test_grounded_paper_artifacts_use_minimum_sufficient_detail(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Notebook/log recognition does not depend on decorative clutter."""
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+
+    page.goto(
+        f"{origin}/hobbies/tennis?theme=lily&shellvariant=A",
+        wait_until="domcontentloaded",
+    )
+    expect(page.locator(".viewer-shell-prototype-hardware")).to_have_css(
+        "display", "none"
+    )
+
+    page.goto(
+        f"{origin}/hobbies/tennis?theme=islands&shellvariant=A",
+        wait_until="domcontentloaded",
+    )
+    document = page.frame_locator(".mini-window")
+    expect(document.locator("html")).to_have_css("background-image", "none")
+    expect(document.locator(".section").first).to_have_css("box-shadow", "none")
 
 
 def test_original_paper_does_not_invent_sticky_stripes(

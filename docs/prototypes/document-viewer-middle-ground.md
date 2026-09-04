@@ -40,6 +40,8 @@ the Viewer's perspective:
 3. Why do the page, controls, decoration, and motion belong to that object?
 4. Does any treatment exist only to solve readability or look polished, with
    no in-world reason?
+5. Can any crease, ring, line, texture, badge, or hardware mark be removed
+   without making the object harder to recognize? If so, remove it.
 
 If the object needs its label to explain what it is, or any answer is missing,
 the candidate remains an experiment.

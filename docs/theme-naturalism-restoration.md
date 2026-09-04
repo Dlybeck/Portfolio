@@ -149,6 +149,14 @@ Deterministic does not mean uniform. A location should remain visually stable
 during an exploration, but natural-looking independent channels should keep
 the whole Neighborhood from appearing machine-stamped.
 
+Grounding does not mean maximizing literal detail. Theme Packs—and any future
+theme generator—must seek the minimum sufficient set of high-signal cues:
+usually the material, silhouette, and at most one or two construction details
+that make the object recognizable. Decorative creases, rings, grids, texture,
+or hardware are removed when recognition survives without them. The shared
+visual language remains clean, solid-color, SVG-like art rather than simulated
+photorealism or accumulated ornamental evidence.
+
 ## Proof conditions
 
 The goal is complete only when all of the following are demonstrated:

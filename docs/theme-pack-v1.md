@@ -130,6 +130,16 @@ controls, viewer surfaces, document surfaces, and media/code surfaces.
 Background values may use inert colors and CSS gradient/pattern values but may
 not reference remote content or inject unrestricted CSS.
 
+### Grounded restraint for generated packs
+
+A coherent pack uses the minimum sufficient visual evidence for its real-world
+metaphor. Start with material and silhouette, then add no more than the few
+construction details needed for recognition. If removing a crease, ring, grid,
+texture, badge, or hardware mark does not make the object less recognizable,
+leave it out. This constraint is especially important for generated Theme
+Packs: the target is clean solid-color SVG art, not decorative accumulation or
+simulated photorealism.
+
 ### Board and chrome
 
 The Board declares its background stack, ambient-mark treatment and placement,

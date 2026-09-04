@@ -227,7 +227,7 @@
     "separator-display": "none",
     "body-line-height": "1.5",
     "paragraph-line-height": "1.5",
-    "paragraph-margin": "7% 0",
+    "paragraph-margin": "1em 0",
     "title-weight": "700",
     "heading-weight": "700",
     "heading-letter-spacing": ".01em",

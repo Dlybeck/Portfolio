@@ -17,6 +17,32 @@ from scripts.audit_theme_variants import (
 VISUAL_THEMES = ["canonical", "lily", "planets", "islands"]
 
 
+@pytest.mark.parametrize("theme", ["lily", "planets", "islands"])
+def test_alternate_document_paragraph_rhythm_does_not_scale_with_page_width(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+    theme: str,
+) -> None:
+    """Vertical reading rhythm stays stable between desktop and phone widths."""
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(
+        f"{origin}/hobbies/tennis?theme={theme}",
+        wait_until="domcontentloaded",
+    )
+    paragraph = page.frame_locator(".mini-window").locator(".section p").first
+
+    desktop_margin = paragraph.evaluate(
+        "node => parseFloat(getComputedStyle(node).marginTop)"
+    )
+    page.set_viewport_size({"width": 390, "height": 844})
+    phone_margin = paragraph.evaluate(
+        "node => parseFloat(getComputedStyle(node).marginTop)"
+    )
+
+    assert math.isclose(desktop_margin, phone_margin, abs_tol=0.1)
+
+
 def test_obsolete_viewer_prototype_pin_is_removed_without_restyling_original(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,

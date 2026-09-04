@@ -385,21 +385,22 @@ def test_every_original_document_loads_at_both_review_sizes(
             ), f"{document_entry.route} has a broken image at {viewport['width']}px"
 
 
-def test_theme_laboratory_is_absent_and_canonical_by_default(
+def test_complete_theme_runtime_is_enabled_by_default(
     client: TestClient,
 ) -> None:
     board = client.get("/?theme=lily")
     document = client.get("/_documents/projects/programs?theme=lily")
 
     assert board.status_code == 200
-    assert '<html lang="en" class="main" data-board-theme="canonical">' in board.text
-    assert 'data-theme-selector' not in board.text
-    assert '/static/css/themes/' not in board.text
-    assert '/static/scripts/themeEngine.js' not in board.text
+    assert '<html lang="en" class="main" data-board-theme="lily" data-theme-pack-visual' in board.text
+    assert 'data-home-theme-selector' in board.text
+    assert 'Switch it up' in board.text
+    assert '/static/css/themes/board.css' in board.text
+    assert '/static/scripts/themeEngine.js' in board.text
 
     assert document.status_code == 200
-    assert '<html lang="en" data-board-theme="canonical">' in document.text
-    assert '/static/css/themes/' not in document.text
+    assert '<html lang="en" data-board-theme="lily" data-theme-pack-visual' in document.text
+    assert '/static/css/themes/documents.css' in document.text
 
 
 def test_enabled_theme_laboratory_renders_known_themes_and_fails_closed(

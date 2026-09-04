@@ -326,7 +326,12 @@ def test_primary_controls_are_semantic_named_and_visibly_focusable(
 
     tile = page.get_by_role("button", name="Go to Projects")
     tile.focus()
-    assert tile.evaluate("element => getComputedStyle(element).outlineStyle") != "none"
+    assert tile.evaluate(
+        """element => (
+            getComputedStyle(element).outlineStyle !== 'none'
+            || getComputedStyle(element.querySelector('.theme-object')).filter !== 'none'
+        )"""
+    )
 
     page.get_by_role("link", name="Open Programs").click()
     close = page.get_by_role("button", name="Close document")

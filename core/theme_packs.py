@@ -32,7 +32,8 @@ BOARD_LOCATIONS = frozenset(
 )
 BOARD_PRESENTATION_TOKENS = frozenset(
     {
-        "action-radius", "action-size", "action-text-decoration",
+        "action-border", "action-padding", "action-radius", "action-shadow",
+        "action-size", "action-treatment", "action-text-decoration",
         "action-decoration-style", "action-decoration-thickness",
         "action-underline-offset", "ambient-after-bottom",
         "ambient-after-right", "ambient-after-transform", "ambient-before-left",
@@ -741,6 +742,11 @@ def _presentation(
     if focus_motion not in {"cover", "grow", "settle"}:
         raise InvalidThemeAsset(
             "Board presentation token 'focus-motion' must be cover, grow, or settle"
+        )
+    action_treatment = dict(board).get("action-treatment")
+    if action_treatment not in {"annotation", "marker"}:
+        raise InvalidThemeAsset(
+            "Board presentation token 'action-treatment' must be annotation or marker"
         )
     if document_names != DOCUMENT_PRESENTATION_TOKENS:
         missing = sorted(DOCUMENT_PRESENTATION_TOKENS - document_names)

@@ -569,6 +569,67 @@ def test_planet_depth_layers_snap_to_final_positions_with_reduced_motion(
     assert abs(shifts[1] / shifts[0] - 5 / 3) < 0.05
 
 
+@pytest.mark.parametrize(
+    ("theme", "treatment"),
+    [
+        ("canonical", "annotation"),
+        ("lily", "marker"),
+        ("planets", "marker"),
+        ("islands", "marker"),
+    ],
+)
+@pytest.mark.parametrize("page_fixture", ["browser_page", "mobile_browser_page"])
+def test_open_action_treatment_is_pack_owned_and_readable(
+    request: pytest.FixtureRequest,
+    monkeypatch: pytest.MonkeyPatch,
+    theme: str,
+    treatment: str,
+    page_fixture: str,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = request.getfixturevalue(page_fixture)
+    page.goto(f"{origin}/?theme={theme}#Gaming", wait_until="domcontentloaded")
+
+    expect(page.locator("html")).to_have_attribute(
+        "data-theme-action-treatment", treatment
+    )
+    action = page.get_by_role("link", name="Open Gaming")
+    expect(action).to_be_visible()
+    page.locator(
+        '.tile-container[data-title="Gaming"] .tile-expanded'
+    ).evaluate(
+        """node => Promise.all(
+            node.getAnimations({subtree: true}).map((animation) =>
+                animation.finished.catch(() => undefined)
+            )
+        )"""
+    )
+    metrics = action.evaluate(
+        """node => {
+            const style = getComputedStyle(node);
+            const rect = node.getBoundingClientRect();
+            return {
+                background: style.backgroundColor,
+                borderWidth: parseFloat(style.borderTopWidth),
+                fontSize: parseFloat(style.fontSize),
+                height: rect.height,
+                touchHeight: parseFloat(getComputedStyle(node, '::before').height),
+                textDecoration: style.textDecorationLine,
+            };
+        }"""
+    )
+    if treatment == "marker":
+        assert metrics["height"] >= 38
+        assert metrics["touchHeight"] >= 44
+        assert metrics["fontSize"] >= 18
+        assert metrics["background"] != "rgba(0, 0, 0, 0)"
+        assert metrics["borderWidth"] >= 2
+        assert metrics["textDecoration"] == "none"
+    else:
+        assert metrics["background"] == "rgba(0, 0, 0, 0)"
+        assert "underline" in metrics["textDecoration"]
+
+
 def test_lily_uses_balanced_pack_owned_water_without_a_tiled_ripple_pattern(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,

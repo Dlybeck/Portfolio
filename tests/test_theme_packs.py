@@ -132,6 +132,7 @@ def write_compiled_tiles(
 def write_presentation(root: Path, pack_id: str) -> None:
     board = {name: "initial" for name in BOARD_PRESENTATION_TOKENS}
     board["focus-motion"] = "cover"
+    board["action-treatment"] = "annotation"
     (root / pack_id / "presentation.json").write_text(
         json.dumps(
             {
@@ -225,6 +226,20 @@ def test_pack_rejects_an_unknown_focus_motion_preset(tmp_path: Path) -> None:
         load_theme_pack(tmp_path / "canonical")
 
 
+def test_pack_rejects_an_unknown_action_treatment(tmp_path: Path) -> None:
+    write_pack(tmp_path, "canonical", random_eligible=False)
+    presentation_path = tmp_path / "canonical" / "presentation.json"
+    presentation = json.loads(presentation_path.read_text(encoding="utf-8"))
+    presentation["board"]["action-treatment"] = "floating-toolbar"
+    presentation_path.write_text(json.dumps(presentation), encoding="utf-8")
+
+    with pytest.raises(
+        InvalidThemeAsset,
+        match="must be annotation or marker",
+    ):
+        load_theme_pack(tmp_path / "canonical")
+
+
 def test_resolution_fails_closed_to_canonical(tmp_path: Path) -> None:
     write_pack(tmp_path, "canonical", random_eligible=False)
     write_pack(tmp_path, "disabled", enabled=False)
@@ -311,6 +326,9 @@ def test_machine_schemas_publish_the_exact_runtime_contract() -> None:
     )
 
     assert set(presentation["properties"]["board"]["required"]) == BOARD_PRESENTATION_TOKENS
+    assert presentation["properties"]["board"]["properties"]["action-treatment"] == {
+        "enum": ["annotation", "marker"]
+    }
     assert set(presentation["properties"]["document"]["required"]) == DOCUMENT_PRESENTATION_TOKENS
     assert "variation" in presentation["properties"]["connectors"]["required"]
     assert set(tiles["properties"]["assignments"]["required"]) == BOARD_LOCATIONS
@@ -627,6 +645,22 @@ def test_repository_selection_excludes_disabled_cloudscape() -> None:
     assert "clouds" not in {entry["key"] for entry in registry.public_catalog()}
 
 
+def test_repository_packs_choose_a_bounded_action_treatment() -> None:
+    registry = ThemePackRegistry.discover()
+    treatments = {
+        pack_id: registry.resolve(pack_id, enabled=True)
+        .client_payload()["variables"]["board"]["action-treatment"]
+        for pack_id in ("canonical", "planets", "islands", "lily")
+    }
+
+    assert treatments == {
+        "canonical": "annotation",
+        "planets": "marker",
+        "islands": "marker",
+        "lily": "marker",
+    }
+
+
 def test_repository_background_art_is_pack_owned_and_irregular() -> None:
     registry = ThemePackRegistry.discover()
     payloads = {
@@ -653,7 +687,7 @@ def test_repository_background_art_is_pack_owned_and_irregular() -> None:
     assert [layer["depth"] for layer in payloads["lily"]["backgroundLayers"]] == [1.0]
 
 
-def test_depth_runtime_contains_no_installed_theme_names() -> None:
+def test_generic_theme_runtime_contains_no_installed_theme_names() -> None:
     root = Path(__file__).parent.parent
     runtime = "\n".join(
         (root / path).read_text(encoding="utf-8")
@@ -661,6 +695,7 @@ def test_depth_runtime_contains_no_installed_theme_names() -> None:
             "static/scripts/themeEngine.js",
             "static/scripts/tileMovement.js",
             "static/css/theme-structure.css",
+            "static/css/themes/board.css",
         )
     ).lower()
 
@@ -827,11 +862,12 @@ def test_stable_styles_consume_every_published_presentation_token() -> None:
 
     assert referenced_tokens(
         "theme-structure.css", "themes/board.css"
-    ) == BOARD_PRESENTATION_TOKENS - {"focus-motion"}
+    ) == BOARD_PRESENTATION_TOKENS - {"focus-motion", "action-treatment"}
     theme_engine = (
         root / "static" / "scripts" / "themeEngine.js"
     ).read_text(encoding="utf-8")
     assert 'pack.variables.board["focus-motion"]' in theme_engine
+    assert 'pack.variables.board["action-treatment"]' in theme_engine
     assert referenced_tokens(
         "document-structure.css", "themes/documents.css"
     ) == DOCUMENT_PRESENTATION_TOKENS

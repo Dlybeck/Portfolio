@@ -250,9 +250,11 @@
         ));
         for (let scale = 1; scale >= 0.3; scale -= 0.05) {
             nodes.forEach((node, index) => {
+                const markerAction = node.matches(".expanded-open")
+                    && document.documentElement.dataset.themeActionTreatment === "marker";
                 const minimum = node.matches(".expanded-title")
                     ? 20
-                    : (node.matches(".expanded-open") ? 14 : 13);
+                    : (node.matches(".expanded-open") ? (markerAction ? 18 : 14) : 13);
                 node.style.fontSize = `${Math.max(minimum, initialSizes[index] * scale)}px`;
             });
             if (fits()) return true;
@@ -581,6 +583,8 @@
         document.documentElement.dataset.boardTheme = pack.id;
         document.documentElement.dataset.themeFocusMotion =
             pack.variables.board["focus-motion"];
+        document.documentElement.dataset.themeActionTreatment =
+            pack.variables.board["action-treatment"];
         document.documentElement.setAttribute("data-theme-pack-visual", "");
         decorate(pack);
         styleRelationships(pack);

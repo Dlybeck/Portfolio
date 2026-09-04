@@ -237,6 +237,35 @@ html[data-theme-pack-visual] .expanded-open {
   transform: var(--theme-pack-action-transform);
 }
 
+html[data-theme-pack-visual][data-theme-action-treatment="marker"] .expanded-open {
+  align-items: center;
+  background: var(--theme-pack-link-bg) !important;
+  border: var(--theme-pack-action-border) !important;
+  box-sizing: border-box;
+  box-shadow: var(--theme-pack-action-shadow);
+  display: inline-flex;
+  justify-content: center;
+  min-height: 38px;
+  min-width: 96px;
+  padding: var(--theme-pack-action-padding);
+  text-decoration: none;
+  transition: filter .15s ease, transform .15s ease;
+}
+
+html[data-theme-pack-visual][data-theme-action-treatment="marker"] .expanded-open::before {
+  content: "";
+  height: max(100%, 44px);
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, 44px);
+}
+
+html[data-theme-pack-visual][data-theme-action-treatment="marker"] .expanded-open:hover {
+  filter: brightness(1.06);
+}
+
 html[data-theme-pack-visual] .tile-expanded > .paper-body {
   justify-content: var(--theme-pack-expanded-justify);
   gap: var(--theme-pack-expanded-gap);

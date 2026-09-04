@@ -56,6 +56,10 @@ _Avoid_: Theme switcher, theme script
 An optional, ordered, pointer-inert Theme Pack background asset with a bounded movement factor from fixed viewport (`0`) to full Board movement (`1`). Depth Layers may decorate a world but never contain tiles, labels, relationships, focus surfaces, hit targets, or documents.
 _Avoid_: Parallax navigation, moving content plane
 
+**Action Treatment**:
+The pack-selected visual grammar for the invariant expanded-tile destination link. `annotation` renders the action as writing on the object; `marker` renders a larger, high-contrast in-world label. Its destination, placement, keyboard behavior, and minimum touch size remain part of the Interaction Structure.
+_Avoid_: Theme-specific button logic, alternate navigation
+
 **Interaction Structure**:
 The invariant parent-child navigation, Neighborhood limits, document flow, and responsive behavior shared by every Board Theme. During Board focus and motion, neighboring destinations remain visible and directly actionable through the same pointer, touch, and keyboard relationships.
 _Avoid_: Theme, visual treatment

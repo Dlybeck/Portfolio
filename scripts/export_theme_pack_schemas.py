@@ -24,11 +24,19 @@ OUTPUT = ROOT / "schemas" / "theme-pack-v1"
 VALUE = {"oneOf": [{"type": "string", "maxLength": 500}, {"type": "number"}]}
 
 
-def object_with_exact_values(names: set[str] | frozenset[str]) -> dict[str, object]:
+def object_with_exact_values(
+    names: set[str] | frozenset[str],
+    *,
+    overrides: dict[str, object] | None = None,
+) -> dict[str, object]:
     ordered = sorted(names)
+    value_schemas = overrides or {}
     return {
         "type": "object",
-        "properties": {name: VALUE for name in ordered},
+        "properties": {
+            name: value_schemas.get(name, VALUE)
+            for name in ordered
+        },
         "required": ordered,
         "additionalProperties": False,
     }
@@ -151,7 +159,12 @@ def main() -> None:
             "title": "Portfolio Theme Pack v1 presentation",
             "type": "object",
             "properties": {
-                "board": object_with_exact_values(BOARD_PRESENTATION_TOKENS),
+                "board": object_with_exact_values(
+                    BOARD_PRESENTATION_TOKENS,
+                    overrides={
+                        "action-treatment": {"enum": ["annotation", "marker"]},
+                    },
+                ),
                 "document": object_with_exact_values(DOCUMENT_PRESENTATION_TOKENS),
                 "connectors": connector,
             },

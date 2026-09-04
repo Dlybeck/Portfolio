@@ -290,6 +290,22 @@ assets, proportional motion at desktop and phone sizes, direct entry, theme
 switch cleanup, reduced motion, unchanged single-plane themes, and the absence
 of installed theme names in runtime source.
 
+### Owner-approved extension: modular expanded actions
+
+The expanded destination remains one semantic link in one fixed position, but
+its visual Action Treatment is now pack-owned. `annotation` preserves the
+Original paper behavior as writing directly on the sheet. `marker` gives worlds
+whose solid objects do not naturally support handwriting a larger, opaque,
+bordered in-world label. Marker actions settle at no less than 18-pixel type,
+with a visible 38-pixel label and 44-pixel touch target on desktop and phone.
+
+The stable engine and stylesheet know only the two treatment names. Color,
+background, border, padding, radius, shadow, font, weight, decoration, and
+transform remain inert Theme Pack data. Canonical selects `annotation` without
+changing its existing presentation; Lily Pond, Planets / Constellation, and
+Island Chain select `marker`. The destination, Parent/Child Neighborhood,
+focus order, Enter/Space behavior, and document flow are unchanged.
+
 ## Scope, authority, and delivery
 
 - Worktree: `/home/dlybeck/Projects/Portfolio-worktrees/portfolio-phase-1`

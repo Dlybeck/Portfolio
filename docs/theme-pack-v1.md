@@ -141,6 +141,13 @@ decoration, and title underlines; it cannot hide semantic content or controls.
 Tile and expanded-cover dimensions have desktop and phone slots, so object
 geometry can vary while the invariant grid and Parent/Child model stay fixed.
 
+The `action-treatment` token selects one of two stable expanded-link adapters:
+`annotation` keeps the destination as writing directly on an object, while
+`marker` gives it a filled, bordered in-world label with a 44-pixel touch target. Packs
+own the action font, size, ink, background, border, padding, radius, shadow,
+decoration, and transform. The Theme Engine continues to own the link target,
+placement, focus order, activation behavior, and minimum readable marker size.
+
 ### Connectors
 
 Connectors declare color, width, opacity, cap, dash pattern, curve family,

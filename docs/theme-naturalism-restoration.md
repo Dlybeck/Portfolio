@@ -177,20 +177,20 @@ The goal is complete only when all of the following are demonstrated:
 
 Current implementation commits include `f8b139b` (modular naturalism),
 `01485d2` (literal Original Paper surface correction), `a5bc9f3` and `4012c25`
-(balanced Lily Pond water), and `ad13a41` (stationary Constellation lighting)
-on `pilot/modular-theme-engine`.
+(balanced Lily Pond water), `ad13a41` (stationary Constellation lighting), and
+`d66be51` (declarative depth layers) on `pilot/modular-theme-engine`.
 
 | Proof | Current evidence | State |
 | --- | --- | --- |
 | 1. Canonical fidelity | The generated Canonical assets were compared at phone and desktop sizes with the `77f4e59` reference. The two-scale board grain, original connector values, ten scrap materials, eight folds, nine rip forms, full-size tape, six underline families, and independent transforms are present in the current captures. | Machine and agent review complete; owner verdict pending |
 | 2. Fidelity guard | `.venv/bin/python scripts/check_canonical_fidelity.py` reports `PASS: Canonical retains the original organic-variation controls`. | Complete |
-| 3. Declarative contract | Strict Pydantic models, generated JSON Schemas, SVG sanitization, pack discovery, and Theme Engine consumption cover background, transforms, detail rotation, motion variation, typography, layout, and connector variation. Runtime source contains no installed alternate-theme IDs. | Complete |
-| 4. Planets | Browser tests exercise every real title at phone and desktop sizes, including `3D Printing`; all remain whole and use at most two lines. The pack owns a deterministic 520-star non-pattern field and varied relationship styling. Its distant glow and diagonal lighting remain fixed while navigable objects move. | Complete; owner visual confirmation pending |
+| 3. Declarative contract | Strict Pydantic models, generated JSON Schemas, SVG sanitization, pack discovery, and Theme Engine consumption cover bounded background depth layers, transforms, detail rotation, motion variation, typography, layout, and connector variation. Runtime source contains no installed alternate-theme IDs. | Complete |
+| 4. Planets | Browser tests exercise every real title at phone and desktop sizes, including `3D Printing`; all remain whole and use at most two lines. The pack preserves its deterministic 520-star non-pattern field across far (`0.06`) and near (`0.18`) layers, with varied full-motion relationships and fixed distant lighting. | Complete; owner visual confirmation pending |
 | 5. Lily | Current phone/desktop captures retain the approved pad art and Grow behavior. Owner feedback replaced the busy tiled water pattern with a balanced, non-repeating pack-owned ripple field. | Complete; owner visual confirmation pending |
 | 6. Islands | Generated assets remove arbitrary interior detail, retain the accepted coastlines and chain, and add an irregular 46-current background plus bounded connector variation. | Complete; owner visual confirmation pending |
 | 7. Clouds disabled | Cloudscape remains valid dormant material but has both `enabled` and `randomEligible` set false. Registry, selector, direct-request fallback, and random-selection tests cover the exclusion. | Complete |
 | 8. Interaction Structure | Pointer, touch, Tab, Shift+Tab, Enter, Space, Escape, direct entry, history, neighbor visibility/hit targets, reduced motion, document flow, and phone/desktop fitting are exercised by the browser suite. | Complete |
-| 9. Final evidence | The corrected repository run reports `184 passed in 163.92s`; all five installed packs validate; the fidelity guard passes; `tests/results/theme-lab/final` contains exactly 40 current WebP captures and no stale PNG captures. | Machine gates complete; owner review pending |
+| 9. Final evidence | The corrected repository run reports `193 passed in 172.56s`; all five installed packs validate; the fidelity guard and variant audit pass; `tests/results/theme-lab/final` contains exactly 40 current WebP captures and no stale PNG captures. | Machine gates complete; owner review pending |
 
 The preview is served from this worktree on `0.0.0.0:51353`. The goal must
 remain active until the owner either approves these rendered states or gives
@@ -253,9 +253,9 @@ looked good but appeared to travel when the centered location changed. The
 glow and base color field were attached to the deliberately moving board
 pseudo-element, while only the narrow highlight was attached to the stationary
 ambient layer. All three lighting layers now live together on that stationary
-ambient surface. The pack-owned stars, planets, relationships, and navigation
-continue to move as before. This is a Theme Pack data correction; it adds no
-theme-name branch to the engine.
+ambient surface. This is a Theme Pack data correction; it adds no theme-name
+branch to the engine. The stars were subsequently split into the approved
+bounded depth layers described below.
 
 The focused browser regression was observed failing before the correction and
 passing afterward:
@@ -264,6 +264,31 @@ passing afterward:
 .venv/bin/pytest -q \
   tests/test_themes.py::test_planets_keep_distant_glare_fixed_while_the_star_map_moves
 ```
+
+### Owner-approved extension: bounded depth layers
+
+Theme Pack v1 now accepts an optional ordered list of up to four sanitized SVG
+background assets. Each declares only a depth factor from `0` (fixed viewport)
+to `1` (full Board movement). The stable engine applies proportional movement;
+an ordinary pack adds or changes layers using only its manifest and assets.
+Runtime code contains no installed theme names.
+
+Depth is decorative-only. Tiles, labels, focus surfaces, hit targets,
+documents, and relationship connectors remain together at full movement, so
+the Parent/Child Neighborhood is unchanged. Reduced-motion mode snaps layers
+to their final proportional positions without transition.
+
+Planets / Constellation is the only initial multi-depth theme. Its original
+520 irregular stars are preserved but partitioned deterministically into a far
+layer at `0.06` and a sparse near layer at `0.18`; fixed lighting remains at
+`0`, while planets and their relationships remain at full Board movement.
+Canonical, Lily, and Islands retain one layer at `1`. Cloudscape remains
+disabled.
+
+Focused tests cover strict bounds and the four-layer cap, sanitized ordered
+assets, proportional motion at desktop and phone sizes, direct entry, theme
+switch cleanup, reduced motion, unchanged single-plane themes, and the absence
+of installed theme names in runtime source.
 
 ## Scope, authority, and delivery
 

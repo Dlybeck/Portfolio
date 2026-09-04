@@ -52,6 +52,10 @@ _Avoid_: Theme, random skin
 The isolated system that discovers, validates, selects, and applies Theme Packs while preserving the Interaction Structure.
 _Avoid_: Theme switcher, theme script
 
+**Depth Layer**:
+An optional, ordered, pointer-inert Theme Pack background asset with a bounded movement factor from fixed viewport (`0`) to full Board movement (`1`). Depth Layers may decorate a world but never contain tiles, labels, relationships, focus surfaces, hit targets, or documents.
+_Avoid_: Parallax navigation, moving content plane
+
 **Interaction Structure**:
 The invariant parent-child navigation, Neighborhood limits, document flow, and responsive behavior shared by every Board Theme. During Board focus and motion, neighboring destinations remain visible and directly actionable through the same pointer, touch, and keyboard relationships.
 _Avoid_: Theme, visual treatment

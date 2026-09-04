@@ -65,6 +65,14 @@ window.createTile = function(title) {
     expText.innerHTML = texts[title] || '';
     expandedBody.appendChild(expText);
 
+    // Theme switching is a Home affordance, not persistent navigation chrome.
+    // The server renders this once so its options remain authoritative; move it
+    // into Home when the semantic Board locations are constructed.
+    if (title === 'Home') {
+        const themeSelector = document.querySelector('[data-home-theme-selector]');
+        if (themeSelector) expandedBody.appendChild(themeSelector);
+    }
+
     // "open" link — handwritten on the paper, with per-tile variety in
     // the wording, font, ink color, rotation, and decoration. Same hash
     // seed used for tile styling, so a given tile always renders the

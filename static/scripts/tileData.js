@@ -17,9 +17,7 @@ window.tileInfo = {
     "Home": [
         [0, 0],
         `
-        Welcome!
-        <br><br>
-        Check out the neighboring tiles and look out for "Open" buttons for more info!
+        Welcome! Click to explore the neighboring tiles.
         `,
     ],
 

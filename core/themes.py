@@ -4,15 +4,11 @@ from __future__ import annotations
 
 from fastapi import Request
 
-from core.theme_packs import (
-    CANONICAL_THEME,
-    ThemePackRegistry,
-)
+from core.theme_packs import ThemePackRegistry
 
 def theme_context(
     request: Request,
     enabled: bool,
-    selector_enabled: bool | None = None,
     registry: ThemePackRegistry | None = None,
 ) -> dict[str, object]:
     """Return the rendered Board Theme context for one request."""
@@ -31,9 +27,7 @@ def theme_context(
         "theme_document_variables": (
             dict(selected.document_variables) if enabled else {}
         ),
-        "theme_selector_enabled": (
-            enabled if selector_enabled is None else enabled and selector_enabled
-        ),
+        "theme_selector_enabled": enabled,
         "board_themes": registry.public_catalog(),
         "remember_theme": selected.id if enabled and requested is None else None,
     }

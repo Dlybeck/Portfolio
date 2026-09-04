@@ -415,6 +415,7 @@ def test_enabled_theme_laboratory_renders_known_themes_and_fails_closed(
 
     assert '<html lang="en" class="main" data-board-theme="lily" data-theme-pack-visual' in lily.text
     assert 'select data-theme-selector' in lily.text
+    assert '<option value="__random__">Surprise me</option>' in lily.text
     assert lily.text.count('class="theme-selector-option"') == 4
     assert '<option class="theme-selector-option" value="canonical"' in lily.text
     assert '<option class="theme-selector-option" value="islands"' in lily.text
@@ -433,19 +434,19 @@ def test_enabled_theme_laboratory_renders_known_themes_and_fails_closed(
     assert '/static/css/page.css' not in document.text
 
 
-def test_runtime_themes_can_be_enabled_without_exposing_the_developer_selector(
+def test_runtime_themes_include_the_home_theme_chooser(
     client: TestClient,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", False)
     monkeypatch.setattr(settings, "THEMES_ENABLED", True)
-    monkeypatch.setattr(settings, "THEME_SELECTOR_ENABLED", False)
     monkeypatch.setattr(theme_packs.secrets, "randbelow", lambda total: 1)
 
     board = client.get("/")
 
     assert 'data-board-theme="islands"' in board.text
-    assert 'data-theme-selector' not in board.text
+    assert 'data-home-theme-selector' in board.text
+    assert 'data-theme-selector' in board.text
     assert 'id="theme-pack-catalog"' in board.text
     assert '/static/scripts/themeEngine.js' in board.text
 
@@ -460,6 +461,10 @@ def test_theme_switch_replaces_world_and_preserves_it_in_navigation(
     page.goto(f"{origin}/?theme=lily", wait_until="domcontentloaded")
 
     expect(page.locator("html")).to_have_attribute("data-board-theme", "lily")
+    expect(page.locator(".navbar [data-theme-selector]")).to_have_count(0)
+    expect(page.locator(
+        '.tile-container[data-title="Home"] [data-home-theme-selector]'
+    )).to_have_count(1)
     expect(page.locator("html")).to_have_attribute("data-theme-focus-motion", "grow")
     expect(page.locator('[data-theme-object="lily"]')).to_have_count(34)
     expect(page.locator('[data-theme-ambient][aria-hidden="true"]')).to_have_count(1)
@@ -996,7 +1001,7 @@ def test_open_document_rethemes_in_place_without_stale_world_state(
         "data-viewer-artifact", "field-notebook"
     )
 
-    page.locator("[data-theme-selector]").select_option("planets")
+    page.evaluate("window.themeEngine.activate('planets')")
     expect(page).to_have_url(f"{origin}/projects/programs?theme=planets")
     expect(document.locator("html")).to_have_attribute("data-board-theme", "planets")
     expect(page.locator("html")).to_have_attribute(
@@ -1007,7 +1012,7 @@ def test_open_document_rethemes_in_place_without_stale_world_state(
         "node => node.style.getPropertyValue('--theme-pack-font-body')"
     ) == "system-ui, sans-serif"
 
-    page.locator("[data-theme-selector]").select_option("canonical")
+    page.evaluate("window.themeEngine.activate('canonical')")
     expect(document.locator("html")).to_have_attribute("data-board-theme", "canonical")
     expect(document.locator("html")).to_have_attribute("data-theme-pack-visual", "")
     expect(page.locator("html")).to_have_attribute("data-viewer-artifact", "none")
@@ -1327,11 +1332,29 @@ def test_development_selector_has_an_explicit_keyboard_shortcut(
     page, origin = browser_page
     page.goto(f"{origin}/?theme=lily", wait_until="domcontentloaded")
 
+    page.get_by_role("button", name="Go to Projects").click()
     page.keyboard.press("Alt+t")
     selector = page.locator("[data-theme-selector]")
+    expect(page.locator(
+        '.tile-container[data-title="Home"]'
+    )).to_have_class(re.compile(r"\bexpanded\b"))
     expect(selector).to_be_focused()
     selector.select_option("islands")
     expect(page).to_have_url(f"{origin}/?theme=islands")
+
+
+def test_surprise_me_returns_theme_selection_to_unpinned_rotation(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(f"{origin}/?theme=lily", wait_until="domcontentloaded")
+
+    page.locator("[data-theme-selector]").select_option("__random__")
+
+    expect(page).to_have_url(f"{origin}/")
+    expect(page.locator("html")).not_to_have_attribute("data-board-theme", "")
 
 
 @pytest.mark.parametrize("theme", VISUAL_THEMES)

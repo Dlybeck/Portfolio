@@ -1,5 +1,8 @@
 # Select one complete world per unpinned refresh
 
+Status: superseded in part by ADR 0011 for manual selection. Random unpinned
+selection and explicit URL pinning remain active.
+
 When the Theme Engine is enabled, each unpinned full-page request selects one
 enabled, random-eligible Theme Pack as a complete world, excluding the
 immediately previous candidate when possible so a refresh visibly changes the

@@ -144,7 +144,7 @@ simulated photorealism.
 
 The Board declares its background stack, ambient-mark treatment and placement,
 tile typography and shadows, hover/motion treatment, and component visibility.
-Chrome tokens own navbar, Personal Mark, controls, selector, viewer frame,
+Chrome tokens own navbar, Personal Mark, controls, and viewer frame,
 states, radii, filters, padding, rotations, and shadows. The theme may show or
 hide declared decorative components such as ambient marks, tape, chrome
 decoration, and title underlines; it cannot hide semantic content or controls.
@@ -155,7 +155,9 @@ The `action-treatment` token selects one of two stable expanded-link adapters:
 `annotation` keeps the destination as writing directly on an object, while
 `marker` gives it a filled, bordered in-world label with a 44-pixel touch target. Packs
 own the action font, size, ink, background, border, padding, radius, shadow,
-decoration, and transform. The Theme Engine continues to own the link target,
+decoration, and transform. The same treatment styles the manual theme chooser
+inside Home, keeping it in-world without inventing theme-specific controls. The
+Theme Engine continues to own the link target,
 placement, focus order, activation behavior, and minimum readable marker size.
 
 The `viewer-artifact` token selects one stable opened-Document carrier:
@@ -275,14 +277,14 @@ accessible control surface.
 - Variant choices inside a pack are deterministic for the pack seed and Board
   location. Random theme selection does not make individual objects flicker.
 
-Deployment enables the engine and selector independently:
+Deployment enables the complete theme experience, including the subtle manual
+chooser inside the focused Home location:
 
 ```text
 THEMES_ENABLED=true
-THEME_SELECTOR_ENABLED=false
 ```
 
-For local authoring, `THEME_LAB_ENABLED=true` enables both. The theme-enabled
+For local authoring, `THEME_LAB_ENABLED=true` is the equivalent shortcut. The theme-enabled
 shell loads only the neutral Board/Document structure stylesheets and the
 validated pack mapping; the original pre-pack CSS/JavaScript presenter is
 loaded only when the engine is disabled.

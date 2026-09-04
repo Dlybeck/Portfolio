@@ -23,10 +23,6 @@ def themes_enabled() -> bool:
     return settings.THEMES_ENABLED or settings.THEME_LAB_ENABLED
 
 
-def theme_selector_enabled() -> bool:
-    return settings.THEME_SELECTOR_ENABLED or settings.THEME_LAB_ENABLED
-
-
 @portfolio_router.get("/_theme-packs/{pack_id}.json", include_in_schema=False)
 async def theme_pack_payload(pack_id: str):
     """Serve one fully validated pack to the active Theme Engine."""
@@ -56,7 +52,6 @@ def render_board(request: Request, document: PortfolioDocument | None = None):
         **theme_context(
             request,
             themes_enabled(),
-            selector_enabled=theme_selector_enabled(),
         ),
     }
     remember_theme = context.pop("remember_theme")
@@ -93,7 +88,6 @@ async def embedded_document(request: Request, document_path: str):
         **theme_context(
             request,
             themes_enabled(),
-            selector_enabled=theme_selector_enabled(),
         ),
     }
     context.pop("remember_theme")

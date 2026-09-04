@@ -1,29 +1,78 @@
 /* Stable Board slots for validated Theme Pack variables. */
 
-.theme-selector {
-  display: flex;
-  align-items: center;
-  gap: .35rem;
-  margin-left: .35rem;
-  font: var(--theme-pack-font-selector-size) var(--theme-pack-font-navbar);
-  color: var(--theme-pack-nav-ink);
-  white-space: nowrap;
+.home-theme-selector {
+  display: none;
 }
 
-.theme-selector select {
-  max-width: min(31vw, 190px);
-  border-width: var(--theme-pack-selector-border-width);
-  border-style: var(--theme-pack-selector-border-style);
+.tile-expanded .home-theme-selector {
+  align-items: center;
+  color: var(--theme-location-ink, var(--theme-pack-ink));
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  font-family: var(--theme-location-expanded-text-font, var(--theme-pack-font-expanded-text));
+  font-size: var(--theme-pack-action-size);
+  gap: .18rem;
+  line-height: 1.15;
+  max-width: 100%;
+  position: relative;
+  white-space: nowrap;
+  z-index: 3;
+}
+
+.home-theme-question {
+  display: block;
+  font-size: var(--theme-pack-expanded-text-size);
+}
+
+.home-theme-action {
+  align-items: center;
+  background: var(--theme-pack-link-bg);
+  border: var(--theme-pack-action-border);
+  border-radius: var(--theme-pack-action-radius);
+  box-shadow: var(--theme-pack-action-shadow);
+  box-sizing: border-box;
+  color: var(--theme-pack-link);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--theme-pack-font-action);
+  font-size: 1em;
+  font-weight: var(--theme-pack-font-action-weight);
+  justify-content: center;
+  letter-spacing: var(--theme-pack-action-letter-spacing);
+  min-height: 34px;
+  max-width: 100%;
+  padding: .22rem .62rem;
+  position: relative;
+  text-decoration-line: var(--theme-pack-action-text-decoration);
+  text-decoration-style: var(--theme-pack-action-decoration-style);
+  text-decoration-thickness: var(--theme-pack-action-decoration-thickness);
+  text-underline-offset: var(--theme-pack-action-underline-offset);
+}
+
+.home-theme-chevron {
+  display: inline-block;
+  font-family: sans-serif;
+  margin-left: .18rem;
+}
+
+.home-theme-action select {
+  background: var(--theme-pack-selector-bg);
   border-color: var(--theme-pack-selector-border);
   border-radius: var(--theme-pack-selector-radius);
-  padding: .2rem 1.6rem .2rem .4rem;
-  font: inherit;
+  border-style: var(--theme-pack-selector-border-style);
+  border-width: var(--theme-pack-selector-border-width);
   color: var(--theme-pack-selector-ink);
-  background: var(--theme-pack-selector-bg);
   cursor: pointer;
+  font-size: var(--theme-pack-font-selector-size);
+  height: 100%;
+  inset: 0;
+  opacity: 0;
+  position: absolute;
+  width: 100%;
 }
 
-.theme-selector select:focus-visible {
+.home-theme-action:focus-within {
   outline: 3px solid var(--theme-pack-focus);
   outline-offset: 3px;
 }
@@ -501,8 +550,7 @@ html[data-theme-pack-visual] .navbar-content {
   gap: var(--theme-pack-nav-gap);
 }
 
-html[data-theme-pack-visual] .navbar-title,
-html[data-theme-pack-visual] .theme-selector {
+html[data-theme-pack-visual] .navbar-title {
   color: var(--theme-pack-nav-ink);
   font-family: var(--theme-pack-font-navbar);
   font-weight: var(--theme-pack-font-navbar-weight);
@@ -589,8 +637,16 @@ html[data-theme-pack-visual] .tile-base:focus-visible .theme-object {
 @media (max-width: 600px) {
   .navbar { max-width: calc(100vw - 20px); left: 10px; top: 10px; }
   .navbar-title { max-width: 22vw; }
-  .theme-selector span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  .theme-selector select { max-width: 42vw; }
+  .tile-expanded .home-theme-selector {
+    font-size: max(.84rem, calc(var(--theme-pack-action-size) * .88));
+  }
+  .home-theme-question {
+    font-size: var(--theme-pack-phone-expanded-text-size);
+  }
+  .home-theme-action {
+    min-height: 32px;
+    padding: .18rem .48rem;
+  }
   html[data-theme-pack-visual] .tile-container,
   html[data-theme-pack-visual] .tile-container.expanded,
   html[data-theme-pack-visual] .tile-container.connected,

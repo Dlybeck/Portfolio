@@ -117,6 +117,12 @@
         return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     }
 
+    function unpinnedUrl() {
+        const url = new URL(location.href);
+        url.searchParams.delete("theme");
+        return `${url.pathname}${url.search}${url.hash}`;
+    }
+
     function svgElement(pack, title, assignment, expanded) {
         const parser = new DOMParser();
         const source = expanded ? assignment.expandedSvg : assignment.baseSvg;
@@ -228,6 +234,7 @@
             body.querySelector(".expanded-title"),
             body.querySelector(".expanded-text"),
             body.querySelector(".expanded-open"),
+            body.querySelector(".home-theme-selector"),
         ].filter(Boolean);
         nodes.forEach((node) => node.style.removeProperty("font-size"));
         const initialSizes = nodes.map((node) => Number.parseFloat(
@@ -245,7 +252,7 @@
             && node.offsetTop >= safe.top - 1
             && node.offsetLeft + node.offsetWidth <= safe.right + 1
             && node.offsetTop + node.offsetHeight <= safe.bottom + 1
-            && (!node.matches(".expanded-text")
+            && (!node.matches(".expanded-text, .home-theme-selector")
                 || (node.scrollWidth <= node.clientWidth + 4
                     && node.scrollHeight <= node.clientHeight + 4))
         ));
@@ -255,7 +262,9 @@
                     && document.documentElement.dataset.themeActionTreatment === "marker";
                 const minimum = node.matches(".expanded-title")
                     ? 20
-                    : (node.matches(".expanded-open") ? (markerAction ? 18 : 14) : 13);
+                    : (node.matches(".expanded-open")
+                        ? (markerAction ? 18 : 14)
+                        : (node.matches(".home-theme-selector") ? 11 : 13));
                 node.style.fontSize = `${Math.max(minimum, initialSizes[index] * scale)}px`;
             });
             if (fits()) return true;
@@ -321,7 +330,9 @@
                     body.style.removeProperty(`--theme-safe-${edge}`);
                 });
             });
-            tile.querySelectorAll(".scrap-title, .expanded-title, .expanded-text, .expanded-open")
+            tile.querySelectorAll(
+                ".scrap-title, .expanded-title, .expanded-text, .expanded-open, .home-theme-selector"
+            )
                 .forEach((element) => element.style.removeProperty("font-size"));
             [
                 "--theme-detail-rotation", "--theme-motion-enter-duration",
@@ -622,12 +633,19 @@
     };
     document.addEventListener("DOMContentLoaded", () => {
         selector?.addEventListener("change", (event) => {
+            if (event.target.value === "__random__") {
+                location.assign(unpinnedUrl());
+                return;
+            }
             activate(event.target.value).catch(console.error);
         });
         document.addEventListener("keydown", (event) => {
             if (!selector || !event.altKey || event.code !== "KeyT") return;
             event.preventDefault();
-            selector.focus();
+            if ((window.currentTileTitle || "Home") !== "Home") {
+                window.returnHome?.();
+            }
+            requestAnimationFrame(() => selector.focus({ preventScroll: true }));
         });
         activate(state.current, { syncUrl: false }).catch(console.error);
         window.addEventListener("resize", scheduleContentFit, { passive: true });

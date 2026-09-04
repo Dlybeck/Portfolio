@@ -1,6 +1,7 @@
 # Keep a canonical theme while developing variants
 
-Status: superseded in part by ADR 0007 for runtime selection. Canonical remains
+Status: superseded in part by ADR 0007 for runtime selection and ADR 0011 for
+manual selection. Canonical remains
 the fail-closed fallback, but it is no longer the only unpinned public choice
 when the Theme Engine is enabled.
 

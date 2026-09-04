@@ -185,7 +185,7 @@ Current implementation commits include `f8b139b` (modular naturalism),
 | 1. Canonical fidelity | The generated Canonical assets were compared at phone and desktop sizes with the `77f4e59` reference. The two-scale board grain, original connector values, ten scrap materials, eight folds, nine rip forms, full-size tape, six underline families, and independent transforms are present in the current captures. | Machine and agent review complete; owner verdict pending |
 | 2. Fidelity guard | `.venv/bin/python scripts/check_canonical_fidelity.py` reports `PASS: Canonical retains the original organic-variation controls`. | Complete |
 | 3. Declarative contract | Strict Pydantic models, generated JSON Schemas, SVG sanitization, pack discovery, and Theme Engine consumption cover bounded background depth layers, transforms, detail rotation, motion variation, typography, layout, and connector variation. Runtime source contains no installed alternate-theme IDs. | Complete |
-| 4. Planets | Browser tests exercise every real title at phone and desktop sizes, including `3D Printing`; all remain whole and use at most two lines. The pack preserves its deterministic 520-star non-pattern field across far (`0.10`) and near (`0.28`) layers, with varied full-motion relationships and fixed distant lighting. | Complete; owner visual confirmation pending |
+| 4. Planets | Browser tests exercise every real title at phone and desktop sizes, including `3D Printing`; all remain whole and use at most two lines. The pack preserves its deterministic 520-star non-pattern field across far (`0.30`) and near (`0.50`) layers, with varied full-motion relationships and fixed distant lighting. | Complete; owner visual confirmation pending |
 | 5. Lily | Current phone/desktop captures retain the approved pad art and Grow behavior. Owner feedback replaced the busy tiled water pattern with a balanced, non-repeating pack-owned ripple field. | Complete; owner visual confirmation pending |
 | 6. Islands | Generated assets remove arbitrary interior detail, retain the accepted coastlines and chain, and add an irregular 46-current background plus bounded connector variation. | Complete; owner visual confirmation pending |
 | 7. Clouds disabled | Cloudscape remains valid dormant material but has both `enabled` and `randomEligible` set false. Registry, selector, direct-request fallback, and random-selection tests cover the exclusion. | Complete |
@@ -280,7 +280,7 @@ to their final proportional positions without transition.
 
 Planets / Constellation is the only initial multi-depth theme. Its original
 520 irregular stars are preserved but partitioned deterministically into a far
-layer at `0.10` and a restrained near layer at `0.28`; fixed lighting remains at
+layer at `0.30` and a restrained near layer at `0.50`; fixed lighting remains at
 `0`, while planets and their relationships remain at full Board movement.
 Canonical, Lily, and Islands retain one layer at `1`. Cloudscape remains
 disabled.

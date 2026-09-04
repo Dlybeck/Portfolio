@@ -639,7 +639,7 @@ def test_repository_background_art_is_pack_owned_and_irregular() -> None:
         layer["depth"] for layer in payloads["canonical"]["backgroundLayers"]
     ] == [1.0]
     planet_layers = payloads["planets"]["backgroundLayers"]
-    assert [layer["depth"] for layer in planet_layers] == [0.10, 0.28]
+    assert [layer["depth"] for layer in planet_layers] == [0.30, 0.50]
     assert [layer["svg"].count("<circle") for layer in planet_layers] == [346, 174]
     assert sum(layer["svg"].count("<circle") for layer in planet_layers) == 520
     assert all("<pattern" not in layer["svg"] for layer in planet_layers)

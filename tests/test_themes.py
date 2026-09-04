@@ -488,7 +488,7 @@ def test_planets_keep_distant_glare_fixed_while_the_star_map_moves(
 
 
 @pytest.mark.parametrize("page_fixture", ["browser_page", "mobile_browser_page"])
-def test_planets_declare_two_subtle_depths_that_move_proportionally(
+def test_planets_declare_two_distinct_depths_that_move_proportionally(
     request: pytest.FixtureRequest,
     monkeypatch: pytest.MonkeyPatch,
     page_fixture: str,
@@ -501,7 +501,7 @@ def test_planets_declare_two_subtle_depths_that_move_proportionally(
     expect(layers).to_have_count(2)
     assert layers.evaluate_all(
         "nodes => nodes.map(node => Number(node.dataset.themeDepth))"
-    ) == [0.10, 0.28]
+    ) == [0.30, 0.50]
 
     page.locator('[data-title="Projects"]').click()
     expect(page).to_have_url(re.compile(r"#Projects$"))
@@ -512,11 +512,11 @@ def test_planets_declare_two_subtle_depths_that_move_proportionally(
             return {depth: Number(node.dataset.themeDepth), x: matrix.m41, y: matrix.m42};
         })"""
     )
-    assert math.hypot(shifts[0]["x"], shifts[0]["y"]) >= 25
-    assert math.hypot(shifts[1]["x"], shifts[1]["y"]) >= 70
+    assert math.hypot(shifts[0]["x"], shifts[0]["y"]) >= 75
+    assert math.hypot(shifts[1]["x"], shifts[1]["y"]) >= 125
     far, near = shifts
-    assert abs(near["x"] / far["x"] - 2.8) < 0.05
-    assert abs(near["y"] / far["y"] - 2.8) < 0.05
+    assert abs(near["x"] / far["x"] - 5 / 3) < 0.05
+    assert abs(near["y"] / far["y"] - 5 / 3) < 0.05
 
 
 def test_planet_depth_layers_restore_their_position_on_direct_entry(
@@ -537,7 +537,7 @@ def test_planet_depth_layers_restore_their_position_on_direct_entry(
         })"""
     )
     assert shifts[0] > 1
-    assert abs(shifts[1] / shifts[0] - 2.8) < 0.05
+    assert abs(shifts[1] / shifts[0] - 5 / 3) < 0.05
 
 
 def test_planet_depth_layers_snap_to_final_positions_with_reduced_motion(
@@ -566,7 +566,7 @@ def test_planet_depth_layers_snap_to_final_positions_with_reduced_motion(
         })"""
     )
     assert shifts[0] > 1
-    assert abs(shifts[1] / shifts[0] - 2.8) < 0.05
+    assert abs(shifts[1] / shifts[0] - 5 / 3) < 0.05
 
 
 def test_lily_uses_balanced_pack_owned_water_without_a_tiled_ripple_pattern(

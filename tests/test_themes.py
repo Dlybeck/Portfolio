@@ -43,6 +43,57 @@ def test_alternate_document_paragraph_rhythm_does_not_scale_with_page_width(
     assert math.isclose(desktop_margin, phone_margin, abs_tol=0.1)
 
 
+@pytest.mark.parametrize("theme", ["lily", "planets", "islands"])
+def test_alternate_document_opening_matches_canonical_reading_geometry(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+    theme: str,
+) -> None:
+    """Themed artifacts retain Canonical's compact title-to-content rhythm."""
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.set_viewport_size({"width": 1001, "height": 854})
+
+    def geometry() -> dict[str, float]:
+        document = page.frame_locator(".mini-window")
+        title = document.locator("#location")
+        paragraph = document.locator(".section p").first
+        image = document.locator(".section img").first
+        return {
+            "title_height": title.evaluate(
+                "node => node.getBoundingClientRect().height"
+            ),
+            "paragraph_lines": paragraph.evaluate(
+                "node => node.getBoundingClientRect().height / "
+                "parseFloat(getComputedStyle(node).lineHeight)"
+            ),
+            "image_top": image.evaluate(
+                "node => node.getBoundingClientRect().top"
+            ),
+        }
+
+    page.goto(
+        f"{origin}/hobbies/tennis?theme=canonical",
+        wait_until="domcontentloaded",
+    )
+    canonical = geometry()
+    page.goto(
+        f"{origin}/hobbies/tennis?theme={theme}",
+        wait_until="domcontentloaded",
+    )
+    themed = geometry()
+
+    assert math.isclose(
+        themed["title_height"], canonical["title_height"], abs_tol=0.5
+    )
+    assert math.isclose(
+        themed["paragraph_lines"], canonical["paragraph_lines"], abs_tol=0.1
+    )
+    assert math.isclose(
+        themed["image_top"], canonical["image_top"], abs_tol=5
+    )
+
+
 def test_obsolete_viewer_prototype_pin_is_removed_without_restyling_original(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,

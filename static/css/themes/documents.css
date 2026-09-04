@@ -38,6 +38,7 @@ html[data-theme-pack-visual] #location {
   color: var(--theme-pack-title-ink) !important;
   font-family: var(--theme-pack-font-title) !important;
   font-size: var(--theme-pack-title-size) !important;
+  line-height: var(--theme-pack-title-line-height) !important;
   font-weight: var(--theme-pack-title-weight) !important;
 }
 
@@ -78,6 +79,7 @@ html[data-theme-pack-visual] h4 {
 
 html[data-theme-pack-visual] .section {
   position: relative;
+  max-width: var(--theme-pack-panel-max-width);
   box-sizing: var(--theme-pack-panel-box-sizing);
   color: var(--theme-pack-ink) !important;
   background: var(--theme-pack-panel-bg) !important;

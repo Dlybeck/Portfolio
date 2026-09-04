@@ -3240,6 +3240,17 @@
             }
           ]
         },
+        "panel-max-width": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "panel-padding": {
           "oneOf": [
             {
@@ -3449,6 +3460,17 @@
             }
           ]
         },
+        "title-line-height": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "title-size": {
           "oneOf": [
             {
@@ -3564,6 +3586,7 @@
         "panel-border-style",
         "panel-border-width",
         "panel-box-sizing",
+        "panel-max-width",
         "panel-padding",
         "panel-radius",
         "panel-shadow",
@@ -3583,6 +3606,7 @@
         "separator-height",
         "separator-opacity",
         "title-ink",
+        "title-line-height",
         "title-size",
         "title-weight"
       ],

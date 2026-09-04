@@ -12,6 +12,15 @@
     const packNode = document.querySelector("#active-theme-pack");
     const catalogNode = document.querySelector("#theme-pack-catalog");
     const selector = document.querySelector("[data-theme-selector]");
+    // PROTOTYPE: three removable document treatments for owner review.
+    const documentPrototypeSwitcher = document.querySelector(
+        "[data-document-prototype-switcher]"
+    );
+    const documentPrototypeVariants = [
+        { id: "A", label: "A — Quiet canvas" },
+        { id: "B", label: "B — Continuous page" },
+        { id: "C", label: "C — Content plates" },
+    ];
     let catalog = [];
     try { catalog = JSON.parse(catalogNode?.textContent || "[]"); } catch (_) {}
     const fallbackId = catalog[0]?.key || "";
@@ -37,10 +46,17 @@
         catalog.map((pack) => pack.key)
     );
     const relationshipDefaults = { ...(window.chalkArrowsConfig || {}) };
+    const requestedDocumentPrototype = new URLSearchParams(location.search)
+        .get("docvariant");
+    const initialDocumentPrototype = documentPrototypeVariants.some(
+        ({ id }) => id === requestedDocumentPrototype
+    ) ? requestedDocumentPrototype : "A";
     const state = {
         current: initialPack?.id || fallbackId,
         pack: initialPack,
         pinned: new URLSearchParams(location.search).has("theme"),
+        documentPrototype: initialDocumentPrototype,
+        documentPrototypePinned: Boolean(requestedDocumentPrototype),
     };
 
     function allTitles() {
@@ -545,7 +561,49 @@
         if (!doc?.documentElement || !pack) return;
         doc.documentElement.dataset.boardTheme = pack.id;
         doc.documentElement.setAttribute("data-theme-pack-visual", "");
+        if (documentPrototypeSwitcher && pack.id !== fallbackId) {
+            doc.documentElement.dataset.documentPrototype = state.documentPrototype;
+        } else {
+            delete doc.documentElement.dataset.documentPrototype;
+        }
         applyVariables(doc, pack.variables.document);
+    }
+
+    function setDocumentPrototype(value, { syncUrl = true } = {}) {
+        const variant = documentPrototypeVariants.find(({ id }) => id === value)
+            || documentPrototypeVariants[0];
+        state.documentPrototype = variant.id;
+        document.documentElement.dataset.documentPrototype = variant.id;
+        document.documentElement.toggleAttribute(
+            "data-document-prototype-applicable",
+            Boolean(state.pack && state.pack.id !== fallbackId)
+        );
+        const label = documentPrototypeSwitcher?.querySelector(
+            "[data-document-prototype-label]"
+        );
+        if (label) label.textContent = variant.label;
+        const iframeDoc = document.querySelector(".mini-window")?.contentDocument;
+        if (iframeDoc?.body) styleDocument(iframeDoc, state.pack);
+        if (!syncUrl) return variant.id;
+        state.documentPrototypePinned = true;
+        const current = new URL(location.href);
+        current.searchParams.set("docvariant", variant.id);
+        history.replaceState(
+            history.state,
+            "",
+            `${current.pathname}${current.search}${current.hash}`
+        );
+        return variant.id;
+    }
+
+    function cycleDocumentPrototype(direction) {
+        const current = documentPrototypeVariants.findIndex(
+            ({ id }) => id === state.documentPrototype
+        );
+        const next = (
+            current + direction + documentPrototypeVariants.length
+        ) % documentPrototypeVariants.length;
+        setDocumentPrototype(documentPrototypeVariants[next].id);
     }
 
     function themedUrl(route, pack, includeTheme = state.pinned) {
@@ -553,6 +611,9 @@
         if (parsed.origin !== window.location.origin) return route;
         if (!includeTheme) parsed.searchParams.delete("theme");
         else parsed.searchParams.set("theme", pack.id);
+        if (documentPrototypeSwitcher && state.documentPrototypePinned) {
+            parsed.searchParams.set("docvariant", state.documentPrototype);
+        }
         return `${parsed.pathname}${parsed.search}${parsed.hash}`;
     }
 
@@ -590,6 +651,7 @@
         styleRelationships(pack);
         state.current = pack.id;
         state.pack = pack;
+        setDocumentPrototype(state.documentPrototype, { syncUrl: false });
         if (selector) selector.value = pack.id;
         if (syncUrl) {
             const current = `${location.pathname}${location.search}${location.hash}`;
@@ -608,6 +670,18 @@
         styleDocument,
     };
     document.addEventListener("DOMContentLoaded", () => {
+        documentPrototypeSwitcher?.querySelector(
+            "[data-document-prototype-previous]"
+        )?.addEventListener("click", () => cycleDocumentPrototype(-1));
+        documentPrototypeSwitcher?.querySelector(
+            "[data-document-prototype-next]"
+        )?.addEventListener("click", () => cycleDocumentPrototype(1));
+        documentPrototypeSwitcher?.addEventListener("keydown", (event) => {
+            if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+            event.preventDefault();
+            cycleDocumentPrototype(event.key === "ArrowLeft" ? -1 : 1);
+        });
+        setDocumentPrototype(state.documentPrototype, { syncUrl: false });
         selector?.addEventListener("change", (event) => {
             activate(event.target.value).catch(console.error);
         });

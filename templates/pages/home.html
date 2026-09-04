@@ -20,6 +20,13 @@
     </div>
     <div class="viewport-overlay">
         <button type="button" class="close-button" aria-label="Close document"><span class="tab">✕ close</span></button>
+        {% if theme_lab_enabled %}
+        <div class="document-prototype-switcher" data-document-prototype-switcher tabindex="0" aria-label="Document treatment prototype">
+            <button type="button" data-document-prototype-previous aria-label="Previous document treatment">←</button>
+            <span data-document-prototype-label aria-live="polite">A — Quiet canvas</span>
+            <button type="button" data-document-prototype-next aria-label="Next document treatment">→</button>
+        </div>
+        {% endif %}
     </div>
 {% endblock %}
 

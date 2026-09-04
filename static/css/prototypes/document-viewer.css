@@ -1,0 +1,175 @@
+/*
+ * PROTOTYPE — document viewer middle ground.
+ *
+ * Question: can alternate worlds keep one recognizable Portfolio Viewer while
+ * moving strong world motifs out of the reading surface? Switch A/B/C with
+ * ?docvariant=. Canonical is deliberately excluded. Remove this whole file
+ * when the owner has chosen a direction.
+ */
+
+.document-prototype-switcher {
+  align-items: center;
+  background: rgba(20, 22, 29, .94);
+  border: 2px solid rgba(255, 255, 255, .86);
+  border-radius: 999px;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .38);
+  color: #fff;
+  display: none;
+  font: 700 15px/1.15 system-ui, sans-serif;
+  gap: 10px;
+  left: 50%;
+  padding: 5px;
+  pointer-events: auto;
+  position: fixed;
+  transform: translateX(-50%);
+  z-index: 12000;
+}
+
+html[data-document-prototype-applicable] body.page-open .document-prototype-switcher {
+  display: flex;
+}
+
+.document-prototype-switcher button {
+  align-items: center;
+  background: #fff;
+  border: 0;
+  border-radius: 50%;
+  color: #14161d;
+  cursor: pointer;
+  display: inline-flex;
+  font: 700 20px/1 system-ui, sans-serif;
+  height: 38px;
+  justify-content: center;
+  padding: 0;
+  width: 38px;
+}
+
+.document-prototype-switcher span {
+  min-width: 150px;
+  text-align: center;
+}
+
+.document-prototype-switcher:focus-visible,
+.document-prototype-switcher button:focus-visible {
+  outline: 3px solid #ffe272;
+  outline-offset: 3px;
+}
+
+/* All candidates keep world imagery out of the primary reading field. */
+html[data-document-prototype],
+html[data-document-prototype] body {
+  background-color: var(--theme-pack-page-bg) !important;
+  background-image: none !important;
+}
+
+html[data-document-prototype] body {
+  min-height: 100%;
+  position: relative;
+}
+
+/* A single restrained strip retains a trace of each pack's world motif. */
+html[data-document-prototype] body::before {
+  background-color: var(--theme-pack-page-bg);
+  background-image: var(--theme-pack-page-bg-image);
+  background-size: var(--theme-pack-page-bg-size);
+  content: "";
+  height: 10px;
+  left: 0;
+  opacity: .72;
+  pointer-events: none;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 20;
+}
+
+/* A — Quiet canvas: familiar cards, simplified into calm solid materials. */
+html[data-document-prototype="A"] .section {
+  background: var(--theme-pack-media-bg) !important;
+  border-width: 2px !important;
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--theme-pack-panel-border) 24%, transparent) !important;
+}
+
+html[data-document-prototype="A"] header {
+  box-shadow: none !important;
+}
+
+/* B — Continuous page: one reading surface, with sections made by rhythm and rules. */
+html[data-document-prototype="B"],
+html[data-document-prototype="B"] body {
+  background-color: var(--theme-pack-media-bg) !important;
+}
+
+html[data-document-prototype="B"] .section {
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--theme-pack-panel-border) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin: 0 auto !important;
+  max-width: 78% !important;
+  padding: clamp(24px, 4vw, 48px) 0 !important;
+}
+
+html[data-document-prototype="B"] .section:last-child {
+  border-bottom: 0 !important;
+}
+
+html[data-document-prototype="B"] .section::after {
+  display: none !important;
+}
+
+html[data-document-prototype="B"] header {
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--theme-pack-panel-border) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* C — Content plates: solid artifacts sit on a quiet canvas with side rhythm. */
+html[data-document-prototype="C"] .section {
+  background: var(--theme-pack-media-bg) !important;
+  border: 0 !important;
+  border-left: 7px solid var(--theme-pack-panel-border) !important;
+  border-radius: 2px var(--theme-pack-panel-radius) var(--theme-pack-panel-radius) 2px !important;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--theme-pack-panel-border) 28%, transparent) !important;
+  margin-bottom: 18px !important;
+  max-width: 72% !important;
+  padding: clamp(22px, 3vw, 36px) !important;
+}
+
+html[data-document-prototype="C"] .section:nth-of-type(even) {
+  border-left: 0 !important;
+  border-radius: var(--theme-pack-panel-radius) 2px 2px var(--theme-pack-panel-radius) !important;
+  border-right: 7px solid var(--theme-pack-panel-border) !important;
+  transform: translateX(3%);
+}
+
+html[data-document-prototype="C"] .section:nth-of-type(odd) {
+  transform: translateX(-3%);
+}
+
+html[data-document-prototype="C"] .section::after {
+  display: none !important;
+}
+
+@media (max-width: 600px) {
+  .document-prototype-switcher {
+    font-size: 13px;
+    gap: 6px;
+  }
+
+  .document-prototype-switcher span { min-width: 126px; }
+
+  html[data-document-prototype="B"] .section,
+  html[data-document-prototype="C"] .section {
+    max-width: 91% !important;
+  }
+
+  html[data-document-prototype="C"] .section:nth-of-type(even),
+  html[data-document-prototype="C"] .section:nth-of-type(odd) {
+    transform: none;
+  }
+}

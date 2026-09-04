@@ -52,6 +52,7 @@ def render_board(request: Request, document: PortfolioDocument | None = None):
         "document": document,
         "metadata": metadata_for(document),
         "person_schema": PERSON_SCHEMA,
+        "theme_lab_enabled": settings.THEME_LAB_ENABLED,
         **theme_context(
             request,
             themes_enabled(),
@@ -88,6 +89,7 @@ async def embedded_document(request: Request, document_path: str):
     context = {
         "metadata": metadata_for(document),
         "internal_document": True,
+        "theme_lab_enabled": settings.THEME_LAB_ENABLED,
         **theme_context(
             request,
             themes_enabled(),

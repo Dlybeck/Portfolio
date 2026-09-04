@@ -1357,6 +1357,85 @@ def test_surprise_me_returns_theme_selection_to_unpinned_rotation(
     expect(page.locator("html")).not_to_have_attribute("data-board-theme", "")
 
 
+def test_home_switch_copy_uses_one_readable_font_and_fits_every_world(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Home must not solve a cramped safe area with mixed or tiny type."""
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+
+    for viewport in ({"width": 1440, "height": 900}, {"width": 390, "height": 844}):
+        page.set_viewport_size(viewport)
+        for theme in VISUAL_THEMES:
+            page.goto(f"{origin}/?theme={theme}", wait_until="domcontentloaded")
+            page.wait_for_function(
+                """theme => (
+                    document.querySelectorAll(`[data-theme-object="${theme}"]`).length === 34
+                    && document.querySelector('[data-title="Home"]')
+                        ?.dataset.themeContentFit === 'true'
+                )""",
+                arg=theme,
+            )
+            home = page.locator('.tile-container[data-title="Home"]')
+
+            typography = home.evaluate(
+                """node => [
+                    '.expanded-title',
+                    '.expanded-text',
+                    '.home-theme-question',
+                    '.home-theme-action > span',
+                ].map(selector => {
+                    const element = node.querySelector(selector);
+                    const style = getComputedStyle(element);
+                    return {
+                        selector,
+                        family: style.fontFamily,
+                        size: Number.parseFloat(style.fontSize),
+                    };
+                })"""
+            )
+            assert len({entry["family"] for entry in typography}) == 1, (
+                theme,
+                viewport,
+                typography,
+            )
+            assert min(entry["size"] for entry in typography) >= 14, (
+                theme,
+                viewport,
+                typography,
+            )
+            expect(home.locator(".home-theme-action")).to_contain_text("Switch it up")
+
+
+def test_home_button_does_not_animate_an_already_closed_document_viewer(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(f"{origin}/?theme=lily", wait_until="domcontentloaded")
+    page.get_by_role("button", name="Go to Projects").click()
+    expect(page.locator(".mini-window-container")).not_to_have_class(
+        re.compile(r"\b(open|closing)\b")
+    )
+    page.evaluate(
+        """() => {
+            window.__viewerClassChanges = [];
+            const viewer = document.querySelector('.mini-window-container');
+            new MutationObserver(() => {
+                window.__viewerClassChanges.push(viewer.className);
+            }).observe(viewer, { attributes: true, attributeFilter: ['class'] });
+        }"""
+    )
+
+    page.get_by_role("button", name="Home", exact=True).click()
+    page.wait_for_timeout(500)
+
+    assert page.evaluate("window.__viewerClassChanges") == []
+    expect(page.locator(".mini-window")).not_to_have_attribute("src", re.compile(r".+"))
+
+
 @pytest.mark.parametrize("theme", VISUAL_THEMES)
 def test_phone_theme_laboratory_keeps_the_personal_mark_visible(
     mobile_browser_page: tuple[Page, str],

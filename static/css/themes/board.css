@@ -35,7 +35,7 @@
   color: var(--theme-pack-link);
   cursor: pointer;
   display: inline-flex;
-  font-family: var(--theme-pack-font-action);
+  font-family: inherit;
   font-size: 1em;
   font-weight: var(--theme-pack-font-action-weight);
   justify-content: center;
@@ -52,7 +52,7 @@
 
 .home-theme-chevron {
   display: inline-block;
-  font-family: sans-serif;
+  font-family: inherit;
   margin-left: .18rem;
 }
 
@@ -267,6 +267,15 @@ html[data-theme-pack-visual] .expanded-text {
   text-shadow: var(--theme-pack-text-shadow);
   max-width: 100%;
   overflow-wrap: anywhere;
+}
+
+/* Home is one compact welcome card, not a miniature document hierarchy.
+   Keep its title, guidance, and theme action in one readable hand. */
+html[data-theme-pack-visual] .tile-container[data-title="Home"] .expanded-title,
+html[data-theme-pack-visual] .tile-container[data-title="Home"] .expanded-text,
+html[data-theme-pack-visual] .tile-container[data-title="Home"] .home-theme-selector,
+html[data-theme-pack-visual] .tile-container[data-title="Home"] .home-theme-action {
+  font-family: var(--theme-location-expanded-text-font, var(--theme-pack-font-expanded-text)) !important;
 }
 
 html[data-theme-pack-visual] .expanded-open {

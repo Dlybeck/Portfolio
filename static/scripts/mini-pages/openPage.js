@@ -133,6 +133,11 @@ class MiniWindow {
     // ---------------------- show / hide ----------------------
 
     hide(options = {}) {
+        // Returning Home while already on the Board must not manufacture a
+        // Viewer exit. Adding `closing` here used to flash an empty document
+        // over the Board even though no document had been opened.
+        if (!this.isVisible()) return false;
+
         if (this.outsideHandlerTimer !== null) {
             clearTimeout(this.outsideHandlerTimer);
             this.outsideHandlerTimer = null;
@@ -159,6 +164,7 @@ class MiniWindow {
             this.page.setAttribute('src', '');
             this.navigationHistory = [];
         }, EXIT_MS);
+        return true;
     }
 
     // ---------------------- helpers ----------------------

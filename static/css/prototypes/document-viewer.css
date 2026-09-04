@@ -201,7 +201,7 @@ html[data-viewer-shell-prototype-applicable] .viewer-shell-prototype-decoration 
    the same document grammar inside it.
    ------------------------------------------------------------------------- */
 
-html[data-viewer-shell-prototype="A"][data-board-theme="planets"] .mini-window-container {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="A"][data-board-theme="planets"] .mini-window-container {
   background: linear-gradient(145deg, #30375f, #151a39) !important;
   border: 4px solid #8797d2 !important;
   border-radius: 22px !important;
@@ -210,7 +210,7 @@ html[data-viewer-shell-prototype="A"][data-board-theme="planets"] .mini-window-c
   padding: 34px 34px 46px !important;
 }
 
-html[data-viewer-shell-prototype="A"][data-board-theme="planets"] .viewer-shell-prototype-label::before {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="A"][data-board-theme="planets"] .viewer-shell-prototype-label::before {
   bottom: 12px;
   color: #d8e7ff;
   content: "DEEP FIELD ARCHIVE · DL-03";
@@ -219,7 +219,7 @@ html[data-viewer-shell-prototype="A"][data-board-theme="planets"] .viewer-shell-
   letter-spacing: .14em;
 }
 
-html[data-viewer-shell-prototype="A"][data-board-theme="planets"] .viewer-shell-prototype-hardware {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="A"][data-board-theme="planets"] .viewer-shell-prototype-hardware {
   background:
     radial-gradient(circle at 12px 12px, #c7d0e8 0 3px, #4f587b 3.5px 5px, transparent 5.5px),
     radial-gradient(circle at calc(100% - 12px) 12px, #c7d0e8 0 3px, #4f587b 3.5px 5px, transparent 5.5px),
@@ -228,7 +228,7 @@ html[data-viewer-shell-prototype="A"][data-board-theme="planets"] .viewer-shell-
   inset: 0;
 }
 
-html[data-viewer-shell-prototype="A"][data-board-theme="planets"] .viewer-shell-prototype-hardware::after {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="A"][data-board-theme="planets"] .viewer-shell-prototype-hardware::after {
   background: #74e7b2;
   border-radius: 50%;
   bottom: 11px;
@@ -239,7 +239,7 @@ html[data-viewer-shell-prototype="A"][data-board-theme="planets"] .viewer-shell-
   width: 6px;
 }
 
-html[data-viewer-shell-prototype="A"][data-board-theme="lily"] .mini-window-container {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="A"][data-board-theme="lily"] .mini-window-container {
   background: linear-gradient(105deg, #4d8763 0 34px, #dceabe 35px 100%) !important;
   border: 3px solid #315f49 !important;
   border-radius: 12px 30px 18px 26px !important;
@@ -248,7 +248,7 @@ html[data-viewer-shell-prototype="A"][data-board-theme="lily"] .mini-window-cont
   padding: 34px 28px 42px 52px !important;
 }
 
-html[data-viewer-shell-prototype="A"][data-board-theme="lily"] .viewer-shell-prototype-hardware {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="A"][data-board-theme="lily"] .viewer-shell-prototype-hardware {
   background: repeating-radial-gradient(circle at 18px 22px,
     #ecf4d6 0 5px, #244f3b 5.5px 7px, transparent 7.5px 56px);
   bottom: 8px;
@@ -257,7 +257,7 @@ html[data-viewer-shell-prototype="A"][data-board-theme="lily"] .viewer-shell-pro
   width: 36px;
 }
 
-html[data-viewer-shell-prototype="A"][data-board-theme="lily"] .viewer-shell-prototype-label::before {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="A"][data-board-theme="lily"] .viewer-shell-prototype-label::before {
   background: #315f49;
   border-radius: 2px 12px 2px 9px;
   bottom: 10px;
@@ -269,7 +269,7 @@ html[data-viewer-shell-prototype="A"][data-board-theme="lily"] .viewer-shell-pro
   padding: 6px 12px 5px;
 }
 
-html[data-viewer-shell-prototype="A"][data-board-theme="islands"] .mini-window-container {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="A"][data-board-theme="islands"] .mini-window-container {
   background: #dfcf9c !important;
   border: 5px solid #2b6f73 !important;
   border-radius: 9px 28px 12px 25px !important;
@@ -278,7 +278,7 @@ html[data-viewer-shell-prototype="A"][data-board-theme="islands"] .mini-window-c
   padding: 32px 30px 44px !important;
 }
 
-html[data-viewer-shell-prototype="A"][data-board-theme="islands"] .viewer-shell-prototype-hardware {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="A"][data-board-theme="islands"] .viewer-shell-prototype-hardware {
   background:
     linear-gradient(135deg, #765b3b 0 27px, transparent 28px) left top / 42px 42px no-repeat,
     linear-gradient(225deg, #765b3b 0 27px, transparent 28px) right top / 42px 42px no-repeat,
@@ -287,7 +287,7 @@ html[data-viewer-shell-prototype="A"][data-board-theme="islands"] .viewer-shell-
   inset: 0;
 }
 
-html[data-viewer-shell-prototype="A"][data-board-theme="islands"] .viewer-shell-prototype-label::before {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="A"][data-board-theme="islands"] .viewer-shell-prototype-label::before {
   background: #765b3b;
   border: 1px solid #4e3a26;
   border-radius: 3px;
@@ -307,7 +307,7 @@ html[data-viewer-shell-prototype="A"][data-board-theme="islands"] .viewer-shell-
    viewing instrument. This tests whether a universal shell is sufficient.
    ------------------------------------------------------------------------- */
 
-html[data-viewer-shell-prototype="B"] .mini-window-container {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="B"] .mini-window-container {
   background: var(--theme-pack-header-bg) !important;
   border: 9px double var(--theme-pack-panel-border) !important;
   border-radius: 52px !important;
@@ -319,18 +319,18 @@ html[data-viewer-shell-prototype="B"] .mini-window-container {
   width: min(90vw, 900px) !important;
 }
 
-html[data-viewer-shell-prototype="B"] .mini-window {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="B"] .mini-window {
   border-radius: 30px;
 }
 
-html[data-viewer-shell-prototype="B"] .viewer-shell-prototype-hardware {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="B"] .viewer-shell-prototype-hardware {
   border: 1px solid color-mix(in srgb, var(--theme-pack-panel-border) 75%, white);
   border-radius: 40px;
   box-shadow: inset 0 0 22px rgba(255,255,255,.1);
   inset: 10px;
 }
 
-html[data-viewer-shell-prototype="B"] .viewer-shell-prototype-hardware::before {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="B"] .viewer-shell-prototype-hardware::before {
   background: linear-gradient(126deg,
     transparent 10%, rgba(255,255,255,.04) 26%,
     rgba(255,255,255,.16) 29%, rgba(255,255,255,.03) 35%, transparent 52%);
@@ -339,7 +339,7 @@ html[data-viewer-shell-prototype="B"] .viewer-shell-prototype-hardware::before {
   inset: 14px;
 }
 
-html[data-viewer-shell-prototype="B"] .viewer-shell-prototype-hardware::after {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="B"] .viewer-shell-prototype-hardware::after {
   background: var(--theme-pack-focus);
   border: 2px solid color-mix(in srgb, var(--theme-pack-focus) 55%, #111);
   border-radius: 50%;
@@ -352,7 +352,7 @@ html[data-viewer-shell-prototype="B"] .viewer-shell-prototype-hardware::after {
   width: 8px;
 }
 
-html[data-viewer-shell-prototype="B"] .viewer-shell-prototype-label::before {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="B"] .viewer-shell-prototype-label::before {
   background: var(--theme-pack-header-bg);
   border: 1px solid var(--theme-pack-panel-border);
   border-radius: 999px;
@@ -372,7 +372,7 @@ html[data-viewer-shell-prototype="B"] .viewer-shell-prototype-label::before {
    and physical rather than recolored to match each environment.
    ------------------------------------------------------------------------- */
 
-html[data-viewer-shell-prototype="C"] .mini-window-container {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="C"] .mini-window-container {
   background:
     repeating-linear-gradient(88deg, rgba(91,63,35,.045) 0 2px, transparent 2px 7px),
     linear-gradient(105deg, #59412d 0 44px, #d6c29a 45px 100%) !important;
@@ -383,12 +383,12 @@ html[data-viewer-shell-prototype="C"] .mini-window-container {
   padding: 28px 28px 42px 66px !important;
 }
 
-html[data-viewer-shell-prototype="C"] .mini-window {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="C"] .mini-window {
   border-radius: 3px 14px 7px 10px;
   box-shadow: -5px 0 10px rgba(63,42,24,.25);
 }
 
-html[data-viewer-shell-prototype="C"] .viewer-shell-prototype-hardware {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="C"] .viewer-shell-prototype-hardware {
   background: repeating-radial-gradient(circle at 24px 24px,
     #d4b979 0 6px, #392719 6.5px 8px, transparent 8.5px 118px);
   bottom: 10px;
@@ -397,7 +397,7 @@ html[data-viewer-shell-prototype="C"] .viewer-shell-prototype-hardware {
   width: 48px;
 }
 
-html[data-viewer-shell-prototype="C"] .viewer-shell-prototype-hardware::after {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="C"] .viewer-shell-prototype-hardware::after {
   background: #8f382f;
   border: 1px solid #5c211d;
   border-radius: 0 5px 5px 0;
@@ -409,7 +409,7 @@ html[data-viewer-shell-prototype="C"] .viewer-shell-prototype-hardware::after {
   width: 16px;
 }
 
-html[data-viewer-shell-prototype="C"] .viewer-shell-prototype-label::before {
+html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="C"] .viewer-shell-prototype-label::before {
   bottom: 11px;
   color: #4a3424;
   content: "DAVID LYBECK · FIELD ARCHIVE";
@@ -427,26 +427,26 @@ html[data-viewer-shell-prototype="C"] .viewer-shell-prototype-label::before {
 
   .viewer-shell-prototype-switcher span { min-width: 150px; }
 
-  html[data-viewer-shell-prototype="A"][data-board-theme="planets"] .mini-window-container {
+  html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="A"][data-board-theme="planets"] .mini-window-container {
     padding: 28px 18px 42px !important;
   }
 
-  html[data-viewer-shell-prototype="A"][data-board-theme="lily"] .mini-window-container {
+  html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="A"][data-board-theme="lily"] .mini-window-container {
     padding: 28px 16px 40px 38px !important;
   }
 
-  html[data-viewer-shell-prototype="A"][data-board-theme="islands"] .mini-window-container {
+  html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="A"][data-board-theme="islands"] .mini-window-container {
     padding: 28px 17px 42px !important;
   }
 
-  html[data-viewer-shell-prototype="A"] .viewer-shell-prototype-label::before,
-  html[data-viewer-shell-prototype="B"] .viewer-shell-prototype-label::before,
-  html[data-viewer-shell-prototype="C"] .viewer-shell-prototype-label::before {
+  html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="A"] .viewer-shell-prototype-label::before,
+  html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="B"] .viewer-shell-prototype-label::before,
+  html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="C"] .viewer-shell-prototype-label::before {
     font-size: 8px !important;
     letter-spacing: .06em !important;
   }
 
-  html[data-viewer-shell-prototype="B"] .mini-window-container {
+  html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="B"] .mini-window-container {
     border-width: 6px !important;
     border-radius: 34px !important;
     height: 88vh !important;
@@ -455,16 +455,16 @@ html[data-viewer-shell-prototype="C"] .viewer-shell-prototype-label::before {
     width: 96vw !important;
   }
 
-  html[data-viewer-shell-prototype="B"] .mini-window,
-  html[data-viewer-shell-prototype="B"] .viewer-shell-prototype-hardware {
+  html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="B"] .mini-window,
+  html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="B"] .viewer-shell-prototype-hardware {
     border-radius: 22px;
   }
 
-  html[data-viewer-shell-prototype="C"] .mini-window-container {
+  html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="C"] .mini-window-container {
     padding: 24px 14px 40px 42px !important;
   }
 
-  html[data-viewer-shell-prototype="C"] .viewer-shell-prototype-hardware {
+  html[data-viewer-shell-prototype-applicable][data-viewer-shell-prototype="C"] .viewer-shell-prototype-hardware {
     width: 34px;
   }
 }

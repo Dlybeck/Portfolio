@@ -17,6 +17,29 @@ from scripts.audit_theme_variants import (
 VISUAL_THEMES = ["canonical", "lily", "planets", "islands"]
 
 
+def test_original_ignores_alternate_viewer_shell_pin(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A stale prototype URL must never restyle the preserved Original."""
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(
+        f"{origin}/jobs?theme=canonical&shellvariant=B",
+        wait_until="domcontentloaded",
+    )
+
+    root = page.locator("html")
+    viewer = page.locator(".mini-window-container")
+    expect(root).not_to_have_attribute("data-viewer-shell-prototype-applicable", "")
+    expect(page).not_to_have_url(re.compile(r"[?&]shellvariant="))
+    expect(viewer).to_have_css("border-radius", "2px")
+    expect(viewer).to_have_css("padding", "36px 30px 40px")
+    assert "repeating-linear-gradient" in viewer.evaluate(
+        "node => getComputedStyle(node).backgroundImage"
+    )
+
+
 def test_viewer_shell_prototype_switcher_keeps_the_open_document_visible(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,

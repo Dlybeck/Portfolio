@@ -597,10 +597,15 @@
         const iframeDoc = document.querySelector(".mini-window")?.contentDocument;
         if (iframeDoc?.body) styleDocument(iframeDoc, state.pack);
         if (!syncUrl) return variant.id;
-        state.viewerShellPrototypePinned = true;
         const current = new URL(location.href);
         current.searchParams.delete("docvariant");
-        current.searchParams.set("shellvariant", variant.id);
+        if (state.pack && state.pack.id !== fallbackId) {
+            state.viewerShellPrototypePinned = true;
+            current.searchParams.set("shellvariant", variant.id);
+        } else {
+            state.viewerShellPrototypePinned = false;
+            current.searchParams.delete("shellvariant");
+        }
         history.replaceState(
             history.state,
             "",
@@ -625,7 +630,12 @@
         if (!includeTheme) parsed.searchParams.delete("theme");
         else parsed.searchParams.set("theme", pack.id);
         parsed.searchParams.delete("docvariant");
-        if (viewerShellPrototypeSwitcher && state.viewerShellPrototypePinned) {
+        parsed.searchParams.delete("shellvariant");
+        if (
+            viewerShellPrototypeSwitcher
+            && pack.id !== fallbackId
+            && state.viewerShellPrototypePinned
+        ) {
             parsed.searchParams.set("shellvariant", state.viewerShellPrototype);
         }
         return `${parsed.pathname}${parsed.search}${parsed.hash}`;
@@ -665,13 +675,22 @@
         styleRelationships(pack);
         state.current = pack.id;
         state.pack = pack;
-        if (!state.viewerShellPrototypePinned) {
+        if (pack.id === fallbackId) {
+            state.viewerShellPrototypePinned = false;
+            state.viewerShellPrototype = packViewerShellPrototype(pack);
+        } else if (!state.viewerShellPrototypePinned) {
             state.viewerShellPrototype = packViewerShellPrototype(pack);
         }
         setViewerShellPrototype(state.viewerShellPrototype, { syncUrl: false });
         if (selector) selector.value = pack.id;
-        if (syncUrl) {
-            const current = `${location.pathname}${location.search}${location.hash}`;
+        const current = `${location.pathname}${location.search}${location.hash}`;
+        if (
+            syncUrl
+            || (
+                pack.id === fallbackId
+                && new URL(location.href).searchParams.has("shellvariant")
+            )
+        ) {
             history.replaceState(history.state, "", themedUrl(current, pack));
         }
         const iframeDoc = document.querySelector(".mini-window")?.contentDocument;

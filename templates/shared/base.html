@@ -28,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Gochi+Hand&family=Kalam:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
     {% if theme_engine_enabled %}
-    <link rel="stylesheet" href="/static/css/theme-structure.css?v=1">
+    <link rel="stylesheet" href="/static/css/theme-structure.css?v=2">
     {% else %}
     <link rel="stylesheet" href="/static/css/base.css?v=27">
     {% endif %}
@@ -50,7 +50,7 @@
     <script src="/static/scripts/legacyPaperTiles.js?v=1"></script>
     {% endif %}
     <script src="/static/scripts/tileCreation.js?v=25"></script>
-    <script src="/static/scripts/tileMovement.js?v=18"></script>
+    <script src="/static/scripts/tileMovement.js?v=19"></script>
     <script src="/static/scripts/chalkArrows.js?v=39"></script>
     {% if not theme_engine_enabled %}
     <script src="/static/scripts/chalkboardTweaks.js?v=3"></script>
@@ -62,7 +62,7 @@
     {% if theme_engine_enabled %}
     <script id="theme-pack-catalog" type="application/json">{{ board_themes | tojson }}</script>
     <script id="active-theme-pack" type="application/json">{{ active_theme_pack | tojson }}</script>
-    <script src="/static/scripts/themeEngine.js?v=1"></script>
+    <script src="/static/scripts/themeEngine.js?v=2"></script>
     {% endif %}
     {% block scripts %}
     {% endblock %}

@@ -67,6 +67,7 @@ window.centerOnTile = function(title) {
         mapEl.style.setProperty('--wall-shift-x', `${-centerPos.left}vw`);
         mapEl.style.setProperty('--wall-shift-y', `${-centerPos.top}vh`);
     }
+    window.themeEngine?.positionBackgroundLayers(centerPos);
 
     window.checkHomeButton();
     updateVisibility(title);
@@ -134,6 +135,7 @@ window.returnHome = function() {
         mapEl.style.setProperty('--wall-shift-x', '0rem');
         mapEl.style.setProperty('--wall-shift-y', '0rem');
     }
+    window.themeEngine?.positionBackgroundLayers(homeTile);
 
     updateVisibility('Home');
     window.checkHomeButton(document.body);

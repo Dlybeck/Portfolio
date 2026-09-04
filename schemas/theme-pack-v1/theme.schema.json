@@ -27,11 +27,29 @@
       "const": "presentation.json"
     },
     "background": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "pattern": "^assets/.+\\.svg$"
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "properties": {
+          "asset": {
+            "type": "string",
+            "pattern": "^assets/.+\\.svg$",
+            "maxLength": 200
+          },
+          "depth": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "required": [
+          "asset",
+          "depth"
+        ],
+        "additionalProperties": false
+      }
     },
     "selection": {
       "type": "object",

@@ -12,8 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 THEMES = ROOT / "static" / "themes"
 
 
-def write(theme: str, body: str) -> None:
-    path = THEMES / theme / "assets" / "background.svg"
+def write(theme: str, body: str, filename: str = "background.svg") -> None:
+    path = THEMES / theme / "assets" / filename
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3000 3000" '
@@ -47,28 +47,30 @@ def canonical() -> str:
     )
 
 
-def planets() -> str:
+def planets() -> tuple[str, str]:
     rng = random.Random(771943)
     colors = ("#ffffff", "#b7d9ff", "#ffe5a6", "#ddd1ff")
-    stars = []
+    far_stars = []
+    near_stars = []
     for index in range(520):
         x = rng.uniform(18, 2982)
         y = rng.uniform(18, 2982)
         radius = rng.choices((1.2, 1.8, 2.5, 3.4), weights=(48, 32, 16, 4))[0]
         color = rng.choice(colors)
         opacity = rng.uniform(.5, .98)
-        stars.append(
+        layer = near_stars if index % 4 == 0 else far_stars
+        layer.append(
             f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{radius:.1f}" '
             f'fill="{color}" opacity="{opacity:.2f}"/>'
         )
         if index % 83 == 0:
             arm = radius * 3.4
-            stars.append(
+            layer.append(
                 f'<path d="M{x-arm:.1f} {y:.1f}H{x+arm:.1f}M{x:.1f} {y-arm:.1f}'
                 f'V{y+arm:.1f}" stroke="{color}" stroke-width="1.2" '
                 f'stroke-opacity="{opacity:.2f}" stroke-linecap="round"/>'
             )
-    return "".join(stars)
+    return "".join(far_stars), "".join(near_stars)
 
 
 def islands() -> str:
@@ -124,8 +126,10 @@ def lily() -> str:
 
 
 def main() -> None:
+    far_stars, near_stars = planets()
     write("canonical", canonical())
-    write("planets", planets())
+    write("planets", far_stars)
+    write("planets", near_stars, "background-near.svg")
     write("islands", islands())
     write("lily", lily())
 

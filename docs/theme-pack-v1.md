@@ -48,7 +48,8 @@ static/themes/<pack-id>/
 │   ├── tiles/
 │   │   ├── <location>-base.svg
 │   │   └── <location>-expanded.svg
-│   ├── background.svg       # optional pack-owned non-repeating field
+│   ├── background.svg       # optional pack-owned depth layer
+│   ├── background-near.svg  # optional additional depth layer
 │   └── ... future validated asset classes
 └── ... optional authoring sources ignored by runtime
 
@@ -75,6 +76,10 @@ Every manifest declares this strict top-level interface:
   "version": 1,
   "tiles": "tiles.json",
   "presentation": "presentation.json",
+  "background": [
+    {"asset": "assets/background.svg", "depth": 0.08},
+    {"asset": "assets/background-near.svg", "depth": 0.18}
+  ],
   "selection": {
     "enabled": true,
     "randomEligible": true,
@@ -172,11 +177,20 @@ per-location offsets to the pack-selected motion preset. Optional `typography`
 and `layout` blocks let a pack fit a difficult real title or choose a different
 expanded object proportion without runtime knowledge of the theme or title.
 
-When `theme.json` references a pack-local `background` SVG, the engine renders
-that sanitized artwork across the moving Board field. This is the preferred
-slot for irregular stars, water currents, paper grain, or another
-non-repeating environment. CSS background tokens remain available for real
-materials whose repetition is intentional.
+`theme.json` may declare up to four ordered `background` layers. Every layer
+contains only a pack-local sanitized SVG `asset` and a `depth` from `0` to `1`.
+Array order is back to front. `0` stays fixed to the viewport, `1` moves with
+the Board, and intermediate values move by that proportion of the Board shift.
+This is the preferred slot for irregular stars, water currents, paper grain,
+or another non-repeating environment. CSS background tokens remain available
+for real materials whose repetition is intentional.
+
+Depth layers are decorative and pointer-inert. They cannot contain tiles,
+labels, focus surfaces, hit targets, documents, or relationship connectors;
+those remain together at full Board movement. Packs may omit layers or keep a
+single layer at depth `1`. Multiple depths are used only when the real-world
+metaphor supports them, and reduced-motion mode removes their transition while
+preserving the final composition.
 
 Compiled SVG assets may use pack color variables but cannot contain
 scripts, remote resources, event handlers, `foreignObject`, or navigation.
@@ -278,9 +292,9 @@ Validate either human- or AI-authored output with the same runtime validator:
 ```
 
 The validator emits a JSON receipt containing the installed file hashes,
-location count, presentation-token counts, and variation axes. It exits
-nonzero for an incomplete or unsafe pack. Generate the checked-in JSON Schemas
-from the runtime contract with:
+location count, presentation-token counts, ordered background depths, and
+variation axes. It exits nonzero for an incomplete or unsafe pack. Generate
+the checked-in JSON Schemas from the runtime contract with:
 
 ```bash
 .venv/bin/python scripts/export_theme_pack_schemas.py

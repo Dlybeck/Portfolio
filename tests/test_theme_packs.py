@@ -300,6 +300,9 @@ def test_authoring_audits_discover_every_enabled_pack_from_the_registry() -> Non
 def test_machine_schemas_publish_the_exact_runtime_contract() -> None:
     root = Path(__file__).parent.parent
     schema_root = root / "schemas" / "theme-pack-v1"
+    theme = json.loads(
+        (schema_root / "theme.schema.json").read_text(encoding="utf-8")
+    )
     presentation = json.loads(
         (schema_root / "presentation.schema.json").read_text(encoding="utf-8")
     )
@@ -313,6 +316,65 @@ def test_machine_schemas_publish_the_exact_runtime_contract() -> None:
     assert set(tiles["properties"]["assignments"]["required"]) == BOARD_LOCATIONS
     assignment = tiles["properties"]["assignments"]["properties"]["Home"]
     assert {"transforms", "motion"} <= set(assignment["required"])
+    background = theme["properties"]["background"]
+    assert background["type"] == "array"
+    assert background["maxItems"] == 4
+    assert background["items"]["properties"]["depth"] == {
+        "type": "number", "minimum": 0, "maximum": 1,
+    }
+
+
+def test_pack_background_layers_are_ordered_sanitized_and_bounded(
+    tmp_path: Path,
+) -> None:
+    write_pack(
+        tmp_path,
+        "canonical",
+        random_eligible=False,
+        extra={"background": [
+            {"asset": "assets/far.svg", "depth": 0.05},
+            {"asset": "assets/near.svg", "depth": 0.2},
+        ]},
+    )
+    assets = tmp_path / "canonical" / "assets"
+    assets.mkdir(exist_ok=True)
+    (assets / "far.svg").write_text(
+        '<svg xmlns="http://www.w3.org/2000/svg"><circle cx="1" cy="1" r="1"/></svg>',
+        encoding="utf-8",
+    )
+    (assets / "near.svg").write_text(
+        '<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0L2 2"/></svg>',
+        encoding="utf-8",
+    )
+
+    payload = load_theme_pack(tmp_path / "canonical").client_payload()
+
+    assert [layer["depth"] for layer in payload["backgroundLayers"]] == [0.05, 0.2]
+    assert "<circle" in payload["backgroundLayers"][0]["svg"]
+    assert "<path" in payload["backgroundLayers"][1]["svg"]
+
+
+@pytest.mark.parametrize(
+    "background",
+    [
+        [{"asset": "assets/layer.svg", "depth": -0.01}],
+        [{"asset": "assets/layer.svg", "depth": 1.01}],
+        [{"asset": "assets/layer.svg", "depth": 0.2}] * 5,
+    ],
+)
+def test_pack_rejects_unbounded_or_excessive_depth_layers(
+    tmp_path: Path,
+    background: list[dict[str, object]],
+) -> None:
+    write_pack(
+        tmp_path,
+        "canonical",
+        random_eligible=False,
+        extra={"background": background},
+    )
+
+    with pytest.raises(InvalidThemeAsset, match="invalid Theme Pack manifest"):
+        load_theme_pack(tmp_path / "canonical")
 
 
 def test_scaffolded_pack_validates_without_engine_source_changes(tmp_path: Path) -> None:
@@ -572,12 +634,37 @@ def test_repository_background_art_is_pack_owned_and_irregular() -> None:
         for pack_id in ("canonical", "planets", "islands", "lily")
     }
 
-    assert "feTurbulence" in payloads["canonical"]["backgroundSvg"]
-    assert payloads["planets"]["backgroundSvg"].count("<circle") == 520
-    assert "<pattern" not in payloads["planets"]["backgroundSvg"]
-    assert payloads["islands"]["backgroundSvg"].count("<path") == 46
-    assert payloads["lily"]["backgroundSvg"].count("<ellipse") == 72
-    assert "<pattern" not in payloads["lily"]["backgroundSvg"]
+    assert "feTurbulence" in payloads["canonical"]["backgroundLayers"][0]["svg"]
+    assert [
+        layer["depth"] for layer in payloads["canonical"]["backgroundLayers"]
+    ] == [1.0]
+    planet_layers = payloads["planets"]["backgroundLayers"]
+    assert [layer["depth"] for layer in planet_layers] == [0.06, 0.18]
+    assert sum(layer["svg"].count("<circle") for layer in planet_layers) == 520
+    assert all("<pattern" not in layer["svg"] for layer in planet_layers)
+    assert payloads["islands"]["backgroundLayers"][0]["svg"].count("<path") == 46
+    assert [
+        layer["depth"] for layer in payloads["islands"]["backgroundLayers"]
+    ] == [1.0]
+    lily = payloads["lily"]["backgroundLayers"][0]["svg"]
+    assert lily.count("<ellipse") == 72
+    assert "<pattern" not in lily
+    assert [layer["depth"] for layer in payloads["lily"]["backgroundLayers"]] == [1.0]
+
+
+def test_depth_runtime_contains_no_installed_theme_names() -> None:
+    root = Path(__file__).parent.parent
+    runtime = "\n".join(
+        (root / path).read_text(encoding="utf-8")
+        for path in (
+            "static/scripts/themeEngine.js",
+            "static/scripts/tileMovement.js",
+            "static/css/theme-structure.css",
+        )
+    ).lower()
+
+    for pack_id in ThemePackRegistry.discover().ids:
+        assert pack_id not in runtime
 
 
 def test_visual_pack_cannot_install_only_half_of_its_visual_language(

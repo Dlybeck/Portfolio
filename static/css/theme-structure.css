@@ -133,7 +133,11 @@ body,
   z-index: 0;
   pointer-events: none;
   will-change: transform;
-  transform: translate3d(var(--wall-shift-x), var(--wall-shift-y), 0);
+  transform: translate3d(
+    var(--theme-layer-shift-x, 0),
+    var(--theme-layer-shift-y, 0),
+    0
+  );
 }
 
 .map.wall-transition-ready .theme-background {

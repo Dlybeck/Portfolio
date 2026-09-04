@@ -224,6 +224,11 @@ class ThemeSelection(StrictModel):
     random_weight: int = Field(alias="randomWeight", ge=1, le=100)
 
 
+class ThemeBackgroundLayer(StrictModel):
+    asset: str = Field(pattern=r"^assets/.+\.svg$", max_length=200)
+    depth: float = Field(ge=0, le=1)
+
+
 class ThemePackManifest(StrictModel):
     schema_id: Literal[THEME_PACK_SCHEMA] = Field(alias="$schema")
     id: str = Field(pattern=r"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$", max_length=48)
@@ -232,7 +237,9 @@ class ThemePackManifest(StrictModel):
     selection: ThemeSelection
     tiles: Literal["tiles.json"]
     presentation: Literal["presentation.json"]
-    background: str | None = None
+    background: list[ThemeBackgroundLayer] = Field(
+        default_factory=list, min_length=1, max_length=4
+    )
 
 
 class TileTransform(StrictModel):
@@ -499,7 +506,7 @@ class LoadedThemePack:
     board_variables: tuple[tuple[str, str], ...]
     document_variables: tuple[tuple[str, str], ...]
     connectors: ConnectorPresentation
-    background_svg: str | None
+    background_layers: tuple[tuple[float, str], ...]
 
     @property
     def id(self) -> str:
@@ -531,7 +538,10 @@ class LoadedThemePack:
                 "document": dict(self.document_variables),
             },
             "connectors": self.connectors.model_dump(by_alias=True),
-            "backgroundSvg": self.background_svg,
+            "backgroundLayers": [
+                {"depth": depth, "svg": svg}
+                for depth, svg in self.background_layers
+            ],
         }
 
 
@@ -767,10 +777,9 @@ def load_theme_pack(pack_dir: Path) -> LoadedThemePack:
     board_variables, document_variables, connectors = _presentation(
         pack_dir, manifest.presentation
     )
-    background_svg = (
-        sanitized_svg_asset(pack_dir, manifest.background)
-        if manifest.background is not None
-        else None
+    background_layers = tuple(
+        (layer.depth, sanitized_svg_asset(pack_dir, layer.asset))
+        for layer in manifest.background
     )
     return LoadedThemePack(
         manifest=manifest,
@@ -778,7 +787,7 @@ def load_theme_pack(pack_dir: Path) -> LoadedThemePack:
         board_variables=board_variables,
         document_variables=document_variables,
         connectors=connectors,
-        background_svg=background_svg,
+        background_layers=background_layers,
     )
 
 

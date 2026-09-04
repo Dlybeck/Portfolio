@@ -43,6 +43,7 @@ def main() -> int:
         "tileCount": len(pack.tiles),
         "boardTokenCount": len(pack.board_variables),
         "documentTokenCount": len(pack.document_variables),
+        "backgroundDepths": [depth for depth, _ in pack.background_layers],
         "variationAxes": axes,
         "files": {
             str(path.relative_to(pack_dir)): file_digest(path) for path in files

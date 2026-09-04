@@ -19,11 +19,13 @@ def main() -> None:
     tiles = json.loads((PACK / "tiles.json").read_text(encoding="utf-8"))
 
     failures: list[str] = []
-    background = manifest.get("background")
-    if not background:
+    backgrounds = manifest.get("background", [])
+    if len(backgrounds) != 1 or backgrounds[0].get("depth") != 1.0:
+        failures.append("Canonical background must remain one Board-attached layer")
+    if not backgrounds:
         failures.append("Canonical has no validated background asset")
     else:
-        path = PACK / background
+        path = PACK / backgrounds[0].get("asset", "")
         markup = path.read_text(encoding="utf-8") if path.is_file() else ""
         if markup.count("feTurbulence") != 2:
             failures.append("Canonical background lost its two-scale chalk texture")

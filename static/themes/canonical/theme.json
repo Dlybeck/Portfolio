@@ -5,7 +5,9 @@
   "version": 1,
   "tiles": "tiles.json",
   "presentation": "presentation.json",
-  "background": "assets/background.svg",
+  "background": [
+    {"asset": "assets/background.svg", "depth": 1.0}
+  ],
   "selection": {
     "enabled": true,
     "randomEligible": true,

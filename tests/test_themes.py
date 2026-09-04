@@ -136,6 +136,10 @@ def test_theme_switch_replaces_world_and_preserves_it_in_navigation(
     expect(page.locator("html")).to_have_attribute("data-theme-focus-motion", "grow")
     expect(page.locator('[data-theme-object="lily"]')).to_have_count(34)
     expect(page.locator('[data-theme-ambient][aria-hidden="true"]')).to_have_count(1)
+    expect(page.locator('[data-theme-background="lily"]')).to_have_count(1)
+    expect(page.locator('[data-theme-background="lily"]')).to_have_attribute(
+        "data-theme-depth", "1"
+    )
 
     page.locator("[data-theme-selector]").select_option("planets")
 
@@ -143,7 +147,9 @@ def test_theme_switch_replaces_world_and_preserves_it_in_navigation(
     expect(page.locator("html")).to_have_attribute("data-theme-focus-motion", "grow")
     expect(page).to_have_url(f"{origin}/?theme=planets")
     expect(page.locator('[data-theme-object="lily"]')).to_have_count(0)
+    expect(page.locator('[data-theme-background="lily"]')).to_have_count(0)
     expect(page.locator('[data-theme-object="planets"]')).to_have_count(34)
+    expect(page.locator('[data-theme-background="planets"]')).to_have_count(2)
 
     page.get_by_role("button", name="Go to Projects").click()
     assert page.url == f"{origin}/?theme=planets#Projects"
@@ -478,6 +484,87 @@ def test_planets_keep_distant_glare_fixed_while_the_star_map_moves(
     page.wait_for_timeout(500)
     after = ambient.bounding_box()
     assert before == after
+
+
+@pytest.mark.parametrize("page_fixture", ["browser_page", "mobile_browser_page"])
+def test_planets_declare_two_subtle_depths_that_move_proportionally(
+    request: pytest.FixtureRequest,
+    monkeypatch: pytest.MonkeyPatch,
+    page_fixture: str,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = request.getfixturevalue(page_fixture)
+    page.goto(f"{origin}/?theme=planets", wait_until="domcontentloaded")
+
+    layers = page.locator('[data-theme-background="planets"]')
+    expect(layers).to_have_count(2)
+    assert layers.evaluate_all(
+        "nodes => nodes.map(node => Number(node.dataset.themeDepth))"
+    ) == [0.06, 0.18]
+
+    page.locator('[data-title="Projects"]').click()
+    expect(page).to_have_url(re.compile(r"#Projects$"))
+    page.wait_for_timeout(500)
+    shifts = layers.evaluate_all(
+        """nodes => nodes.map((node) => {
+            const matrix = new DOMMatrix(getComputedStyle(node).transform);
+            return {depth: Number(node.dataset.themeDepth), x: matrix.m41, y: matrix.m42};
+        })"""
+    )
+    assert all(abs(layer["x"]) + abs(layer["y"]) > 1 for layer in shifts)
+    far, near = shifts
+    assert abs(near["x"] / far["x"] - 3) < 0.05
+    assert abs(near["y"] / far["y"] - 3) < 0.05
+
+
+def test_planet_depth_layers_restore_their_position_on_direct_entry(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(f"{origin}/?theme=planets#Tennis", wait_until="domcontentloaded")
+
+    expect(page.locator("html")).to_have_attribute("data-board-theme", "planets")
+    layers = page.locator('[data-theme-background="planets"]')
+    expect(layers).to_have_count(2)
+    shifts = layers.evaluate_all(
+        """nodes => nodes.map((node) => {
+            const matrix = new DOMMatrix(getComputedStyle(node).transform);
+            return Math.abs(matrix.m41) + Math.abs(matrix.m42);
+        })"""
+    )
+    assert shifts[0] > 1
+    assert abs(shifts[1] / shifts[0] - 3) < 0.05
+
+
+def test_planet_depth_layers_snap_to_final_positions_with_reduced_motion(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.emulate_media(reduced_motion="reduce")
+    page.goto(f"{origin}/?theme=planets", wait_until="domcontentloaded")
+
+    layers = page.locator('[data-theme-background="planets"]')
+    expect(layers).to_have_count(2)
+    assert layers.evaluate_all(
+        """nodes => nodes.every((node) =>
+            parseFloat(getComputedStyle(node).transitionDuration) <= 0.001
+        )"""
+    )
+
+    page.locator('[data-title="Projects"]').click()
+    expect(page).to_have_url(re.compile(r"#Projects$"))
+    shifts = layers.evaluate_all(
+        """nodes => nodes.map((node) => {
+            const matrix = new DOMMatrix(getComputedStyle(node).transform);
+            return Math.abs(matrix.m41) + Math.abs(matrix.m42);
+        })"""
+    )
+    assert shifts[0] > 1
+    assert abs(shifts[1] / shifts[0] - 3) < 0.05
 
 
 def test_lily_uses_balanced_pack_owned_water_without_a_tiled_ripple_pattern(

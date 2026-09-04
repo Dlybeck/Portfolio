@@ -5,7 +5,10 @@
   "version": 1,
   "tiles": "tiles.json",
   "presentation": "presentation.json",
-  "background": "assets/background.svg",
+  "background": [
+    {"asset": "assets/background.svg", "depth": 0.06},
+    {"asset": "assets/background-near.svg", "depth": 0.18}
+  ],
   "selection": {
     "enabled": true,
     "randomEligible": true,

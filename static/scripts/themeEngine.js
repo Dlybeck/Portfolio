@@ -54,6 +54,7 @@
             || !pack?.variables?.board
             || !pack?.variables?.document
             || !pack?.connectors
+            || !Array.isArray(pack?.backgroundLayers)
         ) return false;
         const titles = allTitles();
         return titles.length > 0
@@ -335,20 +336,48 @@
         });
     }
 
-    function addBackground(pack) {
-        if (!pack.backgroundSvg) return;
-        const parser = new DOMParser();
-        const parsed = parser.parseFromString(pack.backgroundSvg, "image/svg+xml");
-        if (parsed.querySelector("parsererror") || parsed.documentElement.localName !== "svg") {
-            throw new Error(`Theme Pack ${pack.id} supplied an invalid background SVG`);
-        }
-        const background = document.importNode(parsed.documentElement, true);
-        namespaceSvgIds(background, `${pack.id}-background`);
-        background.classList.add("theme-background");
-        background.dataset.themeBackground = pack.id;
-        background.setAttribute("aria-hidden", "true");
-        background.setAttribute("focusable", "false");
-        document.querySelector(".map")?.prepend(background);
+    function positionBackgroundLayer(background, centerPosition) {
+        const depth = Number(background.dataset.themeDepth);
+        if (!Number.isFinite(depth) || !centerPosition) return;
+        background.style.setProperty(
+            "--theme-layer-shift-x", `${-centerPosition.left * depth}vw`
+        );
+        background.style.setProperty(
+            "--theme-layer-shift-y", `${-centerPosition.top * depth}vh`
+        );
+    }
+
+    function positionBackgroundLayers(centerPosition) {
+        document.querySelectorAll("[data-theme-background]").forEach((background) => {
+            positionBackgroundLayer(background, centerPosition);
+        });
+    }
+
+    function addBackgrounds(pack) {
+        const map = document.querySelector(".map");
+        const tileLayer = map?.querySelector(".tile-layer");
+        if (!map || !tileLayer) return;
+        const currentPosition = window.positions?.[window.currentTileTitle || "Home"];
+        (pack.backgroundLayers || []).forEach((layer, index) => {
+            const parser = new DOMParser();
+            const parsed = parser.parseFromString(layer.svg, "image/svg+xml");
+            if (
+                parsed.querySelector("parsererror")
+                || parsed.documentElement.localName !== "svg"
+            ) {
+                throw new Error(`Theme Pack ${pack.id} supplied an invalid background SVG`);
+            }
+            const background = document.importNode(parsed.documentElement, true);
+            namespaceSvgIds(background, `${pack.id}-background-${index}`);
+            background.classList.add("theme-background");
+            background.dataset.themeBackground = pack.id;
+            background.dataset.themeLayer = String(index);
+            background.dataset.themeDepth = String(layer.depth);
+            background.setAttribute("aria-hidden", "true");
+            background.setAttribute("focusable", "false");
+            positionBackgroundLayer(background, currentPosition);
+            map.insertBefore(background, tileLayer);
+        });
     }
 
     function addAmbient(pack) {
@@ -485,7 +514,7 @@
                 expandedBody.prepend(expandedSvg);
             }
         });
-        addBackground(pack);
+        addBackgrounds(pack);
         addAmbient(pack);
         scheduleContentFit();
     }
@@ -571,6 +600,7 @@
         activate,
         availableThemes: [...availableIds],
         currentPack: () => state.pack,
+        positionBackgroundLayers,
         styleDocument,
     };
     document.addEventListener("DOMContentLoaded", () => {

@@ -16,6 +16,41 @@ from scripts.audit_theme_variants import (
 VISUAL_THEMES = ["canonical", "lily", "planets", "islands"]
 
 
+def test_document_prototype_switcher_keeps_the_open_document_visible(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Changing a visual candidate must not behave like an outside click."""
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(
+        f"{origin}/education/early_education?theme=planets&docvariant=C",
+        wait_until="domcontentloaded",
+    )
+    viewer = page.locator(".mini-window-container")
+    viewer.locator(".mini-window").wait_for()
+    expect(viewer).to_have_class(re.compile(r"\bopen\b"))
+    document = page.frame_locator(".mini-window")
+    expect(document.locator("#location")).to_have_text("Early Education")
+    document.locator("html").evaluate(
+        "node => node.ownerDocument.defaultView.scrollTo(0, 180)"
+    )
+    scroll_before = document.locator("html").evaluate(
+        "node => node.ownerDocument.defaultView.scrollY"
+    )
+
+    page.locator("[data-document-prototype-next]").click()
+
+    expect(viewer).to_have_class(re.compile(r"\bopen\b"))
+    expect(document.locator("#location")).to_have_text("Early Education")
+    expect(document.locator("html")).to_have_attribute(
+        "data-document-prototype", "A"
+    )
+    assert document.locator("html").evaluate(
+        "node => node.ownerDocument.defaultView.scrollY"
+    ) == scroll_before
+
+
 def test_original_paper_does_not_invent_sticky_stripes(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,

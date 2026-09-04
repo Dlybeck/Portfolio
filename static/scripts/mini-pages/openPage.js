@@ -233,6 +233,11 @@ class MiniWindow {
             // Ignore clicks on the navbar (home icon etc).
             const navbar = document.querySelector('.navbar');
             if (navbar && navbar.contains(t)) return;
+            // Controls that operate on an open Viewer may live outside its
+            // physical frame. The outside-click capture handler sees them
+            // before their own click handlers, so recognize the stable
+            // control boundary here rather than relying on propagation.
+            if (t.closest?.('[data-viewer-control]')) return;
             this.hide();
         };
     }

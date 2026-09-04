@@ -58,7 +58,9 @@ def planets() -> tuple[str, str]:
         radius = rng.choices((1.2, 1.8, 2.5, 3.4), weights=(48, 32, 16, 4))[0]
         color = rng.choice(colors)
         opacity = rng.uniform(.5, .98)
-        layer = near_stars if index % 4 == 0 else far_stars
+        # Keep most of the sky distant while giving enough stars to the near
+        # plane for parallax to read on a phone-sized viewport.
+        layer = near_stars if index % 3 == 0 else far_stars
         layer.append(
             f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{radius:.1f}" '
             f'fill="{color}" opacity="{opacity:.2f}"/>'

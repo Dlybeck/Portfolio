@@ -77,8 +77,8 @@ Every manifest declares this strict top-level interface:
   "tiles": "tiles.json",
   "presentation": "presentation.json",
   "background": [
-    {"asset": "assets/background.svg", "depth": 0.08},
-    {"asset": "assets/background-near.svg", "depth": 0.18}
+    {"asset": "assets/background.svg", "depth": 0.10},
+    {"asset": "assets/background-near.svg", "depth": 0.28}
   ],
   "selection": {
     "enabled": true,

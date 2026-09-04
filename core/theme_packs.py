@@ -121,6 +121,7 @@ DOCUMENT_PRESENTATION_TOKENS = frozenset(
         "selection-bg", "selection-ink", "scrollbar-track",
         "scrollbar-thumb", "separator-height", "separator-opacity",
         "interaction-transition", "button-hover-transform", "code-size",
+        "container-bg",
     }
 )
 

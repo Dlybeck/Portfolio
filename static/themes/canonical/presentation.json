@@ -176,6 +176,7 @@
     "loading-size": "1.2rem"
   },
   "document": {
+    "container-bg": "#ffffff",
     "font-body": "Georgia, 'Times New Roman', Times, serif",
     "font-title": "Georgia, 'Times New Roman', Times, serif",
     "font-heading": "Georgia, 'Times New Roman', Times, serif",

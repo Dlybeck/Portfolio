@@ -55,6 +55,7 @@ def main() -> None:
     if board.get("viewer-bg-image") == "none":
         failures.append("Canonical viewer lost the original ruled outer paper")
     main_document_values = {
+        "container-bg": "#ffffff",
         "page-bg": "transparent",
         "page-bg-image": "none",
         "title-ink": "#006699",

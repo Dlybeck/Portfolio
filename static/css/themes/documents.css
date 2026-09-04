@@ -30,7 +30,7 @@ html[data-theme-pack-visual] ::-webkit-scrollbar-thumb {
 }
 
 html[data-theme-pack-visual] .container {
-  background: transparent;
+  background: var(--theme-pack-container-bg);
 }
 
 html[data-theme-pack-visual] #location {

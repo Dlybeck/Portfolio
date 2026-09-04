@@ -176,6 +176,7 @@
     "loading-size": "1.12rem"
   },
   "document": {
+    "container-bg": "transparent",
     "font-body": "'Patrick Hand', cursive",
     "font-title": "'Kalam', cursive",
     "font-heading": "'Kalam', cursive",

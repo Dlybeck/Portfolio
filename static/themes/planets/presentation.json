@@ -176,6 +176,7 @@
     "loading-size": "1.1rem"
   },
   "document": {
+    "container-bg": "transparent",
     "font-body": "system-ui, sans-serif",
     "font-title": "'Architects Daughter', cursive",
     "font-heading": "'Architects Daughter', cursive",

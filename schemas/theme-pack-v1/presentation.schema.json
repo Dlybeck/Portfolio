@@ -2329,6 +2329,17 @@
             }
           ]
         },
+        "container-bg": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "field-bg": {
           "oneOf": [
             {
@@ -2990,6 +3001,7 @@
         "code-border",
         "code-radius",
         "code-size",
+        "container-bg",
         "field-bg",
         "field-border",
         "field-font",

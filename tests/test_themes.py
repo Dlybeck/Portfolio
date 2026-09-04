@@ -6,6 +6,7 @@ import pytest
 from playwright.sync_api import Page, expect
 
 from core.config import settings
+from core.portfolio import DOCUMENTS
 from core import theme_packs
 from scripts.audit_theme_variants import (
     MINIMUM_AXIS_COUNT,
@@ -197,6 +198,59 @@ def test_original_open_document_matches_main_letter_treatment(
     expect(section).to_have_css("background-color", "rgba(255, 255, 255, 0.55)")
     expect(section).to_have_css("border-color", "rgba(0, 0, 0, 0.3)")
     expect(section).to_have_css("border-radius", "40px")
+
+
+def test_original_multisection_document_keeps_main_white_page_canvas(
+    mobile_browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Canonical sections sit on main's opaque page, not directly on the Board."""
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = mobile_browser_page
+    page.goto(
+        f"{origin}/jobs?theme=canonical",
+        wait_until="domcontentloaded",
+    )
+    page.locator(".mini-window-container.open").wait_for()
+    document = page.frame_locator(".mini-window")
+
+    expect(document.locator(".section")).to_have_count(10)
+    expect(document.locator(".container")).to_have_css(
+        "background-color", "rgb(255, 255, 255)"
+    )
+
+
+def test_every_original_document_keeps_its_page_canvas_and_viewport(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Canonical documents stay readable and contained at both review sizes."""
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+
+    for viewport in ({"width": 1440, "height": 900}, {"width": 390, "height": 844}):
+        page.set_viewport_size(viewport)
+        for document_entry in DOCUMENTS:
+            page.goto(
+                f"{origin}{document_entry.route}?theme=canonical",
+                wait_until="domcontentloaded",
+            )
+            page.locator(".mini-window-container.open").wait_for()
+            document = page.frame_locator(".mini-window")
+
+            canvas = document.locator("body > .container")
+            if canvas.count():
+                expect(canvas).to_have_css(
+                    "background-color", "rgb(255, 255, 255)"
+                )
+            expect(document.locator("#location")).not_to_be_empty()
+            expect(document.locator(".section").first).to_be_visible()
+            assert document.locator("html").evaluate(
+                "node => node.scrollWidth <= node.clientWidth + 2"
+            ), f"{document_entry.route} overflows at {viewport['width']}px"
+            assert document.locator("img").evaluate_all(
+                "images => images.every(image => image.complete && image.naturalWidth > 0)"
+            ), f"{document_entry.route} has a broken image at {viewport['width']}px"
 
 
 def test_theme_laboratory_is_absent_and_canonical_by_default(

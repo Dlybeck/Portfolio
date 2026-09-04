@@ -10,7 +10,6 @@ body { margin: 0; }
 .container {
   display: inline-block;
   position: relative;
-  box-sizing: border-box;
   width: 100%;
   margin: auto;
   z-index: 1;
@@ -20,7 +19,6 @@ body { margin: 0; }
   display: block;
   max-width: 70%;
   margin: 5px auto;
-  box-sizing: border-box;
 }
 
 header {
@@ -46,7 +44,6 @@ h3 { margin-top: 10px; text-align: center; }
 
 p {
   display: block;
-  margin: 7% 0;
   text-align: center;
 }
 
@@ -86,7 +83,6 @@ img {
 
 .internal-link,
 .external-btn {
-  display: inline-block;
   text-decoration: none;
   transition: transform var(--theme-pack-interaction-transition);
 }

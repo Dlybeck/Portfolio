@@ -31,6 +31,7 @@ html[data-theme-pack-visual] ::-webkit-scrollbar-thumb {
 
 html[data-theme-pack-visual] .container {
   background: var(--theme-pack-container-bg);
+  box-sizing: var(--theme-pack-container-box-sizing);
 }
 
 html[data-theme-pack-visual] #location {
@@ -56,16 +57,28 @@ html[data-theme-pack-visual] h4 {
   font-family: var(--theme-pack-font-heading) !important;
 }
 
+html[data-theme-pack-visual] h2 {
+  font-size: var(--theme-pack-heading-2-size) !important;
+}
+
+html[data-theme-pack-visual] h3 {
+  font-size: var(--theme-pack-heading-3-size) !important;
+}
+
+html[data-theme-pack-visual] h4 {
+  font-size: var(--theme-pack-heading-4-size) !important;
+}
+
 html[data-theme-pack-visual] h2,
 html[data-theme-pack-visual] h3,
 html[data-theme-pack-visual] h4 {
-  font-size: var(--theme-pack-heading-size) !important;
   font-weight: var(--theme-pack-heading-weight) !important;
   letter-spacing: var(--theme-pack-heading-letter-spacing) !important;
 }
 
 html[data-theme-pack-visual] .section {
   position: relative;
+  box-sizing: var(--theme-pack-panel-box-sizing);
   color: var(--theme-pack-ink) !important;
   background: var(--theme-pack-panel-bg) !important;
   border-color: var(--theme-pack-panel-border) !important;
@@ -97,6 +110,11 @@ html[data-theme-pack-visual] strong {
   font-family: var(--theme-pack-font-body) !important;
 }
 
+html[data-theme-pack-visual] p {
+  line-height: var(--theme-pack-paragraph-line-height);
+  margin: var(--theme-pack-paragraph-margin);
+}
+
 html[data-theme-pack-visual] figcaption,
 html[data-theme-pack-visual] .caption {
   color: var(--theme-pack-caption-ink) !important;
@@ -120,7 +138,7 @@ html[data-theme-pack-visual] a {
   font-family: var(--theme-pack-font-link) !important;
   font-size: var(--theme-pack-link-size) !important;
   text-decoration: var(--theme-pack-link-decoration) !important;
-  text-decoration-thickness: 2px !important;
+  text-decoration-thickness: var(--theme-pack-link-decoration-thickness) !important;
 }
 
 html[data-theme-pack-visual] a:hover {
@@ -134,8 +152,7 @@ html[data-theme-pack-visual] body .plain-internal-link {
 
 html[data-theme-pack-visual] body .external-btn,
 html[data-theme-pack-visual] body .internal-link:not(.plain-internal-link),
-html[data-theme-pack-visual] #topBtn,
-html[data-theme-pack-visual] button:not(.close-button) {
+html[data-theme-pack-visual] #topBtn {
   color: var(--theme-pack-button-ink) !important;
   background: var(--theme-pack-button-bg) !important;
   border-color: var(--theme-pack-button-border) !important;
@@ -147,13 +164,43 @@ html[data-theme-pack-visual] button:not(.close-button) {
   font-size: var(--theme-pack-button-size) !important;
 }
 
+html[data-theme-pack-visual] body .external-btn,
+html[data-theme-pack-visual] body .internal-link:not(.plain-internal-link) {
+  display: var(--theme-pack-action-display);
+  font-family: var(--theme-pack-action-font) !important;
+  font-size: var(--theme-pack-action-size) !important;
+  text-decoration: var(--theme-pack-action-text-decoration) !important;
+}
+
+html[data-theme-pack-visual] button:not(.close-button) {
+  color: var(--theme-pack-form-button-ink) !important;
+  background: var(--theme-pack-form-button-bg) !important;
+  border-color: var(--theme-pack-form-button-border) !important;
+  border-style: var(--theme-pack-form-button-border-style) !important;
+  border-width: var(--theme-pack-form-button-border-width) !important;
+  border-radius: var(--theme-pack-form-button-radius) !important;
+  padding: var(--theme-pack-form-button-padding) !important;
+  font-family: var(--theme-pack-form-button-font) !important;
+  font-size: var(--theme-pack-form-button-size) !important;
+}
+
 html[data-theme-pack-visual] body .external-btn:hover,
 html[data-theme-pack-visual] body .internal-link:not(.plain-internal-link):hover,
-html[data-theme-pack-visual] #topBtn:hover,
-html[data-theme-pack-visual] button:not(.close-button):hover {
+html[data-theme-pack-visual] #topBtn:hover {
   color: var(--theme-pack-button-hover-ink) !important;
   background: var(--theme-pack-button-hover-bg) !important;
   transform: var(--theme-pack-button-hover-transform) !important;
+}
+
+html[data-theme-pack-visual] body .external-btn:hover,
+html[data-theme-pack-visual] body .internal-link:not(.plain-internal-link):hover {
+  text-decoration: var(--theme-pack-action-hover-text-decoration) !important;
+}
+
+html[data-theme-pack-visual] button:not(.close-button):hover {
+  color: var(--theme-pack-form-button-hover-ink) !important;
+  background: var(--theme-pack-form-button-hover-bg) !important;
+  transform: var(--theme-pack-form-button-hover-transform) !important;
 }
 
 html[data-theme-pack-visual] select,
@@ -177,13 +224,22 @@ html[data-theme-pack-visual] output {
 
 html[data-theme-pack-visual] img,
 html[data-theme-pack-visual] iframe,
-html[data-theme-pack-visual] video,
-html[data-theme-pack-visual] model-viewer {
-  box-sizing: border-box;
+html[data-theme-pack-visual] video {
+  box-sizing: var(--theme-pack-media-box-sizing);
   background: var(--theme-pack-media-bg) !important;
   border: var(--theme-pack-media-border-width) solid var(--theme-pack-media-border) !important;
   border-radius: var(--theme-pack-media-radius) !important;
   box-shadow: var(--theme-pack-media-shadow) !important;
+}
+
+html[data-theme-pack-visual] model-viewer {
+  box-sizing: var(--theme-pack-model-box-sizing);
+  background: var(--theme-pack-model-bg) !important;
+  border-color: var(--theme-pack-model-border) !important;
+  border-style: var(--theme-pack-model-border-style) !important;
+  border-width: var(--theme-pack-model-border-width) !important;
+  border-radius: var(--theme-pack-model-radius) !important;
+  box-shadow: var(--theme-pack-model-shadow) !important;
 }
 
 html[data-theme-pack-visual] pre,

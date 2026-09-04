@@ -56,11 +56,23 @@ def main() -> None:
         failures.append("Canonical viewer lost the original ruled outer paper")
     main_document_values = {
         "container-bg": "#ffffff",
+        "container-box-sizing": "content-box",
         "page-bg": "transparent",
         "page-bg-image": "none",
         "title-ink": "#006699",
+        "title-size": "1.5rem",
+        "body-line-height": "normal",
+        "paragraph-line-height": "1.5",
+        "paragraph-margin": "1em 0",
         "panel-bg": "rgba(255,255,255,.55)",
         "panel-border": "rgba(0,0,0,.3)",
+        "panel-box-sizing": "content-box",
+        "heading-2-size": "1.5rem",
+        "heading-3-size": "1.17em",
+        "heading-4-size": "1em",
+        "model-bg": "#006699",
+        "model-border-style": "none",
+        "model-radius": "40px",
     }
     for name, expected in main_document_values.items():
         actual = document.get(name)

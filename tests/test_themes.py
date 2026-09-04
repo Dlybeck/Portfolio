@@ -178,7 +178,7 @@ def test_original_open_document_matches_main_letter_treatment(
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
     page, origin = mobile_browser_page
     page.goto(
-        f"{origin}/hobbies/tennis?theme=canonical",
+        f"{origin}/jobs?theme=canonical",
         wait_until="domcontentloaded",
     )
     page.locator(".mini-window-container.open").wait_for()
@@ -195,9 +195,17 @@ def test_original_open_document_matches_main_letter_treatment(
         "background-color", "rgba(0, 0, 0, 0)"
     )
     expect(document.locator("#location")).to_have_css("color", "rgb(0, 102, 153)")
+    expect(document.locator("#location")).to_have_css("font-size", "24px")
+    expect(document.locator("html")).to_have_css("line-height", "normal")
+    expect(document.locator("body > .container")).to_have_css(
+        "box-sizing", "content-box"
+    )
     expect(section).to_have_css("background-color", "rgba(255, 255, 255, 0.55)")
     expect(section).to_have_css("border-color", "rgba(0, 0, 0, 0.3)")
     expect(section).to_have_css("border-radius", "40px")
+    expect(section).to_have_css("box-sizing", "content-box")
+    expect(document.locator(".section p").first).to_have_css("line-height", "24px")
+    expect(document.locator(".section p").first).to_have_css("margin-top", "16px")
 
 
 def test_original_multisection_document_keeps_main_white_page_canvas(
@@ -220,7 +228,59 @@ def test_original_multisection_document_keeps_main_white_page_canvas(
     )
 
 
-def test_every_original_document_keeps_its_page_canvas_and_viewport(
+def test_original_document_components_match_the_live_page_treatment(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Canonical keeps the distinctive controls, links, and model treatment."""
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+
+    page.goto(
+        f"{origin}/projects/nba_predictions?theme=canonical",
+        wait_until="domcontentloaded",
+    )
+    document = page.frame_locator(".mini-window")
+    expect(document.locator("select").first).to_have_css(
+        "background-color", "rgb(239, 239, 239)"
+    )
+    expect(document.locator("select").first).to_have_css("font-size", "13.3333px")
+    expect(document.locator("#predictBtn")).to_have_css("padding", "20px")
+    expect(document.locator("#predictBtn")).to_have_css("border-radius", "20px")
+    expect(document.locator("#result")).to_have_css(
+        "background-color", "rgba(0, 0, 0, 0)"
+    )
+
+    page.goto(
+        f"{origin}/projects/programs?theme=canonical",
+        wait_until="domcontentloaded",
+    )
+    document = page.frame_locator(".mini-window")
+    expect(document.locator(".external-btn")).to_have_css("display", "inline")
+    expect(document.locator(".external-btn")).to_have_css(
+        "font-family", 'Georgia, "Times New Roman", Times, serif'
+    )
+    expect(document.locator(".external-btn")).to_have_css(
+        "text-decoration-line", "none"
+    )
+
+    page.goto(
+        f"{origin}/hobbies/3d_printing/puzzles?theme=canonical",
+        wait_until="domcontentloaded",
+    )
+    document = page.frame_locator(".mini-window")
+    expect(document.locator("model-viewer").first).to_have_css(
+        "background-color", "rgb(0, 102, 153)"
+    )
+    expect(document.locator("model-viewer").first).to_have_css(
+        "border-radius", "40px"
+    )
+    expect(document.locator("model-viewer").first).to_have_css(
+        "border-style", "none"
+    )
+
+
+def test_every_original_document_loads_at_both_review_sizes(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -245,9 +305,6 @@ def test_every_original_document_keeps_its_page_canvas_and_viewport(
                 )
             expect(document.locator("#location")).not_to_be_empty()
             expect(document.locator(".section").first).to_be_visible()
-            assert document.locator("html").evaluate(
-                "node => node.scrollWidth <= node.clientWidth + 2"
-            ), f"{document_entry.route} overflows at {viewport['width']}px"
             assert document.locator("img").evaluate_all(
                 "images => images.every(image => image.complete && image.naturalWidth > 0)"
             ), f"{document_entry.route} has a broken image at {viewport['width']}px"

@@ -89,6 +89,13 @@ The command must fail before restoration and pass afterward.
 - Implement the restored behavior through general Theme Pack capabilities;
   do not revive a parallel Canonical-only presentation engine.
 
+Canonical opened-page fidelity is the complete composition, not an iframe-only
+color check. Review the live click-open state at `davidlybeck.com` and compare
+the outer ruled sheet and tape together with the inner canvas, content-box
+panel geometry, 24px title hierarchy, native paragraph rhythm, controls,
+links, and media/model treatment at both phone and desktop sizes. A white
+canvas alone is not evidence of fidelity.
+
 ### Planets and Constellations — preserve and refine
 
 The world is accepted and should not be redesigned.

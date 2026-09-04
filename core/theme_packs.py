@@ -103,7 +103,7 @@ DOCUMENT_PRESENTATION_TOKENS = frozenset(
         "body-size", "button-bg", "button-border", "button-ink",
         "button-radius", "code-bg", "focus", "font-body", "font-code",
         "font-heading", "font-link", "font-title", "header-bg", "header-ink",
-        "heading-size", "ink", "link", "media-bg", "media-border",
+        "ink", "link", "media-bg", "media-border",
         "media-radius", "page-bg", "page-bg-image", "page-bg-size",
         "panel-bg", "panel-border", "panel-border-style", "panel-radius",
         "panel-shadow", "secondary-ink", "separator", "separator-display",
@@ -121,7 +121,18 @@ DOCUMENT_PRESENTATION_TOKENS = frozenset(
         "selection-bg", "selection-ink", "scrollbar-track",
         "scrollbar-thumb", "separator-height", "separator-opacity",
         "interaction-transition", "button-hover-transform", "code-size",
-        "container-bg",
+        "container-bg", "container-box-sizing", "panel-box-sizing",
+        "paragraph-margin", "paragraph-line-height", "heading-2-size",
+        "heading-3-size", "heading-4-size", "action-display",
+        "link-decoration-thickness", "media-box-sizing", "model-bg",
+        "model-border", "model-border-style", "model-border-width", "model-radius",
+        "model-shadow", "model-box-sizing", "action-font", "action-size",
+        "action-text-decoration", "action-hover-text-decoration",
+        "form-button-bg", "form-button-ink", "form-button-border",
+        "form-button-border-style", "form-button-border-width",
+        "form-button-radius", "form-button-font", "form-button-size",
+        "form-button-padding", "form-button-hover-bg",
+        "form-button-hover-ink", "form-button-hover-transform",
     }
 )
 

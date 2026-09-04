@@ -223,6 +223,12 @@ control. The pack owns fonts, sizes, weights, spacing, hover states, all text
 colors, backgrounds, borders, radii, and shadows. It cannot hide or reorder
 content.
 
+The document contract also exposes container and panel box sizing, paragraph
+rhythm, per-heading-level sizes, action display, separate form-button styling,
+and distinct media/model geometry. These are presentation choices rather than
+invariant layout so a pack can reproduce a real reference without adding a
+theme-name branch to the engine.
+
 Text-dense and media/model-rich Documents are mandatory validation fixtures.
 Document theming must be structurally visible; changing only colors does not
 satisfy the contract.

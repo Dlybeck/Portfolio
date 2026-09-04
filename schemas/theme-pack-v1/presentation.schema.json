@@ -2098,6 +2098,61 @@
     "document": {
       "type": "object",
       "properties": {
+        "action-display": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "action-font": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "action-hover-text-decoration": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "action-size": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "action-text-decoration": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "body-line-height": {
           "oneOf": [
             {
@@ -2340,6 +2395,17 @@
             }
           ]
         },
+        "container-box-sizing": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "field-bg": {
           "oneOf": [
             {
@@ -2472,6 +2538,138 @@
             }
           ]
         },
+        "form-button-bg": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "form-button-border": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "form-button-border-style": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "form-button-border-width": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "form-button-font": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "form-button-hover-bg": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "form-button-hover-ink": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "form-button-hover-transform": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "form-button-ink": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "form-button-padding": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "form-button-radius": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "form-button-size": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "header-bg": {
           "oneOf": [
             {
@@ -2527,7 +2725,7 @@
             }
           ]
         },
-        "heading-letter-spacing": {
+        "heading-2-size": {
           "oneOf": [
             {
               "type": "string",
@@ -2538,7 +2736,29 @@
             }
           ]
         },
-        "heading-size": {
+        "heading-3-size": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "heading-4-size": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "heading-letter-spacing": {
           "oneOf": [
             {
               "type": "string",
@@ -2594,6 +2814,17 @@
           ]
         },
         "link-decoration": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "link-decoration-thickness": {
           "oneOf": [
             {
               "type": "string",
@@ -2670,6 +2901,17 @@
             }
           ]
         },
+        "media-box-sizing": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "media-radius": {
           "oneOf": [
             {
@@ -2682,6 +2924,83 @@
           ]
         },
         "media-shadow": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "model-bg": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "model-border": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "model-border-style": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "model-border-width": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "model-box-sizing": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "model-radius": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "model-shadow": {
           "oneOf": [
             {
               "type": "string",
@@ -2769,6 +3088,17 @@
             }
           ]
         },
+        "panel-box-sizing": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "panel-padding": {
           "oneOf": [
             {
@@ -2792,6 +3122,28 @@
           ]
         },
         "panel-shadow": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "paragraph-line-height": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "paragraph-margin": {
           "oneOf": [
             {
               "type": "string",
@@ -2980,6 +3332,11 @@
         }
       },
       "required": [
+        "action-display",
+        "action-font",
+        "action-hover-text-decoration",
+        "action-size",
+        "action-text-decoration",
         "body-line-height",
         "body-size",
         "bullet",
@@ -3002,6 +3359,7 @@
         "code-radius",
         "code-size",
         "container-bg",
+        "container-box-sizing",
         "field-bg",
         "field-border",
         "field-font",
@@ -3014,26 +3372,49 @@
         "font-heading",
         "font-link",
         "font-title",
+        "form-button-bg",
+        "form-button-border",
+        "form-button-border-style",
+        "form-button-border-width",
+        "form-button-font",
+        "form-button-hover-bg",
+        "form-button-hover-ink",
+        "form-button-hover-transform",
+        "form-button-ink",
+        "form-button-padding",
+        "form-button-radius",
+        "form-button-size",
         "header-bg",
         "header-border",
         "header-ink",
         "header-radius",
         "header-shadow",
+        "heading-2-size",
+        "heading-3-size",
+        "heading-4-size",
         "heading-letter-spacing",
-        "heading-size",
         "heading-weight",
         "ink",
         "interaction-transition",
         "link",
         "link-decoration",
+        "link-decoration-thickness",
         "link-hover",
         "link-hover-decoration",
         "link-size",
         "media-bg",
         "media-border",
         "media-border-width",
+        "media-box-sizing",
         "media-radius",
         "media-shadow",
+        "model-bg",
+        "model-border",
+        "model-border-style",
+        "model-border-width",
+        "model-box-sizing",
+        "model-radius",
+        "model-shadow",
         "page-bg",
         "page-bg-image",
         "page-bg-size",
@@ -3041,9 +3422,12 @@
         "panel-border",
         "panel-border-style",
         "panel-border-width",
+        "panel-box-sizing",
         "panel-padding",
         "panel-radius",
         "panel-shadow",
+        "paragraph-line-height",
+        "paragraph-margin",
         "result-bg",
         "result-border",
         "result-ink",

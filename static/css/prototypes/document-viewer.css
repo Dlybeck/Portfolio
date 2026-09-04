@@ -1,16 +1,15 @@
 /*
- * PROTOTYPE — document viewer middle ground.
+ * PROTOTYPE — grounded Viewer shells on the existing Portfolio routes.
  *
- * Question: can alternate worlds keep one recognizable Portfolio Viewer while
- * moving strong world motifs out of the reading surface? Switch A/B/C with
- * ?docvariant=. Canonical is deliberately excluded. Remove this whole file
- * when the owner has chosen a direction.
+ * Question: how literal must the outer Viewer become before it reads as a
+ * recognizable object in each alternate world? Quiet Canvas is held constant;
+ * switch shell A/B/C with ?shellvariant=. Canonical is deliberately excluded.
  */
 
-.document-prototype-switcher {
+.viewer-shell-prototype-switcher {
   align-items: center;
-  background: rgba(20, 22, 29, .94);
-  border: 2px solid rgba(255, 255, 255, .86);
+  background: rgba(20, 22, 29, .95);
+  border: 2px solid rgba(255, 255, 255, .88);
   border-radius: 999px;
   bottom: max(10px, env(safe-area-inset-bottom));
   box-shadow: 0 8px 24px rgba(0, 0, 0, .38);
@@ -26,11 +25,11 @@
   z-index: 12000;
 }
 
-html[data-document-prototype-applicable] body.page-open .document-prototype-switcher {
+html[data-viewer-shell-prototype-applicable] body.page-open .viewer-shell-prototype-switcher {
   display: flex;
 }
 
-.document-prototype-switcher button {
+.viewer-shell-prototype-switcher button {
   align-items: center;
   background: #fff;
   border: 0;
@@ -45,18 +44,18 @@ html[data-document-prototype-applicable] body.page-open .document-prototype-swit
   width: 38px;
 }
 
-.document-prototype-switcher span {
-  min-width: 150px;
+.viewer-shell-prototype-switcher span {
+  min-width: 172px;
   text-align: center;
 }
 
-.document-prototype-switcher:focus-visible,
-.document-prototype-switcher button:focus-visible {
+.viewer-shell-prototype-switcher:focus-visible,
+.viewer-shell-prototype-switcher button:focus-visible {
   outline: 3px solid #ffe272;
   outline-offset: 3px;
 }
 
-/* All candidates keep world imagery out of the primary reading field. */
+/* Hold the winning Quiet Canvas interior constant for every shell. */
 html[data-document-prototype],
 html[data-document-prototype] body {
   background-color: var(--theme-pack-page-bg) !important;
@@ -68,7 +67,6 @@ html[data-document-prototype] body {
   position: relative;
 }
 
-/* A single restrained strip retains a trace of each pack's world motif. */
 html[data-document-prototype] body::before {
   background-color: var(--theme-pack-page-bg);
   background-image: var(--theme-pack-page-bg-image);
@@ -84,92 +82,329 @@ html[data-document-prototype] body::before {
   z-index: 20;
 }
 
-/* A — Quiet canvas: familiar cards, simplified into calm solid materials. */
-html[data-document-prototype="A"] .section {
+html[data-document-prototype] .section {
   background: var(--theme-pack-media-bg) !important;
   border-width: 2px !important;
   box-shadow: 0 5px 14px color-mix(in srgb, var(--theme-pack-panel-border) 24%, transparent) !important;
 }
 
-html[data-document-prototype="A"] header {
+html[data-document-prototype] header {
   box-shadow: none !important;
 }
 
-/* B — Continuous page: one reading surface, with sections made by rhythm and rules. */
-html[data-document-prototype="B"],
-html[data-document-prototype="B"] body {
-  background-color: var(--theme-pack-media-bg) !important;
-}
-
-html[data-document-prototype="B"] .section {
-  background: transparent !important;
-  border: 0 !important;
-  border-bottom: 2px solid var(--theme-pack-panel-border) !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  margin: 0 auto !important;
-  max-width: 78% !important;
-  padding: clamp(24px, 4vw, 48px) 0 !important;
-}
-
-html[data-document-prototype="B"] .section:last-child {
-  border-bottom: 0 !important;
-}
-
-html[data-document-prototype="B"] .section::after {
+/* Shell prototype scaffolding. */
+html[data-viewer-shell-prototype-applicable] .mini-window-container::before,
+html[data-viewer-shell-prototype-applicable] .mini-window-container::after {
   display: none !important;
 }
 
-html[data-document-prototype="B"] header {
-  background: transparent !important;
-  border: 0 !important;
-  border-bottom: 2px solid var(--theme-pack-panel-border) !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+html[data-viewer-shell-prototype-applicable] .mini-window-container {
+  transition: background-color .18s ease, border-color .18s ease,
+    border-radius .18s ease, box-shadow .18s ease, padding .18s ease;
 }
 
-/* C — Content plates: solid artifacts sit on a quiet canvas with side rhythm. */
-html[data-document-prototype="C"] .section {
-  background: var(--theme-pack-media-bg) !important;
-  border: 0 !important;
-  border-left: 7px solid var(--theme-pack-panel-border) !important;
-  border-radius: 2px var(--theme-pack-panel-radius) var(--theme-pack-panel-radius) 2px !important;
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--theme-pack-panel-border) 28%, transparent) !important;
-  margin-bottom: 18px !important;
-  max-width: 72% !important;
-  padding: clamp(22px, 3vw, 36px) !important;
+html[data-viewer-shell-prototype-applicable] .mini-window {
+  position: relative;
+  z-index: 1;
 }
 
-html[data-document-prototype="C"] .section:nth-of-type(even) {
-  border-left: 0 !important;
-  border-radius: var(--theme-pack-panel-radius) 2px 2px var(--theme-pack-panel-radius) !important;
-  border-right: 7px solid var(--theme-pack-panel-border) !important;
-  transform: translateX(3%);
+.viewer-shell-prototype-decoration {
+  display: none;
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 3;
 }
 
-html[data-document-prototype="C"] .section:nth-of-type(odd) {
-  transform: translateX(-3%);
+html[data-viewer-shell-prototype-applicable] .viewer-shell-prototype-decoration {
+  display: block;
 }
 
-html[data-document-prototype="C"] .section::after {
-  display: none !important;
+.viewer-shell-prototype-label,
+.viewer-shell-prototype-hardware,
+.viewer-shell-prototype-label::before,
+.viewer-shell-prototype-hardware::before,
+.viewer-shell-prototype-hardware::after {
+  box-sizing: border-box;
+  pointer-events: none;
+  position: absolute;
+}
+
+.viewer-shell-prototype-label { inset: 0; }
+
+/* -------------------------------------------------------------------------
+   A — Native artifact
+   Each world names a different ordinary object, while Quiet Canvas remains
+   the same document grammar inside it.
+   ------------------------------------------------------------------------- */
+
+html[data-viewer-shell-prototype="A"][data-board-theme="planets"] .mini-window-container {
+  background: linear-gradient(145deg, #30375f, #151a39) !important;
+  border: 4px solid #8797d2 !important;
+  border-radius: 22px !important;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .58),
+    inset 0 0 0 4px #0b0f27, inset 0 0 24px rgba(143, 233, 255, .16) !important;
+  padding: 34px 34px 46px !important;
+}
+
+html[data-viewer-shell-prototype="A"][data-board-theme="planets"] .viewer-shell-prototype-label::before {
+  bottom: 12px;
+  color: #d8e7ff;
+  content: "DEEP FIELD ARCHIVE · DL-03";
+  font: 700 10px/1 ui-monospace, monospace;
+  left: 36px;
+  letter-spacing: .14em;
+}
+
+html[data-viewer-shell-prototype="A"][data-board-theme="planets"] .viewer-shell-prototype-hardware {
+  background:
+    radial-gradient(circle at 12px 12px, #c7d0e8 0 3px, #4f587b 3.5px 5px, transparent 5.5px),
+    radial-gradient(circle at calc(100% - 12px) 12px, #c7d0e8 0 3px, #4f587b 3.5px 5px, transparent 5.5px),
+    radial-gradient(circle at 12px calc(100% - 12px), #c7d0e8 0 3px, #4f587b 3.5px 5px, transparent 5.5px),
+    radial-gradient(circle at calc(100% - 12px) calc(100% - 12px), #c7d0e8 0 3px, #4f587b 3.5px 5px, transparent 5.5px);
+  inset: 0;
+}
+
+html[data-viewer-shell-prototype="A"][data-board-theme="planets"] .viewer-shell-prototype-hardware::after {
+  background: #74e7b2;
+  border-radius: 50%;
+  bottom: 11px;
+  box-shadow: 13px 0 #f1ca65, 26px 0 #ea7c78;
+  content: "";
+  height: 6px;
+  right: 62px;
+  width: 6px;
+}
+
+html[data-viewer-shell-prototype="A"][data-board-theme="lily"] .mini-window-container {
+  background: linear-gradient(105deg, #4d8763 0 34px, #dceabe 35px 100%) !important;
+  border: 3px solid #315f49 !important;
+  border-radius: 12px 30px 18px 26px !important;
+  box-shadow: 0 17px 34px rgba(18, 70, 53, .38),
+    inset 0 0 0 2px rgba(255, 255, 235, .42) !important;
+  padding: 34px 28px 42px 52px !important;
+}
+
+html[data-viewer-shell-prototype="A"][data-board-theme="lily"] .viewer-shell-prototype-hardware {
+  background: repeating-radial-gradient(circle at 18px 22px,
+    #ecf4d6 0 5px, #244f3b 5.5px 7px, transparent 7.5px 56px);
+  bottom: 8px;
+  left: 0;
+  top: 8px;
+  width: 36px;
+}
+
+html[data-viewer-shell-prototype="A"][data-board-theme="lily"] .viewer-shell-prototype-label::before {
+  background: #315f49;
+  border-radius: 2px 12px 2px 9px;
+  bottom: 10px;
+  color: #f1f8dc;
+  content: "POND FIELD NOTES";
+  font: 700 11px/1 'Kalam', sans-serif;
+  left: 54px;
+  letter-spacing: .08em;
+  padding: 6px 12px 5px;
+}
+
+html[data-viewer-shell-prototype="A"][data-board-theme="islands"] .mini-window-container {
+  background:
+    linear-gradient(112deg, rgba(255,255,255,.24), transparent 32%),
+    repeating-linear-gradient(4deg, rgba(104,77,40,.04) 0 2px, transparent 2px 7px),
+    #dfcf9c !important;
+  border: 5px solid #2b6f73 !important;
+  border-radius: 9px 28px 12px 25px !important;
+  box-shadow: 0 17px 36px rgba(15, 65, 72, .42),
+    inset 0 0 0 3px #f0e2b4 !important;
+  padding: 32px 30px 44px !important;
+}
+
+html[data-viewer-shell-prototype="A"][data-board-theme="islands"] .viewer-shell-prototype-hardware {
+  background:
+    linear-gradient(135deg, #765b3b 0 27px, transparent 28px) left top / 42px 42px no-repeat,
+    linear-gradient(225deg, #765b3b 0 27px, transparent 28px) right top / 42px 42px no-repeat,
+    linear-gradient(45deg, #765b3b 0 27px, transparent 28px) left bottom / 42px 42px no-repeat,
+    linear-gradient(315deg, #765b3b 0 27px, transparent 28px) right bottom / 42px 42px no-repeat;
+  inset: 0;
+}
+
+html[data-viewer-shell-prototype="A"][data-board-theme="islands"] .viewer-shell-prototype-label::before {
+  background: #765b3b;
+  border: 1px solid #4e3a26;
+  border-radius: 3px;
+  bottom: 10px;
+  color: #fff0c3;
+  content: "EXPEDITION FOLIO · CHART 04";
+  font: 700 10px/1 ui-monospace, monospace;
+  left: 48px;
+  letter-spacing: .11em;
+  padding: 6px 12px;
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------------
+   B — Observation window
+   One shared glass-and-hardware object: less theme-specific, more obviously a
+   viewing instrument. This tests whether a universal shell is sufficient.
+   ------------------------------------------------------------------------- */
+
+html[data-viewer-shell-prototype="B"] .mini-window-container {
+  background: var(--theme-pack-header-bg) !important;
+  border: 9px double var(--theme-pack-panel-border) !important;
+  border-radius: 52px !important;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, .48),
+    inset 0 0 0 4px color-mix(in srgb, var(--theme-pack-panel-border) 55%, #111) !important;
+  height: 86vh !important;
+  padding: 24px !important;
+  top: 7vh !important;
+  width: min(90vw, 900px) !important;
+}
+
+html[data-viewer-shell-prototype="B"] .mini-window {
+  border-radius: 30px;
+}
+
+html[data-viewer-shell-prototype="B"] .viewer-shell-prototype-hardware {
+  border: 1px solid color-mix(in srgb, var(--theme-pack-panel-border) 75%, white);
+  border-radius: 40px;
+  box-shadow: inset 0 0 22px rgba(255,255,255,.1);
+  inset: 10px;
+}
+
+html[data-viewer-shell-prototype="B"] .viewer-shell-prototype-hardware::before {
+  background: linear-gradient(126deg,
+    transparent 10%, rgba(255,255,255,.04) 26%,
+    rgba(255,255,255,.16) 29%, rgba(255,255,255,.03) 35%, transparent 52%);
+  border-radius: 30px;
+  content: "";
+  inset: 14px;
+}
+
+html[data-viewer-shell-prototype="B"] .viewer-shell-prototype-hardware::after {
+  background: var(--theme-pack-focus);
+  border: 2px solid color-mix(in srgb, var(--theme-pack-focus) 55%, #111);
+  border-radius: 50%;
+  bottom: 0;
+  box-shadow: 0 0 8px var(--theme-pack-focus);
+  content: "";
+  height: 8px;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  width: 8px;
+}
+
+html[data-viewer-shell-prototype="B"] .viewer-shell-prototype-label::before {
+  background: var(--theme-pack-header-bg);
+  border: 1px solid var(--theme-pack-panel-border);
+  border-radius: 999px;
+  bottom: -4px;
+  color: var(--theme-pack-header-ink);
+  content: "OBSERVATION WINDOW";
+  font: 700 9px/1 ui-monospace, monospace;
+  left: 34px;
+  letter-spacing: .14em;
+  padding: 5px 12px;
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------------
+   C — Archive folio
+   One portable object follows David between worlds. It is intentionally warm
+   and physical rather than recolored to match each environment.
+   ------------------------------------------------------------------------- */
+
+html[data-viewer-shell-prototype="C"] .mini-window-container {
+  background:
+    repeating-linear-gradient(88deg, rgba(91,63,35,.045) 0 2px, transparent 2px 7px),
+    linear-gradient(105deg, #59412d 0 44px, #d6c29a 45px 100%) !important;
+  border: 4px solid #59412d !important;
+  border-radius: 8px 24px 11px 20px !important;
+  box-shadow: 9px 18px 38px rgba(0,0,0,.46),
+    inset 0 0 0 2px rgba(255,245,210,.38) !important;
+  padding: 28px 28px 42px 66px !important;
+}
+
+html[data-viewer-shell-prototype="C"] .mini-window {
+  border-radius: 3px 14px 7px 10px;
+  box-shadow: -5px 0 10px rgba(63,42,24,.25);
+}
+
+html[data-viewer-shell-prototype="C"] .viewer-shell-prototype-hardware {
+  background: repeating-radial-gradient(circle at 24px 24px,
+    #d4b979 0 6px, #392719 6.5px 8px, transparent 8.5px 118px);
+  bottom: 10px;
+  left: 0;
+  top: 10px;
+  width: 48px;
+}
+
+html[data-viewer-shell-prototype="C"] .viewer-shell-prototype-hardware::after {
+  background: #8f382f;
+  border: 1px solid #5c211d;
+  border-radius: 0 5px 5px 0;
+  box-shadow: 0 42px #315f70, 0 84px #5e7740;
+  content: "";
+  height: 28px;
+  right: -16px;
+  top: 92px;
+  width: 16px;
+}
+
+html[data-viewer-shell-prototype="C"] .viewer-shell-prototype-label::before {
+  bottom: 11px;
+  color: #4a3424;
+  content: "DAVID LYBECK · FIELD ARCHIVE";
+  font: 700 10px/1 Georgia, serif;
+  left: 82px;
+  letter-spacing: .12em;
+  white-space: nowrap;
 }
 
 @media (max-width: 600px) {
-  .document-prototype-switcher {
-    font-size: 13px;
-    gap: 6px;
+  .viewer-shell-prototype-switcher {
+    font-size: 12px;
+    gap: 5px;
   }
 
-  .document-prototype-switcher span { min-width: 126px; }
+  .viewer-shell-prototype-switcher span { min-width: 150px; }
 
-  html[data-document-prototype="B"] .section,
-  html[data-document-prototype="C"] .section {
-    max-width: 91% !important;
+  html[data-viewer-shell-prototype="A"][data-board-theme="planets"] .mini-window-container {
+    padding: 28px 18px 42px !important;
   }
 
-  html[data-document-prototype="C"] .section:nth-of-type(even),
-  html[data-document-prototype="C"] .section:nth-of-type(odd) {
-    transform: none;
+  html[data-viewer-shell-prototype="A"][data-board-theme="lily"] .mini-window-container {
+    padding: 28px 16px 40px 38px !important;
+  }
+
+  html[data-viewer-shell-prototype="A"][data-board-theme="islands"] .mini-window-container {
+    padding: 28px 17px 42px !important;
+  }
+
+  html[data-viewer-shell-prototype="A"] .viewer-shell-prototype-label::before,
+  html[data-viewer-shell-prototype="B"] .viewer-shell-prototype-label::before,
+  html[data-viewer-shell-prototype="C"] .viewer-shell-prototype-label::before {
+    font-size: 8px !important;
+    letter-spacing: .06em !important;
+  }
+
+  html[data-viewer-shell-prototype="B"] .mini-window-container {
+    border-width: 6px !important;
+    border-radius: 34px !important;
+    height: 88vh !important;
+    padding: 16px !important;
+    top: 6vh !important;
+    width: 96vw !important;
+  }
+
+  html[data-viewer-shell-prototype="B"] .mini-window,
+  html[data-viewer-shell-prototype="B"] .viewer-shell-prototype-hardware {
+    border-radius: 22px;
+  }
+
+  html[data-viewer-shell-prototype="C"] .mini-window-container {
+    padding: 24px 14px 40px 42px !important;
+  }
+
+  html[data-viewer-shell-prototype="C"] .viewer-shell-prototype-hardware {
+    width: 34px;
   }
 }

@@ -16,15 +16,21 @@
         <div class="tile-layer"></div>
     </div>
     <div class="mini-window-container">
+        {% if theme_lab_enabled %}
+        <div class="viewer-shell-prototype-decoration" aria-hidden="true">
+            <span class="viewer-shell-prototype-label"></span>
+            <span class="viewer-shell-prototype-hardware"></span>
+        </div>
+        {% endif %}
         <iframe class="mini-window" title="Portfolio document"></iframe>
     </div>
     <div class="viewport-overlay">
         <button type="button" class="close-button" aria-label="Close document"><span class="tab">✕ close</span></button>
         {% if theme_lab_enabled %}
-        <div class="document-prototype-switcher" data-document-prototype-switcher data-viewer-control tabindex="0" aria-label="Document treatment prototype">
-            <button type="button" data-document-prototype-previous aria-label="Previous document treatment">←</button>
-            <span data-document-prototype-label aria-live="polite">A — Quiet canvas</span>
-            <button type="button" data-document-prototype-next aria-label="Next document treatment">→</button>
+        <div class="viewer-shell-prototype-switcher" data-viewer-shell-prototype-switcher data-viewer-control tabindex="0" aria-label="Viewer shell prototype">
+            <button type="button" data-viewer-shell-prototype-previous aria-label="Previous Viewer shell">←</button>
+            <span data-viewer-shell-prototype-label aria-live="polite">A — Native artifact</span>
+            <button type="button" data-viewer-shell-prototype-next aria-label="Next Viewer shell">→</button>
         </div>
         {% endif %}
     </div>

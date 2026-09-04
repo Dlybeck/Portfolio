@@ -16,7 +16,7 @@ from scripts.audit_theme_variants import (
 VISUAL_THEMES = ["canonical", "lily", "planets", "islands"]
 
 
-def test_document_prototype_switcher_keeps_the_open_document_visible(
+def test_viewer_shell_prototype_switcher_keeps_the_open_document_visible(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -24,7 +24,7 @@ def test_document_prototype_switcher_keeps_the_open_document_visible(
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
     page, origin = browser_page
     page.goto(
-        f"{origin}/education/early_education?theme=planets&docvariant=C",
+        f"{origin}/education/early_education?theme=planets&shellvariant=C",
         wait_until="domcontentloaded",
     )
     viewer = page.locator(".mini-window-container")
@@ -39,12 +39,15 @@ def test_document_prototype_switcher_keeps_the_open_document_visible(
         "node => node.ownerDocument.defaultView.scrollY"
     )
 
-    page.locator("[data-document-prototype-next]").click()
+    page.locator("[data-viewer-shell-prototype-next]").click()
 
     expect(viewer).to_have_class(re.compile(r"\bopen\b"))
     expect(document.locator("#location")).to_have_text("Early Education")
     expect(document.locator("html")).to_have_attribute(
         "data-document-prototype", "A"
+    )
+    expect(page.locator("html")).to_have_attribute(
+        "data-viewer-shell-prototype", "A"
     )
     assert document.locator("html").evaluate(
         "node => node.ownerDocument.defaultView.scrollY"

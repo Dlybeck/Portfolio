@@ -12,14 +12,14 @@
     const packNode = document.querySelector("#active-theme-pack");
     const catalogNode = document.querySelector("#theme-pack-catalog");
     const selector = document.querySelector("[data-theme-selector]");
-    // PROTOTYPE: three removable document treatments for owner review.
-    const documentPrototypeSwitcher = document.querySelector(
-        "[data-document-prototype-switcher]"
+    // PROTOTYPE: three removable Viewer shells for owner review.
+    const viewerShellPrototypeSwitcher = document.querySelector(
+        "[data-viewer-shell-prototype-switcher]"
     );
-    const documentPrototypeVariants = [
-        { id: "A", label: "A — Quiet canvas" },
-        { id: "B", label: "B — Continuous page" },
-        { id: "C", label: "C — Content plates" },
+    const viewerShellPrototypeVariants = [
+        { id: "A", label: "A — Native artifact" },
+        { id: "B", label: "B — Observation window" },
+        { id: "C", label: "C — Archive folio" },
     ];
     let catalog = [];
     try { catalog = JSON.parse(catalogNode?.textContent || "[]"); } catch (_) {}
@@ -46,17 +46,17 @@
         catalog.map((pack) => pack.key)
     );
     const relationshipDefaults = { ...(window.chalkArrowsConfig || {}) };
-    const requestedDocumentPrototype = new URLSearchParams(location.search)
-        .get("docvariant");
-    const initialDocumentPrototype = documentPrototypeVariants.some(
-        ({ id }) => id === requestedDocumentPrototype
-    ) ? requestedDocumentPrototype : "A";
+    const requestedViewerShellPrototype = new URLSearchParams(location.search)
+        .get("shellvariant");
+    const initialViewerShellPrototype = viewerShellPrototypeVariants.some(
+        ({ id }) => id === requestedViewerShellPrototype
+    ) ? requestedViewerShellPrototype : "A";
     const state = {
         current: initialPack?.id || fallbackId,
         pack: initialPack,
         pinned: new URLSearchParams(location.search).has("theme"),
-        documentPrototype: initialDocumentPrototype,
-        documentPrototypePinned: Boolean(requestedDocumentPrototype),
+        viewerShellPrototype: initialViewerShellPrototype,
+        viewerShellPrototypePinned: Boolean(requestedViewerShellPrototype),
     };
 
     function allTitles() {
@@ -561,33 +561,36 @@
         if (!doc?.documentElement || !pack) return;
         doc.documentElement.dataset.boardTheme = pack.id;
         doc.documentElement.setAttribute("data-theme-pack-visual", "");
-        if (documentPrototypeSwitcher && pack.id !== fallbackId) {
-            doc.documentElement.dataset.documentPrototype = state.documentPrototype;
+        if (viewerShellPrototypeSwitcher && pack.id !== fallbackId) {
+            // The previous comparison selected Quiet Canvas. Keep that
+            // interior stable while this prototype varies only the shell.
+            doc.documentElement.dataset.documentPrototype = "A";
         } else {
             delete doc.documentElement.dataset.documentPrototype;
         }
         applyVariables(doc, pack.variables.document);
     }
 
-    function setDocumentPrototype(value, { syncUrl = true } = {}) {
-        const variant = documentPrototypeVariants.find(({ id }) => id === value)
-            || documentPrototypeVariants[0];
-        state.documentPrototype = variant.id;
-        document.documentElement.dataset.documentPrototype = variant.id;
+    function setViewerShellPrototype(value, { syncUrl = true } = {}) {
+        const variant = viewerShellPrototypeVariants.find(({ id }) => id === value)
+            || viewerShellPrototypeVariants[0];
+        state.viewerShellPrototype = variant.id;
+        document.documentElement.dataset.viewerShellPrototype = variant.id;
         document.documentElement.toggleAttribute(
-            "data-document-prototype-applicable",
+            "data-viewer-shell-prototype-applicable",
             Boolean(state.pack && state.pack.id !== fallbackId)
         );
-        const label = documentPrototypeSwitcher?.querySelector(
-            "[data-document-prototype-label]"
+        const label = viewerShellPrototypeSwitcher?.querySelector(
+            "[data-viewer-shell-prototype-label]"
         );
         if (label) label.textContent = variant.label;
         const iframeDoc = document.querySelector(".mini-window")?.contentDocument;
         if (iframeDoc?.body) styleDocument(iframeDoc, state.pack);
         if (!syncUrl) return variant.id;
-        state.documentPrototypePinned = true;
+        state.viewerShellPrototypePinned = true;
         const current = new URL(location.href);
-        current.searchParams.set("docvariant", variant.id);
+        current.searchParams.delete("docvariant");
+        current.searchParams.set("shellvariant", variant.id);
         history.replaceState(
             history.state,
             "",
@@ -596,14 +599,14 @@
         return variant.id;
     }
 
-    function cycleDocumentPrototype(direction) {
-        const current = documentPrototypeVariants.findIndex(
-            ({ id }) => id === state.documentPrototype
+    function cycleViewerShellPrototype(direction) {
+        const current = viewerShellPrototypeVariants.findIndex(
+            ({ id }) => id === state.viewerShellPrototype
         );
         const next = (
-            current + direction + documentPrototypeVariants.length
-        ) % documentPrototypeVariants.length;
-        setDocumentPrototype(documentPrototypeVariants[next].id);
+            current + direction + viewerShellPrototypeVariants.length
+        ) % viewerShellPrototypeVariants.length;
+        setViewerShellPrototype(viewerShellPrototypeVariants[next].id);
     }
 
     function themedUrl(route, pack, includeTheme = state.pinned) {
@@ -611,8 +614,9 @@
         if (parsed.origin !== window.location.origin) return route;
         if (!includeTheme) parsed.searchParams.delete("theme");
         else parsed.searchParams.set("theme", pack.id);
-        if (documentPrototypeSwitcher && state.documentPrototypePinned) {
-            parsed.searchParams.set("docvariant", state.documentPrototype);
+        parsed.searchParams.delete("docvariant");
+        if (viewerShellPrototypeSwitcher && state.viewerShellPrototypePinned) {
+            parsed.searchParams.set("shellvariant", state.viewerShellPrototype);
         }
         return `${parsed.pathname}${parsed.search}${parsed.hash}`;
     }
@@ -651,7 +655,7 @@
         styleRelationships(pack);
         state.current = pack.id;
         state.pack = pack;
-        setDocumentPrototype(state.documentPrototype, { syncUrl: false });
+        setViewerShellPrototype(state.viewerShellPrototype, { syncUrl: false });
         if (selector) selector.value = pack.id;
         if (syncUrl) {
             const current = `${location.pathname}${location.search}${location.hash}`;
@@ -670,18 +674,18 @@
         styleDocument,
     };
     document.addEventListener("DOMContentLoaded", () => {
-        documentPrototypeSwitcher?.querySelector(
-            "[data-document-prototype-previous]"
-        )?.addEventListener("click", () => cycleDocumentPrototype(-1));
-        documentPrototypeSwitcher?.querySelector(
-            "[data-document-prototype-next]"
-        )?.addEventListener("click", () => cycleDocumentPrototype(1));
-        documentPrototypeSwitcher?.addEventListener("keydown", (event) => {
+        viewerShellPrototypeSwitcher?.querySelector(
+            "[data-viewer-shell-prototype-previous]"
+        )?.addEventListener("click", () => cycleViewerShellPrototype(-1));
+        viewerShellPrototypeSwitcher?.querySelector(
+            "[data-viewer-shell-prototype-next]"
+        )?.addEventListener("click", () => cycleViewerShellPrototype(1));
+        viewerShellPrototypeSwitcher?.addEventListener("keydown", (event) => {
             if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
             event.preventDefault();
-            cycleDocumentPrototype(event.key === "ArrowLeft" ? -1 : 1);
+            cycleViewerShellPrototype(event.key === "ArrowLeft" ? -1 : 1);
         });
-        setDocumentPrototype(state.documentPrototype, { syncUrl: false });
+        setViewerShellPrototype(state.viewerShellPrototype, { syncUrl: false });
         selector?.addEventListener("change", (event) => {
             activate(event.target.value).catch(console.error);
         });

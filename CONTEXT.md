@@ -76,6 +76,10 @@ _Avoid_: Theme logo, social-preview image
 The uniform structure and visual language shared by opened documents to keep the self-portrait coherent and maintainable as it grows.
 _Avoid_: Bespoke microsite, page-specific framework
 
+**Viewer Artifact**:
+A bounded, Theme-Pack-selected real-world carrier surrounding an opened Document, such as a field notebook, observation window, or expedition log. Its presentation is pack-owned while its Document flow and controls remain invariant.
+_Avoid_: Shell prototype, page skin, theme-specific viewer
+
 **Historical Work**:
 A completed artifact retained because it contributes to the self-portrait, regardless of its age or current professional relevance.
 _Avoid_: Obsolete content, low-signal work

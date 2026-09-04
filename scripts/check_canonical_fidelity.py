@@ -54,6 +54,25 @@ def main() -> None:
     document = presentation["document"]
     if board.get("viewer-bg-image") == "none":
         failures.append("Canonical viewer lost the original ruled outer paper")
+    canonical_viewer_values = {
+        "viewer-artifact": "none",
+        "viewer-top": "5vh",
+        "viewer-width": "min(92vw, 960px)",
+        "viewer-height": "90vh",
+        "viewer-radius": "2px",
+        "viewer-padding": "36px 30px 40px",
+        "phone-viewer-top": "72px",
+        "phone-viewer-width": "96vw",
+        "phone-viewer-height": "calc(100vh - 84px)",
+        "phone-viewer-padding": "26px 16px 30px",
+    }
+    for name, expected in canonical_viewer_values.items():
+        actual = board.get(name)
+        if actual != expected:
+            failures.append(
+                f"Canonical viewer {name} expected main value "
+                f"{expected!r}, got {actual!r}"
+            )
     main_document_values = {
         "container-bg": "#ffffff",
         "container-box-sizing": "content-box",
@@ -81,8 +100,6 @@ def main() -> None:
                 f"Canonical document {name} expected main value "
                 f"{expected!r}, got {actual!r}"
             )
-    if board.get("phone-viewer-padding") != "26px 16px 30px":
-        failures.append("Canonical viewer lost main's phone paper margins")
     for title, assignment in tiles["assignments"].items():
         transforms = assignment.get("transforms", {})
         base = transforms.get("base", {})

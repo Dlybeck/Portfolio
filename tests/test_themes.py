@@ -17,11 +17,11 @@ from scripts.audit_theme_variants import (
 VISUAL_THEMES = ["canonical", "lily", "planets", "islands"]
 
 
-def test_original_ignores_alternate_viewer_shell_pin(
+def test_obsolete_viewer_prototype_pin_is_removed_without_restyling_original(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """A stale prototype URL must never restyle the preserved Original."""
+    """Old review links cleanly enter the production Theme Pack contract."""
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
     page, origin = browser_page
     page.goto(
@@ -31,7 +31,7 @@ def test_original_ignores_alternate_viewer_shell_pin(
 
     root = page.locator("html")
     viewer = page.locator(".mini-window-container")
-    expect(root).not_to_have_attribute("data-viewer-shell-prototype-applicable", "")
+    expect(root).to_have_attribute("data-viewer-artifact", "none")
     expect(page).not_to_have_url(re.compile(r"[?&]shellvariant="))
     expect(viewer).to_have_css("border-radius", "2px")
     expect(viewer).to_have_css("padding", "36px 30px 40px")
@@ -40,60 +40,35 @@ def test_original_ignores_alternate_viewer_shell_pin(
     )
 
 
-def test_viewer_shell_prototype_switcher_keeps_the_open_document_visible(
+@pytest.mark.parametrize(
+    ("theme", "artifact", "label"),
+    [
+        ("canonical", "none", ""),
+        ("lily", "field-notebook", "POND FIELD NOTES"),
+        ("planets", "observation-window", "OBSERVATION WINDOW"),
+        ("islands", "expedition-log", "EXPEDITION FIELD LOG · 04"),
+    ],
+)
+def test_reviewed_viewer_artifacts_are_owned_by_theme_packs(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
+    theme: str,
+    artifact: str,
+    label: str,
 ) -> None:
-    """Changing a visual candidate must not behave like an outside click."""
+    """A pack selects its final artifact without runtime prototype state."""
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
     page, origin = browser_page
     page.goto(
-        f"{origin}/education/early_education?theme=planets&shellvariant=C",
-        wait_until="domcontentloaded",
-    )
-    viewer = page.locator(".mini-window-container")
-    viewer.locator(".mini-window").wait_for()
-    expect(viewer).to_have_class(re.compile(r"\bopen\b"))
-    document = page.frame_locator(".mini-window")
-    expect(document.locator("#location")).to_have_text("Early Education")
-    document.locator("html").evaluate(
-        "node => node.ownerDocument.defaultView.scrollTo(0, 180)"
-    )
-    scroll_before = document.locator("html").evaluate(
-        "node => node.ownerDocument.defaultView.scrollY"
-    )
-
-    page.locator("[data-viewer-shell-prototype-next]").click()
-
-    expect(viewer).to_have_class(re.compile(r"\bopen\b"))
-    expect(document.locator("#location")).to_have_text("Early Education")
-    expect(document.locator("html")).to_have_attribute(
-        "data-document-prototype", "A"
-    )
-    expect(page.locator("html")).to_have_attribute(
-        "data-viewer-shell-prototype", "A"
-    )
-    scroll_after = document.locator("html").evaluate(
-        "node => node.ownerDocument.defaultView.scrollY"
-    )
-    assert abs(scroll_after - scroll_before) <= 1
-
-
-def test_reviewed_space_shell_defaults_to_observation_window(
-    browser_page: tuple[Page, str],
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """The reviewed futuristic instrument is the default Space candidate."""
-    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
-    page, origin = browser_page
-    page.goto(
-        f"{origin}/hobbies/tennis?theme=planets",
+        f"{origin}/hobbies/tennis?theme={theme}",
         wait_until="domcontentloaded",
     )
 
     expect(page.locator("html")).to_have_attribute(
-        "data-viewer-shell-prototype", "B"
+        "data-viewer-artifact", artifact
     )
+    expect(page.locator(".theme-viewer-label")).to_have_text(label)
+    expect(page.locator("[data-viewer-shell-prototype-switcher]")).to_have_count(0)
 
 
 @pytest.mark.parametrize(
@@ -114,7 +89,7 @@ def test_paper_artifacts_use_grounded_paper_not_blue_world_surfaces(
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
     page, origin = browser_page
     page.goto(
-        f"{origin}/hobbies/tennis?theme={theme}&shellvariant=A",
+        f"{origin}/hobbies/tennis?theme={theme}",
         wait_until="domcontentloaded",
     )
     document = page.frame_locator(".mini-window")
@@ -134,15 +109,15 @@ def test_grounded_paper_artifacts_keep_functional_detail_not_surface_clutter(
     page, origin = browser_page
 
     page.goto(
-        f"{origin}/hobbies/tennis?theme=lily&shellvariant=A",
+        f"{origin}/hobbies/tennis?theme=lily",
         wait_until="domcontentloaded",
     )
-    expect(page.locator(".viewer-shell-prototype-hardware")).not_to_have_css(
+    expect(page.locator(".theme-viewer-hardware")).not_to_have_css(
         "background-image", "none"
     )
 
     page.goto(
-        f"{origin}/hobbies/tennis?theme=islands&shellvariant=A",
+        f"{origin}/hobbies/tennis?theme=islands",
         wait_until="domcontentloaded",
     )
     document = page.frame_locator(".mini-window")
@@ -940,10 +915,16 @@ def test_open_document_rethemes_in_place_without_stale_world_state(
     page.locator(".mini-window-container.open").wait_for()
     document = page.frame_locator(".mini-window")
     expect(document.locator("html")).to_have_attribute("data-board-theme", "lily")
+    expect(page.locator("html")).to_have_attribute(
+        "data-viewer-artifact", "field-notebook"
+    )
 
     page.locator("[data-theme-selector]").select_option("planets")
     expect(page).to_have_url(f"{origin}/projects/programs?theme=planets")
     expect(document.locator("html")).to_have_attribute("data-board-theme", "planets")
+    expect(page.locator("html")).to_have_attribute(
+        "data-viewer-artifact", "observation-window"
+    )
     expect(document.locator("html")).to_have_attribute("data-theme-pack-visual", "")
     assert document.locator("html").evaluate(
         "node => node.style.getPropertyValue('--theme-pack-font-body')"
@@ -952,6 +933,7 @@ def test_open_document_rethemes_in_place_without_stale_world_state(
     page.locator("[data-theme-selector]").select_option("canonical")
     expect(document.locator("html")).to_have_attribute("data-board-theme", "canonical")
     expect(document.locator("html")).to_have_attribute("data-theme-pack-visual", "")
+    expect(page.locator("html")).to_have_attribute("data-viewer-artifact", "none")
 
 
 @pytest.mark.parametrize("theme", VISUAL_THEMES)
@@ -983,9 +965,14 @@ def test_document_grammar_covers_text_and_media_pages_in_every_world(
     expect(document.locator("html")).to_have_attribute("data-board-theme", theme)
     expect(document.locator("#location")).to_have_text(heading)
     expect(document.locator(content_selector).first).to_be_visible()
-    assert document.locator(".section").first.evaluate(
-        "node => getComputedStyle(node).backgroundColor"
-    ) not in {"rgba(0, 0, 0, 0)", "transparent"}
+    assert document.locator("html").evaluate(
+        """node => [node, node.ownerDocument.body,
+            node.ownerDocument.querySelector('.container')]
+            .filter(Boolean)
+            .some(surface => !['rgba(0, 0, 0, 0)', 'transparent'].includes(
+                getComputedStyle(surface).backgroundColor
+            ))"""
+    )
 
 
 def test_each_world_has_a_distinct_native_document_grammar(

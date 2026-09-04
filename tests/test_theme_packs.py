@@ -133,6 +133,7 @@ def write_presentation(root: Path, pack_id: str) -> None:
     board = {name: "initial" for name in BOARD_PRESENTATION_TOKENS}
     board["focus-motion"] = "cover"
     board["action-treatment"] = "annotation"
+    board["viewer-artifact"] = "none"
     (root / pack_id / "presentation.json").write_text(
         json.dumps(
             {
@@ -236,6 +237,20 @@ def test_pack_rejects_an_unknown_action_treatment(tmp_path: Path) -> None:
     with pytest.raises(
         InvalidThemeAsset,
         match="must be annotation or marker",
+    ):
+        load_theme_pack(tmp_path / "canonical")
+
+
+def test_pack_rejects_an_unknown_viewer_artifact(tmp_path: Path) -> None:
+    write_pack(tmp_path, "canonical", random_eligible=False)
+    presentation_path = tmp_path / "canonical" / "presentation.json"
+    presentation = json.loads(presentation_path.read_text(encoding="utf-8"))
+    presentation["board"]["viewer-artifact"] = "theme-specific-runtime"
+    presentation_path.write_text(json.dumps(presentation), encoding="utf-8")
+
+    with pytest.raises(
+        InvalidThemeAsset,
+        match="must be none, field-notebook, observation-window, or expedition-log",
     ):
         load_theme_pack(tmp_path / "canonical")
 
@@ -863,13 +878,16 @@ def test_stable_styles_consume_every_published_presentation_token() -> None:
     assert referenced_tokens(
         "theme-structure.css", "themes/board.css"
     ) == BOARD_PRESENTATION_TOKENS - {
-        "focus-motion", "action-treatment", "prototype-viewer-shell"
+        "focus-motion", "action-treatment", "viewer-artifact",
+        "viewer-artifact-label",
     }
     theme_engine = (
         root / "static" / "scripts" / "themeEngine.js"
     ).read_text(encoding="utf-8")
     assert 'pack.variables.board["focus-motion"]' in theme_engine
     assert 'pack.variables.board["action-treatment"]' in theme_engine
+    assert 'pack.variables.board["viewer-artifact"]' in theme_engine
+    assert 'pack.variables.board["viewer-artifact-label"]' in theme_engine
     assert referenced_tokens(
         "document-structure.css", "themes/documents.css"
     ) == DOCUMENT_PRESENTATION_TOKENS

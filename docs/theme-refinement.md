@@ -174,6 +174,15 @@ reading surfaces, media treatment, controls, and decoration are supplied by the
 active Theme Pack so they remain functional documents that visibly belong to
 the current world.
 
+### Integrated Viewer artifacts
+
+The reviewed Viewer carriers are no longer prototypes. Original retains its
+lined, taped paper Viewer; Lily Pond selects a bound field notebook; Planets /
+Constellation selects the observation window; and Island Chain selects an
+expedition field log. The carrier recipe, label, frame, responsive geometry,
+and Document material are Theme Pack data. There is no viewer-variant switcher
+or shareable prototype parameter.
+
 ## Motion refinement
 
 ### Confirmed problems

@@ -1432,6 +1432,28 @@
             }
           ]
         },
+        "phone-viewer-height": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "phone-viewer-iframe-radius": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "phone-viewer-padding": {
           "oneOf": [
             {
@@ -1443,7 +1465,18 @@
             }
           ]
         },
-        "prototype-viewer-shell": {
+        "phone-viewer-top": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "phone-viewer-width": {
           "oneOf": [
             {
               "type": "string",
@@ -1598,6 +1631,58 @@
           ]
         },
         "title-underline-display": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "viewer-artifact": {
+          "enum": [
+            "none",
+            "field-notebook",
+            "observation-window",
+            "expedition-log"
+          ]
+        },
+        "viewer-artifact-accent": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "viewer-artifact-detail": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "viewer-artifact-ink": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "viewer-artifact-label": {
           "oneOf": [
             {
               "type": "string",
@@ -1872,6 +1957,28 @@
             }
           ]
         },
+        "viewer-height": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "viewer-iframe-radius": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "viewer-padding": {
           "oneOf": [
             {
@@ -1906,6 +2013,28 @@
           ]
         },
         "viewer-shadow": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "viewer-top": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "viewer-width": {
           "oneOf": [
             {
               "type": "string",
@@ -2048,8 +2177,11 @@
         "phone-expanded-text-size",
         "phone-expanded-width",
         "phone-tile-size",
+        "phone-viewer-height",
+        "phone-viewer-iframe-radius",
         "phone-viewer-padding",
-        "prototype-viewer-shell",
+        "phone-viewer-top",
+        "phone-viewer-width",
         "selector-bg",
         "selector-border",
         "selector-border-style",
@@ -2064,6 +2196,11 @@
         "tile-size",
         "tile-transition-duration",
         "title-underline-display",
+        "viewer-artifact",
+        "viewer-artifact-accent",
+        "viewer-artifact-detail",
+        "viewer-artifact-ink",
+        "viewer-artifact-label",
         "viewer-bg",
         "viewer-bg-image",
         "viewer-border",
@@ -2088,10 +2225,14 @@
         "viewer-exit-easing",
         "viewer-exit-offset",
         "viewer-exit-rotation",
+        "viewer-height",
+        "viewer-iframe-radius",
         "viewer-padding",
         "viewer-radius",
         "viewer-rotation",
-        "viewer-shadow"
+        "viewer-shadow",
+        "viewer-top",
+        "viewer-width"
       ],
       "additionalProperties": false
     },

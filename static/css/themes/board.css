@@ -288,6 +288,9 @@ html[data-theme-pack-visual] .tile-expanded .expanded-open {
 }
 
 html[data-theme-pack-visual] .mini-window-container {
+  top: var(--theme-pack-viewer-top);
+  width: var(--theme-pack-viewer-width);
+  height: var(--theme-pack-viewer-height);
   background: var(--theme-pack-viewer-bg);
   background-image: var(--theme-pack-viewer-bg-image);
   border-width: var(--theme-pack-viewer-border-width);
@@ -297,6 +300,123 @@ html[data-theme-pack-visual] .mini-window-container {
   box-shadow: var(--theme-pack-viewer-shadow);
   padding: var(--theme-pack-viewer-padding);
   transform: translateX(-50%) rotate(var(--theme-pack-viewer-rotation));
+}
+
+html[data-theme-pack-visual] .mini-window {
+  border-radius: var(--theme-pack-viewer-iframe-radius);
+}
+
+.theme-viewer-decoration {
+  display: none;
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 3;
+}
+
+html[data-theme-pack-visual][data-viewer-artifact]:not([data-viewer-artifact="none"])
+  .theme-viewer-decoration {
+  display: block;
+}
+
+.theme-viewer-label,
+.theme-viewer-hardware,
+.theme-viewer-hardware::before,
+.theme-viewer-hardware::after {
+  box-sizing: border-box;
+  pointer-events: none;
+  position: absolute;
+}
+
+.theme-viewer-label {
+  color: var(--theme-pack-viewer-artifact-ink);
+}
+
+/* Stable, pack-selected artifact recipes. Packs own their colors, surface,
+   label, frame geometry, and document material through presentation data. */
+html[data-viewer-artifact="field-notebook"] .theme-viewer-hardware {
+  background: repeating-radial-gradient(
+    circle at 18px 22px,
+    var(--theme-pack-viewer-artifact-detail) 0 5px,
+    var(--theme-pack-viewer-artifact-accent) 5.5px 7px,
+    transparent 7.5px 56px
+  );
+  bottom: 8px;
+  left: 0;
+  top: 8px;
+  width: 36px;
+}
+
+html[data-viewer-artifact="field-notebook"] .theme-viewer-label {
+  background: var(--theme-pack-viewer-artifact-accent);
+  border-radius: 2px 12px 2px 9px;
+  bottom: 10px;
+  font: 700 11px/1 var(--theme-pack-control-font);
+  left: 54px;
+  letter-spacing: .08em;
+  padding: 6px 12px 5px;
+}
+
+html[data-viewer-artifact="expedition-log"] .theme-viewer-hardware {
+  background:
+    linear-gradient(135deg, var(--theme-pack-viewer-artifact-accent) 0 27px, transparent 28px) left top / 42px 42px no-repeat,
+    linear-gradient(225deg, var(--theme-pack-viewer-artifact-accent) 0 27px, transparent 28px) right top / 42px 42px no-repeat,
+    linear-gradient(45deg, var(--theme-pack-viewer-artifact-accent) 0 27px, transparent 28px) left bottom / 42px 42px no-repeat,
+    linear-gradient(315deg, var(--theme-pack-viewer-artifact-accent) 0 27px, transparent 28px) right bottom / 42px 42px no-repeat;
+  inset: 0;
+}
+
+html[data-viewer-artifact="expedition-log"] .theme-viewer-label {
+  background: var(--theme-pack-viewer-artifact-accent);
+  border: 1px solid var(--theme-pack-viewer-artifact-detail);
+  border-radius: 3px;
+  bottom: 10px;
+  font: 700 10px/1 ui-monospace, monospace;
+  left: 48px;
+  letter-spacing: .11em;
+  padding: 6px 12px;
+  white-space: nowrap;
+}
+
+html[data-viewer-artifact="observation-window"] .theme-viewer-hardware {
+  border: 1px solid var(--theme-pack-viewer-artifact-detail);
+  border-radius: 40px;
+  box-shadow: inset 0 0 22px rgba(255,255,255,.1);
+  inset: 10px;
+}
+
+html[data-viewer-artifact="observation-window"] .theme-viewer-hardware::before {
+  background: linear-gradient(126deg,
+    transparent 10%, rgba(255,255,255,.04) 26%,
+    rgba(255,255,255,.16) 29%, rgba(255,255,255,.03) 35%, transparent 52%);
+  border-radius: 30px;
+  content: "";
+  inset: 14px;
+}
+
+html[data-viewer-artifact="observation-window"] .theme-viewer-hardware::after {
+  background: var(--theme-pack-focus);
+  border: 2px solid var(--theme-pack-viewer-artifact-accent);
+  border-radius: 50%;
+  bottom: 0;
+  box-shadow: 0 0 8px var(--theme-pack-focus);
+  content: "";
+  height: 8px;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  width: 8px;
+}
+
+html[data-viewer-artifact="observation-window"] .theme-viewer-label {
+  background: var(--theme-pack-control-bg);
+  border: 1px solid var(--theme-pack-viewer-border);
+  border-radius: 999px;
+  bottom: -4px;
+  font: 700 9px/1 ui-monospace, monospace;
+  left: 34px;
+  letter-spacing: .14em;
+  padding: 5px 12px;
+  white-space: nowrap;
 }
 
 html[data-theme-pack-visual] .mini-window-container::before,
@@ -330,7 +450,23 @@ html[data-theme-pack-visual] .mini-window-container.closing {
 
 @media (max-width: 700px) {
   html[data-theme-pack-visual] .mini-window-container {
+    top: var(--theme-pack-phone-viewer-top);
+    width: var(--theme-pack-phone-viewer-width);
+    height: var(--theme-pack-phone-viewer-height);
     padding: var(--theme-pack-phone-viewer-padding);
+  }
+
+  html[data-theme-pack-visual] .mini-window {
+    border-radius: var(--theme-pack-phone-viewer-iframe-radius);
+  }
+
+  .theme-viewer-label {
+    font-size: 8px !important;
+    letter-spacing: .06em !important;
+  }
+
+  html[data-viewer-artifact="observation-window"] .theme-viewer-hardware {
+    border-radius: 22px;
   }
 }
 

@@ -12,15 +12,7 @@
     const packNode = document.querySelector("#active-theme-pack");
     const catalogNode = document.querySelector("#theme-pack-catalog");
     const selector = document.querySelector("[data-theme-selector]");
-    // PROTOTYPE: three removable Viewer shells for owner review.
-    const viewerShellPrototypeSwitcher = document.querySelector(
-        "[data-viewer-shell-prototype-switcher]"
-    );
-    const viewerShellPrototypeVariants = [
-        { id: "A", label: "A — Native artifact" },
-        { id: "B", label: "B — Observation window" },
-        { id: "C", label: "C — Archive folio" },
-    ];
+    const viewerArtifactLabel = document.querySelector(".theme-viewer-label");
     let catalog = [];
     try { catalog = JSON.parse(catalogNode?.textContent || "[]"); } catch (_) {}
     const fallbackId = catalog[0]?.key || "";
@@ -46,24 +38,10 @@
         catalog.map((pack) => pack.key)
     );
     const relationshipDefaults = { ...(window.chalkArrowsConfig || {}) };
-    const requestedViewerShellPrototype = new URLSearchParams(location.search)
-        .get("shellvariant");
-    const packViewerShellPrototype = (pack) => {
-        const value = pack?.variables?.board?.["prototype-viewer-shell"];
-        return viewerShellPrototypeVariants.some(({ id }) => id === value)
-            ? value
-            : "A";
-    };
-    const initialViewerShellPrototype = viewerShellPrototypeVariants.some(
-        ({ id }) => id === requestedViewerShellPrototype
-    ) ? requestedViewerShellPrototype
-        : packViewerShellPrototype(initialPack);
     const state = {
         current: initialPack?.id || fallbackId,
         pack: initialPack,
         pinned: new URLSearchParams(location.search).has("theme"),
-        viewerShellPrototype: initialViewerShellPrototype,
-        viewerShellPrototypePinned: Boolean(requestedViewerShellPrototype),
     };
 
     function allTitles() {
@@ -568,60 +546,7 @@
         if (!doc?.documentElement || !pack) return;
         doc.documentElement.dataset.boardTheme = pack.id;
         doc.documentElement.setAttribute("data-theme-pack-visual", "");
-        if (viewerShellPrototypeSwitcher && pack.id !== fallbackId) {
-            // Keep semantic document structure stable, but let a literal
-            // artifact carry its own physically credible page material.
-            doc.documentElement.dataset.documentPrototype = "A";
-            doc.documentElement.dataset.viewerShellPrototype =
-                state.viewerShellPrototype;
-        } else {
-            delete doc.documentElement.dataset.documentPrototype;
-            delete doc.documentElement.dataset.viewerShellPrototype;
-        }
         applyVariables(doc, pack.variables.document);
-    }
-
-    function setViewerShellPrototype(value, { syncUrl = true } = {}) {
-        const variant = viewerShellPrototypeVariants.find(({ id }) => id === value)
-            || viewerShellPrototypeVariants[0];
-        state.viewerShellPrototype = variant.id;
-        document.documentElement.dataset.viewerShellPrototype = variant.id;
-        document.documentElement.toggleAttribute(
-            "data-viewer-shell-prototype-applicable",
-            Boolean(state.pack && state.pack.id !== fallbackId)
-        );
-        const label = viewerShellPrototypeSwitcher?.querySelector(
-            "[data-viewer-shell-prototype-label]"
-        );
-        if (label) label.textContent = variant.label;
-        const iframeDoc = document.querySelector(".mini-window")?.contentDocument;
-        if (iframeDoc?.body) styleDocument(iframeDoc, state.pack);
-        if (!syncUrl) return variant.id;
-        const current = new URL(location.href);
-        current.searchParams.delete("docvariant");
-        if (state.pack && state.pack.id !== fallbackId) {
-            state.viewerShellPrototypePinned = true;
-            current.searchParams.set("shellvariant", variant.id);
-        } else {
-            state.viewerShellPrototypePinned = false;
-            current.searchParams.delete("shellvariant");
-        }
-        history.replaceState(
-            history.state,
-            "",
-            `${current.pathname}${current.search}${current.hash}`
-        );
-        return variant.id;
-    }
-
-    function cycleViewerShellPrototype(direction) {
-        const current = viewerShellPrototypeVariants.findIndex(
-            ({ id }) => id === state.viewerShellPrototype
-        );
-        const next = (
-            current + direction + viewerShellPrototypeVariants.length
-        ) % viewerShellPrototypeVariants.length;
-        setViewerShellPrototype(viewerShellPrototypeVariants[next].id);
     }
 
     function themedUrl(route, pack, includeTheme = state.pinned) {
@@ -631,13 +556,6 @@
         else parsed.searchParams.set("theme", pack.id);
         parsed.searchParams.delete("docvariant");
         parsed.searchParams.delete("shellvariant");
-        if (
-            viewerShellPrototypeSwitcher
-            && pack.id !== fallbackId
-            && state.viewerShellPrototypePinned
-        ) {
-            parsed.searchParams.set("shellvariant", state.viewerShellPrototype);
-        }
         return `${parsed.pathname}${parsed.search}${parsed.hash}`;
     }
 
@@ -670,26 +588,23 @@
             pack.variables.board["focus-motion"];
         document.documentElement.dataset.themeActionTreatment =
             pack.variables.board["action-treatment"];
+        document.documentElement.dataset.viewerArtifact =
+            pack.variables.board["viewer-artifact"];
+        if (viewerArtifactLabel) {
+            viewerArtifactLabel.textContent =
+                pack.variables.board["viewer-artifact-label"];
+        }
         document.documentElement.setAttribute("data-theme-pack-visual", "");
         decorate(pack);
         styleRelationships(pack);
         state.current = pack.id;
         state.pack = pack;
-        if (pack.id === fallbackId) {
-            state.viewerShellPrototypePinned = false;
-            state.viewerShellPrototype = packViewerShellPrototype(pack);
-        } else if (!state.viewerShellPrototypePinned) {
-            state.viewerShellPrototype = packViewerShellPrototype(pack);
-        }
-        setViewerShellPrototype(state.viewerShellPrototype, { syncUrl: false });
         if (selector) selector.value = pack.id;
         const current = `${location.pathname}${location.search}${location.hash}`;
         if (
             syncUrl
-            || (
-                pack.id === fallbackId
-                && new URL(location.href).searchParams.has("shellvariant")
-            )
+            || new URL(location.href).searchParams.has("shellvariant")
+            || new URL(location.href).searchParams.has("docvariant")
         ) {
             history.replaceState(history.state, "", themedUrl(current, pack));
         }
@@ -706,18 +621,6 @@
         styleDocument,
     };
     document.addEventListener("DOMContentLoaded", () => {
-        viewerShellPrototypeSwitcher?.querySelector(
-            "[data-viewer-shell-prototype-previous]"
-        )?.addEventListener("click", () => cycleViewerShellPrototype(-1));
-        viewerShellPrototypeSwitcher?.querySelector(
-            "[data-viewer-shell-prototype-next]"
-        )?.addEventListener("click", () => cycleViewerShellPrototype(1));
-        viewerShellPrototypeSwitcher?.addEventListener("keydown", (event) => {
-            if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-            event.preventDefault();
-            cycleViewerShellPrototype(event.key === "ArrowLeft" ? -1 : 1);
-        });
-        setViewerShellPrototype(state.viewerShellPrototype, { syncUrl: false });
         selector?.addEventListener("change", (event) => {
             activate(event.target.value).catch(console.error);
         });

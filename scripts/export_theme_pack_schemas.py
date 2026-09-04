@@ -163,6 +163,14 @@ def main() -> None:
                     BOARD_PRESENTATION_TOKENS,
                     overrides={
                         "action-treatment": {"enum": ["annotation", "marker"]},
+                        "viewer-artifact": {
+                            "enum": [
+                                "none",
+                                "field-notebook",
+                                "observation-window",
+                                "expedition-log",
+                            ]
+                        },
                     },
                 ),
                 "document": object_with_exact_values(DOCUMENT_PRESENTATION_TOKENS),

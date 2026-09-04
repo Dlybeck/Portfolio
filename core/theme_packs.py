@@ -47,12 +47,17 @@ BOARD_PRESENTATION_TOKENS = frozenset(
         "font-navbar-size", "font-control-size", "font-selector-size", "ink",
         "link", "link-bg", "nav-bg", "nav-border", "nav-ink",
         "nav-logo-filter", "nav-logo-radius", "nav-radius", "nav-shadow",
-        "phone-expanded-text-size", "prototype-viewer-shell", "text-shadow",
+        "phone-expanded-text-size", "viewer-artifact", "viewer-artifact-label",
+        "viewer-artifact-ink", "viewer-artifact-accent",
+        "viewer-artifact-detail", "text-shadow",
         "tile-hover-shadow",
         "tile-shadow", "viewer-bg", "viewer-border", "viewer-bg-image",
         "viewer-border-width", "viewer-border-style", "viewer-radius",
         "viewer-shadow", "viewer-rotation", "viewer-padding",
-        "phone-viewer-padding",
+        "phone-viewer-padding", "viewer-top", "viewer-width",
+        "viewer-height", "phone-viewer-top", "phone-viewer-width",
+        "phone-viewer-height", "viewer-iframe-radius",
+        "phone-viewer-iframe-radius",
         "selector-bg", "selector-border", "selector-ink", "selector-radius",
         "control-bg", "control-border", "control-ink", "control-radius",
         "control-shadow", "control-font", "control-icon-filter",
@@ -762,6 +767,14 @@ def _presentation(
     if action_treatment not in {"annotation", "marker"}:
         raise InvalidThemeAsset(
             "Board presentation token 'action-treatment' must be annotation or marker"
+        )
+    viewer_artifact = dict(board).get("viewer-artifact")
+    if viewer_artifact not in {
+        "none", "field-notebook", "observation-window", "expedition-log"
+    }:
+        raise InvalidThemeAsset(
+            "Board presentation token 'viewer-artifact' must be none, "
+            "field-notebook, observation-window, or expedition-log"
         )
     if document_names != DOCUMENT_PRESENTATION_TOKENS:
         missing = sorted(DOCUMENT_PRESENTATION_TOKENS - document_names)

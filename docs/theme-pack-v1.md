@@ -158,6 +158,14 @@ own the action font, size, ink, background, border, padding, radius, shadow,
 decoration, and transform. The Theme Engine continues to own the link target,
 placement, focus order, activation behavior, and minimum readable marker size.
 
+The `viewer-artifact` token selects one stable opened-Document carrier:
+`none`, `field-notebook`, `observation-window`, or `expedition-log`. Packs own
+the carrier label, ink, accent/detail colors, outer frame surface, border,
+shadow, dimensions, iframe radius, and desktop/phone geometry. The stable
+Viewer supplies the same label and hardware slots for every pack. This keeps
+the reviewed physical treatments configurable without A/B/C runtime state or
+theme-name selectors.
+
 ### Connectors
 
 Connectors declare color, width, opacity, cap, dash pattern, curve family,

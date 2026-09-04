@@ -862,7 +862,9 @@ def test_stable_styles_consume_every_published_presentation_token() -> None:
 
     assert referenced_tokens(
         "theme-structure.css", "themes/board.css"
-    ) == BOARD_PRESENTATION_TOKENS - {"focus-motion", "action-treatment"}
+    ) == BOARD_PRESENTATION_TOKENS - {
+        "focus-motion", "action-treatment", "prototype-viewer-shell"
+    }
     theme_engine = (
         root / "static" / "scripts" / "themeEngine.js"
     ).read_text(encoding="utf-8")

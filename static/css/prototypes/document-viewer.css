@@ -55,7 +55,8 @@ html[data-viewer-shell-prototype-applicable] body.page-open .viewer-shell-protot
   outline-offset: 3px;
 }
 
-/* Hold the winning Quiet Canvas interior constant for every shell. */
+/* Hold the Quiet Canvas reading structure constant for every shell. Literal
+   artifacts may change its material so the page belongs to the real object. */
 html[data-document-prototype],
 html[data-document-prototype] body {
   background-color: var(--theme-pack-page-bg) !important;
@@ -90,6 +91,70 @@ html[data-document-prototype] .section {
 
 html[data-document-prototype] header {
   box-shadow: none !important;
+}
+
+/* A / Lily: the opened object is a bound field notebook. Its interior is
+   warm field paper, not pond water painted onto a page. */
+html[data-document-prototype="A"][data-viewer-shell-prototype="A"][data-board-theme="lily"],
+html[data-document-prototype="A"][data-viewer-shell-prototype="A"][data-board-theme="lily"] body {
+  background-color: #f2edcf !important;
+  background-image:
+    linear-gradient(98deg, transparent 0 11%, rgba(73, 112, 74, .16) 11.2% 11.5%, transparent 11.7%),
+    repeating-linear-gradient(0deg, transparent 0 31px, rgba(77, 126, 101, .13) 31px 32px) !important;
+  background-size: auto !important;
+}
+
+html[data-document-prototype="A"][data-viewer-shell-prototype="A"][data-board-theme="lily"] body::before,
+html[data-document-prototype="A"][data-viewer-shell-prototype="A"][data-board-theme="lily"] .section::after {
+  display: none !important;
+}
+
+html[data-document-prototype="A"][data-viewer-shell-prototype="A"][data-board-theme="lily"] .section {
+  background: rgba(255, 254, 235, .2) !important;
+  border: 0 !important;
+  border-bottom: 2px solid rgba(67, 105, 68, .22) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-document-prototype="A"][data-viewer-shell-prototype="A"][data-board-theme="lily"] img,
+html[data-document-prototype="A"][data-viewer-shell-prototype="A"][data-board-theme="lily"] video {
+  background: #fffdf0 !important;
+  border: 6px solid #fffdf0 !important;
+  border-radius: 2px !important;
+  box-shadow: 2px 4px 9px rgba(39, 66, 45, .24) !important;
+}
+
+/* A / Islands: the opened object is an expedition field log. The page is
+   warm chart stock with a restrained fold/registration mark, not blue sea. */
+html[data-document-prototype="A"][data-viewer-shell-prototype="A"][data-board-theme="islands"],
+html[data-document-prototype="A"][data-viewer-shell-prototype="A"][data-board-theme="islands"] body {
+  background-color: #f2e3b8 !important;
+  background-image:
+    linear-gradient(108deg, transparent 0 46%, rgba(91, 77, 48, .08) 46.3%, transparent 47%),
+    radial-gradient(circle at 84% 16%, transparent 0 36px, rgba(36, 105, 108, .14) 37px 38px, transparent 39px) !important;
+  background-size: auto !important;
+}
+
+html[data-document-prototype="A"][data-viewer-shell-prototype="A"][data-board-theme="islands"] body::before,
+html[data-document-prototype="A"][data-viewer-shell-prototype="A"][data-board-theme="islands"] .section::after {
+  display: none !important;
+}
+
+html[data-document-prototype="A"][data-viewer-shell-prototype="A"][data-board-theme="islands"] .section {
+  background: rgba(255, 248, 216, .3) !important;
+  border: 1px solid rgba(40, 104, 105, .42) !important;
+  border-left-width: 3px !important;
+  border-radius: 2px !important;
+  box-shadow: 2px 4px 8px rgba(67, 55, 31, .12) !important;
+}
+
+html[data-document-prototype="A"][data-viewer-shell-prototype="A"][data-board-theme="islands"] img,
+html[data-document-prototype="A"][data-viewer-shell-prototype="A"][data-board-theme="islands"] video {
+  background: #fff9df !important;
+  border: 6px solid #fff9df !important;
+  border-radius: 2px !important;
+  box-shadow: 2px 4px 9px rgba(67, 55, 31, .22) !important;
 }
 
 /* Shell prototype scaffolding. */
@@ -233,7 +298,7 @@ html[data-viewer-shell-prototype="A"][data-board-theme="islands"] .viewer-shell-
   border-radius: 3px;
   bottom: 10px;
   color: #fff0c3;
-  content: "EXPEDITION FOLIO · CHART 04";
+  content: "EXPEDITION FIELD LOG · 04";
   font: 700 10px/1 ui-monospace, monospace;
   left: 48px;
   letter-spacing: .11em;

@@ -48,9 +48,16 @@
     const relationshipDefaults = { ...(window.chalkArrowsConfig || {}) };
     const requestedViewerShellPrototype = new URLSearchParams(location.search)
         .get("shellvariant");
+    const packViewerShellPrototype = (pack) => {
+        const value = pack?.variables?.board?.["prototype-viewer-shell"];
+        return viewerShellPrototypeVariants.some(({ id }) => id === value)
+            ? value
+            : "A";
+    };
     const initialViewerShellPrototype = viewerShellPrototypeVariants.some(
         ({ id }) => id === requestedViewerShellPrototype
-    ) ? requestedViewerShellPrototype : "A";
+    ) ? requestedViewerShellPrototype
+        : packViewerShellPrototype(initialPack);
     const state = {
         current: initialPack?.id || fallbackId,
         pack: initialPack,
@@ -562,11 +569,14 @@
         doc.documentElement.dataset.boardTheme = pack.id;
         doc.documentElement.setAttribute("data-theme-pack-visual", "");
         if (viewerShellPrototypeSwitcher && pack.id !== fallbackId) {
-            // The previous comparison selected Quiet Canvas. Keep that
-            // interior stable while this prototype varies only the shell.
+            // Keep semantic document structure stable, but let a literal
+            // artifact carry its own physically credible page material.
             doc.documentElement.dataset.documentPrototype = "A";
+            doc.documentElement.dataset.viewerShellPrototype =
+                state.viewerShellPrototype;
         } else {
             delete doc.documentElement.dataset.documentPrototype;
+            delete doc.documentElement.dataset.viewerShellPrototype;
         }
         applyVariables(doc, pack.variables.document);
     }
@@ -655,6 +665,9 @@
         styleRelationships(pack);
         state.current = pack.id;
         state.pack = pack;
+        if (!state.viewerShellPrototypePinned) {
+            state.viewerShellPrototype = packViewerShellPrototype(pack);
+        }
         setViewerShellPrototype(state.viewerShellPrototype, { syncUrl: false });
         if (selector) selector.value = pack.id;
         if (syncUrl) {

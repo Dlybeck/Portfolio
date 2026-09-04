@@ -1432,6 +1432,28 @@
             }
           ]
         },
+        "phone-viewer-padding": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "prototype-viewer-shell": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "selector-bg": {
           "oneOf": [
             {
@@ -2026,6 +2048,8 @@
         "phone-expanded-text-size",
         "phone-expanded-width",
         "phone-tile-size",
+        "phone-viewer-padding",
+        "prototype-viewer-shell",
         "selector-bg",
         "selector-border",
         "selector-border-style",
@@ -2910,6 +2934,17 @@
             }
           ]
         },
+        "title-ink": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "title-size": {
           "oneOf": [
             {
@@ -3010,6 +3045,7 @@
         "separator-display",
         "separator-height",
         "separator-opacity",
+        "title-ink",
         "title-size",
         "title-weight"
       ],

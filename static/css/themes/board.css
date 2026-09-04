@@ -328,6 +328,12 @@ html[data-theme-pack-visual] .mini-window-container.closing {
   animation-duration: var(--theme-pack-viewer-exit-duration);
 }
 
+@media (max-width: 700px) {
+  html[data-theme-pack-visual] .mini-window-container {
+    padding: var(--theme-pack-phone-viewer-padding);
+  }
+}
+
 html[data-theme-pack-visual] .tile-container.expanded .tile-expanded {
   animation-duration: var(--theme-motion-enter-duration, var(--theme-pack-cover-enter-duration));
 }

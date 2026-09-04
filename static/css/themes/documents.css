@@ -34,7 +34,7 @@ html[data-theme-pack-visual] .container {
 }
 
 html[data-theme-pack-visual] #location {
-  color: var(--theme-pack-ink) !important;
+  color: var(--theme-pack-title-ink) !important;
   font-family: var(--theme-pack-font-title) !important;
   font-size: var(--theme-pack-title-size) !important;
   font-weight: var(--theme-pack-title-weight) !important;

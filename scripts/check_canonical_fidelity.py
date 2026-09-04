@@ -54,11 +54,22 @@ def main() -> None:
     document = presentation["document"]
     if board.get("viewer-bg-image") == "none":
         failures.append("Canonical viewer lost the original ruled outer paper")
-    if document.get("page-bg") != "#ffffff":
-        failures.append("Canonical document is no longer the original white page")
-    if document.get("page-bg-image") != "none":
-        failures.append("Canonical document duplicates the outer paper texture")
-
+    main_document_values = {
+        "page-bg": "transparent",
+        "page-bg-image": "none",
+        "title-ink": "#006699",
+        "panel-bg": "rgba(255,255,255,.55)",
+        "panel-border": "rgba(0,0,0,.3)",
+    }
+    for name, expected in main_document_values.items():
+        actual = document.get(name)
+        if actual != expected:
+            failures.append(
+                f"Canonical document {name} expected main value "
+                f"{expected!r}, got {actual!r}"
+            )
+    if board.get("phone-viewer-padding") != "26px 16px 30px":
+        failures.append("Canonical viewer lost main's phone paper margins")
     for title, assignment in tiles["assignments"].items():
         transforms = assignment.get("transforms", {})
         base = transforms.get("base", {})

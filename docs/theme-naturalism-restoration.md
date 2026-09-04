@@ -25,6 +25,9 @@ runtime code.
   visual golden master for Canonical Paper, the chalkboard, chalk connectors,
   paper materials, rips, folds, tape, underlines, fonts, and independent
   placement variation.
+- Untouched `main` at `ada173a` is the literal golden truth for Canonical's
+  opened-page treatment. It overrides later interpretations of the document
+  surface, spacing, color, or typography.
 - Current branch commit `fe306bc` is the implementation baseline for the
   accepted alternate worlds and the navigation, readability, motion-preset,
   and document-flow fixes that must not be casually discarded.
@@ -205,11 +208,13 @@ reinterpretations. They are regressions, not new design directions:
   That path is removed. The original handwritten title underlines remain, but
   their asset transform is centered to reproduce the old title-relative
   placement.
-- The modular document tokens painted ruled paper on both the long outer
-  viewer and its iframe page. Commit `77f4e59` proves the outer viewer owned
-  the ruled/grain texture while the inner document was plain white with gray
-  rounded sections, black borders, blue actions, and default serif document
-  typography. Canonical now reproduces that split.
+- The modular document tokens replaced `main`'s translucent letter content
+  with an opaque gray panel, a hard black border, a black title, and desktop
+  viewer padding on phones. Untouched `main` proves the exact contract: the
+  cream ruled outer letter remains visible through a transparent iframe and
+  translucent white sections with soft gray borders; the title remains blue;
+  and phones use the original narrower paper margins. Canonical now reproduces
+  those values through Theme Pack data.
 
 The focused browser regressions are:
 

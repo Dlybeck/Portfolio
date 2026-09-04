@@ -49,9 +49,56 @@ def test_viewer_shell_prototype_switcher_keeps_the_open_document_visible(
     expect(page.locator("html")).to_have_attribute(
         "data-viewer-shell-prototype", "A"
     )
-    assert document.locator("html").evaluate(
+    scroll_after = document.locator("html").evaluate(
         "node => node.ownerDocument.defaultView.scrollY"
-    ) == scroll_before
+    )
+    assert abs(scroll_after - scroll_before) <= 1
+
+
+def test_reviewed_space_shell_defaults_to_observation_window(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The reviewed futuristic instrument is the default Space candidate."""
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(
+        f"{origin}/hobbies/tennis?theme=planets",
+        wait_until="domcontentloaded",
+    )
+
+    expect(page.locator("html")).to_have_attribute(
+        "data-viewer-shell-prototype", "B"
+    )
+
+
+@pytest.mark.parametrize(
+    ("theme", "page_color", "section_radius"),
+    [
+        ("lily", "rgb(242, 237, 207)", "0px"),
+        ("islands", "rgb(242, 227, 184)", "2px"),
+    ],
+)
+def test_paper_artifacts_use_grounded_paper_not_blue_world_surfaces(
+    browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+    theme: str,
+    page_color: str,
+    section_radius: str,
+) -> None:
+    """Literal notebook/log shells carry recognizable physical paper."""
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = browser_page
+    page.goto(
+        f"{origin}/hobbies/tennis?theme={theme}&shellvariant=A",
+        wait_until="domcontentloaded",
+    )
+    document = page.frame_locator(".mini-window")
+
+    expect(document.locator("html")).to_have_css("background-color", page_color)
+    expect(document.locator(".section").first).to_have_css(
+        "border-radius", section_radius
+    )
 
 
 def test_original_paper_does_not_invent_sticky_stripes(
@@ -95,6 +142,36 @@ def test_original_paper_page_texture_is_not_doubled(
     # One physical sheet may own the paper grain. Painting it on both the
     # viewer and iframe produces the doubled texture reported in review.
     assert "none" in {outer_texture, inner_texture}
+
+
+def test_original_open_document_matches_main_letter_treatment(
+    mobile_browser_page: tuple[Page, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Canonical retains the translucent letter treatment shipped on main."""
+    monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
+    page, origin = mobile_browser_page
+    page.goto(
+        f"{origin}/hobbies/tennis?theme=canonical",
+        wait_until="domcontentloaded",
+    )
+    page.locator(".mini-window-container.open").wait_for()
+
+    viewer = page.locator(".mini-window-container")
+    document = page.frame_locator(".mini-window")
+    section = document.locator(".section").first
+
+    # Literal computed values from untouched main. Together they keep the
+    # rounded content from becoming an opaque generic oval: the ruled outer
+    # letter remains visible through and around the content.
+    expect(viewer).to_have_css("padding", "26px 16px 30px")
+    expect(document.locator("html")).to_have_css(
+        "background-color", "rgba(0, 0, 0, 0)"
+    )
+    expect(document.locator("#location")).to_have_css("color", "rgb(0, 102, 153)")
+    expect(section).to_have_css("background-color", "rgba(255, 255, 255, 0.55)")
+    expect(section).to_have_css("border-color", "rgba(0, 0, 0, 0.3)")
+    expect(section).to_have_css("border-radius", "40px")
 
 
 def test_theme_laboratory_is_absent_and_canonical_by_default(

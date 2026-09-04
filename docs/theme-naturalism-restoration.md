@@ -228,16 +228,20 @@ Owner phone review found Lily Pond's water background visually busy and
 repetitive. The cause was a fixed repeating-radial ripple layer combined with
 two separately tiled dot layers and two ambient rings. Lily now keeps the
 accepted pads, typography, connectors, Grow motion, documents, and navigation,
-while the water uses only its depth gradient plus a sparse deterministic SVG
-of ten uniquely placed ripple events across the full movable world. The SVG
-contains no pattern element, and the ambient rings are disabled.
+while the water uses only its depth gradient plus a deterministic SVG of
+independently varied ripple events across the full movable world. A follow-up
+review found the first sparse version left Home with no visible ripples, so the
+world is now divided only for density guarantees: each viewport-sized sector
+receives four independently placed, sized, tilted, and shaded events. The SVG
+still contains no reusable pattern element, and the ambient rings remain
+disabled.
 
 The focused regression was observed failing before the correction and passing
 afterward:
 
 ```bash
 .venv/bin/pytest -q \
-  tests/test_themes.py::test_lily_uses_sparse_pack_owned_water_instead_of_a_tiled_ripple_pattern \
+  tests/test_themes.py::test_lily_uses_balanced_pack_owned_water_without_a_tiled_ripple_pattern \
   tests/test_theme_packs.py::test_repository_background_art_is_pack_owned_and_irregular
 ```
 

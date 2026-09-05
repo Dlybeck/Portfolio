@@ -164,6 +164,10 @@ creases, registration marks, and other unrelated surface clutter are not. The
 shared visual language remains clean, solid-color, SVG-like art rather than
 simulated photorealism or accumulated ornamental evidence.
 
+The owner's subsequent oval-planet correction and cross-theme material review
+are recorded in `theme-grounding-review.md`. Physical coherence overrides
+preserving a malformed silhouette merely because it was previously generated.
+
 ## Proof conditions
 
 The goal is complete only when all of the following are demonstrated:

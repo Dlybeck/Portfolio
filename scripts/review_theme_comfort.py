@@ -17,6 +17,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--origin', default='http://127.0.0.1:51353')
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--themes', nargs='+', default=['canonical', 'lily', 'planets', 'islands'],
+                        choices=['canonical', 'lily', 'planets', 'islands'])
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     measurements = []
@@ -29,7 +31,7 @@ def main():
                 viewport={'width': width, 'height': height}, reduced_motion='reduce'
             )
             page = context.new_page()
-            for theme in ('canonical', 'lily', 'planets', 'islands'):
+            for theme in args.themes:
                 page.goto(f'{args.origin}/?theme={theme}', wait_until='networkidle')
                 page.evaluate('document.fonts.ready')
                 page.wait_for_function("document.querySelectorAll('[data-theme-content-fit]').length === 17")
@@ -68,7 +70,7 @@ def main():
             context.close()
         # Contact sheets complement the unmodified individual screenshots.
         gallery = browser.new_page(viewport={'width': 1280, 'height': 900})
-        for theme in ('lily', 'planets', 'islands'):
+        for theme in (theme for theme in args.themes if theme != 'canonical'):
             for size in ('desktop', 'phone'):
                 cards = []
                 for path in sorted(args.output.glob(f'{theme}-{size}-*.png')):

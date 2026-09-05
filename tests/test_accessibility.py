@@ -71,7 +71,9 @@ def test_reduced_motion_shortens_board_and_document_transitions(
         try:
             default_context = browser.new_context()
             default_page = default_context.new_page()
-            default_page.goto(live_server_url, wait_until="domcontentloaded")
+            # Pin the pack: an unqualified load chooses a random theme. Original
+            # Home has an existing -10ms variation on its 800ms cover preset.
+            default_page.goto(f"{live_server_url}/?theme=canonical", wait_until="networkidle")
             assert default_page.locator(".tile-layer").evaluate(
                 "element => getComputedStyle(element).transitionDuration"
             ) == "0.45s"
@@ -79,7 +81,7 @@ def test_reduced_motion_shortens_board_and_document_transitions(
                 '.tile-container[data-title="Home"] .tile-expanded'
             ).evaluate(
                 "element => getComputedStyle(element).animationDuration"
-            ) == "0.8s"
+            ) == "0.79s"
             default_page.goto(
                 f"{live_server_url}/_documents/hobbies/3d_printing/puzzles",
                 wait_until="domcontentloaded",
@@ -89,7 +91,7 @@ def test_reduced_motion_shortens_board_and_document_transitions(
 
             reduced_context = browser.new_context(reduced_motion="reduce")
             reduced_page = reduced_context.new_page()
-            reduced_page.goto(live_server_url, wait_until="domcontentloaded")
+            reduced_page.goto(f"{live_server_url}/?theme=canonical", wait_until="networkidle")
             assert reduced_page.locator(".tile-layer").evaluate(
                 "element => parseFloat(getComputedStyle(element).transitionDuration)"
             ) <= 0.001

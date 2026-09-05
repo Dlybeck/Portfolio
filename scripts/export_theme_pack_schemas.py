@@ -162,6 +162,7 @@ def main() -> None:
                 "board": object_with_exact_values(
                     BOARD_PRESENTATION_TOKENS,
                     overrides={
+                        "content-area-space": {"enum": ["box", "svg"]},
                         "action-treatment": {"enum": ["annotation", "marker"]},
                         "viewer-artifact": {
                             "enum": [

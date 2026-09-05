@@ -185,7 +185,8 @@
     "loading-shadow": "2px 3px 5px rgba(0,0,0,.25)",
     "loading-transform": "translateX(-50%) rotate(-3deg)",
     "loading-padding": "6px 14px",
-    "loading-size": "1.2rem"
+    "loading-size": "1.2rem",
+    "content-area-space": "box"
   },
   "document": {
     "container-bg": "#ffffff",
@@ -301,7 +302,9 @@
     "model-radius": "40px",
     "model-shadow": "none",
     "model-box-sizing": "content-box",
-    "code-size": ".92em"
+    "code-size": ".92em",
+    "title-margin": "30px 0 .83em",
+    "media-margin-block": "0"
   },
   "connectors": {
     "color": "#f3efe2",

@@ -185,7 +185,8 @@
     "loading-shadow": "0 7px 15px rgba(61,99,118,.24)",
     "loading-transform": "translateX(-50%) translateY(-2px)",
     "loading-padding": "8px 18px",
-    "loading-size": "1.1rem"
+    "loading-size": "1.1rem",
+    "content-area-space": "box"
   },
   "document": {
     "container-bg": "transparent",
@@ -301,7 +302,9 @@
     "model-radius": "32px",
     "model-shadow": "0 10px 22px rgba(61,99,118,.24)",
     "model-box-sizing": "border-box",
-    "code-size": ".92em"
+    "code-size": ".92em",
+    "title-margin": "30px 0 .83em",
+    "media-margin-block": "0"
   },
   "connectors": {
     "color": "#f7fbff",

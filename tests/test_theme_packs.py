@@ -132,6 +132,7 @@ def write_compiled_tiles(
 def write_presentation(root: Path, pack_id: str) -> None:
     board = {name: "initial" for name in BOARD_PRESENTATION_TOKENS}
     board["focus-motion"] = "cover"
+    board["content-area-space"] = "box"
     board["action-treatment"] = "annotation"
     board["viewer-artifact"] = "none"
     (root / pack_id / "presentation.json").write_text(
@@ -879,7 +880,7 @@ def test_stable_styles_consume_every_published_presentation_token() -> None:
         "theme-structure.css", "themes/board.css"
     ) == BOARD_PRESENTATION_TOKENS - {
         "focus-motion", "action-treatment", "viewer-artifact",
-        "viewer-artifact-label",
+        "viewer-artifact-label", "content-area-space",
     }
     theme_engine = (
         root / "static" / "scripts" / "themeEngine.js"
@@ -888,6 +889,7 @@ def test_stable_styles_consume_every_published_presentation_token() -> None:
     assert 'pack.variables.board["action-treatment"]' in theme_engine
     assert 'pack.variables.board["viewer-artifact"]' in theme_engine
     assert 'pack.variables.board["viewer-artifact-label"]' in theme_engine
+    assert '--theme-pack-content-area-space' in theme_engine
     assert referenced_tokens(
         "document-structure.css", "themes/documents.css"
     ) == DOCUMENT_PRESENTATION_TOKENS

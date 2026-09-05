@@ -194,6 +194,12 @@ Each SVG state exposes an invisible `data-theme-content-area` geometry for its
 HTML content. The Theme Engine maps content into that safe area and fits long
 titles within declared minimum and maximum sizes. The validator proves the
 safe area remains inside the rendered silhouette at desktop and phone sizes.
+`content-area-space` selects `svg` for bounds that follow the browser's rendered
+SVG viewBox, including aspect-ratio alignment and letterboxing, or `box` for
+the historical proportional container mapping. New alternate packs use `svg`;
+Canonical retains `box` for visual fidelity. The rectangle must fit the real
+silhouette, and the rendered content must fit that rectangle. A successful
+overflow check alone does not establish readable size or pleasing placement.
 Base and expanded states keep the same Theme Instance identity and factor
 selection even when their artwork differs.
 
@@ -235,7 +241,9 @@ content.
 
 The document contract also exposes container and panel box sizing, paragraph
 rhythm, per-heading-level sizes, action display, separate form-button styling,
-and distinct media/model geometry. These are presentation choices rather than
+and distinct media/model geometry. `title-margin` controls the document title's
+outer spacing; `media-margin-block` separates adjacent photos without changing
+their ordering or adding markup. These are presentation choices rather than
 invariant layout so a pack can reproduce a real reference without adding a
 theme-name branch to the engine.
 

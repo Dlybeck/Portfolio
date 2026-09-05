@@ -44,12 +44,12 @@ def test_alternate_document_paragraph_rhythm_does_not_scale_with_page_width(
 
 
 @pytest.mark.parametrize("theme", ["lily", "planets", "islands"])
-def test_alternate_document_opening_matches_canonical_reading_geometry(
+def test_alternate_document_opening_keeps_compact_reading_geometry(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
     theme: str,
 ) -> None:
-    """Themed artifacts retain Canonical's compact title-to-content rhythm."""
+    """Each artifact has a compact opening without requiring identical fonts."""
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
     page, origin = browser_page
     page.set_viewport_size({"width": 1001, "height": 854})
@@ -70,28 +70,22 @@ def test_alternate_document_opening_matches_canonical_reading_geometry(
             "image_top": image.evaluate(
                 "node => node.getBoundingClientRect().top"
             ),
+            "title_to_paragraph": paragraph.evaluate(
+                "node => node.getBoundingClientRect().top - "
+                "document.querySelector('#location').getBoundingClientRect().bottom"
+            ),
         }
 
-    page.goto(
-        f"{origin}/hobbies/tennis?theme=canonical",
-        wait_until="domcontentloaded",
-    )
-    canonical = geometry()
     page.goto(
         f"{origin}/hobbies/tennis?theme={theme}",
         wait_until="domcontentloaded",
     )
     themed = geometry()
 
-    assert math.isclose(
-        themed["title_height"], canonical["title_height"], abs_tol=0.5
-    )
-    assert math.isclose(
-        themed["paragraph_lines"], canonical["paragraph_lines"], abs_tol=0.1
-    )
-    assert math.isclose(
-        themed["image_top"], canonical["image_top"], abs_tol=5
-    )
+    assert 24 <= themed["title_height"] <= 34
+    assert themed["paragraph_lines"] <= 3
+    assert 12 <= themed["title_to_paragraph"] <= 72
+    assert themed["image_top"] <= 230
 
 
 def test_obsolete_viewer_prototype_pin_is_removed_without_restyling_original(

@@ -35,6 +35,7 @@ html[data-theme-pack-visual] .container {
 }
 
 html[data-theme-pack-visual] #location {
+  margin: var(--theme-pack-title-margin);
   color: var(--theme-pack-title-ink) !important;
   font-family: var(--theme-pack-font-title) !important;
   font-size: var(--theme-pack-title-size) !important;
@@ -242,6 +243,10 @@ html[data-theme-pack-visual] model-viewer {
   border-width: var(--theme-pack-model-border-width) !important;
   border-radius: var(--theme-pack-model-radius) !important;
   box-shadow: var(--theme-pack-model-shadow) !important;
+}
+
+html[data-theme-pack-visual] img {
+  margin-block: var(--theme-pack-media-margin-block);
 }
 
 html[data-theme-pack-visual] pre,

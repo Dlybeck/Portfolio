@@ -18,7 +18,7 @@
           "offsetYPixels": 0
         },
         "expanded": {
-          "rotationDegrees": -7,
+          "rotationDegrees": -2.8,
           "offsetXPixels": 0,
           "offsetYPixels": 0
         },
@@ -50,7 +50,7 @@
           "offsetYPixels": 0
         },
         "expanded": {
-          "rotationDegrees": 1,
+          "rotationDegrees": 0.4,
           "offsetXPixels": 0,
           "offsetYPixels": 0
         },
@@ -82,7 +82,7 @@
           "offsetYPixels": 0
         },
         "expanded": {
-          "rotationDegrees": -6,
+          "rotationDegrees": -2.4,
           "offsetXPixels": 0,
           "offsetYPixels": 0
         },
@@ -114,7 +114,7 @@
           "offsetYPixels": 0
         },
         "expanded": {
-          "rotationDegrees": -1,
+          "rotationDegrees": -0.4,
           "offsetXPixels": 0,
           "offsetYPixels": 0
         },
@@ -146,7 +146,7 @@
           "offsetYPixels": 0
         },
         "expanded": {
-          "rotationDegrees": 7,
+          "rotationDegrees": 2.8,
           "offsetXPixels": 0,
           "offsetYPixels": 0
         },
@@ -178,7 +178,7 @@
           "offsetYPixels": 0
         },
         "expanded": {
-          "rotationDegrees": 8,
+          "rotationDegrees": 3.2,
           "offsetXPixels": 0,
           "offsetYPixels": 0
         },
@@ -210,7 +210,7 @@
           "offsetYPixels": 0
         },
         "expanded": {
-          "rotationDegrees": 1,
+          "rotationDegrees": 0.4,
           "offsetXPixels": 0,
           "offsetYPixels": 0
         },
@@ -242,7 +242,7 @@
           "offsetYPixels": 0
         },
         "expanded": {
-          "rotationDegrees": 0,
+          "rotationDegrees": 0.0,
           "offsetXPixels": 0,
           "offsetYPixels": 0
         },
@@ -274,7 +274,7 @@
           "offsetYPixels": 0
         },
         "expanded": {
-          "rotationDegrees": -2,
+          "rotationDegrees": -0.8,
           "offsetXPixels": 0,
           "offsetYPixels": 0
         },
@@ -306,7 +306,7 @@
           "offsetYPixels": 0
         },
         "expanded": {
-          "rotationDegrees": -4,
+          "rotationDegrees": -1.6,
           "offsetXPixels": 0,
           "offsetYPixels": 0
         },
@@ -318,6 +318,12 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "layout": {
+        "expandedWidth": "420px",
+        "expandedMinHeight": "390px",
+        "phoneExpandedWidth": "min(380px, calc(100vw + 40px))",
+        "phoneExpandedMinHeight": "400px"
       }
     },
     "Programs": {
@@ -338,7 +344,7 @@
           "offsetYPixels": 0
         },
         "expanded": {
-          "rotationDegrees": 1,
+          "rotationDegrees": 0.4,
           "offsetXPixels": 0,
           "offsetYPixels": 0
         },
@@ -370,7 +376,7 @@
           "offsetYPixels": 0
         },
         "expanded": {
-          "rotationDegrees": -1,
+          "rotationDegrees": -0.4,
           "offsetXPixels": 0,
           "offsetYPixels": 0
         },
@@ -402,7 +408,7 @@
           "offsetYPixels": 0
         },
         "expanded": {
-          "rotationDegrees": 0,
+          "rotationDegrees": 0.0,
           "offsetXPixels": 0,
           "offsetYPixels": 0
         },
@@ -434,7 +440,7 @@
           "offsetYPixels": 0
         },
         "expanded": {
-          "rotationDegrees": -5,
+          "rotationDegrees": -2.0,
           "offsetXPixels": 0,
           "offsetYPixels": 0
         },
@@ -466,7 +472,7 @@
           "offsetYPixels": 0
         },
         "expanded": {
-          "rotationDegrees": -3,
+          "rotationDegrees": -1.2,
           "offsetXPixels": 0,
           "offsetYPixels": 0
         },
@@ -498,7 +504,7 @@
           "offsetYPixels": 0
         },
         "expanded": {
-          "rotationDegrees": 0,
+          "rotationDegrees": 0.0,
           "offsetXPixels": 0,
           "offsetYPixels": 0
         },
@@ -530,7 +536,7 @@
           "offsetYPixels": 0
         },
         "expanded": {
-          "rotationDegrees": -5,
+          "rotationDegrees": -2.0,
           "offsetXPixels": 0,
           "offsetYPixels": 0
         },

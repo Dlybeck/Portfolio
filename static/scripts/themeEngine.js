@@ -180,6 +180,34 @@
     }
 
     function sizeContentArea(body) {
+        if (getComputedStyle(body).getPropertyValue('--theme-pack-content-area-space').trim() === 'svg') {
+            const svg = body.querySelector('.theme-object');
+            const marker = svg.querySelector('[data-theme-content-area]');
+            const box = svg.viewBox.baseVal;
+            const style = getComputedStyle(svg);
+            const aspect = svg.preserveAspectRatio.baseVal;
+            let scaleX = svg.clientWidth / box.width;
+            let scaleY = svg.clientHeight / box.height;
+            let alignX = 0, alignY = 0;
+            if (aspect.align !== 1) { // SVG_PRESERVEASPECTRATIO_NONE
+                const scale = aspect.meetOrSlice === 2
+                    ? Math.max(scaleX, scaleY) : Math.min(scaleX, scaleY);
+                scaleX = scaleY = scale;
+                alignX = ((aspect.align - 2) % 3) / 2;
+                alignY = Math.floor((aspect.align - 2) / 3) / 2;
+            }
+            const left = parseFloat(style.left) + (svg.clientWidth - box.width * scaleX) * alignX;
+            const top = parseFloat(style.top) + (svg.clientHeight - box.height * scaleY) * alignY;
+            const x = left + (Number(marker.getAttribute('x')) - box.x) * scaleX;
+            const y = top + (Number(marker.getAttribute('y')) - box.y) * scaleY;
+            const right = x + Number(marker.getAttribute('width')) * scaleX;
+            const bottom = y + Number(marker.getAttribute('height')) * scaleY;
+            body.style.setProperty('--theme-safe-left', `${x}px`);
+            body.style.setProperty('--theme-safe-top', `${y}px`);
+            body.style.setProperty('--theme-safe-right', `${body.clientWidth - right}px`);
+            body.style.setProperty('--theme-safe-bottom', `${body.clientHeight - bottom}px`);
+            return;
+        }
         body.style.setProperty(
             "--theme-safe-top",
             `${Number(body.dataset.themeSafeTop) * body.clientHeight}px`

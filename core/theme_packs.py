@@ -32,6 +32,7 @@ BOARD_LOCATIONS = frozenset(
 )
 BOARD_PRESENTATION_TOKENS = frozenset(
     {
+        "content-area-space",
         "action-border", "action-padding", "action-radius", "action-shadow",
         "action-size", "action-treatment", "action-text-decoration",
         "action-decoration-style", "action-decoration-thickness",
@@ -128,6 +129,7 @@ DOCUMENT_PRESENTATION_TOKENS = frozenset(
         "interaction-transition", "button-hover-transform", "code-size",
         "container-bg", "container-box-sizing", "panel-box-sizing", "panel-max-width",
         "paragraph-margin", "paragraph-line-height", "heading-2-size",
+        "title-margin", "media-margin-block",
         "heading-3-size", "heading-4-size", "action-display",
         "link-decoration-thickness", "media-box-sizing", "model-bg",
         "model-border", "model-border-style", "model-border-width", "model-radius",
@@ -759,6 +761,8 @@ def _presentation(
             f"Board presentation tokens mismatch; missing={missing}, unknown={unknown}"
         )
     focus_motion = dict(board).get("focus-motion")
+    if dict(board).get("content-area-space") not in {"box", "svg"}:
+        raise InvalidThemeAsset("Board 'content-area-space' must be box or svg")
     if focus_motion not in {"cover", "grow", "settle"}:
         raise InvalidThemeAsset(
             "Board presentation token 'focus-motion' must be cover, grow, or settle"

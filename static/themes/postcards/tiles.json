@@ -30,6 +30,43 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "card",
+        "parts": {
+          "back": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "flap": {
+            "x": 0,
+            "y": -35.92,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 148,
+            "flipY": -1,
+            "foreground": true,
+            "openOpacity": 0
+          },
+          "card": {
+            "x": 0,
+            "y": 20.52,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "front": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165,
+            "foreground": true
+          }
+        }
       }
     },
     "College": {
@@ -62,6 +99,43 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "card",
+        "parts": {
+          "back": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "flap": {
+            "x": 0,
+            "y": -35.92,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 148,
+            "flipY": -1,
+            "foreground": true,
+            "openOpacity": 0
+          },
+          "card": {
+            "x": 0,
+            "y": 20.52,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "front": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165,
+            "foreground": true
+          }
+        }
       }
     },
     "Digital Planner": {
@@ -94,6 +168,43 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "card",
+        "parts": {
+          "back": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "flap": {
+            "x": 0,
+            "y": -35.92,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 148,
+            "flipY": -1,
+            "foreground": true,
+            "openOpacity": 0
+          },
+          "card": {
+            "x": 0,
+            "y": 20.52,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "front": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165,
+            "foreground": true
+          }
+        }
       }
     },
     "Early Education": {
@@ -126,6 +237,43 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "card",
+        "parts": {
+          "back": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "flap": {
+            "x": 0,
+            "y": -35.92,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 148,
+            "flipY": -1,
+            "foreground": true,
+            "openOpacity": 0
+          },
+          "card": {
+            "x": 0,
+            "y": 20.52,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "front": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165,
+            "foreground": true
+          }
+        }
       }
     },
     "Education": {
@@ -158,6 +306,43 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "card",
+        "parts": {
+          "back": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "flap": {
+            "x": 0,
+            "y": -35.92,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 148,
+            "flipY": -1,
+            "foreground": true,
+            "openOpacity": 0
+          },
+          "card": {
+            "x": 0,
+            "y": 20.52,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "front": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165,
+            "foreground": true
+          }
+        }
       }
     },
     "Gaming": {
@@ -190,6 +375,43 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "card",
+        "parts": {
+          "back": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "flap": {
+            "x": 0,
+            "y": -35.92,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 148,
+            "flipY": -1,
+            "foreground": true,
+            "openOpacity": 0
+          },
+          "card": {
+            "x": 0,
+            "y": 20.52,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "front": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165,
+            "foreground": true
+          }
+        }
       }
     },
     "Hobbies": {
@@ -222,6 +444,43 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "card",
+        "parts": {
+          "back": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "flap": {
+            "x": 0,
+            "y": -35.92,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 148,
+            "flipY": -1,
+            "foreground": true,
+            "openOpacity": 0
+          },
+          "card": {
+            "x": 0,
+            "y": 20.52,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "front": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165,
+            "foreground": true
+          }
+        }
       }
     },
     "Home": {
@@ -254,6 +513,43 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "card",
+        "parts": {
+          "back": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "flap": {
+            "x": 0,
+            "y": -35.92,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 148,
+            "flipY": -1,
+            "foreground": true,
+            "openOpacity": 0
+          },
+          "card": {
+            "x": 0,
+            "y": 20.52,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "front": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165,
+            "foreground": true
+          }
+        }
       }
     },
     "Other Models": {
@@ -286,6 +582,43 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "card",
+        "parts": {
+          "back": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "flap": {
+            "x": 0,
+            "y": -35.92,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 148,
+            "flipY": -1,
+            "foreground": true,
+            "openOpacity": 0
+          },
+          "card": {
+            "x": 0,
+            "y": 20.52,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "front": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165,
+            "foreground": true
+          }
+        }
       }
     },
     "Programs": {
@@ -318,6 +651,43 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "card",
+        "parts": {
+          "back": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "flap": {
+            "x": 0,
+            "y": -35.92,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 148,
+            "flipY": -1,
+            "foreground": true,
+            "openOpacity": 0
+          },
+          "card": {
+            "x": 0,
+            "y": 20.52,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "front": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165,
+            "foreground": true
+          }
+        }
       }
     },
     "Projects": {
@@ -350,6 +720,43 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "card",
+        "parts": {
+          "back": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "flap": {
+            "x": 0,
+            "y": -35.92,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 148,
+            "flipY": -1,
+            "foreground": true,
+            "openOpacity": 0
+          },
+          "card": {
+            "x": 0,
+            "y": 20.52,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "front": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165,
+            "foreground": true
+          }
+        }
       }
     },
     "Puzzles": {
@@ -382,6 +789,43 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "card",
+        "parts": {
+          "back": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "flap": {
+            "x": 0,
+            "y": -35.92,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 148,
+            "flipY": -1,
+            "foreground": true,
+            "openOpacity": 0
+          },
+          "card": {
+            "x": 0,
+            "y": 20.52,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "front": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165,
+            "foreground": true
+          }
+        }
       }
     },
     "ScribbleScan": {
@@ -414,6 +858,43 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "card",
+        "parts": {
+          "back": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "flap": {
+            "x": 0,
+            "y": -35.92,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 148,
+            "flipY": -1,
+            "foreground": true,
+            "openOpacity": 0
+          },
+          "card": {
+            "x": 0,
+            "y": 20.52,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "front": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165,
+            "foreground": true
+          }
+        }
       }
     },
     "Tennis": {
@@ -446,6 +927,43 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "card",
+        "parts": {
+          "back": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "flap": {
+            "x": 0,
+            "y": -35.92,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 148,
+            "flipY": -1,
+            "foreground": true,
+            "openOpacity": 0
+          },
+          "card": {
+            "x": 0,
+            "y": 20.52,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "front": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165,
+            "foreground": true
+          }
+        }
       }
     },
     "This website": {
@@ -478,6 +996,43 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "card",
+        "parts": {
+          "back": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "flap": {
+            "x": 0,
+            "y": -35.92,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 148,
+            "flipY": -1,
+            "foreground": true,
+            "openOpacity": 0
+          },
+          "card": {
+            "x": 0,
+            "y": 20.52,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "front": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165,
+            "foreground": true
+          }
+        }
       }
     },
     "Websites": {
@@ -510,6 +1065,43 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "card",
+        "parts": {
+          "back": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "flap": {
+            "x": 0,
+            "y": -35.92,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 148,
+            "flipY": -1,
+            "foreground": true,
+            "openOpacity": 0
+          },
+          "card": {
+            "x": 0,
+            "y": 20.52,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "front": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165,
+            "foreground": true
+          }
+        }
       }
     },
     "Work Experience": {
@@ -542,6 +1134,43 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "card",
+        "parts": {
+          "back": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "flap": {
+            "x": 0,
+            "y": -35.92,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 148,
+            "flipY": -1,
+            "foreground": true,
+            "openOpacity": 0
+          },
+          "card": {
+            "x": 0,
+            "y": 20.52,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165
+          },
+          "front": {
+            "x": 0,
+            "y": -44.76,
+            "scale": 0.48,
+            "originX": 120,
+            "originY": 165,
+            "foreground": true
+          }
+        }
       }
     }
   }

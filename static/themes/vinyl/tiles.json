@@ -30,6 +30,26 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "sleeve",
+        "titlePart": "record",
+        "parts": {
+          "record": {
+            "x": 0,
+            "y": 48,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          },
+          "sleeve": {
+            "x": 0,
+            "y": -25.6,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          }
+        }
       }
     },
     "College": {
@@ -62,6 +82,26 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "sleeve",
+        "titlePart": "record",
+        "parts": {
+          "record": {
+            "x": 0,
+            "y": 48,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          },
+          "sleeve": {
+            "x": 0,
+            "y": -25.6,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          }
+        }
       }
     },
     "Digital Planner": {
@@ -94,6 +134,26 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "sleeve",
+        "titlePart": "record",
+        "parts": {
+          "record": {
+            "x": 0,
+            "y": 48,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          },
+          "sleeve": {
+            "x": 0,
+            "y": -25.6,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          }
+        }
       }
     },
     "Early Education": {
@@ -126,6 +186,26 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "sleeve",
+        "titlePart": "record",
+        "parts": {
+          "record": {
+            "x": 0,
+            "y": 48,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          },
+          "sleeve": {
+            "x": 0,
+            "y": -25.6,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          }
+        }
       }
     },
     "Education": {
@@ -158,6 +238,26 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "sleeve",
+        "titlePart": "record",
+        "parts": {
+          "record": {
+            "x": 0,
+            "y": 48,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          },
+          "sleeve": {
+            "x": 0,
+            "y": -25.6,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          }
+        }
       }
     },
     "Gaming": {
@@ -190,6 +290,26 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "sleeve",
+        "titlePart": "record",
+        "parts": {
+          "record": {
+            "x": 0,
+            "y": 48,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          },
+          "sleeve": {
+            "x": 0,
+            "y": -25.6,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          }
+        }
       }
     },
     "Hobbies": {
@@ -222,6 +342,26 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "sleeve",
+        "titlePart": "record",
+        "parts": {
+          "record": {
+            "x": 0,
+            "y": 48,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          },
+          "sleeve": {
+            "x": 0,
+            "y": -25.6,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          }
+        }
       }
     },
     "Home": {
@@ -254,6 +394,26 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "sleeve",
+        "titlePart": "record",
+        "parts": {
+          "record": {
+            "x": 0,
+            "y": 48,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          },
+          "sleeve": {
+            "x": 0,
+            "y": -25.6,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          }
+        }
       }
     },
     "Other Models": {
@@ -286,6 +446,26 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "sleeve",
+        "titlePart": "record",
+        "parts": {
+          "record": {
+            "x": 0,
+            "y": 48,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          },
+          "sleeve": {
+            "x": 0,
+            "y": -25.6,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          }
+        }
       }
     },
     "Programs": {
@@ -318,6 +498,26 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "sleeve",
+        "titlePart": "record",
+        "parts": {
+          "record": {
+            "x": 0,
+            "y": 48,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          },
+          "sleeve": {
+            "x": 0,
+            "y": -25.6,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          }
+        }
       }
     },
     "Projects": {
@@ -350,6 +550,26 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "sleeve",
+        "titlePart": "record",
+        "parts": {
+          "record": {
+            "x": 0,
+            "y": 48,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          },
+          "sleeve": {
+            "x": 0,
+            "y": -25.6,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          }
+        }
       }
     },
     "Puzzles": {
@@ -382,6 +602,26 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "sleeve",
+        "titlePart": "record",
+        "parts": {
+          "record": {
+            "x": 0,
+            "y": 48,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          },
+          "sleeve": {
+            "x": 0,
+            "y": -25.6,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          }
+        }
       }
     },
     "ScribbleScan": {
@@ -414,6 +654,26 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "sleeve",
+        "titlePart": "record",
+        "parts": {
+          "record": {
+            "x": 0,
+            "y": 48,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          },
+          "sleeve": {
+            "x": 0,
+            "y": -25.6,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          }
+        }
       }
     },
     "Tennis": {
@@ -446,6 +706,26 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "sleeve",
+        "titlePart": "record",
+        "parts": {
+          "record": {
+            "x": 0,
+            "y": 48,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          },
+          "sleeve": {
+            "x": 0,
+            "y": -25.6,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          }
+        }
       }
     },
     "This website": {
@@ -478,6 +758,26 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "sleeve",
+        "titlePart": "record",
+        "parts": {
+          "record": {
+            "x": 0,
+            "y": 48,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          },
+          "sleeve": {
+            "x": 0,
+            "y": -25.6,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          }
+        }
       }
     },
     "Websites": {
@@ -510,6 +810,26 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "sleeve",
+        "titlePart": "record",
+        "parts": {
+          "record": {
+            "x": 0,
+            "y": 48,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          },
+          "sleeve": {
+            "x": 0,
+            "y": -25.6,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          }
+        }
       }
     },
     "Work Experience": {
@@ -542,6 +862,26 @@
         "offsetXPixels": 0,
         "offsetYPixels": 0,
         "scaleOffset": 0
+      },
+      "reveal": {
+        "contentPart": "sleeve",
+        "titlePart": "record",
+        "parts": {
+          "record": {
+            "x": 0,
+            "y": 48,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          },
+          "sleeve": {
+            "x": 0,
+            "y": -25.6,
+            "scale": 0.64,
+            "originX": 120,
+            "originY": 150
+          }
+        }
       }
     }
   }

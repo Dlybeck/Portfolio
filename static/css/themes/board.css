@@ -139,6 +139,60 @@
   opacity: 1;
 }
 
+/* One persistent assembly; interrupted transitions reverse in place. */
+html[data-theme-focus-motion="reveal"] .tile-container[data-theme-reveal] .tile-expanded {
+  visibility: visible;
+  pointer-events: none;
+  animation: none !important;
+  transform: translate(-50%, -50%) rotate(var(--rot));
+  z-index: 0;
+  transition: transform var(--theme-pack-cover-enter-duration) var(--theme-pack-cover-enter-easing);
+}
+html[data-theme-focus-motion="reveal"] .tile-container.expanded .tile-expanded {
+  transform: translate(-50%, -50%) rotate(var(--rot-expanded));
+  z-index: 120;
+}
+.tile-container[data-theme-reveal] .tile-base .theme-object { visibility: hidden; }
+.tile-container[data-theme-reveal].expanded .tile-base { visibility: hidden; }
+.tile-container[data-theme-reveal] .scrap-title {
+    opacity: 1;
+    transition: opacity .16s ease calc(var(--theme-pack-cover-enter-duration) * .45);
+}
+.tile-container[data-theme-reveal].expanded .scrap-title {
+    opacity: 0;
+    transition-delay: 0s;
+}
+.tile-container[data-theme-reveal] .tile-expanded .paper-body { pointer-events: none; }
+.theme-reveal-part {
+  transform-box: view-box;
+  transform: var(--reveal-closed);
+  transition: transform var(--theme-pack-cover-enter-duration) var(--theme-pack-cover-enter-easing),
+              opacity calc(var(--theme-pack-cover-enter-duration) * .2) ease;
+}
+.tile-container.expanded .theme-reveal-part {
+  transform: translate(0px, 0px) scale(1, 1);
+  opacity: var(--reveal-open-opacity, 1);
+}
+.tile-container[data-theme-reveal] .theme-reveal-foreground { z-index: 3; }
+.tile-container[data-theme-reveal] .tile-expanded :is(.expanded-title,.expanded-text,.expanded-open,.home-theme-selector) {
+  transform: var(--reveal-content-closed);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform var(--theme-pack-cover-enter-duration) var(--theme-pack-cover-enter-easing), opacity .18s ease;
+}
+.tile-container[data-theme-reveal].expanded .tile-expanded :is(.expanded-title,.expanded-text,.expanded-open,.home-theme-selector) {
+  transform: translate(0px, 0px) scale(1, 1);
+  opacity: 1;
+}
+.tile-container[data-theme-reveal].expanded .tile-expanded :is(.expanded-open,.home-theme-selector) { pointer-events: auto; }
+.tile-container[data-theme-reveal] .expanded-title[data-reveal-title] {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
 .scrap-title,
 .expanded-title,
 .expanded-text,

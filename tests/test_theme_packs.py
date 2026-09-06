@@ -223,7 +223,7 @@ def test_pack_rejects_an_unknown_focus_motion_preset(tmp_path: Path) -> None:
 
     with pytest.raises(
         InvalidThemeAsset,
-        match="must be cover, grow, or settle",
+        match="must be cover, grow, settle, or reveal",
     ):
         load_theme_pack(tmp_path / "canonical")
 

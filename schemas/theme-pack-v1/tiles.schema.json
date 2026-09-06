@@ -216,6 +216,114 @@
                 "phoneExpandedMinHeight"
               ],
               "additionalProperties": false
+            },
+            "reveal": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "parts": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "An inert closed pose; the compiled SVG supplies the open pose.",
+                        "properties": {
+                          "x": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "scale": {
+                            "default": 1,
+                            "maximum": 2,
+                            "minimum": 0.25,
+                            "title": "Scale",
+                            "type": "number"
+                          },
+                          "flipY": {
+                            "default": 1,
+                            "enum": [
+                              -1,
+                              1
+                            ],
+                            "title": "Flipy",
+                            "type": "integer"
+                          },
+                          "originX": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originx",
+                            "type": "number"
+                          },
+                          "originY": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originy",
+                            "type": "number"
+                          },
+                          "foreground": {
+                            "default": false,
+                            "title": "Foreground",
+                            "type": "boolean"
+                          },
+                          "openOpacity": {
+                            "default": 1,
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "title": "Openopacity",
+                            "type": "integer"
+                          }
+                        },
+                        "title": "RevealPart",
+                        "type": "object"
+                      },
+                      "maxProperties": 8,
+                      "minProperties": 1,
+                      "title": "Parts",
+                      "type": "object"
+                    },
+                    "contentPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Contentpart",
+                      "type": "string"
+                    },
+                    "titlePart": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Titlepart"
+                    }
+                  },
+                  "required": [
+                    "parts",
+                    "contentPart"
+                  ],
+                  "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -436,6 +544,114 @@
                 "phoneExpandedMinHeight"
               ],
               "additionalProperties": false
+            },
+            "reveal": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "parts": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "An inert closed pose; the compiled SVG supplies the open pose.",
+                        "properties": {
+                          "x": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "scale": {
+                            "default": 1,
+                            "maximum": 2,
+                            "minimum": 0.25,
+                            "title": "Scale",
+                            "type": "number"
+                          },
+                          "flipY": {
+                            "default": 1,
+                            "enum": [
+                              -1,
+                              1
+                            ],
+                            "title": "Flipy",
+                            "type": "integer"
+                          },
+                          "originX": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originx",
+                            "type": "number"
+                          },
+                          "originY": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originy",
+                            "type": "number"
+                          },
+                          "foreground": {
+                            "default": false,
+                            "title": "Foreground",
+                            "type": "boolean"
+                          },
+                          "openOpacity": {
+                            "default": 1,
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "title": "Openopacity",
+                            "type": "integer"
+                          }
+                        },
+                        "title": "RevealPart",
+                        "type": "object"
+                      },
+                      "maxProperties": 8,
+                      "minProperties": 1,
+                      "title": "Parts",
+                      "type": "object"
+                    },
+                    "contentPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Contentpart",
+                      "type": "string"
+                    },
+                    "titlePart": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Titlepart"
+                    }
+                  },
+                  "required": [
+                    "parts",
+                    "contentPart"
+                  ],
+                  "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -656,6 +872,114 @@
                 "phoneExpandedMinHeight"
               ],
               "additionalProperties": false
+            },
+            "reveal": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "parts": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "An inert closed pose; the compiled SVG supplies the open pose.",
+                        "properties": {
+                          "x": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "scale": {
+                            "default": 1,
+                            "maximum": 2,
+                            "minimum": 0.25,
+                            "title": "Scale",
+                            "type": "number"
+                          },
+                          "flipY": {
+                            "default": 1,
+                            "enum": [
+                              -1,
+                              1
+                            ],
+                            "title": "Flipy",
+                            "type": "integer"
+                          },
+                          "originX": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originx",
+                            "type": "number"
+                          },
+                          "originY": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originy",
+                            "type": "number"
+                          },
+                          "foreground": {
+                            "default": false,
+                            "title": "Foreground",
+                            "type": "boolean"
+                          },
+                          "openOpacity": {
+                            "default": 1,
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "title": "Openopacity",
+                            "type": "integer"
+                          }
+                        },
+                        "title": "RevealPart",
+                        "type": "object"
+                      },
+                      "maxProperties": 8,
+                      "minProperties": 1,
+                      "title": "Parts",
+                      "type": "object"
+                    },
+                    "contentPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Contentpart",
+                      "type": "string"
+                    },
+                    "titlePart": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Titlepart"
+                    }
+                  },
+                  "required": [
+                    "parts",
+                    "contentPart"
+                  ],
+                  "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -876,6 +1200,114 @@
                 "phoneExpandedMinHeight"
               ],
               "additionalProperties": false
+            },
+            "reveal": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "parts": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "An inert closed pose; the compiled SVG supplies the open pose.",
+                        "properties": {
+                          "x": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "scale": {
+                            "default": 1,
+                            "maximum": 2,
+                            "minimum": 0.25,
+                            "title": "Scale",
+                            "type": "number"
+                          },
+                          "flipY": {
+                            "default": 1,
+                            "enum": [
+                              -1,
+                              1
+                            ],
+                            "title": "Flipy",
+                            "type": "integer"
+                          },
+                          "originX": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originx",
+                            "type": "number"
+                          },
+                          "originY": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originy",
+                            "type": "number"
+                          },
+                          "foreground": {
+                            "default": false,
+                            "title": "Foreground",
+                            "type": "boolean"
+                          },
+                          "openOpacity": {
+                            "default": 1,
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "title": "Openopacity",
+                            "type": "integer"
+                          }
+                        },
+                        "title": "RevealPart",
+                        "type": "object"
+                      },
+                      "maxProperties": 8,
+                      "minProperties": 1,
+                      "title": "Parts",
+                      "type": "object"
+                    },
+                    "contentPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Contentpart",
+                      "type": "string"
+                    },
+                    "titlePart": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Titlepart"
+                    }
+                  },
+                  "required": [
+                    "parts",
+                    "contentPart"
+                  ],
+                  "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -1096,6 +1528,114 @@
                 "phoneExpandedMinHeight"
               ],
               "additionalProperties": false
+            },
+            "reveal": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "parts": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "An inert closed pose; the compiled SVG supplies the open pose.",
+                        "properties": {
+                          "x": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "scale": {
+                            "default": 1,
+                            "maximum": 2,
+                            "minimum": 0.25,
+                            "title": "Scale",
+                            "type": "number"
+                          },
+                          "flipY": {
+                            "default": 1,
+                            "enum": [
+                              -1,
+                              1
+                            ],
+                            "title": "Flipy",
+                            "type": "integer"
+                          },
+                          "originX": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originx",
+                            "type": "number"
+                          },
+                          "originY": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originy",
+                            "type": "number"
+                          },
+                          "foreground": {
+                            "default": false,
+                            "title": "Foreground",
+                            "type": "boolean"
+                          },
+                          "openOpacity": {
+                            "default": 1,
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "title": "Openopacity",
+                            "type": "integer"
+                          }
+                        },
+                        "title": "RevealPart",
+                        "type": "object"
+                      },
+                      "maxProperties": 8,
+                      "minProperties": 1,
+                      "title": "Parts",
+                      "type": "object"
+                    },
+                    "contentPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Contentpart",
+                      "type": "string"
+                    },
+                    "titlePart": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Titlepart"
+                    }
+                  },
+                  "required": [
+                    "parts",
+                    "contentPart"
+                  ],
+                  "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -1316,6 +1856,114 @@
                 "phoneExpandedMinHeight"
               ],
               "additionalProperties": false
+            },
+            "reveal": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "parts": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "An inert closed pose; the compiled SVG supplies the open pose.",
+                        "properties": {
+                          "x": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "scale": {
+                            "default": 1,
+                            "maximum": 2,
+                            "minimum": 0.25,
+                            "title": "Scale",
+                            "type": "number"
+                          },
+                          "flipY": {
+                            "default": 1,
+                            "enum": [
+                              -1,
+                              1
+                            ],
+                            "title": "Flipy",
+                            "type": "integer"
+                          },
+                          "originX": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originx",
+                            "type": "number"
+                          },
+                          "originY": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originy",
+                            "type": "number"
+                          },
+                          "foreground": {
+                            "default": false,
+                            "title": "Foreground",
+                            "type": "boolean"
+                          },
+                          "openOpacity": {
+                            "default": 1,
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "title": "Openopacity",
+                            "type": "integer"
+                          }
+                        },
+                        "title": "RevealPart",
+                        "type": "object"
+                      },
+                      "maxProperties": 8,
+                      "minProperties": 1,
+                      "title": "Parts",
+                      "type": "object"
+                    },
+                    "contentPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Contentpart",
+                      "type": "string"
+                    },
+                    "titlePart": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Titlepart"
+                    }
+                  },
+                  "required": [
+                    "parts",
+                    "contentPart"
+                  ],
+                  "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -1536,6 +2184,114 @@
                 "phoneExpandedMinHeight"
               ],
               "additionalProperties": false
+            },
+            "reveal": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "parts": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "An inert closed pose; the compiled SVG supplies the open pose.",
+                        "properties": {
+                          "x": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "scale": {
+                            "default": 1,
+                            "maximum": 2,
+                            "minimum": 0.25,
+                            "title": "Scale",
+                            "type": "number"
+                          },
+                          "flipY": {
+                            "default": 1,
+                            "enum": [
+                              -1,
+                              1
+                            ],
+                            "title": "Flipy",
+                            "type": "integer"
+                          },
+                          "originX": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originx",
+                            "type": "number"
+                          },
+                          "originY": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originy",
+                            "type": "number"
+                          },
+                          "foreground": {
+                            "default": false,
+                            "title": "Foreground",
+                            "type": "boolean"
+                          },
+                          "openOpacity": {
+                            "default": 1,
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "title": "Openopacity",
+                            "type": "integer"
+                          }
+                        },
+                        "title": "RevealPart",
+                        "type": "object"
+                      },
+                      "maxProperties": 8,
+                      "minProperties": 1,
+                      "title": "Parts",
+                      "type": "object"
+                    },
+                    "contentPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Contentpart",
+                      "type": "string"
+                    },
+                    "titlePart": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Titlepart"
+                    }
+                  },
+                  "required": [
+                    "parts",
+                    "contentPart"
+                  ],
+                  "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -1756,6 +2512,114 @@
                 "phoneExpandedMinHeight"
               ],
               "additionalProperties": false
+            },
+            "reveal": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "parts": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "An inert closed pose; the compiled SVG supplies the open pose.",
+                        "properties": {
+                          "x": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "scale": {
+                            "default": 1,
+                            "maximum": 2,
+                            "minimum": 0.25,
+                            "title": "Scale",
+                            "type": "number"
+                          },
+                          "flipY": {
+                            "default": 1,
+                            "enum": [
+                              -1,
+                              1
+                            ],
+                            "title": "Flipy",
+                            "type": "integer"
+                          },
+                          "originX": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originx",
+                            "type": "number"
+                          },
+                          "originY": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originy",
+                            "type": "number"
+                          },
+                          "foreground": {
+                            "default": false,
+                            "title": "Foreground",
+                            "type": "boolean"
+                          },
+                          "openOpacity": {
+                            "default": 1,
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "title": "Openopacity",
+                            "type": "integer"
+                          }
+                        },
+                        "title": "RevealPart",
+                        "type": "object"
+                      },
+                      "maxProperties": 8,
+                      "minProperties": 1,
+                      "title": "Parts",
+                      "type": "object"
+                    },
+                    "contentPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Contentpart",
+                      "type": "string"
+                    },
+                    "titlePart": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Titlepart"
+                    }
+                  },
+                  "required": [
+                    "parts",
+                    "contentPart"
+                  ],
+                  "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -1976,6 +2840,114 @@
                 "phoneExpandedMinHeight"
               ],
               "additionalProperties": false
+            },
+            "reveal": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "parts": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "An inert closed pose; the compiled SVG supplies the open pose.",
+                        "properties": {
+                          "x": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "scale": {
+                            "default": 1,
+                            "maximum": 2,
+                            "minimum": 0.25,
+                            "title": "Scale",
+                            "type": "number"
+                          },
+                          "flipY": {
+                            "default": 1,
+                            "enum": [
+                              -1,
+                              1
+                            ],
+                            "title": "Flipy",
+                            "type": "integer"
+                          },
+                          "originX": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originx",
+                            "type": "number"
+                          },
+                          "originY": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originy",
+                            "type": "number"
+                          },
+                          "foreground": {
+                            "default": false,
+                            "title": "Foreground",
+                            "type": "boolean"
+                          },
+                          "openOpacity": {
+                            "default": 1,
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "title": "Openopacity",
+                            "type": "integer"
+                          }
+                        },
+                        "title": "RevealPart",
+                        "type": "object"
+                      },
+                      "maxProperties": 8,
+                      "minProperties": 1,
+                      "title": "Parts",
+                      "type": "object"
+                    },
+                    "contentPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Contentpart",
+                      "type": "string"
+                    },
+                    "titlePart": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Titlepart"
+                    }
+                  },
+                  "required": [
+                    "parts",
+                    "contentPart"
+                  ],
+                  "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -2196,6 +3168,114 @@
                 "phoneExpandedMinHeight"
               ],
               "additionalProperties": false
+            },
+            "reveal": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "parts": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "An inert closed pose; the compiled SVG supplies the open pose.",
+                        "properties": {
+                          "x": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "scale": {
+                            "default": 1,
+                            "maximum": 2,
+                            "minimum": 0.25,
+                            "title": "Scale",
+                            "type": "number"
+                          },
+                          "flipY": {
+                            "default": 1,
+                            "enum": [
+                              -1,
+                              1
+                            ],
+                            "title": "Flipy",
+                            "type": "integer"
+                          },
+                          "originX": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originx",
+                            "type": "number"
+                          },
+                          "originY": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originy",
+                            "type": "number"
+                          },
+                          "foreground": {
+                            "default": false,
+                            "title": "Foreground",
+                            "type": "boolean"
+                          },
+                          "openOpacity": {
+                            "default": 1,
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "title": "Openopacity",
+                            "type": "integer"
+                          }
+                        },
+                        "title": "RevealPart",
+                        "type": "object"
+                      },
+                      "maxProperties": 8,
+                      "minProperties": 1,
+                      "title": "Parts",
+                      "type": "object"
+                    },
+                    "contentPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Contentpart",
+                      "type": "string"
+                    },
+                    "titlePart": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Titlepart"
+                    }
+                  },
+                  "required": [
+                    "parts",
+                    "contentPart"
+                  ],
+                  "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -2416,6 +3496,114 @@
                 "phoneExpandedMinHeight"
               ],
               "additionalProperties": false
+            },
+            "reveal": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "parts": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "An inert closed pose; the compiled SVG supplies the open pose.",
+                        "properties": {
+                          "x": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "scale": {
+                            "default": 1,
+                            "maximum": 2,
+                            "minimum": 0.25,
+                            "title": "Scale",
+                            "type": "number"
+                          },
+                          "flipY": {
+                            "default": 1,
+                            "enum": [
+                              -1,
+                              1
+                            ],
+                            "title": "Flipy",
+                            "type": "integer"
+                          },
+                          "originX": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originx",
+                            "type": "number"
+                          },
+                          "originY": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originy",
+                            "type": "number"
+                          },
+                          "foreground": {
+                            "default": false,
+                            "title": "Foreground",
+                            "type": "boolean"
+                          },
+                          "openOpacity": {
+                            "default": 1,
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "title": "Openopacity",
+                            "type": "integer"
+                          }
+                        },
+                        "title": "RevealPart",
+                        "type": "object"
+                      },
+                      "maxProperties": 8,
+                      "minProperties": 1,
+                      "title": "Parts",
+                      "type": "object"
+                    },
+                    "contentPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Contentpart",
+                      "type": "string"
+                    },
+                    "titlePart": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Titlepart"
+                    }
+                  },
+                  "required": [
+                    "parts",
+                    "contentPart"
+                  ],
+                  "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -2636,6 +3824,114 @@
                 "phoneExpandedMinHeight"
               ],
               "additionalProperties": false
+            },
+            "reveal": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "parts": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "An inert closed pose; the compiled SVG supplies the open pose.",
+                        "properties": {
+                          "x": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "scale": {
+                            "default": 1,
+                            "maximum": 2,
+                            "minimum": 0.25,
+                            "title": "Scale",
+                            "type": "number"
+                          },
+                          "flipY": {
+                            "default": 1,
+                            "enum": [
+                              -1,
+                              1
+                            ],
+                            "title": "Flipy",
+                            "type": "integer"
+                          },
+                          "originX": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originx",
+                            "type": "number"
+                          },
+                          "originY": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originy",
+                            "type": "number"
+                          },
+                          "foreground": {
+                            "default": false,
+                            "title": "Foreground",
+                            "type": "boolean"
+                          },
+                          "openOpacity": {
+                            "default": 1,
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "title": "Openopacity",
+                            "type": "integer"
+                          }
+                        },
+                        "title": "RevealPart",
+                        "type": "object"
+                      },
+                      "maxProperties": 8,
+                      "minProperties": 1,
+                      "title": "Parts",
+                      "type": "object"
+                    },
+                    "contentPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Contentpart",
+                      "type": "string"
+                    },
+                    "titlePart": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Titlepart"
+                    }
+                  },
+                  "required": [
+                    "parts",
+                    "contentPart"
+                  ],
+                  "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -2856,6 +4152,114 @@
                 "phoneExpandedMinHeight"
               ],
               "additionalProperties": false
+            },
+            "reveal": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "parts": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "An inert closed pose; the compiled SVG supplies the open pose.",
+                        "properties": {
+                          "x": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "scale": {
+                            "default": 1,
+                            "maximum": 2,
+                            "minimum": 0.25,
+                            "title": "Scale",
+                            "type": "number"
+                          },
+                          "flipY": {
+                            "default": 1,
+                            "enum": [
+                              -1,
+                              1
+                            ],
+                            "title": "Flipy",
+                            "type": "integer"
+                          },
+                          "originX": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originx",
+                            "type": "number"
+                          },
+                          "originY": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originy",
+                            "type": "number"
+                          },
+                          "foreground": {
+                            "default": false,
+                            "title": "Foreground",
+                            "type": "boolean"
+                          },
+                          "openOpacity": {
+                            "default": 1,
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "title": "Openopacity",
+                            "type": "integer"
+                          }
+                        },
+                        "title": "RevealPart",
+                        "type": "object"
+                      },
+                      "maxProperties": 8,
+                      "minProperties": 1,
+                      "title": "Parts",
+                      "type": "object"
+                    },
+                    "contentPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Contentpart",
+                      "type": "string"
+                    },
+                    "titlePart": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Titlepart"
+                    }
+                  },
+                  "required": [
+                    "parts",
+                    "contentPart"
+                  ],
+                  "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -3076,6 +4480,114 @@
                 "phoneExpandedMinHeight"
               ],
               "additionalProperties": false
+            },
+            "reveal": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "parts": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "An inert closed pose; the compiled SVG supplies the open pose.",
+                        "properties": {
+                          "x": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "scale": {
+                            "default": 1,
+                            "maximum": 2,
+                            "minimum": 0.25,
+                            "title": "Scale",
+                            "type": "number"
+                          },
+                          "flipY": {
+                            "default": 1,
+                            "enum": [
+                              -1,
+                              1
+                            ],
+                            "title": "Flipy",
+                            "type": "integer"
+                          },
+                          "originX": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originx",
+                            "type": "number"
+                          },
+                          "originY": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originy",
+                            "type": "number"
+                          },
+                          "foreground": {
+                            "default": false,
+                            "title": "Foreground",
+                            "type": "boolean"
+                          },
+                          "openOpacity": {
+                            "default": 1,
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "title": "Openopacity",
+                            "type": "integer"
+                          }
+                        },
+                        "title": "RevealPart",
+                        "type": "object"
+                      },
+                      "maxProperties": 8,
+                      "minProperties": 1,
+                      "title": "Parts",
+                      "type": "object"
+                    },
+                    "contentPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Contentpart",
+                      "type": "string"
+                    },
+                    "titlePart": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Titlepart"
+                    }
+                  },
+                  "required": [
+                    "parts",
+                    "contentPart"
+                  ],
+                  "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -3296,6 +4808,114 @@
                 "phoneExpandedMinHeight"
               ],
               "additionalProperties": false
+            },
+            "reveal": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "parts": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "An inert closed pose; the compiled SVG supplies the open pose.",
+                        "properties": {
+                          "x": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "scale": {
+                            "default": 1,
+                            "maximum": 2,
+                            "minimum": 0.25,
+                            "title": "Scale",
+                            "type": "number"
+                          },
+                          "flipY": {
+                            "default": 1,
+                            "enum": [
+                              -1,
+                              1
+                            ],
+                            "title": "Flipy",
+                            "type": "integer"
+                          },
+                          "originX": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originx",
+                            "type": "number"
+                          },
+                          "originY": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originy",
+                            "type": "number"
+                          },
+                          "foreground": {
+                            "default": false,
+                            "title": "Foreground",
+                            "type": "boolean"
+                          },
+                          "openOpacity": {
+                            "default": 1,
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "title": "Openopacity",
+                            "type": "integer"
+                          }
+                        },
+                        "title": "RevealPart",
+                        "type": "object"
+                      },
+                      "maxProperties": 8,
+                      "minProperties": 1,
+                      "title": "Parts",
+                      "type": "object"
+                    },
+                    "contentPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Contentpart",
+                      "type": "string"
+                    },
+                    "titlePart": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Titlepart"
+                    }
+                  },
+                  "required": [
+                    "parts",
+                    "contentPart"
+                  ],
+                  "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -3516,6 +5136,114 @@
                 "phoneExpandedMinHeight"
               ],
               "additionalProperties": false
+            },
+            "reveal": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "parts": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "An inert closed pose; the compiled SVG supplies the open pose.",
+                        "properties": {
+                          "x": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "scale": {
+                            "default": 1,
+                            "maximum": 2,
+                            "minimum": 0.25,
+                            "title": "Scale",
+                            "type": "number"
+                          },
+                          "flipY": {
+                            "default": 1,
+                            "enum": [
+                              -1,
+                              1
+                            ],
+                            "title": "Flipy",
+                            "type": "integer"
+                          },
+                          "originX": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originx",
+                            "type": "number"
+                          },
+                          "originY": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originy",
+                            "type": "number"
+                          },
+                          "foreground": {
+                            "default": false,
+                            "title": "Foreground",
+                            "type": "boolean"
+                          },
+                          "openOpacity": {
+                            "default": 1,
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "title": "Openopacity",
+                            "type": "integer"
+                          }
+                        },
+                        "title": "RevealPart",
+                        "type": "object"
+                      },
+                      "maxProperties": 8,
+                      "minProperties": 1,
+                      "title": "Parts",
+                      "type": "object"
+                    },
+                    "contentPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Contentpart",
+                      "type": "string"
+                    },
+                    "titlePart": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Titlepart"
+                    }
+                  },
+                  "required": [
+                    "parts",
+                    "contentPart"
+                  ],
+                  "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -3736,6 +5464,114 @@
                 "phoneExpandedMinHeight"
               ],
               "additionalProperties": false
+            },
+            "reveal": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "parts": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "An inert closed pose; the compiled SVG supplies the open pose.",
+                        "properties": {
+                          "x": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 300,
+                            "minimum": -300,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "scale": {
+                            "default": 1,
+                            "maximum": 2,
+                            "minimum": 0.25,
+                            "title": "Scale",
+                            "type": "number"
+                          },
+                          "flipY": {
+                            "default": 1,
+                            "enum": [
+                              -1,
+                              1
+                            ],
+                            "title": "Flipy",
+                            "type": "integer"
+                          },
+                          "originX": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originx",
+                            "type": "number"
+                          },
+                          "originY": {
+                            "default": 120,
+                            "maximum": 1000,
+                            "minimum": -1000,
+                            "title": "Originy",
+                            "type": "number"
+                          },
+                          "foreground": {
+                            "default": false,
+                            "title": "Foreground",
+                            "type": "boolean"
+                          },
+                          "openOpacity": {
+                            "default": 1,
+                            "enum": [
+                              0,
+                              1
+                            ],
+                            "title": "Openopacity",
+                            "type": "integer"
+                          }
+                        },
+                        "title": "RevealPart",
+                        "type": "object"
+                      },
+                      "maxProperties": 8,
+                      "minProperties": 1,
+                      "title": "Parts",
+                      "type": "object"
+                    },
+                    "contentPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Contentpart",
+                      "type": "string"
+                    },
+                    "titlePart": {
+                      "anyOf": [
+                        {
+                          "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Titlepart"
+                    }
+                  },
+                  "required": [
+                    "parts",
+                    "contentPart"
+                  ],
+                  "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [

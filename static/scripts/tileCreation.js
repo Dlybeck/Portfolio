@@ -266,7 +266,7 @@ window.updateVisibility = function(centerTitle) {
             tile.classList.add(visibleTiles.includes(tileTitle) ? 'connected' : 'dimmed');
             // Kick off the sweep-off animation only if this tile was the
             // previously-centered one. Other tiles have no cover on-stage.
-            if (wasExpanded) {
+            if (wasExpanded && tile.dataset.themeReveal !== 'true') {
                 // Pick exit direction from TILE GEOMETRY, not scroll state.
                 // When a new tile becomes the center, every other tile shifts
                 // by (new_center - old_center). The de-centered tile moves in

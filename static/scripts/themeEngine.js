@@ -263,7 +263,7 @@
             body.querySelector(".expanded-text"),
             body.querySelector(".expanded-open"),
             body.querySelector(".home-theme-selector"),
-        ].filter(Boolean);
+        ].filter((node) => node && !node.dataset.revealTitle);
         nodes.forEach((node) => node.style.removeProperty("font-size"));
         const initialSizes = nodes.map((node) => Number.parseFloat(
             getComputedStyle(node).fontSize
@@ -314,8 +314,9 @@
             const expandedFits = expandedBody
                 ? fitExpandedContent(expandedBody)
                 : true;
+            const revealFits = window.themeReveal?.layout(tile) ?? true;
             tile.dataset.themeContentFit = fontsReady
-                ? String(baseFits && expandedFits)
+                ? String(baseFits && expandedFits && revealFits)
                 : "pending";
         });
     }
@@ -337,6 +338,7 @@
         )
             .forEach((node) => node.remove());
         document.querySelectorAll(".tile-container").forEach((tile) => {
+            window.themeReveal?.clean(tile);
             delete tile.dataset.themeIdentity;
             delete tile.dataset.themeShape;
             delete tile.dataset.themePalette;
@@ -554,6 +556,9 @@
             if (expandedBody) {
                 applyContentArea(expandedBody, expandedSvg);
                 expandedBody.prepend(expandedSvg);
+                if (pack.variables.board['focus-motion'] === 'reveal') {
+                    window.themeReveal?.install(tile, assignment, expandedSvg);
+                }
             }
         });
         addBackgrounds(pack);

@@ -402,6 +402,11 @@ def main():
           'selection':{'enabled':True,'randomEligible':True,'randomWeight':1}})
         print(f'Built {theme}: {len(assignments)} locations')
 
+    # Keep the single authoring command reproducible: the two selected worlds
+    # use physical assemblies instead of the initial cover-style sketches.
+    from scripts.refine_collection_reveals import main as refine_reveals
+    refine_reveals()
+
 
 if __name__=='__main__':
     main()

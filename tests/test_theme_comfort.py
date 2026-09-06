@@ -15,15 +15,20 @@ def test_content_fits_the_rendered_svg_at_readable_sizes(browser_page, theme, wi
         .tile-base { transform: none !important; }
         .tile-expanded { animation: none !important;
             transform: translate(-50%, -50%) !important; }
+        .theme-reveal-part,
+        [data-theme-reveal] .tile-expanded :is(.expanded-title,.expanded-text,.expanded-open) {
+            transform: none !important; transition: none !important;
+        }
     ''')
     issues = page.locator('.tile-container').evaluate_all('''tiles => tiles.flatMap(tile => {
         const problems = [];
         for (const state of ['base', 'expanded']) {
             const body = tile.querySelector(`.tile-${state} .paper-body`);
-            const marker = body.querySelector('[data-theme-content-area]').getBoundingClientRect();
             const selectors = state === 'base' ? '.scrap-title'
                 : '.expanded-title,.expanded-text,.expanded-open';
             for (const node of body.querySelectorAll(selectors)) {
+                const marker = body.querySelector(node.dataset.revealTitle
+                    ? '[data-theme-title-area]' : '[data-theme-content-area]').getBoundingClientRect();
                 const rect = node.getBoundingClientRect();
                 if (rect.left < marker.left - 2 || rect.right > marker.right + 2
                     || rect.top < marker.top - 2 || rect.bottom > marker.bottom + 2) {

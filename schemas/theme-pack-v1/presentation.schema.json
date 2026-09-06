@@ -834,14 +834,11 @@
           ]
         },
         "focus-motion": {
-          "oneOf": [
-            {
-              "type": "string",
-              "maxLength": 500
-            },
-            {
-              "type": "number"
-            }
+          "enum": [
+            "cover",
+            "grow",
+            "settle",
+            "reveal"
           ]
         },
         "font-action": {

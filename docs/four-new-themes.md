@@ -1,5 +1,11 @@
 # Four new Theme Packs
 
+Follow-up: the owner selected Vinyl and Postcards for refinement. Their initial
+cover-style interactions are superseded by the shared physical Reveal preset;
+see [Reveal theme refinement](reveal-theme-refinement.md). Botanical and
+Workbench remain unchanged sketches. The receipt below records the initial
+four-pack delivery, not approval of all four designs.
+
 ## Goal contract
 
 Implement the four proposed themes on `dev`: Vinyl collection, Botanical

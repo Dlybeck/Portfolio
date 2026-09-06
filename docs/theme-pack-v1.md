@@ -258,12 +258,48 @@ satisfy the contract.
 
 ### Motion, responsive behavior, and accessibility
 
-The `focus-motion` Board token selects one stable focus preset: `cover`, `grow`,
-or `settle`. `cover` places and removes a larger surface, `grow` expands and
-reverses the selected object itself, and `settle` resolves the focused form in
-place without a camera move. Timing, easing, offsets, scale, and rotation remain
+The authoring choices are `grow` (same object enlarges), `cover` (a separate
+larger surface arrives), and `reveal` (a contained object comes out of its
+carrier). The existing `settle` preset remains supported for installed packs;
+approved themes are not migrated to a different behavior. Timing, easing,
+offsets, scale, and rotation remain
 pack-owned presentation tokens. Adding an ordinary theme therefore requires a
 preset selection and parameters, not theme-specific runtime code.
+
+#### Reveal assemblies
+
+Reveal uses one persistent expanded SVG assembly, with direct root groups named
+`data-theme-part="card"`, for example. Each assignment supplies `reveal.parts`
+with matching names, and `contentPart` identifies the part carrying semantic
+HTML text. The SVG is drawn in its **open** pose. Closed poses are inert JSON:
+`x`, `y` translations in viewBox units; uniform `scale`; `originX`, `originY`;
+and optional `flipY: -1` for a folding flap. No script or CSS is accepted in a
+pack. SVG geometry uses `xMidYMid meet`.
+The direct part group is owned by the pose renderer; put any artwork-specific
+SVG transforms on nested groups, not on the named part itself.
+
+An optional `titlePart` moves the title separately (for example, onto a record
+label). It requires one direct-root `rect data-theme-title-area="title"` in the
+expanded SVG. The regular `data-theme-content-area="content"` still bounds the
+summary, Open control and Home selector. Both text-carrying parts must stay
+upright and visible; normal readable-size checks apply to both safe areas.
+
+`foreground: true` puts an inert part in a separate occlusion plane above HTML,
+so an envelope pocket can hide a card as it retracts. `openOpacity: 0` optionally
+hides a flap when it has folded behind the extracted item. Foreground parts
+cannot carry text. The renderer namespaces cloned definitions and removes the
+plane on theme changes. It does not duplicate the visible whole object.
+
+Focus changes CSS poses; interrupted transitions reverse from their current
+position. Reveal does not enqueue the cover exit animation. Existing duration
+and easing tokens are reused. A pack's base SVG remains its closed-state
+geometry/variation reference; its drawing is hidden while the persistent
+assembly is installed. Navigation remains the existing semantic HTML.
+
+Physical validation is mandatory: the extracted item must fit its carrier at
+both endpoint scales, circular records remain circular, and type belongs on a
+real writable/printed surface. Inspect opening **and** closing frames plus rapid
+reselection on phone and desktop; a still image or valid JSON cannot prove this.
 
 The stable styles disable decorative motion when reduced motion is requested.
 Responsive tokens may adjust type sizing while SVG view boxes and content-safe

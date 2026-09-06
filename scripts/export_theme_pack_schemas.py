@@ -17,6 +17,7 @@ from core.theme_packs import (
     DOCUMENT_PRESENTATION_TOKENS,
     MIN_VARIATION_AXIS_COUNT,
     THEME_PACK_SCHEMA,
+    TileReveal,
 )
 
 
@@ -163,6 +164,7 @@ def main() -> None:
                     BOARD_PRESENTATION_TOKENS,
                     overrides={
                         "content-area-space": {"enum": ["box", "svg"]},
+                        "focus-motion": {"enum": ["cover", "grow", "settle", "reveal"]},
                         "action-treatment": {"enum": ["annotation", "marker"]},
                         "viewer-artifact": {
                             "enum": [
@@ -264,6 +266,9 @@ def main() -> None:
         ],
         "additionalProperties": False,
     }
+    reveal = TileReveal.model_json_schema(by_alias=True)
+    part = reveal.pop('$defs')['RevealPart']
+    reveal['properties']['parts']['additionalProperties'] = part
     assignment = {
         "type": "object",
         "properties": {
@@ -280,6 +285,7 @@ def main() -> None:
             "motion": motion,
             "typography": typography,
             "layout": layout,
+            "reveal": {"anyOf": [reveal, {"type": "null"}]},
         },
         "required": ["base", "expanded", "factors", "transforms", "motion"],
         "additionalProperties": False,

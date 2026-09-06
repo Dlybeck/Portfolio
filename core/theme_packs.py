@@ -320,6 +320,25 @@ class TileLayout(StrictModel):
     )
 
 
+class RevealPart(StrictModel):
+    """An inert closed pose; the compiled SVG supplies the open pose."""
+
+    x: float = Field(default=0, ge=-300, le=300, allow_inf_nan=False)
+    y: float = Field(default=0, ge=-300, le=300, allow_inf_nan=False)
+    scale: float = Field(default=1, ge=.25, le=2, allow_inf_nan=False)
+    flip_y: Literal[-1, 1] = Field(default=1, alias="flipY")
+    origin_x: float = Field(default=120, alias="originX", ge=-1000, le=1000, allow_inf_nan=False)
+    origin_y: float = Field(default=120, alias="originY", ge=-1000, le=1000, allow_inf_nan=False)
+    foreground: bool = False
+    open_opacity: Literal[0, 1] = Field(default=1, alias="openOpacity")
+
+
+class TileReveal(StrictModel):
+    parts: dict[str, RevealPart] = Field(min_length=1, max_length=8)
+    content_part: str = Field(alias="contentPart", pattern=r"^[a-z][a-z0-9-]{0,31}$")
+    title_part: str | None = Field(default=None, alias="titlePart", pattern=r"^[a-z][a-z0-9-]{0,31}$")
+
+
 class TileAssignment(StrictModel):
     base: str
     expanded: str
@@ -328,6 +347,7 @@ class TileAssignment(StrictModel):
     motion: TileMotionVariation
     typography: TileTypography | None = None
     layout: TileLayout | None = None
+    reveal: TileReveal | None = None
 
 
 class TileCatalog(StrictModel):
@@ -484,6 +504,41 @@ def _compiled_tile_svg(pack_root: Path, reference: str) -> str:
     return markup
 
 
+def _validate_reveal(reveal: TileReveal, markup: str) -> None:
+    root = ElementTree.fromstring(markup)
+    if root.get('preserveAspectRatio', 'xMidYMid meet') != 'xMidYMid meet':
+        raise InvalidThemeAsset('Reveal requires xMidYMid meet geometry')
+    for name, part in reveal.parts.items():
+        if not re.fullmatch(r"[a-z][a-z0-9-]{0,31}", name):
+            raise InvalidThemeAsset("Reveal part names must be simple identifiers")
+        matches = [node for node in root if node.get("data-theme-part") == name]
+        if len(matches) != 1 or _local_name(matches[0].tag) != "g":
+            raise InvalidThemeAsset(f"Reveal part {name!r} must identify one direct SVG group")
+        if matches[0].get('transform'):
+            raise InvalidThemeAsset('Put artwork transforms inside the Reveal part group')
+    declared = {node.get("data-theme-part") for node in root if node.get("data-theme-part")}
+    if declared != set(reveal.parts):
+        raise InvalidThemeAsset("Reveal groups and configured parts must match")
+    for name in (reveal.content_part, reveal.title_part):
+        if name is not None and (name not in reveal.parts or reveal.parts[name].flip_y != 1
+                                 or reveal.parts[name].foreground or reveal.parts[name].open_opacity != 1):
+            raise InvalidThemeAsset("Reveal text must follow an upright, visible, non-foreground part")
+    titles = [node for node in root.iter() if node.get("data-theme-title-area")]
+    if bool(titles) != bool(reveal.title_part) or len(titles) > 1:
+        raise InvalidThemeAsset("Reveal titlePart requires exactly one title-area rectangle")
+    if titles:
+        marker = titles[0]
+        try:
+            x, y, width, height = [float(marker.get(key, 'nan')) for key in ('x','y','width','height')]
+            vx, vy, vw, vh = map(float, root.get('viewBox').split())
+        except (TypeError, ValueError) as error:
+            raise InvalidThemeAsset("Reveal title area is invalid") from error
+        if (marker not in list(root) or _local_name(marker.tag) != 'rect'
+                or not all(map(math.isfinite, (x,y,width,height)))
+                or width <= 0 or height <= 0 or x < vx or y < vy or x+width > vx+vw or y+height > vy+vh):
+            raise InvalidThemeAsset("Reveal title area leaves its viewBox")
+
+
 @dataclass(frozen=True, slots=True)
 class ThemePackDiagnostic:
     pack_id: str
@@ -499,6 +554,7 @@ class CompiledTileAssignment:
     motion: TileMotionVariation
     typography: TileTypography | None
     layout: TileLayout | None
+    reveal: TileReveal | None = None
 
     def client_payload(self) -> dict[str, object]:
         return {
@@ -517,6 +573,7 @@ class CompiledTileAssignment:
                 if self.layout is not None
                 else None
             ),
+            "reveal": self.reveal.model_dump(by_alias=True) if self.reveal else None,
         }
 
 
@@ -646,6 +703,8 @@ def _compiled_tiles(pack_root: Path, reference: str) -> tuple[tuple[str, Compile
             raise InvalidThemeAsset(
                 f"tile assignment {title!r} must provide distinct base and expanded artwork"
             )
+        if assignment.reveal:
+            _validate_reveal(assignment.reveal, expanded_svg)
         typography = assignment.typography
         if typography is not None:
             typography = typography.model_copy(update={
@@ -700,6 +759,7 @@ def _compiled_tiles(pack_root: Path, reference: str) -> tuple[tuple[str, Compile
                     motion=assignment.motion,
                     typography=typography,
                     layout=layout,
+                    reveal=assignment.reveal,
                 ),
             )
         )
@@ -763,9 +823,9 @@ def _presentation(
     focus_motion = dict(board).get("focus-motion")
     if dict(board).get("content-area-space") not in {"box", "svg"}:
         raise InvalidThemeAsset("Board 'content-area-space' must be box or svg")
-    if focus_motion not in {"cover", "grow", "settle"}:
+    if focus_motion not in {"cover", "grow", "settle", "reveal"}:
         raise InvalidThemeAsset(
-            "Board presentation token 'focus-motion' must be cover, grow, or settle"
+            "Board presentation token 'focus-motion' must be cover, grow, settle, or reveal"
         )
     action_treatment = dict(board).get("action-treatment")
     if action_treatment not in {"annotation", "marker"}:
@@ -819,9 +879,14 @@ def load_theme_pack(pack_dir: Path) -> LoadedThemePack:
         (layer.depth, sanitized_svg_asset(pack_dir, layer.asset))
         for layer in manifest.background
     )
+    tiles = _compiled_tiles(pack_dir, manifest.tiles)
+    if dict(board_variables)["focus-motion"] == "reveal" and any(
+        assignment.reveal is None for _, assignment in tiles
+    ):
+        raise InvalidThemeAsset("Reveal motion requires part configuration for every location")
     return LoadedThemePack(
         manifest=manifest,
-        tiles=_compiled_tiles(pack_dir, manifest.tiles),
+        tiles=tiles,
         board_variables=board_variables,
         document_variables=document_variables,
         connectors=connectors,

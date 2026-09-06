@@ -309,10 +309,14 @@ def test_repository_theme_catalog_is_discovered_from_pack_directories() -> None:
 
     assert registry.ids == (
         "canonical",
+        "botanical",
         "clouds",
         "islands",
         "lily",
         "planets",
+        "postcards",
+        "vinyl",
+        "workbench",
     )
     assert registry.diagnostics == ()
 

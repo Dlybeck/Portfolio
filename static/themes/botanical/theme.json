@@ -1,0 +1,19 @@
+{
+  "$schema": "portfolio-theme-pack/v1",
+  "id": "botanical",
+  "label": "Botanical Collection",
+  "version": 1,
+  "tiles": "tiles.json",
+  "presentation": "presentation.json",
+  "background": [
+    {
+      "asset": "assets/background.svg",
+      "depth": 1.0
+    }
+  ],
+  "selection": {
+    "enabled": true,
+    "randomEligible": true,
+    "randomWeight": 1
+  }
+}

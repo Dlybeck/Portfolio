@@ -17,6 +17,17 @@ from scripts.audit_theme_variants import (
 VISUAL_THEMES = ["canonical", "lily", "planets", "islands"]
 
 
+def selection_ticket(theme: str, excluding: str | None = None) -> int:
+    """Pin random test choices without assuming a fixed installed catalog."""
+    tickets = [
+        pack.id
+        for pack in theme_packs.ThemePackRegistry.discover().random_candidates
+        if pack.id != excluding
+        for _ in range(pack.selection.random_weight)
+    ]
+    return tickets.index(theme)
+
+
 @pytest.mark.parametrize("theme", ["lily", "planets", "islands"])
 def test_alternate_document_paragraph_rhythm_does_not_scale_with_page_width(
     browser_page: tuple[Page, str],
@@ -411,7 +422,9 @@ def test_enabled_theme_laboratory_renders_known_themes_and_fails_closed(
     assert '<html lang="en" class="main" data-board-theme="lily" data-theme-pack-visual' in lily.text
     assert 'select data-theme-selector' in lily.text
     assert '<option value="__random__">Surprise me</option>' in lily.text
-    assert lily.text.count('class="theme-selector-option"') == 4
+    assert lily.text.count('class="theme-selector-option"') == len(
+        theme_packs.ThemePackRegistry.discover().public_catalog()
+    )
     assert '<option class="theme-selector-option" value="canonical"' in lily.text
     assert '<option class="theme-selector-option" value="islands"' in lily.text
     assert '<option class="theme-selector-option" value="clouds"' not in lily.text
@@ -435,7 +448,8 @@ def test_runtime_themes_include_the_home_theme_chooser(
 ) -> None:
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", False)
     monkeypatch.setattr(settings, "THEMES_ENABLED", True)
-    monkeypatch.setattr(theme_packs.secrets, "randbelow", lambda total: 1)
+    ticket = selection_ticket("islands")
+    monkeypatch.setattr(theme_packs.secrets, "randbelow", lambda total: ticket)
 
     board = client.get("/")
 
@@ -565,7 +579,10 @@ def test_unpinned_refresh_selects_a_new_world_while_a_query_pin_is_stable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
-    tickets = iter((1, 2, 3))
+    tickets = iter((
+        selection_ticket("islands"),
+        selection_ticket("planets", excluding="islands"),
+    ))
     monkeypatch.setattr(theme_packs.secrets, "randbelow", lambda total: next(tickets))
     page, origin = browser_page
 
@@ -1097,7 +1114,9 @@ def test_document_text_and_component_roles_are_owned_by_each_pack(
 ) -> None:
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
     page, origin = browser_page
-    page.goto(f"{origin}/projects/programs?theme={theme}", wait_until="domcontentloaded")
+    # The shell can open before the iframe's stylesheet is ready. Compare
+    # computed presentation only after the document's resources have loaded.
+    page.goto(f"{origin}/projects/programs?theme={theme}", wait_until="networkidle")
     page.locator(".mini-window-container.open").wait_for()
     document = page.frame_locator(".mini-window")
 

@@ -1,0 +1,548 @@
+{
+  "assignments": {
+    "3D Printing": {
+      "base": "assets/tiles/3d-printing-base.svg",
+      "expanded": "assets/tiles/3d-printing-expanded.svg",
+      "factors": {
+        "silhouette": 3,
+        "palette": 4,
+        "orientation": 5,
+        "landscape": 0,
+        "envelope": 2,
+        "postage": 0
+      },
+      "transforms": {
+        "base": {
+          "rotationDegrees": 2.9,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 1.01,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 5,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
+    },
+    "College": {
+      "base": "assets/tiles/college-base.svg",
+      "expanded": "assets/tiles/college-expanded.svg",
+      "factors": {
+        "silhouette": 1,
+        "palette": 3,
+        "orientation": 3,
+        "landscape": 0,
+        "envelope": 1,
+        "postage": 3
+      },
+      "transforms": {
+        "base": {
+          "rotationDegrees": -3.2,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": -1.12,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -8,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
+    },
+    "Digital Planner": {
+      "base": "assets/tiles/digital-planner-base.svg",
+      "expanded": "assets/tiles/digital-planner-expanded.svg",
+      "factors": {
+        "silhouette": 1,
+        "palette": 2,
+        "orientation": 1,
+        "landscape": 1,
+        "envelope": 3,
+        "postage": 2
+      },
+      "transforms": {
+        "base": {
+          "rotationDegrees": 0.3,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 0.1,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 14,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
+    },
+    "Early Education": {
+      "base": "assets/tiles/early-education-base.svg",
+      "expanded": "assets/tiles/early-education-expanded.svg",
+      "factors": {
+        "silhouette": 3,
+        "palette": 0,
+        "orientation": 4,
+        "landscape": 0,
+        "envelope": 2,
+        "postage": 0
+      },
+      "transforms": {
+        "base": {
+          "rotationDegrees": -4.0,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": -1.4,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -15,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
+    },
+    "Education": {
+      "base": "assets/tiles/education-base.svg",
+      "expanded": "assets/tiles/education-expanded.svg",
+      "factors": {
+        "silhouette": 2,
+        "palette": 1,
+        "orientation": 4,
+        "landscape": 2,
+        "envelope": 2,
+        "postage": 3
+      },
+      "transforms": {
+        "base": {
+          "rotationDegrees": 2.9,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 1.01,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 15,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
+    },
+    "Gaming": {
+      "base": "assets/tiles/gaming-base.svg",
+      "expanded": "assets/tiles/gaming-expanded.svg",
+      "factors": {
+        "silhouette": 1,
+        "palette": 4,
+        "orientation": 2,
+        "landscape": 2,
+        "envelope": 2,
+        "postage": 2
+      },
+      "transforms": {
+        "base": {
+          "rotationDegrees": 0.6,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 0.21,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 6,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
+    },
+    "Hobbies": {
+      "base": "assets/tiles/hobbies-base.svg",
+      "expanded": "assets/tiles/hobbies-expanded.svg",
+      "factors": {
+        "silhouette": 3,
+        "palette": 4,
+        "orientation": 5,
+        "landscape": 0,
+        "envelope": 1,
+        "postage": 2
+      },
+      "transforms": {
+        "base": {
+          "rotationDegrees": 1.9,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 0.66,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -3,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
+    },
+    "Home": {
+      "base": "assets/tiles/home-base.svg",
+      "expanded": "assets/tiles/home-expanded.svg",
+      "factors": {
+        "silhouette": 3,
+        "palette": 4,
+        "orientation": 3,
+        "landscape": 0,
+        "envelope": 1,
+        "postage": 1
+      },
+      "transforms": {
+        "base": {
+          "rotationDegrees": -4.0,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": -1.4,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -14,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
+    },
+    "Other Models": {
+      "base": "assets/tiles/other-models-base.svg",
+      "expanded": "assets/tiles/other-models-expanded.svg",
+      "factors": {
+        "silhouette": 3,
+        "palette": 4,
+        "orientation": 6,
+        "landscape": 2,
+        "envelope": 3,
+        "postage": 0
+      },
+      "transforms": {
+        "base": {
+          "rotationDegrees": 1.1,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 0.39,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 6,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
+    },
+    "Programs": {
+      "base": "assets/tiles/programs-base.svg",
+      "expanded": "assets/tiles/programs-expanded.svg",
+      "factors": {
+        "silhouette": 2,
+        "palette": 4,
+        "orientation": 6,
+        "landscape": 2,
+        "envelope": 2,
+        "postage": 3
+      },
+      "transforms": {
+        "base": {
+          "rotationDegrees": 2.2,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 0.77,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 12,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
+    },
+    "Projects": {
+      "base": "assets/tiles/projects-base.svg",
+      "expanded": "assets/tiles/projects-expanded.svg",
+      "factors": {
+        "silhouette": 2,
+        "palette": 1,
+        "orientation": 4,
+        "landscape": 0,
+        "envelope": 0,
+        "postage": 2
+      },
+      "transforms": {
+        "base": {
+          "rotationDegrees": 3.9,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 1.36,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 3,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
+    },
+    "Puzzles": {
+      "base": "assets/tiles/puzzles-base.svg",
+      "expanded": "assets/tiles/puzzles-expanded.svg",
+      "factors": {
+        "silhouette": 1,
+        "palette": 3,
+        "orientation": 2,
+        "landscape": 1,
+        "envelope": 3,
+        "postage": 1
+      },
+      "transforms": {
+        "base": {
+          "rotationDegrees": -0.4,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": -0.14,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -15,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
+    },
+    "ScribbleScan": {
+      "base": "assets/tiles/scribblescan-base.svg",
+      "expanded": "assets/tiles/scribblescan-expanded.svg",
+      "factors": {
+        "silhouette": 3,
+        "palette": 3,
+        "orientation": 3,
+        "landscape": 3,
+        "envelope": 3,
+        "postage": 0
+      },
+      "transforms": {
+        "base": {
+          "rotationDegrees": 3.3,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 1.15,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 1,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
+    },
+    "Tennis": {
+      "base": "assets/tiles/tennis-base.svg",
+      "expanded": "assets/tiles/tennis-expanded.svg",
+      "factors": {
+        "silhouette": 3,
+        "palette": 4,
+        "orientation": 6,
+        "landscape": 1,
+        "envelope": 2,
+        "postage": 1
+      },
+      "transforms": {
+        "base": {
+          "rotationDegrees": 2.8,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 0.98,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -9,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
+    },
+    "This website": {
+      "base": "assets/tiles/this-website-base.svg",
+      "expanded": "assets/tiles/this-website-expanded.svg",
+      "factors": {
+        "silhouette": 1,
+        "palette": 4,
+        "orientation": 1,
+        "landscape": 2,
+        "envelope": 0,
+        "postage": 0
+      },
+      "transforms": {
+        "base": {
+          "rotationDegrees": 1.3,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 0.45,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -13,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
+    },
+    "Websites": {
+      "base": "assets/tiles/websites-base.svg",
+      "expanded": "assets/tiles/websites-expanded.svg",
+      "factors": {
+        "silhouette": 1,
+        "palette": 1,
+        "orientation": 1,
+        "landscape": 2,
+        "envelope": 0,
+        "postage": 2
+      },
+      "transforms": {
+        "base": {
+          "rotationDegrees": 0.4,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 0.14,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": -2,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
+    },
+    "Work Experience": {
+      "base": "assets/tiles/work-experience-base.svg",
+      "expanded": "assets/tiles/work-experience-expanded.svg",
+      "factors": {
+        "silhouette": 0,
+        "palette": 4,
+        "orientation": 3,
+        "landscape": 1,
+        "envelope": 3,
+        "postage": 2
+      },
+      "transforms": {
+        "base": {
+          "rotationDegrees": 1.0,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "expanded": {
+          "rotationDegrees": 0.35,
+          "offsetXPixels": 0,
+          "offsetYPixels": 0
+        },
+        "detailRotationDegrees": 0
+      },
+      "motion": {
+        "durationOffsetMilliseconds": 10,
+        "rotationOffsetDegrees": 0,
+        "offsetXPixels": 0,
+        "offsetYPixels": 0,
+        "scaleOffset": 0
+      }
+    }
+  }
+}

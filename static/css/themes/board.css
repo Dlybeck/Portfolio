@@ -133,6 +133,12 @@
   opacity: .98;
 }
 
+/* Opaque materials must cover the underlying tile and its title. Existing
+   packs retain their historical translucency unless their SVG opts in. */
+.tile-expanded .theme-object[opacity="1"] {
+  opacity: 1;
+}
+
 .scrap-title,
 .expanded-title,
 .expanded-text,

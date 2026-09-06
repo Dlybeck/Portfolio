@@ -203,6 +203,11 @@ overflow check alone does not establish readable size or pleasing placement.
 Base and expanded states keep the same Theme Instance identity and factor
 selection even when their artwork differs.
 
+Opaque physical surfaces may declare `opacity="1"` on the root SVG. The shared
+presenter honors that explicit choice for expanded artwork, preventing the
+underlying title from ghosting through paper. Assets without this declaration
+retain the historical expanded opacity of `.98`; existing packs are unchanged.
+
 Each location also declares inert transform and motion channels. `transforms`
 owns independent base and expanded rotation and X/Y offset plus a detail
 rotation for real-world elements such as tape. `motion` provides small bounded

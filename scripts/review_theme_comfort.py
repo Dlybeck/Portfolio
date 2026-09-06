@@ -18,7 +18,7 @@ def main():
     parser.add_argument('--origin', default='http://127.0.0.1:51353')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--themes', nargs='+', default=['canonical', 'lily', 'planets', 'islands'],
-                        choices=['canonical', 'lily', 'planets', 'islands'])
+                        help='Installed Theme Pack ids to capture')
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     measurements = []

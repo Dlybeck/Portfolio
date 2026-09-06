@@ -315,8 +315,9 @@
                 ? fitExpandedContent(expandedBody)
                 : true;
             const revealFits = window.themeReveal?.layout(tile) ?? true;
+            const swapFits = window.themeSwap?.layout(tile) ?? true;
             tile.dataset.themeContentFit = fontsReady
-                ? String(baseFits && expandedFits && revealFits)
+                ? String(baseFits && expandedFits && revealFits && swapFits)
                 : "pending";
         });
     }
@@ -339,6 +340,7 @@
             .forEach((node) => node.remove());
         document.querySelectorAll(".tile-container").forEach((tile) => {
             window.themeReveal?.clean(tile);
+            window.themeSwap?.clean(tile);
             delete tile.dataset.themeIdentity;
             delete tile.dataset.themeShape;
             delete tile.dataset.themePalette;
@@ -558,6 +560,9 @@
                 expandedBody.prepend(expandedSvg);
                 if (pack.variables.board['focus-motion'] === 'reveal') {
                     window.themeReveal?.install(tile, assignment, expandedSvg);
+                }
+                if (pack.variables.board['focus-motion'] === 'swap') {
+                    window.themeSwap.install(tile, assignment, expandedSvg);
                 }
             }
         });

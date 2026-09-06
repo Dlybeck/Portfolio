@@ -36,37 +36,41 @@
         "parts": {
           "back": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
-          },
-          "flap": {
-            "x": 0,
-            "y": -35.92,
-            "scale": 0.48,
-            "originX": 120,
-            "originY": 148,
-            "flipY": -1,
-            "foreground": true,
-            "openOpacity": 0
+            "originY": 100
           },
           "card": {
             "x": 0,
-            "y": 20.52,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
+            "originY": 100
           },
           "front": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165,
+            "originY": 100,
+            "foreground": true
+          },
+          "flap": {
+            "x": 0,
+            "y": 36,
+            "scale": 0.52,
+            "originX": 120,
+            "originY": 25,
+            "flipY": -1,
             "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "card",
+        "carrierPart": "front",
+        "liftY": -85
       }
     },
     "College": {
@@ -105,37 +109,41 @@
         "parts": {
           "back": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
-          },
-          "flap": {
-            "x": 0,
-            "y": -35.92,
-            "scale": 0.48,
-            "originX": 120,
-            "originY": 148,
-            "flipY": -1,
-            "foreground": true,
-            "openOpacity": 0
+            "originY": 100
           },
           "card": {
             "x": 0,
-            "y": 20.52,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
+            "originY": 100
           },
           "front": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165,
+            "originY": 100,
+            "foreground": true
+          },
+          "flap": {
+            "x": 0,
+            "y": 36,
+            "scale": 0.52,
+            "originX": 120,
+            "originY": 25,
+            "flipY": -1,
             "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "card",
+        "carrierPart": "front",
+        "liftY": -85
       }
     },
     "Digital Planner": {
@@ -174,37 +182,41 @@
         "parts": {
           "back": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
-          },
-          "flap": {
-            "x": 0,
-            "y": -35.92,
-            "scale": 0.48,
-            "originX": 120,
-            "originY": 148,
-            "flipY": -1,
-            "foreground": true,
-            "openOpacity": 0
+            "originY": 100
           },
           "card": {
             "x": 0,
-            "y": 20.52,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
+            "originY": 100
           },
           "front": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165,
+            "originY": 100,
+            "foreground": true
+          },
+          "flap": {
+            "x": 0,
+            "y": 36,
+            "scale": 0.52,
+            "originX": 120,
+            "originY": 25,
+            "flipY": -1,
             "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "card",
+        "carrierPart": "front",
+        "liftY": -85
       }
     },
     "Early Education": {
@@ -243,37 +255,41 @@
         "parts": {
           "back": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
-          },
-          "flap": {
-            "x": 0,
-            "y": -35.92,
-            "scale": 0.48,
-            "originX": 120,
-            "originY": 148,
-            "flipY": -1,
-            "foreground": true,
-            "openOpacity": 0
+            "originY": 100
           },
           "card": {
             "x": 0,
-            "y": 20.52,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
+            "originY": 100
           },
           "front": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165,
+            "originY": 100,
+            "foreground": true
+          },
+          "flap": {
+            "x": 0,
+            "y": 36,
+            "scale": 0.52,
+            "originX": 120,
+            "originY": 25,
+            "flipY": -1,
             "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "card",
+        "carrierPart": "front",
+        "liftY": -85
       }
     },
     "Education": {
@@ -312,37 +328,41 @@
         "parts": {
           "back": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
-          },
-          "flap": {
-            "x": 0,
-            "y": -35.92,
-            "scale": 0.48,
-            "originX": 120,
-            "originY": 148,
-            "flipY": -1,
-            "foreground": true,
-            "openOpacity": 0
+            "originY": 100
           },
           "card": {
             "x": 0,
-            "y": 20.52,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
+            "originY": 100
           },
           "front": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165,
+            "originY": 100,
+            "foreground": true
+          },
+          "flap": {
+            "x": 0,
+            "y": 36,
+            "scale": 0.52,
+            "originX": 120,
+            "originY": 25,
+            "flipY": -1,
             "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "card",
+        "carrierPart": "front",
+        "liftY": -85
       }
     },
     "Gaming": {
@@ -381,37 +401,41 @@
         "parts": {
           "back": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
-          },
-          "flap": {
-            "x": 0,
-            "y": -35.92,
-            "scale": 0.48,
-            "originX": 120,
-            "originY": 148,
-            "flipY": -1,
-            "foreground": true,
-            "openOpacity": 0
+            "originY": 100
           },
           "card": {
             "x": 0,
-            "y": 20.52,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
+            "originY": 100
           },
           "front": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165,
+            "originY": 100,
+            "foreground": true
+          },
+          "flap": {
+            "x": 0,
+            "y": 36,
+            "scale": 0.52,
+            "originX": 120,
+            "originY": 25,
+            "flipY": -1,
             "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "card",
+        "carrierPart": "front",
+        "liftY": -85
       }
     },
     "Hobbies": {
@@ -450,37 +474,41 @@
         "parts": {
           "back": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
-          },
-          "flap": {
-            "x": 0,
-            "y": -35.92,
-            "scale": 0.48,
-            "originX": 120,
-            "originY": 148,
-            "flipY": -1,
-            "foreground": true,
-            "openOpacity": 0
+            "originY": 100
           },
           "card": {
             "x": 0,
-            "y": 20.52,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
+            "originY": 100
           },
           "front": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165,
+            "originY": 100,
+            "foreground": true
+          },
+          "flap": {
+            "x": 0,
+            "y": 36,
+            "scale": 0.52,
+            "originX": 120,
+            "originY": 25,
+            "flipY": -1,
             "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "card",
+        "carrierPart": "front",
+        "liftY": -85
       }
     },
     "Home": {
@@ -519,37 +547,41 @@
         "parts": {
           "back": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
-          },
-          "flap": {
-            "x": 0,
-            "y": -35.92,
-            "scale": 0.48,
-            "originX": 120,
-            "originY": 148,
-            "flipY": -1,
-            "foreground": true,
-            "openOpacity": 0
+            "originY": 100
           },
           "card": {
             "x": 0,
-            "y": 20.52,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
+            "originY": 100
           },
           "front": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165,
+            "originY": 100,
+            "foreground": true
+          },
+          "flap": {
+            "x": 0,
+            "y": 36,
+            "scale": 0.52,
+            "originX": 120,
+            "originY": 25,
+            "flipY": -1,
             "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "card",
+        "carrierPart": "front",
+        "liftY": -85
       }
     },
     "Other Models": {
@@ -588,37 +620,41 @@
         "parts": {
           "back": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
-          },
-          "flap": {
-            "x": 0,
-            "y": -35.92,
-            "scale": 0.48,
-            "originX": 120,
-            "originY": 148,
-            "flipY": -1,
-            "foreground": true,
-            "openOpacity": 0
+            "originY": 100
           },
           "card": {
             "x": 0,
-            "y": 20.52,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
+            "originY": 100
           },
           "front": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165,
+            "originY": 100,
+            "foreground": true
+          },
+          "flap": {
+            "x": 0,
+            "y": 36,
+            "scale": 0.52,
+            "originX": 120,
+            "originY": 25,
+            "flipY": -1,
             "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "card",
+        "carrierPart": "front",
+        "liftY": -85
       }
     },
     "Programs": {
@@ -657,37 +693,41 @@
         "parts": {
           "back": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
-          },
-          "flap": {
-            "x": 0,
-            "y": -35.92,
-            "scale": 0.48,
-            "originX": 120,
-            "originY": 148,
-            "flipY": -1,
-            "foreground": true,
-            "openOpacity": 0
+            "originY": 100
           },
           "card": {
             "x": 0,
-            "y": 20.52,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
+            "originY": 100
           },
           "front": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165,
+            "originY": 100,
+            "foreground": true
+          },
+          "flap": {
+            "x": 0,
+            "y": 36,
+            "scale": 0.52,
+            "originX": 120,
+            "originY": 25,
+            "flipY": -1,
             "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "card",
+        "carrierPart": "front",
+        "liftY": -85
       }
     },
     "Projects": {
@@ -726,37 +766,41 @@
         "parts": {
           "back": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
-          },
-          "flap": {
-            "x": 0,
-            "y": -35.92,
-            "scale": 0.48,
-            "originX": 120,
-            "originY": 148,
-            "flipY": -1,
-            "foreground": true,
-            "openOpacity": 0
+            "originY": 100
           },
           "card": {
             "x": 0,
-            "y": 20.52,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
+            "originY": 100
           },
           "front": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165,
+            "originY": 100,
+            "foreground": true
+          },
+          "flap": {
+            "x": 0,
+            "y": 36,
+            "scale": 0.52,
+            "originX": 120,
+            "originY": 25,
+            "flipY": -1,
             "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "card",
+        "carrierPart": "front",
+        "liftY": -85
       }
     },
     "Puzzles": {
@@ -795,37 +839,41 @@
         "parts": {
           "back": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
-          },
-          "flap": {
-            "x": 0,
-            "y": -35.92,
-            "scale": 0.48,
-            "originX": 120,
-            "originY": 148,
-            "flipY": -1,
-            "foreground": true,
-            "openOpacity": 0
+            "originY": 100
           },
           "card": {
             "x": 0,
-            "y": 20.52,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
+            "originY": 100
           },
           "front": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165,
+            "originY": 100,
+            "foreground": true
+          },
+          "flap": {
+            "x": 0,
+            "y": 36,
+            "scale": 0.52,
+            "originX": 120,
+            "originY": 25,
+            "flipY": -1,
             "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "card",
+        "carrierPart": "front",
+        "liftY": -85
       }
     },
     "ScribbleScan": {
@@ -864,37 +912,41 @@
         "parts": {
           "back": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
-          },
-          "flap": {
-            "x": 0,
-            "y": -35.92,
-            "scale": 0.48,
-            "originX": 120,
-            "originY": 148,
-            "flipY": -1,
-            "foreground": true,
-            "openOpacity": 0
+            "originY": 100
           },
           "card": {
             "x": 0,
-            "y": 20.52,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
+            "originY": 100
           },
           "front": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165,
+            "originY": 100,
+            "foreground": true
+          },
+          "flap": {
+            "x": 0,
+            "y": 36,
+            "scale": 0.52,
+            "originX": 120,
+            "originY": 25,
+            "flipY": -1,
             "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "card",
+        "carrierPart": "front",
+        "liftY": -85
       }
     },
     "Tennis": {
@@ -933,37 +985,41 @@
         "parts": {
           "back": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
-          },
-          "flap": {
-            "x": 0,
-            "y": -35.92,
-            "scale": 0.48,
-            "originX": 120,
-            "originY": 148,
-            "flipY": -1,
-            "foreground": true,
-            "openOpacity": 0
+            "originY": 100
           },
           "card": {
             "x": 0,
-            "y": 20.52,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
+            "originY": 100
           },
           "front": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165,
+            "originY": 100,
+            "foreground": true
+          },
+          "flap": {
+            "x": 0,
+            "y": 36,
+            "scale": 0.52,
+            "originX": 120,
+            "originY": 25,
+            "flipY": -1,
             "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "card",
+        "carrierPart": "front",
+        "liftY": -85
       }
     },
     "This website": {
@@ -1002,37 +1058,41 @@
         "parts": {
           "back": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
-          },
-          "flap": {
-            "x": 0,
-            "y": -35.92,
-            "scale": 0.48,
-            "originX": 120,
-            "originY": 148,
-            "flipY": -1,
-            "foreground": true,
-            "openOpacity": 0
+            "originY": 100
           },
           "card": {
             "x": 0,
-            "y": 20.52,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
+            "originY": 100
           },
           "front": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165,
+            "originY": 100,
+            "foreground": true
+          },
+          "flap": {
+            "x": 0,
+            "y": 36,
+            "scale": 0.52,
+            "originX": 120,
+            "originY": 25,
+            "flipY": -1,
             "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "card",
+        "carrierPart": "front",
+        "liftY": -85
       }
     },
     "Websites": {
@@ -1071,37 +1131,41 @@
         "parts": {
           "back": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
-          },
-          "flap": {
-            "x": 0,
-            "y": -35.92,
-            "scale": 0.48,
-            "originX": 120,
-            "originY": 148,
-            "flipY": -1,
-            "foreground": true,
-            "openOpacity": 0
+            "originY": 100
           },
           "card": {
             "x": 0,
-            "y": 20.52,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
+            "originY": 100
           },
           "front": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165,
+            "originY": 100,
+            "foreground": true
+          },
+          "flap": {
+            "x": 0,
+            "y": 36,
+            "scale": 0.52,
+            "originX": 120,
+            "originY": 25,
+            "flipY": -1,
             "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "card",
+        "carrierPart": "front",
+        "liftY": -85
       }
     },
     "Work Experience": {
@@ -1140,37 +1204,41 @@
         "parts": {
           "back": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
-          },
-          "flap": {
-            "x": 0,
-            "y": -35.92,
-            "scale": 0.48,
-            "originX": 120,
-            "originY": 148,
-            "flipY": -1,
-            "foreground": true,
-            "openOpacity": 0
+            "originY": 100
           },
           "card": {
             "x": 0,
-            "y": 20.52,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165
+            "originY": 100
           },
           "front": {
             "x": 0,
-            "y": -44.76,
-            "scale": 0.48,
+            "y": 0,
+            "scale": 0.52,
             "originX": 120,
-            "originY": 165,
+            "originY": 100,
+            "foreground": true
+          },
+          "flap": {
+            "x": 0,
+            "y": 36,
+            "scale": 0.52,
+            "originX": 120,
+            "originY": 25,
+            "flipY": -1,
             "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "card",
+        "carrierPart": "front",
+        "liftY": -85
       }
     }
   }

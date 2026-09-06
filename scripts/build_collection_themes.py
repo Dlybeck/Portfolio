@@ -399,7 +399,7 @@ def main():
         write_json(folder/'theme.json',{'$schema':'portfolio-theme-pack/v1','id':theme,'label':c['label'],
           'version':1,'tiles':'tiles.json','presentation':'presentation.json',
           'background':[{'asset':'assets/background.svg','depth':1.0}],
-          'selection':{'enabled':True,'randomEligible':True,'randomWeight':1}})
+          'selection':{'enabled':theme == 'postcards','randomEligible':theme == 'postcards','randomWeight':1}})
         print(f'Built {theme}: {len(assignments)} locations')
 
     # Keep the single authoring command reproducible: the two selected worlds

@@ -838,7 +838,8 @@
             "cover",
             "grow",
             "settle",
-            "reveal"
+            "reveal",
+            "swap"
           ]
         },
         "font-action": {

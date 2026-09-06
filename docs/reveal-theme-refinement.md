@@ -1,5 +1,10 @@
 # Reveal theme refinement
 
+**Owner rejected this implementation.** Its endpoint was not the requested
+extract-and-place-on-top Swap, and its sleeve lettering changed without a
+physical transition. The tests below do not establish realism. See
+[Full realism polish](full-realism-polish.md) for the current goal and rules.
+
 ## Goal contract
 
 Finish refining the two new themes the owner selected: Vinyl Collection and

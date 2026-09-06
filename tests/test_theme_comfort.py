@@ -2,7 +2,7 @@ import pytest
 from playwright.sync_api import expect
 
 
-@pytest.mark.parametrize('theme', ['lily', 'planets', 'islands', 'vinyl', 'botanical', 'workbench', 'postcards'])
+@pytest.mark.parametrize('theme', ['lily', 'planets', 'islands', 'postcards'])
 @pytest.mark.parametrize('width', [320, 390, 768, 1440])
 def test_content_fits_the_rendered_svg_at_readable_sizes(browser_page, theme, width):
     page, origin = browser_page
@@ -16,6 +16,7 @@ def test_content_fits_the_rendered_svg_at_readable_sizes(browser_page, theme, wi
         .tile-expanded { animation: none !important;
             transform: translate(-50%, -50%) !important; }
         .theme-reveal-part,
+        .theme-swap-layer,
         [data-theme-reveal] .tile-expanded :is(.expanded-title,.expanded-text,.expanded-open) {
             transform: none !important; transition: none !important;
         }
@@ -47,7 +48,7 @@ def test_content_fits_the_rendered_svg_at_readable_sizes(browser_page, theme, wi
     assert issues == []
 
 
-@pytest.mark.parametrize('theme', ['lily', 'planets', 'islands', 'vinyl', 'botanical', 'workbench', 'postcards'])
+@pytest.mark.parametrize('theme', ['lily', 'planets', 'islands', 'postcards'])
 def test_phone_document_uses_reading_width_and_separates_photos(browser_page, theme):
     page, origin = browser_page
     page.set_viewport_size({'width': 390, 'height': 844})

@@ -61,68 +61,139 @@ def test_invalid_reveal_is_rejected(tmp_path, change):
         load_theme_pack(folder)
 
 
-@pytest.mark.parametrize('theme', ['vinyl', 'postcards'])
-@pytest.mark.parametrize('width', [390, 1440])
-def test_reveal_reverses_same_parts_and_preserves_neighbors(theme, width, browser_page):
-    page, origin = browser_page
-    page.set_viewport_size({'width':width, 'height':844})
-    page.goto(f'{origin}/?theme={theme}', wait_until='networkidle')
-    page.wait_for_timeout(750)
-    page.evaluate('''() => {
-        window.originalAssembly = document.querySelector('[data-title="Home"] [data-theme-size="expanded"]');
-        window.originalParts = [...window.originalAssembly.querySelectorAll(':scope > [data-theme-part]')];
-        window.centerOnTile('Hobbies');
-    }''')
-    page.wait_for_timeout(100)
-    result = page.evaluate('''() => {
-        const part = window.originalParts[0];
-        const before = getComputedStyle(part).transform;
-        window.centerOnTile('Home');
-        const after = getComputedStyle(part).transform;
-        return {before, after, same: window.originalAssembly === document.querySelector('[data-title="Home"] [data-theme-size="expanded"]'),
-            leaving:document.querySelectorAll('[data-theme-reveal] .cover-leaving').length};
-    }''')
-    assert result['same'] and result['leaving'] == 0
-    assert result['before'] == result['after'], result
-    assert result['before'] != 'matrix(1, 0, 0, 1, 0, 0)'
-    page.wait_for_timeout(750)
-    assert page.evaluate('originalParts.every(p => getComputedStyle(p).transform === "matrix(1, 0, 0, 1, 0, 0)")')
-    page.get_by_role('button', name='Go to Hobbies', exact=True).click()
-    page.get_by_role('button', name='Go to Tennis', exact=True).click()
-    page.locator('.tile-container.expanded .expanded-open').click()
+@pytest.mark.parametrize('change', ['missing-swap','unknown-carrier','wrong-moving','nonfinite-lift','positive-lift','unequal-scale','transparent-part'])
+def test_invalid_swap_configuration_is_rejected(tmp_path, change):
+    folder=fixture_pack(tmp_path)
+    data=json.loads((folder/'tiles.json').read_text())
+    tile=data['assignments']['Home']
+    if change=='missing-swap': del tile['swap']
+    elif change=='unknown-carrier': tile['swap']['carrierPart']='absent'
+    elif change=='wrong-moving': tile['swap']['movingPart']='back'
+    elif change=='nonfinite-lift': tile['swap']['liftY']=float('nan')
+    elif change=='unequal-scale': tile['reveal']['parts']['card']['scale']=.8
+    elif change=='transparent-part': tile['reveal']['parts']['flap']['openOpacity']=0
+    else: tile['swap']['liftY']=50
+    (folder/'tiles.json').write_text(json.dumps(data))
+    with pytest.raises((InvalidThemeAsset, ValueError)):
+        load_theme_pack(folder)
+
+
+def test_swap_touch_then_keyboard_document_flow(mobile_browser_page):
+    page, origin=mobile_browser_page
+    page.goto(f'{origin}/?theme=postcards',wait_until='networkidle')
+    page.get_by_role('button',name='Go to Hobbies',exact=True).tap()
+    page.get_by_role('button',name='Go to Tennis',exact=True).tap()
+    page.locator('.expanded .expanded-open').focus()
+    page.keyboard.press('Enter')
     expect(page.frame_locator('.mini-window').locator('#location')).to_have_text('Tennis')
     page.keyboard.press('Escape')
-    expect(page.locator('.tile-container.expanded')).to_have_attribute('data-title', 'Tennis')
+    expect(page.locator('.tile-container.expanded')).to_have_attribute('data-title','Tennis')
 
 
-@pytest.mark.parametrize('theme', ['vinyl', 'postcards'])
-def test_reveal_reduced_motion_and_cleanup(theme, browser_page):
+@pytest.mark.parametrize('theme', ['lily','planets','islands'])
+def test_natural_world_grow_does_not_fade_solid_objects(theme, browser_page):
+    page, origin=browser_page
+    page.goto(f'{origin}/?theme={theme}',wait_until='networkidle')
+    expect(page.locator('html')).to_have_attribute('data-theme-focus-motion','grow')
+    result=page.evaluate("""async () => {
+        window.centerOnTile('Hobbies');
+        await new Promise(requestAnimationFrame);
+        const surface=document.querySelector('.expanded .tile-expanded');
+        const animation=surface.getAnimations().find(a=>a.animationName==='focus-grow-enter');
+        animation.pause(); animation.currentTime=40;
+        return getComputedStyle(surface).opacity;
+    }""")
+    assert result=='1'
+
+
+@pytest.mark.parametrize('width', [390, 1440])
+def test_swap_is_opaque_clears_carrier_and_keeps_writing_attached(width, browser_page):
     page, origin = browser_page
-    page.emulate_media(reduced_motion='reduce')
-    page.goto(f'{origin}/?theme={theme}', wait_until='networkidle')
+    page.set_viewport_size({'width': width, 'height': 844})
+    page.goto(f'{origin}/?theme=postcards', wait_until='networkidle')
+    result = page.evaluate("""async () => {
+        const tile=document.querySelector('[data-title="Home"]');
+        const card=tile.querySelector('[data-swap-part="card"]');
+        const front=tile.querySelector('[data-swap-part="front"]');
+        const title=tile.querySelector('.swap-carrier-title');
+        const writing=[...card.querySelectorAll('.expanded-title,.expanded-text,.home-theme-selector')];
+        const texts=writing.map(n=>n.textContent);
+        const samples=[];
+        function measure() {
+            const c=card.querySelector('[data-theme-part="card"]').getBoundingClientRect();
+            const f=front.querySelector('[data-theme-part="front"]').getBoundingClientRect();
+            const p=Number(tile.dataset.swapProgress);
+            samples.push({p, z:Number(card.style.zIndex), cardBottom:c.bottom, carrierTop:f.top,
+                opaque:getComputedStyle(card).opacity==='1',
+                stable:writing.every((n,i)=>n.parentElement===card && n.textContent===texts[i]) && title.textContent==='Home',
+                neighbors:[...document.querySelectorAll('.connected .tile-base')].every(n=>{
+                    const b=n.getBoundingClientRect();
+                    if (b.x+b.width/2<0 || b.x+b.width/2>=innerWidth || b.y+b.height/2<0 || b.y+b.height/2>=innerHeight) return true;
+                    const hit=document.elementFromPoint(b.x+b.width/2,b.y+b.height/2);
+                    // Fixed site chrome already overlays destinations passing
+                    // beneath it during the unchanged map-camera transition.
+                    if (hit?.closest('.navbar')) return true;
+                    return hit && (hit===n || n.contains(hit));
+                })});
+        }
+        async function leg(destination) {
+            window.centerOnTile(destination);
+            await new Promise(resolve=>{
+                const started=performance.now();
+                const tick=()=>{measure();if(performance.now()-started<1300)requestAnimationFrame(tick);else resolve();};
+                requestAnimationFrame(tick);
+            });
+        }
+        await leg('Hobbies');
+        await leg('Home');
+        return {samples, same:card===tile.querySelector('[data-swap-part="card"]')};
+    }""")
+    assert result['same']
+    samples = result['samples']
+    assert all(s['opaque'] and s['stable'] and s['neighbors'] for s in samples), [s for s in samples if not(s['opaque'] and s['stable'] and s['neighbors'])][:3]
+    crossings = [s for s in samples if .52 <= s['p'] <= .58]
+    assert crossings and all(s['cardBottom'] < s['carrierTop'] for s in crossings), crossings
+    assert all(s['z'] == (10 if s['p'] >= .55 else 2) for s in samples)
+    assert any(s['p'] == 0 for s in samples) and samples[-1]['p'] == 1
+    page.get_by_role('button', name='Go to Hobbies', exact=True).click()
+    page.get_by_role('button', name='Go to Tennis', exact=True).click()
+    page.locator('.expanded .expanded-open').click()
+    expect(page.frame_locator('.mini-window').locator('#location')).to_have_text('Tennis')
+
+
+def test_swap_reverses_without_reset_and_cleans_up(browser_page):
+    page, origin = browser_page
+    page.goto(f'{origin}/?theme=postcards', wait_until='networkidle')
     page.evaluate("window.centerOnTile('Hobbies')")
+    page.wait_for_timeout(350)
+    result=page.evaluate("""() => {
+        const tile=document.querySelector('[data-title="Home"]');
+        const card=tile.querySelector('[data-swap-part="card"]');
+        const before=card.style.transform;
+        window.centerOnTile('Home');
+        return {before,after:card.style.transform,p:Number(tile.dataset.swapProgress)};
+    }""")
+    assert result['before']==result['after'] and 0<result['p']<1
+    page.emulate_media(reduced_motion='reduce')
     page.wait_for_timeout(50)
-    assert page.locator('.expanded .theme-reveal-part').evaluate_all('nodes => nodes.every(n => getComputedStyle(n).transform === "matrix(1, 0, 0, 1, 0, 0)")')
+    assert page.locator('[data-title="Home"]').get_attribute('data-swap-progress') == '1'
     page.evaluate("window.themeEngine.activate('canonical')")
-    expect(page.locator('[data-theme-reveal]')).to_have_count(0)
-    expect(page.locator('.theme-reveal-foreground')).to_have_count(0)
-    expect(page.locator('[data-reveal-title]')).to_have_count(0)
-    expect(page.locator('html')).to_have_attribute('data-board-theme', 'canonical')
-    page.evaluate(f"window.themeEngine.activate('{theme}')")
-    expect(page.locator('[data-theme-reveal]')).to_have_count(17)
-
-
-@pytest.mark.parametrize('theme,contained,carrier', [('vinyl', 'record', 'sleeve'), ('postcards', 'card', 'back')])
-def test_contained_object_fits_its_carrier_when_closed(theme, contained, carrier, browser_page):
-    page, origin = browser_page
-    page.emulate_media(reduced_motion='reduce')
-    page.goto(f'{origin}/?theme={theme}', wait_until='networkidle')
+    expect(page.locator('[data-theme-swap],.theme-swap-layer')).to_have_count(0)
+    expect(page.locator('.expanded-title')).to_have_count(17)
+    page.evaluate("window.themeEngine.activate('postcards')")
+    expect(page.locator('[data-theme-swap]')).to_have_count(17)
     page.evaluate("window.centerOnTile('Hobbies')")
     page.wait_for_timeout(50)
-    svg = page.locator('[data-title="Home"] [data-theme-size="expanded"]')
-    inner = svg.locator(f':scope > [data-theme-part="{contained}"]').bounding_box()
-    outer = svg.locator(f':scope > [data-theme-part="{carrier}"]').bounding_box()
-    assert inner['x'] >= outer['x'] - 2
-    assert inner['y'] >= outer['y'] - 2
-    assert inner['x']+inner['width'] <= outer['x']+outer['width']+2
-    assert inner['y']+inner['height'] <= outer['y']+outer['height']+2
+    expect(page.locator('[data-title="Home"]')).to_have_attribute('data-swap-progress','0')
+
+
+@pytest.mark.parametrize('theme', ['vinyl','botanical','workbench','clouds'])
+def test_rejected_theme_is_unavailable_in_every_selection_path(theme, client, browser_page):
+    from core.theme_packs import ThemePackRegistry
+    registry=ThemePackRegistry.discover()
+    assert theme not in {p.id for p in registry.random_candidates}
+    assert registry.resolve(theme, enabled=True).id == 'canonical'
+    page, origin=browser_page
+    page.goto(f'{origin}/?theme={theme}', wait_until='networkidle')
+    expect(page.locator('html')).to_have_attribute('data-board-theme','canonical')
+    assert theme not in page.evaluate('window.themeEngine.availableThemes')

@@ -315,7 +315,7 @@ body,
 @keyframes focus-grow-enter {
   0% {
     visibility: visible;
-    opacity: .82;
+    opacity: 1;
     transform: translate(-50%, -50%)
       translate(
         calc(var(--expanded-jitter-x, 0px) + var(--theme-motion-offset-x, 0px)),
@@ -343,7 +343,7 @@ body,
   }
   100% {
     visibility: visible;
-    opacity: .82;
+    opacity: 1;
     transform: translate(-50%, -50%)
       translate(
         calc(var(--expanded-jitter-x, 0px) + var(--theme-motion-offset-x, 0px)),

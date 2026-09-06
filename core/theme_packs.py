@@ -348,6 +348,13 @@ class TileAssignment(StrictModel):
     typography: TileTypography | None = None
     layout: TileLayout | None = None
     reveal: TileReveal | None = None
+    swap: "TileSwap | None" = None
+
+
+class TileSwap(StrictModel):
+    moving_part: str = Field(alias="movingPart", pattern=r"^[a-z][a-z0-9-]{0,31}$")
+    carrier_part: str = Field(alias="carrierPart", pattern=r"^[a-z][a-z0-9-]{0,31}$")
+    lift_y: float = Field(alias="liftY", ge=-300, le=-1, allow_inf_nan=False)
 
 
 class TileCatalog(StrictModel):
@@ -555,6 +562,7 @@ class CompiledTileAssignment:
     typography: TileTypography | None
     layout: TileLayout | None
     reveal: TileReveal | None = None
+    swap: TileSwap | None = None
 
     def client_payload(self) -> dict[str, object]:
         return {
@@ -574,6 +582,7 @@ class CompiledTileAssignment:
                 else None
             ),
             "reveal": self.reveal.model_dump(by_alias=True) if self.reveal else None,
+            "swap": self.swap.model_dump(by_alias=True) if self.swap else None,
         }
 
 
@@ -705,6 +714,26 @@ def _compiled_tiles(pack_root: Path, reference: str) -> tuple[tuple[str, Compile
             )
         if assignment.reveal:
             _validate_reveal(assignment.reveal, expanded_svg)
+        if assignment.swap:
+            swap, reveal = assignment.swap, assignment.reveal
+            if (not reveal or swap.moving_part != reveal.content_part or reveal.title_part
+                    or swap.carrier_part not in reveal.parts or swap.carrier_part == swap.moving_part):
+                raise InvalidThemeAsset('Swap requires distinct moving content and carrier parts')
+            if (any(p.scale > 1 or p.open_opacity != 1 for p in reveal.parts.values())
+                    or reveal.parts[swap.moving_part].scale != reveal.parts[swap.carrier_part].scale):
+                raise InvalidThemeAsset('Swap requires opaque parts at matching contained scales')
+            root = ElementTree.fromstring(expanded_svg)
+            markers = [n for n in root if n.get('data-theme-carrier-title-area')]
+            if len(markers) != 1 or _local_name(markers[0].tag) != 'rect':
+                raise InvalidThemeAsset('Swap requires one carrier title area')
+            try:
+                x, y, w, h = [float(markers[0].get(k, 'nan')) for k in ('x','y','width','height')]
+                vx, vy, vw, vh = map(float, root.get('viewBox').split())
+            except (TypeError, ValueError) as error:
+                raise InvalidThemeAsset('Invalid carrier title area') from error
+            if (not all(map(math.isfinite, (x,y,w,h))) or w <= 0 or h <= 0
+                    or x < vx or y < vy or x+w > vx+vw or y+h > vy+vh):
+                raise InvalidThemeAsset('Carrier title area leaves its viewBox')
         typography = assignment.typography
         if typography is not None:
             typography = typography.model_copy(update={
@@ -760,6 +789,7 @@ def _compiled_tiles(pack_root: Path, reference: str) -> tuple[tuple[str, Compile
                     typography=typography,
                     layout=layout,
                     reveal=assignment.reveal,
+                    swap=assignment.swap,
                 ),
             )
         )
@@ -823,9 +853,9 @@ def _presentation(
     focus_motion = dict(board).get("focus-motion")
     if dict(board).get("content-area-space") not in {"box", "svg"}:
         raise InvalidThemeAsset("Board 'content-area-space' must be box or svg")
-    if focus_motion not in {"cover", "grow", "settle", "reveal"}:
+    if focus_motion not in {"cover", "grow", "settle", "reveal", "swap"}:
         raise InvalidThemeAsset(
-            "Board presentation token 'focus-motion' must be cover, grow, settle, or reveal"
+            "Board presentation token 'focus-motion' must be cover, grow, settle, reveal, or swap"
         )
     action_treatment = dict(board).get("action-treatment")
     if action_treatment not in {"annotation", "marker"}:
@@ -880,6 +910,10 @@ def load_theme_pack(pack_dir: Path) -> LoadedThemePack:
         for layer in manifest.background
     )
     tiles = _compiled_tiles(pack_dir, manifest.tiles)
+    if dict(board_variables)["focus-motion"] == "swap" and any(
+        assignment.swap is None for _, assignment in tiles
+    ):
+        raise InvalidThemeAsset('Swap requires configuration for every location')
     if dict(board_variables)["focus-motion"] == "reveal" and any(
         assignment.reveal is None for _, assignment in tiles
     ):

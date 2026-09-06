@@ -18,6 +18,7 @@ from core.theme_packs import (
     MIN_VARIATION_AXIS_COUNT,
     THEME_PACK_SCHEMA,
     TileReveal,
+    TileSwap,
 )
 
 
@@ -164,7 +165,7 @@ def main() -> None:
                     BOARD_PRESENTATION_TOKENS,
                     overrides={
                         "content-area-space": {"enum": ["box", "svg"]},
-                        "focus-motion": {"enum": ["cover", "grow", "settle", "reveal"]},
+                        "focus-motion": {"enum": ["cover", "grow", "settle", "reveal", "swap"]},
                         "action-treatment": {"enum": ["annotation", "marker"]},
                         "viewer-artifact": {
                             "enum": [
@@ -286,6 +287,7 @@ def main() -> None:
             "typography": typography,
             "layout": layout,
             "reveal": {"anyOf": [reveal, {"type": "null"}]},
+            "swap": {"anyOf": [TileSwap.model_json_schema(by_alias=True), {"type": "null"}]},
         },
         "required": ["base", "expanded", "factors", "transforms", "motion"],
         "additionalProperties": False,

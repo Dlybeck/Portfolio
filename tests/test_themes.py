@@ -508,7 +508,7 @@ def test_theme_switch_replaces_world_and_preserves_it_in_navigation(
         ("canonical", "cover", "cover-enter"),
         ("lily", "grow", "focus-grow-enter"),
         ("planets", "grow", "focus-grow-enter"),
-        ("islands", "settle", "focus-settle-enter"),
+        ("islands", "grow", "focus-grow-enter"),
     ],
 )
 def test_each_theme_selects_its_declared_focus_motion(
@@ -539,7 +539,7 @@ def test_each_theme_selects_its_declared_focus_motion(
         ("canonical", "cover-sweep"),
         ("lily", "focus-grow-exit"),
         ("planets", "focus-grow-exit"),
-        ("islands", "focus-settle-exit"),
+        ("islands", "focus-grow-exit"),
     ],
 )
 def test_focus_exit_finishes_once_and_keeps_neighbors_actionable(

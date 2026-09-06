@@ -139,7 +139,32 @@
   opacity: 1;
 }
 
-/* One persistent assembly; interrupted transitions reverse in place. */
+/* Staged Swap keeps printed surfaces opaque and their writing attached. */
+html[data-theme-focus-motion="swap"] .tile-container .tile-expanded {
+  visibility: visible;
+  pointer-events: none;
+  animation: none !important;
+  transform: translate(-50%, -50%) rotate(var(--rot));
+  z-index: 0;
+}
+html[data-theme-focus-motion="swap"] .tile-container.expanded .tile-expanded { z-index: 120; }
+[data-theme-swap] .tile-base :is(.theme-object,.scrap-title) { visibility: hidden; }
+[data-theme-swap] .tile-expanded .paper-body { pointer-events: none; }
+.theme-swap-layer {
+  position: absolute; inset: 0; box-sizing: border-box;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: inherit; pointer-events: none;
+}
+.swap-carrier-title {
+  position: absolute; display: flex; align-items: center; justify-content: center;
+  text-align: center; line-height: 1.05; font-weight: 700;
+  font-family: var(--theme-pack-font-base-title);
+  color: var(--theme-pack-ink);
+  overflow-wrap: normal; word-break: normal;
+}
+[data-theme-swap].expanded .theme-swap-layer :is(.expanded-open,.home-theme-selector) { pointer-events: auto; }
+
+/* Legacy Reveal is retained only for dormant source compatibility. */
 html[data-theme-focus-motion="reveal"] .tile-container[data-theme-reveal] .tile-expanded {
   visibility: visible;
   pointer-events: none;

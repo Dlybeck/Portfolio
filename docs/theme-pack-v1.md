@@ -259,14 +259,16 @@ satisfy the contract.
 ### Motion, responsive behavior, and accessibility
 
 The authoring choices are `grow` (same object enlarges), `cover` (a separate
-larger surface arrives), and `reveal` (a contained object comes out of its
-carrier). The existing `settle` preset remains supported for installed packs;
+larger surface arrives), and `swap` (extract, bring in front, lay on top).
+The earlier `reveal` interpretation was rejected by the owner; it remains only
+as dormant-source compatibility, not an approved authoring choice.
+The existing `settle` preset remains supported for installed packs;
 approved themes are not migrated to a different behavior. Timing, easing,
 offsets, scale, and rotation remain
 pack-owned presentation tokens. Adding an ordinary theme therefore requires a
 preset selection and parameters, not theme-specific runtime code.
 
-#### Reveal assemblies
+#### Physical part assemblies and Swap
 
 Reveal uses one persistent expanded SVG assembly, with direct root groups named
 `data-theme-part="card"`, for example. Each assignment supplies `reveal.parts`
@@ -289,6 +291,33 @@ so an envelope pocket can hide a card as it retracts. `openOpacity: 0` optionall
 hides a flap when it has folded behind the extracted item. Foreground parts
 cannot carry text. The renderer namespaces cloned definitions and removes the
 plane on theme changes. It does not duplicate the visible whole object.
+
+For the approved `swap` preset, an assignment adds
+`swap: {movingPart: "card", carrierPart: "front", liftY: -85}` alongside its
+part definitions. The moving part must carry all focused text; the carrier
+receives a separate, unchanging title in a direct-root
+`rect data-theme-carrier-title-area="title"`. The printed title, focused copy,
+and controls stay attached to their respective surfaces for the whole cycle.
+No text content is replaced, faded through an opaque object, or moved to a
+different physical surface to rescue a layout.
+
+The shared Swap renderer creates pointer-inert part planes containing SVG art
+and their semantic HTML writing. A single reversible progress value unfolds
+the flap, extracts at the small matching scale, changes front/back ordering
+only after clearing the opening, and places/enlarges the object on top. On
+leaving, that same path runs backward. Reduced motion snaps to the correct
+endpoint; interruption does not restart the sequence. Scale/translation come
+from the closed poses and extraction distance; installed theme names never
+appear in the runtime.
+
+Swap does not use Reveal's optional transparency. Its surfaces remain opaque.
+Ordinary navigation still owns hit targets, focus and Document opening; the
+part renderer never changes the Neighborhood. New physical assemblies must
+prove that their configured extraction distance clears the carrier and that
+neither extraction nor placement obstructs neighboring destinations.
+
+Current review authority and removal decisions are in
+[Full realism polish](full-realism-polish.md), not the rejected Reveal receipt.
 
 Focus changes CSS poses; interrupted transitions reverse from their current
 position. Reveal does not enqueue the cover exit animation. Existing duration

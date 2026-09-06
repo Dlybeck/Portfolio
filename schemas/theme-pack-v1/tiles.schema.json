@@ -324,6 +324,41 @@
                   "type": "null"
                 }
               ]
+            },
+            "swap": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "movingPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Movingpart",
+                      "type": "string"
+                    },
+                    "carrierPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Carrierpart",
+                      "type": "string"
+                    },
+                    "liftY": {
+                      "maximum": -1,
+                      "minimum": -300,
+                      "title": "Lifty",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "movingPart",
+                    "carrierPart",
+                    "liftY"
+                  ],
+                  "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -646,6 +681,41 @@
                     "contentPart"
                   ],
                   "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "swap": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "movingPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Movingpart",
+                      "type": "string"
+                    },
+                    "carrierPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Carrierpart",
+                      "type": "string"
+                    },
+                    "liftY": {
+                      "maximum": -1,
+                      "minimum": -300,
+                      "title": "Lifty",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "movingPart",
+                    "carrierPart",
+                    "liftY"
+                  ],
+                  "title": "TileSwap",
                   "type": "object"
                 },
                 {
@@ -980,6 +1050,41 @@
                   "type": "null"
                 }
               ]
+            },
+            "swap": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "movingPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Movingpart",
+                      "type": "string"
+                    },
+                    "carrierPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Carrierpart",
+                      "type": "string"
+                    },
+                    "liftY": {
+                      "maximum": -1,
+                      "minimum": -300,
+                      "title": "Lifty",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "movingPart",
+                    "carrierPart",
+                    "liftY"
+                  ],
+                  "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -1302,6 +1407,41 @@
                     "contentPart"
                   ],
                   "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "swap": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "movingPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Movingpart",
+                      "type": "string"
+                    },
+                    "carrierPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Carrierpart",
+                      "type": "string"
+                    },
+                    "liftY": {
+                      "maximum": -1,
+                      "minimum": -300,
+                      "title": "Lifty",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "movingPart",
+                    "carrierPart",
+                    "liftY"
+                  ],
+                  "title": "TileSwap",
                   "type": "object"
                 },
                 {
@@ -1636,6 +1776,41 @@
                   "type": "null"
                 }
               ]
+            },
+            "swap": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "movingPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Movingpart",
+                      "type": "string"
+                    },
+                    "carrierPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Carrierpart",
+                      "type": "string"
+                    },
+                    "liftY": {
+                      "maximum": -1,
+                      "minimum": -300,
+                      "title": "Lifty",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "movingPart",
+                    "carrierPart",
+                    "liftY"
+                  ],
+                  "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -1958,6 +2133,41 @@
                     "contentPart"
                   ],
                   "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "swap": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "movingPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Movingpart",
+                      "type": "string"
+                    },
+                    "carrierPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Carrierpart",
+                      "type": "string"
+                    },
+                    "liftY": {
+                      "maximum": -1,
+                      "minimum": -300,
+                      "title": "Lifty",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "movingPart",
+                    "carrierPart",
+                    "liftY"
+                  ],
+                  "title": "TileSwap",
                   "type": "object"
                 },
                 {
@@ -2292,6 +2502,41 @@
                   "type": "null"
                 }
               ]
+            },
+            "swap": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "movingPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Movingpart",
+                      "type": "string"
+                    },
+                    "carrierPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Carrierpart",
+                      "type": "string"
+                    },
+                    "liftY": {
+                      "maximum": -1,
+                      "minimum": -300,
+                      "title": "Lifty",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "movingPart",
+                    "carrierPart",
+                    "liftY"
+                  ],
+                  "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -2614,6 +2859,41 @@
                     "contentPart"
                   ],
                   "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "swap": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "movingPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Movingpart",
+                      "type": "string"
+                    },
+                    "carrierPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Carrierpart",
+                      "type": "string"
+                    },
+                    "liftY": {
+                      "maximum": -1,
+                      "minimum": -300,
+                      "title": "Lifty",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "movingPart",
+                    "carrierPart",
+                    "liftY"
+                  ],
+                  "title": "TileSwap",
                   "type": "object"
                 },
                 {
@@ -2948,6 +3228,41 @@
                   "type": "null"
                 }
               ]
+            },
+            "swap": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "movingPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Movingpart",
+                      "type": "string"
+                    },
+                    "carrierPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Carrierpart",
+                      "type": "string"
+                    },
+                    "liftY": {
+                      "maximum": -1,
+                      "minimum": -300,
+                      "title": "Lifty",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "movingPart",
+                    "carrierPart",
+                    "liftY"
+                  ],
+                  "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -3270,6 +3585,41 @@
                     "contentPart"
                   ],
                   "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "swap": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "movingPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Movingpart",
+                      "type": "string"
+                    },
+                    "carrierPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Carrierpart",
+                      "type": "string"
+                    },
+                    "liftY": {
+                      "maximum": -1,
+                      "minimum": -300,
+                      "title": "Lifty",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "movingPart",
+                    "carrierPart",
+                    "liftY"
+                  ],
+                  "title": "TileSwap",
                   "type": "object"
                 },
                 {
@@ -3604,6 +3954,41 @@
                   "type": "null"
                 }
               ]
+            },
+            "swap": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "movingPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Movingpart",
+                      "type": "string"
+                    },
+                    "carrierPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Carrierpart",
+                      "type": "string"
+                    },
+                    "liftY": {
+                      "maximum": -1,
+                      "minimum": -300,
+                      "title": "Lifty",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "movingPart",
+                    "carrierPart",
+                    "liftY"
+                  ],
+                  "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -3926,6 +4311,41 @@
                     "contentPart"
                   ],
                   "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "swap": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "movingPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Movingpart",
+                      "type": "string"
+                    },
+                    "carrierPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Carrierpart",
+                      "type": "string"
+                    },
+                    "liftY": {
+                      "maximum": -1,
+                      "minimum": -300,
+                      "title": "Lifty",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "movingPart",
+                    "carrierPart",
+                    "liftY"
+                  ],
+                  "title": "TileSwap",
                   "type": "object"
                 },
                 {
@@ -4260,6 +4680,41 @@
                   "type": "null"
                 }
               ]
+            },
+            "swap": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "movingPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Movingpart",
+                      "type": "string"
+                    },
+                    "carrierPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Carrierpart",
+                      "type": "string"
+                    },
+                    "liftY": {
+                      "maximum": -1,
+                      "minimum": -300,
+                      "title": "Lifty",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "movingPart",
+                    "carrierPart",
+                    "liftY"
+                  ],
+                  "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -4582,6 +5037,41 @@
                     "contentPart"
                   ],
                   "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "swap": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "movingPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Movingpart",
+                      "type": "string"
+                    },
+                    "carrierPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Carrierpart",
+                      "type": "string"
+                    },
+                    "liftY": {
+                      "maximum": -1,
+                      "minimum": -300,
+                      "title": "Lifty",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "movingPart",
+                    "carrierPart",
+                    "liftY"
+                  ],
+                  "title": "TileSwap",
                   "type": "object"
                 },
                 {
@@ -4916,6 +5406,41 @@
                   "type": "null"
                 }
               ]
+            },
+            "swap": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "movingPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Movingpart",
+                      "type": "string"
+                    },
+                    "carrierPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Carrierpart",
+                      "type": "string"
+                    },
+                    "liftY": {
+                      "maximum": -1,
+                      "minimum": -300,
+                      "title": "Lifty",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "movingPart",
+                    "carrierPart",
+                    "liftY"
+                  ],
+                  "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -5244,6 +5769,41 @@
                   "type": "null"
                 }
               ]
+            },
+            "swap": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "movingPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Movingpart",
+                      "type": "string"
+                    },
+                    "carrierPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Carrierpart",
+                      "type": "string"
+                    },
+                    "liftY": {
+                      "maximum": -1,
+                      "minimum": -300,
+                      "title": "Lifty",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "movingPart",
+                    "carrierPart",
+                    "liftY"
+                  ],
+                  "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "required": [
@@ -5566,6 +6126,41 @@
                     "contentPart"
                   ],
                   "title": "TileReveal",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "swap": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "movingPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Movingpart",
+                      "type": "string"
+                    },
+                    "carrierPart": {
+                      "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                      "title": "Carrierpart",
+                      "type": "string"
+                    },
+                    "liftY": {
+                      "maximum": -1,
+                      "minimum": -300,
+                      "title": "Lifty",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "movingPart",
+                    "carrierPart",
+                    "liftY"
+                  ],
+                  "title": "TileSwap",
                   "type": "object"
                 },
                 {

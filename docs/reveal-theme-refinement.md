@@ -69,7 +69,8 @@ are unchanged.
   the former three-value preset list. The validator correctly rejected the
   unknown preset; the assertion was updated to include Reveal. Initial receipt:
   `/tmp/reveal-full-tests.xml` and `/tmp/reveal-full-tests.log` (424.19 seconds).
-- Final focused regression receipt: `/tmp/reveal-final-tests.xml` and `.log`.
+- Final focused regression: **82 passed in 149.06 seconds**. Receipt:
+  `/tmp/reveal-final-tests.xml` and `.log`.
   It includes the corrected assertion, all new-pack checks, all content-fit
   checks, and the dedicated Reveal behavior/authoring tests.
 - Readability geometry: all 17 base/focused locations at 320, 390, 768, 1440px;
@@ -97,6 +98,7 @@ are unchanged.
 Preview service: `portfolio-dev-theme-preview.service`, worktree `portfolio-dev`,
 bound to `0.0.0.0:51354`. Review `?theme=vinyl` and `?theme=postcards` on
 `http://100.118.63.4:51354/`. Main and production are not changed.
+Implementation commit: `5241757` on local `dev`.
 
 Stopping boundary: a tested local-dev review candidate, not aesthetic approval
 or production promotion. Phone validation is Chromium viewport/touch emulation,

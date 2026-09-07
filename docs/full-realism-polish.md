@@ -1,5 +1,23 @@
 # Full realism polish
 
+Vinyl and Cloudscape's previous removal decisions are superseded by the owner's
+authorized [revisit](vinyl-cloudscape-revisit.md). They are now manual-preview
+candidates, still outside random rotation pending review.
+
+## Owner follow-up: timing, chooser focus, and dormant designs
+
+The owner likes the corrected Postcard Swap but requested Original-like pacing.
+Postcards now uses `.8s` instead of `1.1s`, preserving the staged physical path.
+The chooser's unconditional `:focus-within` outline reproduced on pointer input
+and persisted across Lily → Planets. Its shared presentation now tracks keyboard
+input explicitly: pointer use has no keyboard ring, while Alt+T and keyboard use
+retain it. Native select focus and semantics are preserved.
+
+Vinyl's removal is a current label-layout failure, not an inability to use Swap.
+The owner has reopened that design question and expressed renewed interest in
+Cloudscape. Neither should be described as permanently rejected; both remain
+dormant pending a revised design. No re-enablement is part of this timing/focus fix.
+
 Active goal: **DO a full realism polish,. Removing any themes that cannot keep it**
 
 Worktree `/home/dlybeck/Projects/Portfolio-worktrees/portfolio-dev`, branch `dev`,

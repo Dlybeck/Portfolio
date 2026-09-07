@@ -25,7 +25,7 @@ def test_reveal_compiles_as_data_without_a_known_theme_id(tmp_path):
     assert all(tile.reveal.content_part == 'card' for _, tile in pack.tiles)
 
 
-@pytest.mark.parametrize('theme', ['vinyl', 'postcards'])
+@pytest.mark.parametrize('theme', ['postcards'])
 def test_reveal_assets_match_the_authoring_recipe(theme):
     from scripts.refine_collection_reveals import compile_svg
     folder = ROOT/'static/themes'/theme
@@ -106,22 +106,23 @@ def test_natural_world_grow_does_not_fade_solid_objects(theme, browser_page):
     assert result=='1'
 
 
+@pytest.mark.parametrize('theme,moving,carrier', [('postcards','card','front'),('vinyl','record','sleeve')])
 @pytest.mark.parametrize('width', [390, 1440])
-def test_swap_is_opaque_clears_carrier_and_keeps_writing_attached(width, browser_page):
+def test_swap_is_opaque_clears_carrier_and_keeps_writing_attached(theme, moving, carrier, width, browser_page):
     page, origin = browser_page
     page.set_viewport_size({'width': width, 'height': 844})
-    page.goto(f'{origin}/?theme=postcards', wait_until='networkidle')
-    result = page.evaluate("""async () => {
+    page.goto(f'{origin}/?theme={theme}', wait_until='networkidle')
+    result = page.evaluate("""async ([moving,carrier]) => {
         const tile=document.querySelector('[data-title="Home"]');
-        const card=tile.querySelector('[data-swap-part="card"]');
-        const front=tile.querySelector('[data-swap-part="front"]');
+        const card=tile.querySelector(`[data-swap-part="${moving}"]`);
+        const front=tile.querySelector(`[data-swap-part="${carrier}"]`);
         const title=tile.querySelector('.swap-carrier-title');
         const writing=[...card.querySelectorAll('.expanded-title,.expanded-text,.home-theme-selector')];
         const texts=writing.map(n=>n.textContent);
         const samples=[];
         function measure() {
-            const c=card.querySelector('[data-theme-part="card"]').getBoundingClientRect();
-            const f=front.querySelector('[data-theme-part="front"]').getBoundingClientRect();
+            const c=card.querySelector(`[data-theme-part="${moving}"]`).getBoundingClientRect();
+            const f=front.querySelector(`[data-theme-part="${carrier}"]`).getBoundingClientRect();
             const p=Number(tile.dataset.swapProgress);
             samples.push({p, z:Number(card.style.zIndex), cardBottom:c.bottom, carrierTop:f.top,
                 opaque:getComputedStyle(card).opacity==='1',
@@ -146,8 +147,8 @@ def test_swap_is_opaque_clears_carrier_and_keeps_writing_attached(width, browser
         }
         await leg('Hobbies');
         await leg('Home');
-        return {samples, same:card===tile.querySelector('[data-swap-part="card"]')};
-    }""")
+        return {samples, same:card===tile.querySelector(`[data-swap-part="${moving}"]`)};
+    }""", [moving,carrier])
     assert result['same']
     samples = result['samples']
     assert all(s['opaque'] and s['stable'] and s['neighbors'] for s in samples), [s for s in samples if not(s['opaque'] and s['stable'] and s['neighbors'])][:3]
@@ -159,6 +160,25 @@ def test_swap_is_opaque_clears_carrier_and_keeps_writing_attached(width, browser
     page.get_by_role('button', name='Go to Tennis', exact=True).click()
     page.locator('.expanded .expanded-open').click()
     expect(page.frame_locator('.mini-window').locator('#location')).to_have_text('Tennis')
+
+
+def test_postcard_swap_finishes_at_original_paper_pace(browser_page):
+    page, origin = browser_page
+    page.goto(f'{origin}/?theme=postcards', wait_until='networkidle')
+    result = page.evaluate('''async () => {
+        const duration=window.themeEngine.currentPack().variables.board['cover-enter-duration'];
+        const start=performance.now();
+        window.centerOnTile('Hobbies');
+        const tile=document.querySelector('[data-title="Hobbies"]');
+        await new Promise(resolve => {
+            const tick=()=> Number(tile.dataset.swapProgress)===1 || performance.now()-start>1500
+                ? resolve() : requestAnimationFrame(tick);
+            requestAnimationFrame(tick);
+        });
+        return {duration, elapsed:performance.now()-start, progress:tile.dataset.swapProgress};
+    }''')
+    assert result['duration'] == '.8s'
+    assert result['progress'] == '1' and result['elapsed'] < 1000, result
 
 
 def test_swap_reverses_without_reset_and_cleans_up(browser_page):
@@ -187,7 +207,7 @@ def test_swap_reverses_without_reset_and_cleans_up(browser_page):
     expect(page.locator('[data-title="Home"]')).to_have_attribute('data-swap-progress','0')
 
 
-@pytest.mark.parametrize('theme', ['vinyl','botanical','workbench','clouds'])
+@pytest.mark.parametrize('theme', ['botanical','workbench'])
 def test_rejected_theme_is_unavailable_in_every_selection_path(theme, client, browser_page):
     from core.theme_packs import ThemePackRegistry
     registry=ThemePackRegistry.discover()

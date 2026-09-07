@@ -268,6 +268,15 @@ offsets, scale, and rotation remain
 pack-owned presentation tokens. Adding an ordinary theme therefore requires a
 preset selection and parameters, not theme-specific runtime code.
 
+Grow packs whose base and expanded artwork share a viewBox and silhouette may
+opt into `var(--theme-object-size-ratio, .43)` for `cover-enter-scale` and
+`cover-exit-scale`. The engine derives this ratio from the untransformed SVG
+viewports on each content fit/resize, and resolves these expressions locally
+on the tile. This avoids a fixed phone scale briefly shrinking the object
+before enlargement. Existing numeric scales remain unchanged; the derived
+values are removed when switching packs. This is for uniform, centered
+`xMidYMid meet` artwork, not independently drawn base/expanded objects.
+
 #### Physical part assemblies and Swap
 
 Reveal uses one persistent expanded SVG assembly, with direct root groups named
@@ -298,6 +307,10 @@ part definitions. The moving part must carry all focused text; the carrier
 receives a separate, unchanging title in a direct-root
 `rect data-theme-carrier-title-area="title"`. The printed title, focused copy,
 and controls stay attached to their respective surfaces for the whole cycle.
+An optional `titlePart` equal to `movingPart` uses the existing validated
+`data-theme-title-area` rectangle for a separate title zone on that same object
+(for example, keeping record printing clear of the spindle hole). Swap rejects
+a title assigned to any other part. Cleanup restores the shared title layout.
 No text content is replaced, faded through an opaque object, or moved to a
 different physical surface to rescue a layout.
 
@@ -316,8 +329,45 @@ part renderer never changes the Neighborhood. New physical assemblies must
 prove that their configured extraction distance clears the carrier and that
 neither extraction nor placement obstructs neighboring destinations.
 
+### Optional approved-treatment controls
+
+These are shared, bounded data slots, not installed-theme name branches:
+
+- Manifest `viewerSurface: {asset: "assets/mist-bank.svg", outsetX: 18,
+  outsetY: 12}` supplies sanitized, pointer-inert SVG behind the existing
+  reading viewport. It moves with that viewer, including exit/reversal. Outsets
+  are bounded to 0–48px; omit the object to retain the existing viewer.
+- Presentation `connectors.ribbons` accepts up to four profiles with `width`
+  (0–12px, exclusive of zero), `offset` (-24–24px), `opacity` (0–1), and a
+  six-digit hex `color`. Nonempty profiles replace the stroke/head artwork
+  along the unchanged relationship path; no hit target or layout changes.
+- Assignment `readingSurface: {pageColor: "#faf5e9", surroundColor: "#dbacaa"}`
+  carries the tile's material colors into the opened paper and outer surround.
+  Both values are six-digit hex colors. Server-rendered documents receive the
+  material before first paint; navigation and theme switching update it too.
+- `swap.details` accepts up to four `{part, element, x, y, start}` translations
+  inside the moving part. `element` identifies one direct, untransformed SVG
+  group with `data-theme-swap-detail="..."`. `start` is .55–.95 of the existing
+  reversible progress, and x/y are bounded to ±100 SVG units. The same smooth
+  translation reverses on exit; no separate timer, script or timeline language.
+  Do not use `data-theme-detail` here: that existing slot controls decorative
+  rotation. Text remains attached to its original surface.
+
+Vinyl's accepted sleeve/record SVGs are authored pack assets, not outputs of
+the historical picture-disc recipe. Collection/reveal generators preserve
+them. Base and expanded artwork retain matching physical identities, with
+whole-object orientation expressed by the existing assignment transforms.
+
+`tests/test_theme_integration.py::test_approved_variation_can_be_reauthored_without_runtime_changes`
+is the bounded authoring proof: copy Vinyl to a temporary, differently named
+pack, swap Home/Tennis assignments in `tiles.json`, and run the normal app at
+390px and 1440px. No JavaScript, stylesheet or asset changes are needed. The
+test checks new-ID activation, fit, record motion and opened-paper continuity,
+and captures the result. This proves this authoring path, not live AI generation
+or support for arbitrary unreviewed metaphors.
+
 Current review authority and removal decisions are in
-[Full realism polish](full-realism-polish.md), not the rejected Reveal receipt.
+[Reality-grounding review](theme-grounding-review.md), not the rejected Reveal receipt.
 
 Focus changes CSS poses; interrupted transitions reverse from their current
 position. Reveal does not enqueue the cover exit animation. Existing duration

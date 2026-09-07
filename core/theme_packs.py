@@ -252,6 +252,13 @@ class ThemeBackgroundLayer(StrictModel):
     depth: float = Field(ge=0, le=1)
 
 
+class ViewerSurface(StrictModel):
+    """Optional inert artwork behind the existing document viewport."""
+    asset: str = Field(pattern=r"^assets/.+\.svg$", max_length=200)
+    outset_x: float = Field(default=0, alias="outsetX", ge=0, le=48)
+    outset_y: float = Field(default=0, alias="outsetY", ge=0, le=48)
+
+
 class ThemePackManifest(StrictModel):
     schema_id: Literal[THEME_PACK_SCHEMA] = Field(alias="$schema")
     id: str = Field(pattern=r"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$", max_length=48)
@@ -263,6 +270,7 @@ class ThemePackManifest(StrictModel):
     background: list[ThemeBackgroundLayer] = Field(
         default_factory=list, min_length=1, max_length=4
     )
+    viewer_surface: ViewerSurface | None = Field(default=None, alias="viewerSurface")
 
 
 class TileTransform(StrictModel):
@@ -339,6 +347,12 @@ class TileReveal(StrictModel):
     title_part: str | None = Field(default=None, alias="titlePart", pattern=r"^[a-z][a-z0-9-]{0,31}$")
 
 
+class ReadingSurface(StrictModel):
+    """Material continuity between a tile, its reading paper and surround."""
+    page_color: str = Field(alias="pageColor", pattern=r"^#[0-9a-fA-F]{6}$")
+    surround_color: str = Field(alias="surroundColor", pattern=r"^#[0-9a-fA-F]{6}$")
+
+
 class TileAssignment(StrictModel):
     base: str
     expanded: str
@@ -349,12 +363,23 @@ class TileAssignment(StrictModel):
     layout: TileLayout | None = None
     reveal: TileReveal | None = None
     swap: "TileSwap | None" = None
+    reading_surface: ReadingSurface | None = Field(default=None, alias="readingSurface")
+
+
+class SwapDetail(StrictModel):
+    """A contained detail translates late in the same reversible Swap progress."""
+    part: str = Field(pattern=r"^[a-z][a-z0-9-]{0,31}$")
+    element: str = Field(pattern=r"^[a-z][a-z0-9-]{0,31}$")
+    x: float = Field(default=0, ge=-100, le=100, allow_inf_nan=False)
+    y: float = Field(default=0, ge=-100, le=100, allow_inf_nan=False)
+    start: float = Field(ge=.55, le=.95)
 
 
 class TileSwap(StrictModel):
     moving_part: str = Field(alias="movingPart", pattern=r"^[a-z][a-z0-9-]{0,31}$")
     carrier_part: str = Field(alias="carrierPart", pattern=r"^[a-z][a-z0-9-]{0,31}$")
     lift_y: float = Field(alias="liftY", ge=-300, le=-1, allow_inf_nan=False)
+    details: list[SwapDetail] = Field(default_factory=list, max_length=4)
 
 
 class TileCatalog(StrictModel):
@@ -367,6 +392,13 @@ class ConnectorVariation(StrictModel):
     dash: float = Field(ge=0, le=0.5)
     opacity: float = Field(ge=0, le=0.5)
     marker_scale: float = Field(alias="markerScale", ge=0, le=0.5)
+
+
+class ConnectorRibbon(StrictModel):
+    width: float = Field(gt=0, le=12)
+    offset: float = Field(ge=-24, le=24)
+    opacity: float = Field(ge=0, le=1)
+    color: str = Field(pattern=r"^#[0-9a-fA-F]{6}$")
 
 
 class ConnectorPresentation(StrictModel):
@@ -387,6 +419,7 @@ class ConnectorPresentation(StrictModel):
     halo_opacity: float = Field(alias="haloOpacity", ge=0, le=1)
     inset_factor: float = Field(alias="insetFactor", ge=0, le=20)
     variation: ConnectorVariation
+    ribbons: list[ConnectorRibbon] = Field(default_factory=list, max_length=4)
 
 
 class ThemePresentation(StrictModel):
@@ -563,6 +596,7 @@ class CompiledTileAssignment:
     layout: TileLayout | None
     reveal: TileReveal | None = None
     swap: TileSwap | None = None
+    reading_surface: ReadingSurface | None = None
 
     def client_payload(self) -> dict[str, object]:
         return {
@@ -583,6 +617,8 @@ class CompiledTileAssignment:
             ),
             "reveal": self.reveal.model_dump(by_alias=True) if self.reveal else None,
             "swap": self.swap.model_dump(by_alias=True) if self.swap else None,
+            "readingSurface": (self.reading_surface.model_dump(by_alias=True)
+                               if self.reading_surface else None),
         }
 
 
@@ -596,6 +632,7 @@ class LoadedThemePack:
     document_variables: tuple[tuple[str, str], ...]
     connectors: ConnectorPresentation
     background_layers: tuple[tuple[float, str], ...]
+    viewer_surface_svg: str | None = None
 
     @property
     def id(self) -> str:
@@ -631,6 +668,12 @@ class LoadedThemePack:
                 {"depth": depth, "svg": svg}
                 for depth, svg in self.background_layers
             ],
+            "viewerSurface": (
+                {"svg": self.viewer_surface_svg,
+                 "outsetX": self.manifest.viewer_surface.outset_x,
+                 "outsetY": self.manifest.viewer_surface.outset_y}
+                if self.manifest.viewer_surface else None
+            ),
         }
 
 
@@ -716,13 +759,24 @@ def _compiled_tiles(pack_root: Path, reference: str) -> tuple[tuple[str, Compile
             _validate_reveal(assignment.reveal, expanded_svg)
         if assignment.swap:
             swap, reveal = assignment.swap, assignment.reveal
-            if (not reveal or swap.moving_part != reveal.content_part or reveal.title_part
+            if (not reveal or swap.moving_part != reveal.content_part
+                    or reveal.title_part not in (None, swap.moving_part)
                     or swap.carrier_part not in reveal.parts or swap.carrier_part == swap.moving_part):
                 raise InvalidThemeAsset('Swap requires distinct moving content and carrier parts')
             if (any(p.scale > 1 or p.open_opacity != 1 for p in reveal.parts.values())
                     or reveal.parts[swap.moving_part].scale != reveal.parts[swap.carrier_part].scale):
                 raise InvalidThemeAsset('Swap requires opaque parts at matching contained scales')
             root = ElementTree.fromstring(expanded_svg)
+            seen_details = set()
+            for detail in swap.details:
+                key = (detail.part, detail.element)
+                if detail.part != swap.moving_part or key in seen_details:
+                    raise InvalidThemeAsset('Swap details must be unique and inside the moving part')
+                seen_details.add(key)
+                part = next(n for n in root if n.get('data-theme-part') == detail.part)
+                matches = [n for n in part if n.get('data-theme-swap-detail') == detail.element]
+                if len(matches) != 1 or _local_name(matches[0].tag) != 'g' or matches[0].get('transform'):
+                    raise InvalidThemeAsset('Swap detail must identify one untransformed direct artwork group')
             markers = [n for n in root if n.get('data-theme-carrier-title-area')]
             if len(markers) != 1 or _local_name(markers[0].tag) != 'rect':
                 raise InvalidThemeAsset('Swap requires one carrier title area')
@@ -790,6 +844,7 @@ def _compiled_tiles(pack_root: Path, reference: str) -> tuple[tuple[str, Compile
                     layout=layout,
                     reveal=assignment.reveal,
                     swap=assignment.swap,
+                    reading_surface=assignment.reading_surface,
                 ),
             )
         )
@@ -909,6 +964,17 @@ def load_theme_pack(pack_dir: Path) -> LoadedThemePack:
         (layer.depth, sanitized_svg_asset(pack_dir, layer.asset))
         for layer in manifest.background
     )
+    viewer_surface_svg = (sanitized_svg_asset(pack_dir, manifest.viewer_surface.asset)
+                          if manifest.viewer_surface else None)
+    if viewer_surface_svg:
+        surface = ElementTree.fromstring(viewer_surface_svg)
+        try:
+            bounds = [float(n) for n in surface.get('viewBox', '').split()]
+        except ValueError as error:
+            raise InvalidThemeAsset('Viewer surface has an invalid viewBox') from error
+        if (_local_name(surface.tag) != 'svg' or len(bounds) != 4
+                or not all(map(math.isfinite, bounds)) or min(bounds[2:]) <= 0):
+            raise InvalidThemeAsset('Viewer surface requires an SVG with a finite positive viewBox')
     tiles = _compiled_tiles(pack_dir, manifest.tiles)
     if dict(board_variables)["focus-motion"] == "swap" and any(
         assignment.swap is None for _, assignment in tiles
@@ -925,6 +991,7 @@ def load_theme_pack(pack_dir: Path) -> LoadedThemePack:
         document_variables=document_variables,
         connectors=connectors,
         background_layers=background_layers,
+        viewer_surface_svg=viewer_surface_svg,
     )
 
 

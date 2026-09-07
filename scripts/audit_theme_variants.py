@@ -55,6 +55,14 @@ def audit_world(page, origin: str, theme: str) -> dict[str, object]:
                 ([factorName, expectedValue]) => {
                     const selector = `[data-visual-axis~="${factorName}"]`;
                     const carrier = node.matches(selector) ? node : node.querySelector(selector);
+                    // An orientation may be the physical placement of the
+                    // entire object, not an extra rotation inside its SVG.
+                    if (!carrier && factorName === 'orientation') {
+                        const tile = node.closest('.tile-container');
+                        const rotation = Number(tile.style.getPropertyValue('--rot').replace('deg',''));
+                        return [factorName, Math.round(rotation * 10) === Number(expectedValue)
+                            ? {value:expectedValue, fingerprint:`placement:${rotation}`} : null];
+                    }
                     if (!carrier || carrier.dataset.visualValue !== expectedValue) {
                         return [factorName, null];
                     }
@@ -94,6 +102,10 @@ def audit_world(page, origin: str, theme: str) -> dict[str, object]:
                         const name = attribute.name.replace('data-variant-', '');
                         const selector = `[data-visual-axis~="${name}"]`;
                         const carrier = node.matches(selector) ? node : node.querySelector(selector);
+                        if (!carrier && name === 'orientation') {
+                            const rotation = Number(node.closest('.tile-container').style.getPropertyValue('--rot').replace('deg',''));
+                            return [name, String(Math.round(rotation * 10))];
+                        }
                         return [name, carrier?.dataset.visualValue ?? null];
                     })
             ),

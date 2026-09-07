@@ -415,7 +415,7 @@ def test_enabled_theme_laboratory_renders_known_themes_and_fails_closed(
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
 
     lily = client.get("/?theme=lily")
-    disabled = client.get("/?theme=clouds")
+    disabled = client.get("/?theme=botanical")
     unknown = client.get("/?theme=not-a-world")
     document = client.get("/_documents/projects/programs?theme=planets")
 
@@ -427,7 +427,7 @@ def test_enabled_theme_laboratory_renders_known_themes_and_fails_closed(
     )
     assert '<option class="theme-selector-option" value="canonical"' in lily.text
     assert '<option class="theme-selector-option" value="islands"' in lily.text
-    assert '<option class="theme-selector-option" value="clouds"' not in lily.text
+    assert '<option class="theme-selector-option" value="clouds"' in lily.text
     assert '/static/css/themes/board.css' in lily.text
     assert '/static/css/theme-structure.css' in lily.text
     assert '/static/css/base.css' not in lily.text
@@ -1357,6 +1357,32 @@ def test_development_selector_has_an_explicit_keyboard_shortcut(
     expect(page).to_have_url(f"{origin}/?theme=islands")
 
 
+@pytest.mark.parametrize('touch', [False, True])
+def test_theme_chooser_pointer_does_not_leave_keyboard_highlight(browser_page, touch):
+    page, origin = browser_page
+    page.goto(f'{origin}/?theme=lily', wait_until='networkidle')
+    selector = page.locator('[data-theme-selector]')
+    action = page.locator('.home-theme-action')
+    if touch:
+        selector.dispatch_event('pointerdown', {'pointerType': 'touch'})
+        selector.focus()
+    else:
+        selector.click()
+    assert action.evaluate('n=>getComputedStyle(n).outlineStyle') == 'none'
+    for theme in ('planets', 'canonical', 'postcards', 'lily'):
+        selector.select_option(theme)
+        expect(page.locator('html')).to_have_attribute('data-board-theme', theme)
+        assert action.evaluate('n=>getComputedStyle(n).outlineStyle') == 'none'
+    page.keyboard.press('Escape')
+    page.keyboard.press('Alt+t')
+    expect(selector).to_be_focused()
+    assert action.evaluate('n=>getComputedStyle(n).outlineStyle') == 'solid'
+    selector.select_option('planets')
+    expect(page.locator('html')).to_have_attribute('data-board-theme', 'planets')
+    expect(selector).to_be_focused()
+    assert action.evaluate('n=>getComputedStyle(n).outlineStyle') == 'solid'
+
+
 def test_surprise_me_returns_theme_selection_to_unpinned_rotation(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
@@ -1470,15 +1496,15 @@ def test_phone_theme_laboratory_keeps_the_personal_mark_visible(
     )
 
 
-def test_cloudscape_is_not_a_viewer_selectable_board_theme(
+def test_revisited_cloudscape_is_selectable_for_review(
     client: TestClient,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
     board = client.get("/?theme=clouds")
 
-    assert 'data-board-theme="canonical"' in board.text
-    assert '<option class="theme-selector-option" value="clouds"' not in board.text
+    assert 'data-board-theme="clouds"' in board.text
+    assert '<option class="theme-selector-option" value="clouds"' in board.text
 
 
 @pytest.mark.parametrize("theme", VISUAL_THEMES)

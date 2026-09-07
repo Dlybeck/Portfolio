@@ -19,6 +19,9 @@ from core.theme_packs import (
     THEME_PACK_SCHEMA,
     TileReveal,
     TileSwap,
+    ViewerSurface,
+    ReadingSurface,
+    ConnectorRibbon,
 )
 
 
@@ -52,6 +55,23 @@ def write(name: str, schema: dict[str, object]) -> None:
     )
 
 
+def inline_schema(model):
+    """Resolve model-local refs before embedding a schema at a nested path."""
+    schema = model.model_json_schema(by_alias=True)
+    definitions = schema.pop('$defs', {})
+
+    def resolve(value):
+        if isinstance(value, list):
+            return [resolve(item) for item in value]
+        if isinstance(value, dict):
+            if '$ref' in value:
+                return resolve(definitions[value['$ref'].rsplit('/', 1)[-1]])
+            return {key: resolve(item) for key, item in value.items()}
+        return value
+
+    return resolve(schema)
+
+
 def main() -> None:
     write(
         "theme.schema.json",
@@ -71,6 +91,7 @@ def main() -> None:
                 "version": {"const": 1},
                 "tiles": {"const": "tiles.json"},
                 "presentation": {"const": "presentation.json"},
+                "viewerSurface": {"anyOf": [inline_schema(ViewerSurface), {"type": "null"}]},
                 "background": {
                     "type": "array",
                     "minItems": 1,
@@ -115,6 +136,7 @@ def main() -> None:
     connector = {
         "type": "object",
         "properties": {
+            "ribbons": {"type": "array", "maxItems": 4, "items": inline_schema(ConnectorRibbon)},
             "color": {"type": "string", "minLength": 1, "maxLength": 500},
             "strokeWidth": {"type": "number", "minimum": .5, "maximum": 12},
             "opacity": {"type": "number", "minimum": 0, "maximum": 1},
@@ -287,7 +309,8 @@ def main() -> None:
             "typography": typography,
             "layout": layout,
             "reveal": {"anyOf": [reveal, {"type": "null"}]},
-            "swap": {"anyOf": [TileSwap.model_json_schema(by_alias=True), {"type": "null"}]},
+            "swap": {"anyOf": [inline_schema(TileSwap), {"type": "null"}]},
+            "readingSurface": {"anyOf": [inline_schema(ReadingSurface), {"type": "null"}]},
         },
         "required": ["base", "expanded", "factors", "transforms", "motion"],
         "additionalProperties": False,

@@ -30,6 +30,10 @@
                 : pose.flipY === -1 ? (p < .2 ? '5' : '1')
                 : pose.foreground ? '4' : '0';
         }
+        for (const {node, pose} of state.details) {
+            const amount = ease(clamp((p - pose.start) / (1 - pose.start)));
+            node.setAttribute('transform', `translate(${pose.x * amount} ${pose.y * amount})`);
+        }
     }
 
     function drive(state) {
@@ -53,8 +57,13 @@
     function install(tile, assignment, svg) {
         const body = svg.parentElement;
         const state = {tile, body, svg, swap:assignment.swap, parts:assignment.reveal.parts,
-            layers:new Map(), nodes:[...body.querySelectorAll('.expanded-title,.expanded-text,.expanded-open,.home-theme-selector')],
+            layers:new Map(), details:[], nodes:[...body.querySelectorAll('.expanded-title,.expanded-text,.expanded-open,.home-theme-selector')],
             progress:tile.classList.contains('expanded') ? 1 : 0, frame:0};
+        // Optional printed title zone: same moving surface, separate from the
+        // body copy (e.g. either side of a record's physical spindle hole).
+        state.titleMarker = svg.querySelector('[data-theme-title-area]');
+        state.title = body.querySelector('.expanded-title');
+        if (state.titleMarker) state.title.dataset.swapTitle = 'true';
         state.target = state.progress;
         const duration = getComputedStyle(tile).getPropertyValue('--theme-pack-cover-enter-duration').trim();
         const milliseconds = parseFloat(duration)*(duration.endsWith('ms') ? 1 : 1000);
@@ -82,6 +91,9 @@
             }
             layer.append(art); body.append(layer); state.layers.set(name,layer);
         }
+        state.details = (state.swap.details || []).map(pose => ({pose,
+            node: state.layers.get(pose.part).querySelector(`[data-theme-swap-detail="${pose.element}"]`),
+        }));
         const writing = document.createElement('div');
         writing.className = 'swap-carrier-title';
         writing.setAttribute('aria-hidden','true');
@@ -106,6 +118,20 @@
         const left=parseFloat(css.left)+(s.svg.clientWidth-vb.width*scale)/2-vb.x*scale;
         const top=parseFloat(css.top)+(s.svg.clientHeight-vb.height*scale)/2-vb.y*scale;
         s.geometry={scale,left,top};
+        let titleFits = true;
+        if (s.titleMarker) {
+            const m=s.titleMarker;
+            Object.assign(s.title.style, {left:`${left+Number(m.getAttribute('x'))*scale}px`,
+                top:`${top+Number(m.getAttribute('y'))*scale}px`,
+                width:`${Number(m.getAttribute('width'))*scale}px`,
+                height:`${Number(m.getAttribute('height'))*scale}px`});
+            s.title.style.removeProperty('font-size');
+            while ((s.title.scrollWidth>s.title.clientWidth+1 || s.title.scrollHeight>s.title.clientHeight+1)
+                    && parseFloat(getComputedStyle(s.title).fontSize)>20) {
+                s.title.style.fontSize=`${Math.max(20,parseFloat(getComputedStyle(s.title).fontSize)-.5)}px`;
+            }
+            titleFits=s.title.scrollWidth<=s.title.clientWidth+1 && s.title.scrollHeight<=s.title.clientHeight+1;
+        }
         const marker=s.svg.querySelector('[data-theme-carrier-title-area]');
         Object.assign(s.writing.style, {left:`${left+Number(marker.getAttribute('x'))*scale}px`,
             top:`${top+Number(marker.getAttribute('y'))*scale}px`,
@@ -117,7 +143,7 @@
             s.writing.style.fontSize=`${parseFloat(s.writing.style.fontSize)-.5}px`;
         }
         render(s);
-        return s.writing.scrollWidth <= s.writing.clientWidth+1 && s.writing.scrollHeight <= s.writing.clientHeight+1;
+        return titleFits && s.writing.scrollWidth <= s.writing.clientWidth+1 && s.writing.scrollHeight <= s.writing.clientHeight+1;
     }
 
     function clean(tile) {
@@ -125,6 +151,10 @@
         if (!s) return;
         s.observer.disconnect(); cancelAnimationFrame(s.frame);
         s.nodes.forEach(n => s.body.append(n));
+        if (s.titleMarker) {
+            delete s.title.dataset.swapTitle;
+            for (const key of ['left','top','width','height','font-size']) s.title.style.removeProperty(key);
+        }
         s.layers.forEach(n => n.remove());
         s.svg.style.removeProperty('visibility');
         delete tile.dataset.themeSwap; delete tile.dataset.swapProgress;

@@ -2,7 +2,7 @@ import pytest
 from playwright.sync_api import expect
 
 
-@pytest.mark.parametrize('theme', ['lily', 'planets', 'islands', 'postcards'])
+@pytest.mark.parametrize('theme', ['lily', 'planets', 'islands', 'postcards', 'vinyl', 'clouds'])
 @pytest.mark.parametrize('width', [320, 390, 768, 1440])
 def test_content_fits_the_rendered_svg_at_readable_sizes(browser_page, theme, width):
     page, origin = browser_page
@@ -28,7 +28,7 @@ def test_content_fits_the_rendered_svg_at_readable_sizes(browser_page, theme, wi
             const selectors = state === 'base' ? '.scrap-title'
                 : '.expanded-title,.expanded-text,.expanded-open';
             for (const node of body.querySelectorAll(selectors)) {
-                const marker = body.querySelector(node.dataset.revealTitle
+                const marker = body.querySelector(node.dataset.revealTitle || node.dataset.swapTitle
                     ? '[data-theme-title-area]' : '[data-theme-content-area]').getBoundingClientRect();
                 const rect = node.getBoundingClientRect();
                 if (rect.left < marker.left - 2 || rect.right > marker.right + 2
@@ -48,7 +48,7 @@ def test_content_fits_the_rendered_svg_at_readable_sizes(browser_page, theme, wi
     assert issues == []
 
 
-@pytest.mark.parametrize('theme', ['lily', 'planets', 'islands', 'postcards'])
+@pytest.mark.parametrize('theme', ['lily', 'planets', 'islands', 'postcards', 'vinyl', 'clouds'])
 def test_phone_document_uses_reading_width_and_separates_photos(browser_page, theme):
     page, origin = browser_page
     page.set_viewport_size({'width': 390, 'height': 844})

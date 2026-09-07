@@ -3644,6 +3644,46 @@
     "connectors": {
       "type": "object",
       "properties": {
+        "ribbons": {
+          "type": "array",
+          "maxItems": 4,
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "width": {
+                "exclusiveMinimum": 0,
+                "maximum": 12,
+                "title": "Width",
+                "type": "number"
+              },
+              "offset": {
+                "maximum": 24,
+                "minimum": -24,
+                "title": "Offset",
+                "type": "number"
+              },
+              "opacity": {
+                "maximum": 1,
+                "minimum": 0,
+                "title": "Opacity",
+                "type": "number"
+              },
+              "color": {
+                "pattern": "^#[0-9a-fA-F]{6}$",
+                "title": "Color",
+                "type": "string"
+              }
+            },
+            "required": [
+              "width",
+              "offset",
+              "opacity",
+              "color"
+            ],
+            "title": "ConnectorRibbon",
+            "type": "object"
+          }
+        },
         "color": {
           "type": "string",
           "minLength": 1,

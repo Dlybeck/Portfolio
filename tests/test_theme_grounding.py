@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 from xml.etree import ElementTree as ET
 
 import pytest
@@ -35,6 +36,25 @@ def test_pond_ripples_are_behind_the_leaf():
         accent = palette.find("./*[@data-visual-axis='accent']")
         if accent.get('data-visual-value') == '3':
             assert list(palette)[0] is accent, path.name
+
+
+def test_large_lily_blooms_leave_the_declared_writing_area_clear():
+    blooms = []
+    for path in (ROOT / 'lily/assets/tiles').glob('*.svg'):
+        root = ET.parse(path).getroot()
+        accent = root.find(".//*[@data-visual-axis='accent']")
+        if accent.get('data-visual-value') != '2':
+            continue
+        bloom = accent[0]
+        position = re.fullmatch(r'translate\(([\d.]+) ([\d.]+)\)', bloom.get('transform'))
+        assert position, path.name
+        cx, cy = map(float, position.groups())
+        radius = max(float(circle.get('r')) for circle in bloom)
+        content = root.find(".//*[@data-theme-content-area='content']")
+        x, y, w, h = (float(content.get(key)) for key in ('x', 'y', 'width', 'height'))
+        assert cx + radius <= x or cx - radius >= x + w or cy + radius <= y or cy - radius >= y + h, path.name
+        blooms.append(path.name)
+    assert len(blooms) >= 4, 'Exercise both states of the Gaming and ScribbleScan blooms'
 
 
 @pytest.mark.parametrize('width', [320, 1440])

@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Compile active Postcard Swap and retain the dormant Vinyl reference."""
+"""Compile Postcard swaps. Vinyl's accepted SVGs are now authored pack assets.
+
+The historical picture-disc renderer below is not the approved sleeve design;
+do not run it over the authored Vinyl pack.
+"""
 import json
 from pathlib import Path
 import sys
@@ -17,34 +21,40 @@ def pose(x=0, y=0, scale=1, origin_y=120, **extra):
 def vinyl(root, f, color):
     record = node(root, 'g', data_theme_part='record')
     pressing = axis(record, 'pressing', f['pressing'])
-    circle(pressing, 120, 75, 74, '#242629', stroke='#111618', stroke_width=1.5,
+    circle(pressing, 120, 120, 113, '#242629', stroke='#111618', stroke_width=1.5,
            data_theme_record='disc')
-    for r in range(50+f['pressing'], 73, 5):
-        circle(pressing, 120, 75, r, 'none', stroke='#515251', stroke_width='.6')
     palette = axis(record, 'palette', f['palette'])
-    circle(palette, 120, 75, 44, color)
-    circle(palette, 120, 75, 2.7, '#161c1d')
-    # A small registration ring and lower label bars leave a clear title above
-    # the spindle. The description is printed on the jacket, not the grooves.
-    circle(palette, 120, 75, 7, 'none', stroke='#655a4c', stroke_width='.5', opacity='.55')
-    art = axis(record, 'artwork', f['artwork'])
+    # Picture-disc print beneath a clear grooved face, not an oversized label.
+    circle(palette, 120, 120, 101, '#f6edda')
+    for r in range(103+f['pressing'], 113, 3):
+        circle(pressing, 120, 120, r, 'none', stroke='#696761', stroke_width='.55')
+    circle(palette, 120, 120, 3, '#282528', data_theme_spindle='hole')
+    circle(palette, 120, 120, 6, 'none', stroke='#b3a792', stroke_width='.7')
+    art = axis(palette, 'artwork', f['artwork'])
     orient = axis(art, 'orientation', f['orientation'],
-                  transform=f'rotate({f["orientation"]-3} 120 98)')
-    for i in range(2+f['artwork']):
-        path(orient, f'M{110+i*2} {91+i*4}H{130-i*2}', stroke='#5b5550', stroke_width=1)
+                  transform=f'rotate({(f["orientation"]-3)*2} 120 120)')
+    # Small album-cover landscape, printed into the face above the title.
+    path(orient, 'M65 46Q120 -2 175 46Z', color)
+    path(orient, f'M68 46L{94+f["artwork"]*7} {23+f["artwork"]*3}L129 46Z', '#626f69')
+    path(orient, f'M104 46L{141-f["artwork"]*4} 27L172 46Z', '#a1a899')
     sleeve = node(root, 'g', data_theme_part='sleeve')
     silhouette = axis(sleeve, 'silhouette', f['silhouette'])
-    edge = 45 + f['silhouette']*.3
-    rect(silhouette, edge, 115, 150, 150, color, stroke='#aa9172', stroke_width=1)
+    edge = 3 + f['silhouette']*.15
+    rect(silhouette, edge, 3, 234, 234, color, stroke='#aa9172', stroke_width=1)
     seam = axis(sleeve, 'seam', f['seam'])
-    path(seam, f'M{49+f["seam"]} 124V259H187', stroke='#79654f', stroke_width='.7', opacity='.45')
+    path(seam, f'M{8+f["seam"]} 13V231H228', stroke='#79654f', stroke_width='.7', opacity='.45')
     # Open mouth at the top of the jacket, where the same record emerges.
-    path(seam, 'M101 115Q120 125 139 115', stroke='#79654f', stroke_width=1, opacity='.55')
-    reveal = {'contentPart':'sleeve', 'titlePart':'record', 'parts':{
-        'record':pose(y=48, scale=.64, origin_y=150),
-        'sleeve':pose(y=-25.6, scale=.64, origin_y=150),
+    path(seam, 'M99 3Q120 11 141 3', stroke='#79654f', stroke_width=1, opacity='.55')
+    # Printed sleeve graphic stays with the sleeve throughout the exchange.
+    rect(seam, 38, 25, 164, 63, '#f6edda')
+    circle(seam, 168, 43, 10, color)
+    path(seam, f'M38 88L{82+f["artwork"]*7} 38L137 88Z', '#626f69')
+    path(seam, f'M96 88L{153-f["artwork"]*4} 47L202 88Z', '#a1a899')
+    reveal = {'contentPart':'record', 'titlePart':'record', 'parts':{
+        'record':pose(scale=.5),
+        'sleeve':pose(scale=.5, foreground=True),
     }}
-    return reveal, (57,133,126,116), (88,46,64,27), (79,132,82,39), '60 92 120 116'
+    return reveal, (53,132,134,79), (53,56,134,45), (78,106,84,38), '59 59 122 122'
 
 
 def postcards(root, f, color):
@@ -77,7 +87,7 @@ def postcards(root, f, color):
 
 
 def compile_svg(theme, factors, state):
-    root = ET.Element(f'{{{NS}}}svg', {'viewBox':'0 0 240 300' if theme=='vinyl' else '0 -60 240 320',
+    root = ET.Element(f'{{{NS}}}svg', {'viewBox':'0 0 240 240' if theme=='vinyl' else '0 -60 240 320',
         'preserveAspectRatio':'xMidYMid meet', 'opacity':'1', 'aria-hidden':'true', 'focusable':'false'})
     renderer = vinyl if theme == 'vinyl' else postcards
     reveal, content, title, base_content, base_view = renderer(root, factors, WORLDS[theme]['palette'][factors['palette']])
@@ -91,12 +101,14 @@ def compile_svg(theme, factors, state):
         rect(root, *title, 'none', data_theme_title_area='title')
     if state == 'expanded' and theme == 'postcards':
         rect(root, 55, 108, 130, 58, 'none', data_theme_carrier_title_area='title')
+    if state == 'expanded' and theme == 'vinyl':
+        rect(root, 41, 103, 158, 80, 'none', data_theme_carrier_title_area='title')
     rect(root, *content, 'none', data_theme_content_area='content')
     return ET.tostring(root, encoding='unicode')+'\n', reveal
 
 
 def main():
-    for theme in ('vinyl', 'postcards'):
+    for theme in ('postcards',):
         folder = ROOT/'static/themes'/theme
         tiles = json.loads((folder/'tiles.json').read_text())
         for assignment in tiles['assignments'].values():
@@ -106,6 +118,8 @@ def main():
             assignment['reveal'] = reveal
             if theme == 'postcards':
                 assignment['swap'] = {'movingPart':'card', 'carrierPart':'front', 'liftY':-85}
+            else:
+                assignment['swap'] = {'movingPart':'record', 'carrierPart':'sleeve', 'liftY':-122}
         (folder/'tiles.json').write_text(json.dumps(tiles, indent=2)+'\n')
         presentation = json.loads((folder/'presentation.json').read_text())
         b = presentation['board']
@@ -117,9 +131,16 @@ def main():
                   'phone-expanded-text-size':'1rem'})
         if theme == 'vinyl':
             b.update({'font-expanded-title':"'Patrick Hand', cursive", 'expanded-title-size':'1.25rem',
-                      'expanded-title-line-height':'1.02'})
+                      'expanded-title-line-height':'1.1', 'focus-motion':'swap',
+                      'cover-enter-duration':'.8s', 'cover-exit-duration':'.8s',
+                      'expanded-width':'440px', 'expanded-min-height':'440px',
+                      'phone-expanded-width':'min(410px, calc(100vw + 12px))',
+                      'phone-expanded-min-height':'410px', 'expanded-text-line-height':'1.2',
+                      'expanded-gap':'5px', 'action-treatment':'annotation',
+                      'action-border':'0', 'action-shadow':'none', 'link-bg':'transparent',
+                      'action-text-decoration':'underline', 'action-radius':'0'})
         else:
-            b.update({'focus-motion':'swap', 'cover-enter-duration':'1.1s', 'cover-exit-duration':'1.1s'})
+            b.update({'focus-motion':'swap', 'cover-enter-duration':'.8s', 'cover-exit-duration':'.8s'})
         (folder/'presentation.json').write_text(json.dumps(presentation, indent=2, ensure_ascii=False)+'\n')
         print(f'Compiled {b["focus-motion"]} for {theme}')
 

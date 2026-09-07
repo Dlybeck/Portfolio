@@ -376,6 +376,10 @@ def presentation(theme,c):
 
 def main():
     for theme,c in WORLDS.items():
+        if theme == 'vinyl':
+            # Owner-approved packaging is authored directly in its pack; this
+            # historical sketch generator must not overwrite it.
+            continue
         folder=PACKS/theme
         assets=folder/'assets/tiles'
         assets.mkdir(parents=True,exist_ok=True)
@@ -399,7 +403,7 @@ def main():
         write_json(folder/'theme.json',{'$schema':'portfolio-theme-pack/v1','id':theme,'label':c['label'],
           'version':1,'tiles':'tiles.json','presentation':'presentation.json',
           'background':[{'asset':'assets/background.svg','depth':1.0}],
-          'selection':{'enabled':theme == 'postcards','randomEligible':theme == 'postcards','randomWeight':1}})
+          'selection':{'enabled':theme in ('postcards','vinyl'),'randomEligible':theme == 'postcards','randomWeight':1}})
         print(f'Built {theme}: {len(assignments)} locations')
 
     # Keep the single authoring command reproducible: the two selected worlds

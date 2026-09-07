@@ -329,6 +329,20 @@
       "dash": 0,
       "opacity": 0,
       "markerScale": 0
-    }
+    },
+    "ribbons": [
+      {
+        "width": 1.5,
+        "offset": -5,
+        "opacity": 0.5,
+        "color": "#c3e8e4"
+      },
+      {
+        "width": 0.8,
+        "offset": 6,
+        "opacity": 0.32,
+        "color": "#c3e8e4"
+      }
+    ]
   }
 }

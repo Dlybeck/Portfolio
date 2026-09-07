@@ -6,8 +6,23 @@
   "tiles": "tiles.json",
   "presentation": "presentation.json",
   "selection": {
-    "enabled": false,
+    "enabled": true,
     "randomEligible": false,
     "randomWeight": 1
+  },
+  "background": [
+    {
+      "asset": "assets/sky-far.svg",
+      "depth": 0.12
+    },
+    {
+      "asset": "assets/sky-near.svg",
+      "depth": 0.3
+    }
+  ],
+  "viewerSurface": {
+    "asset": "assets/mist-bank.svg",
+    "outsetX": 18,
+    "outsetY": 12
   }
 }

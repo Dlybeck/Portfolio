@@ -263,7 +263,7 @@
             body.querySelector(".expanded-text"),
             body.querySelector(".expanded-open"),
             body.querySelector(".home-theme-selector"),
-        ].filter((node) => node && !node.dataset.revealTitle);
+        ].filter((node) => node && !node.dataset.revealTitle && !node.dataset.swapTitle);
         nodes.forEach((node) => node.style.removeProperty("font-size"));
         const initialSizes = nodes.map((node) => Number.parseFloat(
             getComputedStyle(node).fontSize
@@ -301,7 +301,28 @@
     }
 
     function fitTileContent() {
+        const responsiveScales = ['enter', 'exit'].map(phase => [
+            `--theme-pack-cover-${phase}-scale`,
+            state.pack?.variables?.board?.[`cover-${phase}-scale`],
+        ]).filter(([, value]) => value?.includes('--theme-object-size-ratio'));
         document.querySelectorAll(".tile-container[data-theme-identity]").forEach((tile) => {
+            // Optional pack reference for physically continuous Grow at every
+            // viewport. Measure untransformed SVG sizes, never an animated rect.
+            const baseArt = tile.querySelector('[data-theme-size="base"]');
+            const expandedArt = tile.querySelector('[data-theme-size="expanded"]');
+            if (responsiveScales.length && baseArt && expandedArt) {
+                const scale = art => Math.min(art.clientWidth / art.viewBox.baseVal.width,
+                    art.clientHeight / art.viewBox.baseVal.height);
+                const ratio = scale(baseArt) / scale(expandedArt);
+                if (Number.isFinite(ratio) && ratio > 0) {
+                    tile.style.setProperty('--theme-object-size-ratio', Math.min(1, ratio));
+                    // Resolve opt-in expressions here, where the measured value
+                    // exists. Root custom properties resolve before inheritance.
+                    for (const [key, value] of responsiveScales) {
+                        tile.style.setProperty(key, value);
+                    }
+                }
+            }
             tile.querySelectorAll(".paper-body[data-theme-content-area]")
                 .forEach(sizeContentArea);
             const baseFits = fitText(
@@ -367,6 +388,8 @@
             )
                 .forEach((element) => element.style.removeProperty("font-size"));
             [
+                "--theme-object-size-ratio", "--theme-pack-cover-enter-scale",
+                "--theme-pack-cover-exit-scale",
                 "--theme-detail-rotation", "--theme-motion-enter-duration",
                 "--theme-motion-exit-duration", "--theme-motion-rotation-offset",
                 "--theme-motion-offset-x", "--theme-motion-offset-y",
@@ -581,6 +604,24 @@
         window.redrawChalkArrows?.();
     }
 
+    function styleViewerSurface(pack) {
+        document.querySelector('.theme-viewer-surface')?.remove();
+        const surface = pack.viewerSurface;
+        const viewer = document.querySelector('.mini-window-container');
+        if (!surface || !viewer) return;
+        const svg = new DOMParser().parseFromString(surface.svg, 'image/svg+xml').documentElement;
+        namespaceSvgIds(svg, 'viewer-surface');
+        svg.setAttribute('class', 'theme-viewer-surface');
+        svg.setAttribute('aria-hidden', 'true');
+        svg.setAttribute('focusable', 'false');
+        Object.assign(svg.style, {
+            left: `${-surface.outsetX}px`, top: `${-surface.outsetY}px`,
+            width: `calc(100% + ${surface.outsetX * 2}px)`,
+            height: `calc(100% + ${surface.outsetY * 2}px)`,
+        });
+        viewer.prepend(svg);
+    }
+
     function applyVariables(target, variables) {
         const style = target?.documentElement?.style || target?.style;
         if (!style) return;
@@ -596,6 +637,21 @@
         doc.documentElement.dataset.boardTheme = pack.id;
         doc.documentElement.setAttribute("data-theme-pack-visual", "");
         applyVariables(doc, pack.variables.document);
+        const surface = readingSurface(pack);
+        if (surface) doc.documentElement.style.setProperty('--theme-pack-page-bg', surface.pageColor);
+    }
+
+    function readingSurface(pack = state.pack) {
+        return pack?.tiles.assignments[window.currentTileTitle || 'Home']?.readingSurface;
+    }
+
+    function styleReadingMaterial() {
+        if (!state.pack) return;
+        const surface = readingSurface();
+        const board = state.pack.variables.board;
+        const style = document.documentElement.style;
+        style.setProperty('--theme-pack-viewer-bg', surface?.pageColor || board['viewer-bg']);
+        style.setProperty('--theme-pack-viewer-border', surface?.surroundColor || board['viewer-border']);
     }
 
     function themedUrl(route, pack, includeTheme = state.pinned) {
@@ -646,8 +702,10 @@
         document.documentElement.setAttribute("data-theme-pack-visual", "");
         decorate(pack);
         styleRelationships(pack);
+        styleViewerSurface(pack);
         state.current = pack.id;
         state.pack = pack;
+        styleReadingMaterial();
         if (selector) selector.value = pack.id;
         const current = `${location.pathname}${location.search}${location.hash}`;
         if (
@@ -668,8 +726,15 @@
         currentPack: () => state.pack,
         positionBackgroundLayers,
         styleDocument,
+        styleReadingMaterial,
     };
     document.addEventListener("DOMContentLoaded", () => {
+        // Native selects can match :focus-visible even after a pointer click.
+        // Keep focus intact, but only draw our custom ring for keyboard use.
+        const chooserAction = selector?.closest('.home-theme-action');
+        document.addEventListener('pointerdown', () => {
+            chooserAction?.removeAttribute('data-keyboard-focus');
+        }, true);
         selector?.addEventListener("change", (event) => {
             if (event.target.value === "__random__") {
                 location.assign(unpinnedUrl());
@@ -678,8 +743,12 @@
             activate(event.target.value).catch(console.error);
         });
         document.addEventListener("keydown", (event) => {
+            if (document.activeElement === selector) {
+                chooserAction?.setAttribute('data-keyboard-focus', '');
+            }
             if (!selector || !event.altKey || event.code !== "KeyT") return;
             event.preventDefault();
+            chooserAction?.setAttribute('data-keyboard-focus', '');
             if ((window.currentTileTitle || "Home") !== "Home") {
                 window.returnHome?.();
             }

@@ -26,6 +26,44 @@
     "presentation": {
       "const": "presentation.json"
     },
+    "viewerSurface": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "description": "Optional inert artwork behind the existing document viewport.",
+          "properties": {
+            "asset": {
+              "maxLength": 200,
+              "pattern": "^assets/.+\\.svg$",
+              "title": "Asset",
+              "type": "string"
+            },
+            "outsetX": {
+              "default": 0,
+              "maximum": 48,
+              "minimum": 0,
+              "title": "Outsetx",
+              "type": "number"
+            },
+            "outsetY": {
+              "default": 0,
+              "maximum": 48,
+              "minimum": 0,
+              "title": "Outsety",
+              "type": "number"
+            }
+          },
+          "required": [
+            "asset"
+          ],
+          "title": "ViewerSurface",
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "background": {
       "type": "array",
       "minItems": 1,

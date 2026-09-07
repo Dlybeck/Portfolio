@@ -86,7 +86,14 @@ def ground_planet(root):
 def ground_lily(root):
     palette = root.find(".//*[@data-visual-axis='palette']")
     accent = palette.find("./*[@data-visual-axis='accent']")
-    if accent is None or accent.get('data-visual-value') != '3':
+    if accent is None:
+        return
+    if accent.get('data-visual-value') == '2':
+        # Keep the same bloom on the upper leaf edge in both states, outside
+        # the writing area. This also covers the long-copy ScribbleScan leaf.
+        accent.find(tag('g')).set('transform', 'translate(112 38)')
+        return
+    if accent.get('data-visual-value') != '3':
         return
     # Water ripples can peek from behind the leaf, never lie on its surface.
     detail = accent.find(tag('g'))

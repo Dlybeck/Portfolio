@@ -330,6 +330,44 @@
         g.appendChild(makeStrokePath(d, c.color, mainWidth, visual.opacity, dash));
     }
 
+    // Reusable filled profiles follow the same relationship centerline. They
+    // change presentation only, never endpoints, navigation or hit targets.
+    function appendRibbons(g, d) {
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', d);
+        const length = path.getTotalLength();
+        const reach = Math.min(64, innerWidth * .12);
+        const phase = arrowsGroup.children.length * 1.7;
+        for (const profile of cfg().ribbons) {
+            const sides = [[], []];
+            for (let i = 0; i <= 32; i++) {
+                const t = i / 32;
+                const distance = t * (length + 2 * reach) - reach;
+                const clamped = Math.max(0, Math.min(length, distance));
+                const p = path.getPointAtLength(clamped);
+                const a = path.getPointAtLength(Math.max(0, clamped - 1));
+                const b = path.getPointAtLength(Math.min(length, clamped + 1));
+                const norm = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+                const nx = -(b.y - a.y) / norm, ny = (b.x - a.x) / norm;
+                p.x += (b.x - a.x) / norm * (distance - clamped);
+                p.y += (b.y - a.y) / norm * (distance - clamped);
+                const drift = Math.sin(Math.PI * t) * Math.sin(t * 5 + phase) * Math.min(34, length * .11);
+                const spread = profile.width * Math.pow(Math.sin(Math.PI * t), .7) * (1 + .2 * Math.sin(t * 13 + phase));
+                for (let side = 0; side < 2; side++) {
+                    const offset = profile.offset + drift + (side ? -1 : 1) * spread;
+                    sides[side].push(`${(p.x + nx * offset).toFixed(2)},${(p.y + ny * offset).toFixed(2)}`);
+                }
+            }
+            const ribbon = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            ribbon.setAttribute('d', 'M' + sides[0].join(' L') + ' L' + sides[1].reverse().join(' L') + 'Z');
+            ribbon.setAttribute('fill', profile.color);
+            ribbon.setAttribute('opacity', profile.opacity);
+            ribbon.setAttribute('aria-hidden', 'true');
+            ribbon.setAttribute('data-theme-ribbon', '');
+            g.appendChild(ribbon);
+        }
+    }
+
     /**
      * Build a path d-string from `from` to `to` with per-seed shape
      * variety. Same connection always gets the same shape (deterministic
@@ -440,6 +478,10 @@
         const lineD = buildLineD(
             e.fromX, e.fromY, e.toX, e.toY, e.ux, e.uy, seed, visual
         );
+        if (c.ribbons?.length) {
+            appendRibbons(g, lineD);
+            return g;
+        }
         appendRelationshipLine(g, lineD, visual);
 
         const showStart =

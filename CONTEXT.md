@@ -40,7 +40,8 @@ _Avoid_: Random skin, replacement theme
 A versioned, declarative bundle of visual tokens and sanitized assets that completely describes one Board Theme without executable theme-specific code.
 _Avoid_: Theme stylesheet, renderer plugin, skin
 
-Current realism review authority is `docs/full-realism-polish.md`. The Original
+Current realism review authority is `docs/theme-grounding-review.md`; earlier
+catalog decisions in `docs/full-realism-polish.md` are historical. The Original
 fidelity baselines remain in `docs/theme-naturalism-restoration.md`. The owner
 rejected the earlier Reveal interpretation: Swap must extract an object,
 bring it in front, and lay it on top, keeping each surface's writing attached.
@@ -64,12 +65,16 @@ The pack-selected visual grammar for the invariant expanded-tile destination lin
 _Avoid_: Theme-specific button logic, alternate navigation
 
 **Interaction Structure**:
-The invariant parent-child navigation, Neighborhood limits, document flow, and responsive behavior shared by every Board Theme. During Board focus and motion, neighboring destinations remain visible and directly actionable through the same pointer, touch, and keyboard relationships.
+The invariant point-and-click, tile-based navigation: the same spatial layout rules, Parent/Child relationships, Neighborhood limits, destinations, input behavior, and document flow across every Board Theme. Themes may change appearance and visual animation, but never rearrange the navigation or alter how the Viewer moves through it; neighboring destinations remain visible and directly actionable throughout.
 _Avoid_: Theme, visual treatment
 
 **Real-World Coherence**:
-The rule that a Board Theme's objects, surfaces, and motion follow a familiar real-life metaphor closely enough for the Viewer to recognize them and infer their behavior. A decorative or readability treatment needs an understandable in-world reason rather than existing only to solve an interface problem. Functional construction cues such as notebook binding may add welcome realism; unrelated surface clutter such as generic stains or arbitrary creases does not become grounding merely because it is realistic.
+The rule that a Board Theme's scene, objects, surfaces, connecting cues, and motion form a physically believable whole aligned with the owner's design instructions. Changes in displayed information have a coherent visible cause rather than silently rewriting an unchanged surface; backgrounds, connections, and opened Documents belong to the scene without requiring an invented explanation.
 _Avoid_: Abstract visual consistency, arbitrary decoration
+
+**Grounding Review**:
+A Portfolio-specific assessment of a proposed or rendered Board Theme against Real-World Coherence and the owner's established design constraints. It judges the scene and its transitions, not merely whether its assets validate or its text fits.
+_Avoid_: General agent audit, aesthetic approval, geometry-only validation
 
 **Personal Mark**:
 The stable visual identifier representing David across themes and asset sizes. A Board Theme may alter its border, badge, or surrounding treatment without replacing its recognizable core.

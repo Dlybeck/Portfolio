@@ -72,7 +72,7 @@
   width: 100%;
 }
 
-.home-theme-action:focus-within {
+.home-theme-action[data-keyboard-focus]:focus-within {
   outline: 3px solid var(--theme-pack-focus);
   outline-offset: 3px;
 }
@@ -161,6 +161,10 @@ html[data-theme-focus-motion="swap"] .tile-container.expanded .tile-expanded { z
   font-family: var(--theme-pack-font-base-title);
   color: var(--theme-pack-ink);
   overflow-wrap: normal; word-break: normal;
+}
+[data-theme-swap] .expanded-title[data-swap-title] {
+  position: absolute; display: flex; align-items: center; justify-content: center;
+  margin: 0; overflow-wrap: normal; word-break: normal;
 }
 [data-theme-swap].expanded .theme-swap-layer :is(.expanded-open,.home-theme-selector) { pointer-events: auto; }
 
@@ -449,6 +453,13 @@ html[data-theme-pack-visual] .mini-window {
   border-radius: var(--theme-pack-viewer-iframe-radius);
 }
 
+.theme-viewer-surface {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  overflow: visible;
+}
+
 .theme-viewer-decoration {
   display: none;
   inset: 0;
@@ -731,6 +742,11 @@ html[data-theme-pack-visual] .tile-base:focus-visible .theme-object {
 @media (max-width: 600px) {
   .navbar { max-width: calc(100vw - 20px); left: 10px; top: 10px; }
   .navbar-title { max-width: 22vw; }
+  /* Preserve Original's header. Other packs may use wider letterforms; let
+     the name use available space while reserving room for Home and Close. */
+  html[data-theme-pack-visual] .navbar-title {
+    max-width: min(45vw, calc(100vw - 170px));
+  }
   .tile-expanded .home-theme-selector {
     font-size: max(.84rem, calc(var(--theme-pack-action-size) * .88));
   }

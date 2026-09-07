@@ -329,7 +329,7 @@ def test_authoring_audits_discover_every_enabled_pack_from_the_registry() -> Non
 
     assert audit_theme_ids(registry) == enabled_ids
     assert review_theme_ids(registry) == enabled_ids
-    assert "clouds" not in enabled_ids
+    assert "clouds" in enabled_ids
 
 
 def test_machine_schemas_publish_the_exact_runtime_contract() -> None:
@@ -657,12 +657,12 @@ def test_every_repository_pack_has_the_complete_visual_contract() -> None:
         )
 
 
-def test_repository_selection_excludes_disabled_cloudscape() -> None:
+def test_repository_selection_allows_cloudscape_review_without_random_rotation() -> None:
     registry = ThemePackRegistry.discover()
 
-    assert registry.resolve("clouds", enabled=True).id == "canonical"
+    assert registry.resolve("clouds", enabled=True).id == "clouds"
     assert "clouds" not in {pack.id for pack in registry.random_candidates}
-    assert "clouds" not in {entry["key"] for entry in registry.public_catalog()}
+    assert "clouds" in {entry["key"] for entry in registry.public_catalog()}
 
 
 def test_repository_packs_choose_a_bounded_action_treatment() -> None:

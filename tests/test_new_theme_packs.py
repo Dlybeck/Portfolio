@@ -10,7 +10,7 @@ from core.theme_packs import BOARD_LOCATIONS, ThemePackRegistry, load_theme_pack
 from scripts.audit_theme_variants import audit_world
 
 NEW_THEMES = ('vinyl', 'botanical', 'workbench', 'postcards')
-ACTIVE_NEW_THEMES = ('postcards',)
+ACTIVE_NEW_THEMES = ('postcards', 'vinyl')
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -20,7 +20,7 @@ def test_new_pack_is_complete_and_selectable(theme, client):
     assert registry.diagnostics == ()
     expected = theme if theme in ACTIVE_NEW_THEMES else 'canonical'
     assert registry.resolve(theme, enabled=True).id == expected
-    assert (theme in {pack.id for pack in registry.random_candidates}) == (theme in ACTIVE_NEW_THEMES)
+    assert (theme in {pack.id for pack in registry.random_candidates}) == (theme == 'postcards')
     data = json.loads((ROOT / 'static/themes' / theme / 'tiles.json').read_text())
     assert set(data['assignments']) == BOARD_LOCATIONS
     response = client.get(f'/?theme={theme}')
@@ -68,11 +68,11 @@ def test_vinyl_records_remain_round():
 
 
 @pytest.mark.parametrize('width', [390, 1440])
-def test_rejected_vinyl_cannot_be_forced_by_url(width, browser_page):
+def test_revisited_vinyl_is_available_for_direct_review(width, browser_page):
     page, origin = browser_page
     page.set_viewport_size({'width': width, 'height': 900})
     page.goto(f'{origin}/?theme=vinyl', wait_until='networkidle')
-    expect(page.locator('html')).to_have_attribute('data-board-theme', 'canonical')
+    expect(page.locator('html')).to_have_attribute('data-board-theme', 'vinyl')
 
 
 def test_collection_builder_targets_only_the_four_new_themes():

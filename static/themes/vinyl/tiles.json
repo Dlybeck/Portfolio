@@ -6,8 +6,8 @@
       "factors": {
         "silhouette": 2,
         "palette": 2,
-        "orientation": 0,
-        "pressing": 3,
+        "orientation": 30,
+        "pressing": 0,
         "artwork": 0,
         "seam": 0
       },
@@ -32,24 +32,43 @@
         "scaleOffset": 0
       },
       "reveal": {
-        "contentPart": "sleeve",
+        "contentPart": "record",
         "titlePart": "record",
         "parts": {
           "record": {
             "x": 0,
-            "y": 48,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120
           },
           "sleeve": {
             "x": 0,
-            "y": -25.6,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120,
+            "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "record",
+        "carrierPart": "sleeve",
+        "liftY": -122,
+        "details": [
+          {
+            "part": "record",
+            "element": "disc",
+            "x": 0,
+            "y": -66,
+            "start": 0.72
+          }
+        ]
+      },
+      "readingSurface": {
+        "pageColor": "#faf5e9",
+        "surroundColor": "#adc1c0"
       }
     },
     "College": {
@@ -58,9 +77,9 @@
       "factors": {
         "silhouette": 0,
         "palette": 0,
-        "orientation": 1,
-        "pressing": 2,
-        "artwork": 0,
+        "orientation": 7,
+        "pressing": 1,
+        "artwork": 1,
         "seam": 0
       },
       "transforms": {
@@ -84,24 +103,43 @@
         "scaleOffset": 0
       },
       "reveal": {
-        "contentPart": "sleeve",
+        "contentPart": "record",
         "titlePart": "record",
         "parts": {
           "record": {
             "x": 0,
-            "y": 48,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120
           },
           "sleeve": {
             "x": 0,
-            "y": -25.6,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120,
+            "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "record",
+        "carrierPart": "sleeve",
+        "liftY": -122,
+        "details": [
+          {
+            "part": "record",
+            "element": "disc",
+            "x": 0,
+            "y": -66,
+            "start": 0.72
+          }
+        ]
+      },
+      "readingSurface": {
+        "pageColor": "#f0ebdc",
+        "surroundColor": "#efbe83"
       }
     },
     "Digital Planner": {
@@ -110,9 +148,9 @@
       "factors": {
         "silhouette": 2,
         "palette": 0,
-        "orientation": 6,
+        "orientation": 29,
         "pressing": 2,
-        "artwork": 0,
+        "artwork": 1,
         "seam": 0
       },
       "transforms": {
@@ -136,24 +174,43 @@
         "scaleOffset": 0
       },
       "reveal": {
-        "contentPart": "sleeve",
+        "contentPart": "record",
         "titlePart": "record",
         "parts": {
           "record": {
             "x": 0,
-            "y": 48,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120
           },
           "sleeve": {
             "x": 0,
-            "y": -25.6,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120,
+            "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "record",
+        "carrierPart": "sleeve",
+        "liftY": -122,
+        "details": [
+          {
+            "part": "record",
+            "element": "disc",
+            "x": 0,
+            "y": -66,
+            "start": 0.72
+          }
+        ]
+      },
+      "readingSurface": {
+        "pageColor": "#faf5e9",
+        "surroundColor": "#efbe83"
       }
     },
     "Early Education": {
@@ -162,8 +219,8 @@
       "factors": {
         "silhouette": 2,
         "palette": 2,
-        "orientation": 2,
-        "pressing": 2,
+        "orientation": -14,
+        "pressing": 3,
         "artwork": 2,
         "seam": 2
       },
@@ -188,24 +245,43 @@
         "scaleOffset": 0
       },
       "reveal": {
-        "contentPart": "sleeve",
+        "contentPart": "record",
         "titlePart": "record",
         "parts": {
           "record": {
             "x": 0,
-            "y": 48,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120
           },
           "sleeve": {
             "x": 0,
-            "y": -25.6,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120,
+            "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "record",
+        "carrierPart": "sleeve",
+        "liftY": -122,
+        "details": [
+          {
+            "part": "record",
+            "element": "disc",
+            "x": 0,
+            "y": -66,
+            "start": 0.72
+          }
+        ]
+      },
+      "readingSurface": {
+        "pageColor": "#faf5e9",
+        "surroundColor": "#adc1c0"
       }
     },
     "Education": {
@@ -214,9 +290,9 @@
       "factors": {
         "silhouette": 1,
         "palette": 3,
-        "orientation": 5,
-        "pressing": 0,
-        "artwork": 2,
+        "orientation": 21,
+        "pressing": 4,
+        "artwork": 3,
         "seam": 3
       },
       "transforms": {
@@ -240,24 +316,43 @@
         "scaleOffset": 0
       },
       "reveal": {
-        "contentPart": "sleeve",
+        "contentPart": "record",
         "titlePart": "record",
         "parts": {
           "record": {
             "x": 0,
-            "y": 48,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120
           },
           "sleeve": {
             "x": 0,
-            "y": -25.6,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120,
+            "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "record",
+        "carrierPart": "sleeve",
+        "liftY": -122,
+        "details": [
+          {
+            "part": "record",
+            "element": "disc",
+            "x": 0,
+            "y": -66,
+            "start": 0.72
+          }
+        ]
+      },
+      "readingSurface": {
+        "pageColor": "#f0ebdc",
+        "surroundColor": "#ddd19f"
       }
     },
     "Gaming": {
@@ -266,9 +361,9 @@
       "factors": {
         "silhouette": 1,
         "palette": 0,
-        "orientation": 6,
-        "pressing": 1,
-        "artwork": 2,
+        "orientation": 32,
+        "pressing": 5,
+        "artwork": 1,
         "seam": 1
       },
       "transforms": {
@@ -292,24 +387,43 @@
         "scaleOffset": 0
       },
       "reveal": {
-        "contentPart": "sleeve",
+        "contentPart": "record",
         "titlePart": "record",
         "parts": {
           "record": {
             "x": 0,
-            "y": 48,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120
           },
           "sleeve": {
             "x": 0,
-            "y": -25.6,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120,
+            "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "record",
+        "carrierPart": "sleeve",
+        "liftY": -122,
+        "details": [
+          {
+            "part": "record",
+            "element": "disc",
+            "x": 0,
+            "y": -66,
+            "start": 0.72
+          }
+        ]
+      },
+      "readingSurface": {
+        "pageColor": "#f0ebdc",
+        "surroundColor": "#efbe83"
       }
     },
     "Hobbies": {
@@ -318,9 +432,9 @@
       "factors": {
         "silhouette": 0,
         "palette": 2,
-        "orientation": 0,
-        "pressing": 2,
-        "artwork": 0,
+        "orientation": 14,
+        "pressing": 6,
+        "artwork": 4,
         "seam": 1
       },
       "transforms": {
@@ -344,24 +458,43 @@
         "scaleOffset": 0
       },
       "reveal": {
-        "contentPart": "sleeve",
+        "contentPart": "record",
         "titlePart": "record",
         "parts": {
           "record": {
             "x": 0,
-            "y": 48,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120
           },
           "sleeve": {
             "x": 0,
-            "y": -25.6,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120,
+            "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "record",
+        "carrierPart": "sleeve",
+        "liftY": -122,
+        "details": [
+          {
+            "part": "record",
+            "element": "disc",
+            "x": 0,
+            "y": -66,
+            "start": 0.72
+          }
+        ]
+      },
+      "readingSurface": {
+        "pageColor": "#eddfc2",
+        "surroundColor": "#adc1c0"
       }
     },
     "Home": {
@@ -370,9 +503,9 @@
       "factors": {
         "silhouette": 3,
         "palette": 1,
-        "orientation": 1,
-        "pressing": 3,
-        "artwork": 2,
+        "orientation": 19,
+        "pressing": 7,
+        "artwork": 5,
         "seam": 1
       },
       "transforms": {
@@ -396,24 +529,43 @@
         "scaleOffset": 0
       },
       "reveal": {
-        "contentPart": "sleeve",
+        "contentPart": "record",
         "titlePart": "record",
         "parts": {
           "record": {
             "x": 0,
-            "y": 48,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120
           },
           "sleeve": {
             "x": 0,
-            "y": -25.6,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120,
+            "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "record",
+        "carrierPart": "sleeve",
+        "liftY": -122,
+        "details": [
+          {
+            "part": "record",
+            "element": "disc",
+            "x": 0,
+            "y": -66,
+            "start": 0.72
+          }
+        ]
+      },
+      "readingSurface": {
+        "pageColor": "#faf5e9",
+        "surroundColor": "#dbacaa"
       }
     },
     "Other Models": {
@@ -422,9 +574,9 @@
       "factors": {
         "silhouette": 2,
         "palette": 2,
-        "orientation": 2,
-        "pressing": 1,
-        "artwork": 1,
+        "orientation": -6,
+        "pressing": 2,
+        "artwork": 3,
         "seam": 1
       },
       "transforms": {
@@ -448,24 +600,43 @@
         "scaleOffset": 0
       },
       "reveal": {
-        "contentPart": "sleeve",
+        "contentPart": "record",
         "titlePart": "record",
         "parts": {
           "record": {
             "x": 0,
-            "y": 48,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120
           },
           "sleeve": {
             "x": 0,
-            "y": -25.6,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120,
+            "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "record",
+        "carrierPart": "sleeve",
+        "liftY": -122,
+        "details": [
+          {
+            "part": "record",
+            "element": "disc",
+            "x": 0,
+            "y": -66,
+            "start": 0.72
+          }
+        ]
+      },
+      "readingSurface": {
+        "pageColor": "#f0ebdc",
+        "surroundColor": "#adc1c0"
       }
     },
     "Programs": {
@@ -474,9 +645,9 @@
       "factors": {
         "silhouette": 0,
         "palette": 1,
-        "orientation": 5,
-        "pressing": 1,
-        "artwork": 1,
+        "orientation": 7,
+        "pressing": 8,
+        "artwork": 0,
         "seam": 2
       },
       "transforms": {
@@ -500,24 +671,43 @@
         "scaleOffset": 0
       },
       "reveal": {
-        "contentPart": "sleeve",
+        "contentPart": "record",
         "titlePart": "record",
         "parts": {
           "record": {
             "x": 0,
-            "y": 48,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120
           },
           "sleeve": {
             "x": 0,
-            "y": -25.6,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120,
+            "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "record",
+        "carrierPart": "sleeve",
+        "liftY": -122,
+        "details": [
+          {
+            "part": "record",
+            "element": "disc",
+            "x": 0,
+            "y": -66,
+            "start": 0.72
+          }
+        ]
+      },
+      "readingSurface": {
+        "pageColor": "#eddfc2",
+        "surroundColor": "#dbacaa"
       }
     },
     "Projects": {
@@ -526,9 +716,9 @@
       "factors": {
         "silhouette": 0,
         "palette": 3,
-        "orientation": 4,
-        "pressing": 0,
-        "artwork": 1,
+        "orientation": -25,
+        "pressing": 9,
+        "artwork": 2,
         "seam": 2
       },
       "transforms": {
@@ -552,24 +742,43 @@
         "scaleOffset": 0
       },
       "reveal": {
-        "contentPart": "sleeve",
+        "contentPart": "record",
         "titlePart": "record",
         "parts": {
           "record": {
             "x": 0,
-            "y": 48,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120
           },
           "sleeve": {
             "x": 0,
-            "y": -25.6,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120,
+            "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "record",
+        "carrierPart": "sleeve",
+        "liftY": -122,
+        "details": [
+          {
+            "part": "record",
+            "element": "disc",
+            "x": 0,
+            "y": -66,
+            "start": 0.72
+          }
+        ]
+      },
+      "readingSurface": {
+        "pageColor": "#faf5e9",
+        "surroundColor": "#ddd19f"
       }
     },
     "Puzzles": {
@@ -578,9 +787,9 @@
       "factors": {
         "silhouette": 2,
         "palette": 4,
-        "orientation": 3,
-        "pressing": 0,
-        "artwork": 1,
+        "orientation": 37,
+        "pressing": 10,
+        "artwork": 5,
         "seam": 0
       },
       "transforms": {
@@ -604,24 +813,43 @@
         "scaleOffset": 0
       },
       "reveal": {
-        "contentPart": "sleeve",
+        "contentPart": "record",
         "titlePart": "record",
         "parts": {
           "record": {
             "x": 0,
-            "y": 48,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120
           },
           "sleeve": {
             "x": 0,
-            "y": -25.6,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120,
+            "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "record",
+        "carrierPart": "sleeve",
+        "liftY": -122,
+        "details": [
+          {
+            "part": "record",
+            "element": "disc",
+            "x": 0,
+            "y": -66,
+            "start": 0.72
+          }
+        ]
+      },
+      "readingSurface": {
+        "pageColor": "#faf5e9",
+        "surroundColor": "#bcb4cc"
       }
     },
     "ScribbleScan": {
@@ -630,9 +858,9 @@
       "factors": {
         "silhouette": 1,
         "palette": 0,
-        "orientation": 6,
-        "pressing": 1,
-        "artwork": 1,
+        "orientation": -20,
+        "pressing": 11,
+        "artwork": 5,
         "seam": 1
       },
       "transforms": {
@@ -656,24 +884,43 @@
         "scaleOffset": 0
       },
       "reveal": {
-        "contentPart": "sleeve",
+        "contentPart": "record",
         "titlePart": "record",
         "parts": {
           "record": {
             "x": 0,
-            "y": 48,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120
           },
           "sleeve": {
             "x": 0,
-            "y": -25.6,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120,
+            "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "record",
+        "carrierPart": "sleeve",
+        "liftY": -122,
+        "details": [
+          {
+            "part": "record",
+            "element": "disc",
+            "x": 0,
+            "y": -66,
+            "start": 0.72
+          }
+        ]
+      },
+      "readingSurface": {
+        "pageColor": "#faf5e9",
+        "surroundColor": "#efbe83"
       }
     },
     "Tennis": {
@@ -682,8 +929,8 @@
       "factors": {
         "silhouette": 3,
         "palette": 4,
-        "orientation": 6,
-        "pressing": 2,
+        "orientation": 31,
+        "pressing": 12,
         "artwork": 2,
         "seam": 3
       },
@@ -708,24 +955,43 @@
         "scaleOffset": 0
       },
       "reveal": {
-        "contentPart": "sleeve",
+        "contentPart": "record",
         "titlePart": "record",
         "parts": {
           "record": {
             "x": 0,
-            "y": 48,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120
           },
           "sleeve": {
             "x": 0,
-            "y": -25.6,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120,
+            "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "record",
+        "carrierPart": "sleeve",
+        "liftY": -122,
+        "details": [
+          {
+            "part": "record",
+            "element": "disc",
+            "x": 0,
+            "y": -66,
+            "start": 0.72
+          }
+        ]
+      },
+      "readingSurface": {
+        "pageColor": "#eddfc2",
+        "surroundColor": "#bcb4cc"
       }
     },
     "This website": {
@@ -734,9 +1000,9 @@
       "factors": {
         "silhouette": 0,
         "palette": 0,
-        "orientation": 1,
-        "pressing": 0,
-        "artwork": 0,
+        "orientation": -28,
+        "pressing": 13,
+        "artwork": 3,
         "seam": 2
       },
       "transforms": {
@@ -760,24 +1026,43 @@
         "scaleOffset": 0
       },
       "reveal": {
-        "contentPart": "sleeve",
+        "contentPart": "record",
         "titlePart": "record",
         "parts": {
           "record": {
             "x": 0,
-            "y": 48,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120
           },
           "sleeve": {
             "x": 0,
-            "y": -25.6,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120,
+            "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "record",
+        "carrierPart": "sleeve",
+        "liftY": -122,
+        "details": [
+          {
+            "part": "record",
+            "element": "disc",
+            "x": 0,
+            "y": -66,
+            "start": 0.72
+          }
+        ]
+      },
+      "readingSurface": {
+        "pageColor": "#f5edda",
+        "surroundColor": "#efbe83"
       }
     },
     "Websites": {
@@ -786,9 +1071,9 @@
       "factors": {
         "silhouette": 0,
         "palette": 4,
-        "orientation": 1,
-        "pressing": 1,
-        "artwork": 1,
+        "orientation": 14,
+        "pressing": 14,
+        "artwork": 4,
         "seam": 0
       },
       "transforms": {
@@ -812,24 +1097,43 @@
         "scaleOffset": 0
       },
       "reveal": {
-        "contentPart": "sleeve",
+        "contentPart": "record",
         "titlePart": "record",
         "parts": {
           "record": {
             "x": 0,
-            "y": 48,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120
           },
           "sleeve": {
             "x": 0,
-            "y": -25.6,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120,
+            "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "record",
+        "carrierPart": "sleeve",
+        "liftY": -122,
+        "details": [
+          {
+            "part": "record",
+            "element": "disc",
+            "x": 0,
+            "y": -66,
+            "start": 0.72
+          }
+        ]
+      },
+      "readingSurface": {
+        "pageColor": "#faf5e9",
+        "surroundColor": "#bcb4cc"
       }
     },
     "Work Experience": {
@@ -838,9 +1142,9 @@
       "factors": {
         "silhouette": 3,
         "palette": 2,
-        "orientation": 0,
-        "pressing": 1,
-        "artwork": 2,
+        "orientation": 35,
+        "pressing": 15,
+        "artwork": 1,
         "seam": 0
       },
       "transforms": {
@@ -864,24 +1168,43 @@
         "scaleOffset": 0
       },
       "reveal": {
-        "contentPart": "sleeve",
+        "contentPart": "record",
         "titlePart": "record",
         "parts": {
           "record": {
             "x": 0,
-            "y": 48,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120
           },
           "sleeve": {
             "x": 0,
-            "y": -25.6,
-            "scale": 0.64,
+            "y": 0,
+            "scale": 0.5,
             "originX": 120,
-            "originY": 150
+            "originY": 120,
+            "foreground": true
           }
         }
+      },
+      "swap": {
+        "movingPart": "record",
+        "carrierPart": "sleeve",
+        "liftY": -122,
+        "details": [
+          {
+            "part": "record",
+            "element": "disc",
+            "x": 0,
+            "y": -66,
+            "start": 0.72
+          }
+        ]
+      },
+      "readingSurface": {
+        "pageColor": "#faf5e9",
+        "surroundColor": "#adc1c0"
       }
     }
   }

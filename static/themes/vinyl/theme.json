@@ -12,7 +12,7 @@
     }
   ],
   "selection": {
-    "enabled": false,
+    "enabled": true,
     "randomEligible": false,
     "randomWeight": 1
   }

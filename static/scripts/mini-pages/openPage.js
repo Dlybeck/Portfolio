@@ -85,6 +85,7 @@ class MiniWindow {
 
     _displayRoute(route, options = {}) {
         window.centerOnDestination(route);
+        window.themeEngine?.styleReadingMaterial();
         const routePath = new URL(route, window.location.origin).pathname;
         const documentTitle = window.portfolioState.documentTitles[routePath]
             || 'Portfolio';

@@ -345,6 +345,54 @@
                       "minimum": -300,
                       "title": "Lifty",
                       "type": "number"
+                    },
+                    "details": {
+                      "items": {
+                        "additionalProperties": false,
+                        "description": "A contained detail translates late in the same reversible Swap progress.",
+                        "properties": {
+                          "part": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Part",
+                            "type": "string"
+                          },
+                          "element": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Element",
+                            "type": "string"
+                          },
+                          "x": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "start": {
+                            "maximum": 0.95,
+                            "minimum": 0.55,
+                            "title": "Start",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "part",
+                          "element",
+                          "start"
+                        ],
+                        "title": "SwapDetail",
+                        "type": "object"
+                      },
+                      "maxItems": 4,
+                      "title": "Details",
+                      "type": "array"
                     }
                   },
                   "required": [
@@ -353,6 +401,35 @@
                     "liftY"
                   ],
                   "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readingSurface": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "description": "Material continuity between a tile, its reading paper and surround.",
+                  "properties": {
+                    "pageColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Pagecolor",
+                      "type": "string"
+                    },
+                    "surroundColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Surroundcolor",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pageColor",
+                    "surroundColor"
+                  ],
+                  "title": "ReadingSurface",
                   "type": "object"
                 },
                 {
@@ -708,6 +785,54 @@
                       "minimum": -300,
                       "title": "Lifty",
                       "type": "number"
+                    },
+                    "details": {
+                      "items": {
+                        "additionalProperties": false,
+                        "description": "A contained detail translates late in the same reversible Swap progress.",
+                        "properties": {
+                          "part": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Part",
+                            "type": "string"
+                          },
+                          "element": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Element",
+                            "type": "string"
+                          },
+                          "x": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "start": {
+                            "maximum": 0.95,
+                            "minimum": 0.55,
+                            "title": "Start",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "part",
+                          "element",
+                          "start"
+                        ],
+                        "title": "SwapDetail",
+                        "type": "object"
+                      },
+                      "maxItems": 4,
+                      "title": "Details",
+                      "type": "array"
                     }
                   },
                   "required": [
@@ -716,6 +841,35 @@
                     "liftY"
                   ],
                   "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readingSurface": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "description": "Material continuity between a tile, its reading paper and surround.",
+                  "properties": {
+                    "pageColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Pagecolor",
+                      "type": "string"
+                    },
+                    "surroundColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Surroundcolor",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pageColor",
+                    "surroundColor"
+                  ],
+                  "title": "ReadingSurface",
                   "type": "object"
                 },
                 {
@@ -1071,6 +1225,54 @@
                       "minimum": -300,
                       "title": "Lifty",
                       "type": "number"
+                    },
+                    "details": {
+                      "items": {
+                        "additionalProperties": false,
+                        "description": "A contained detail translates late in the same reversible Swap progress.",
+                        "properties": {
+                          "part": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Part",
+                            "type": "string"
+                          },
+                          "element": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Element",
+                            "type": "string"
+                          },
+                          "x": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "start": {
+                            "maximum": 0.95,
+                            "minimum": 0.55,
+                            "title": "Start",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "part",
+                          "element",
+                          "start"
+                        ],
+                        "title": "SwapDetail",
+                        "type": "object"
+                      },
+                      "maxItems": 4,
+                      "title": "Details",
+                      "type": "array"
                     }
                   },
                   "required": [
@@ -1079,6 +1281,35 @@
                     "liftY"
                   ],
                   "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readingSurface": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "description": "Material continuity between a tile, its reading paper and surround.",
+                  "properties": {
+                    "pageColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Pagecolor",
+                      "type": "string"
+                    },
+                    "surroundColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Surroundcolor",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pageColor",
+                    "surroundColor"
+                  ],
+                  "title": "ReadingSurface",
                   "type": "object"
                 },
                 {
@@ -1434,6 +1665,54 @@
                       "minimum": -300,
                       "title": "Lifty",
                       "type": "number"
+                    },
+                    "details": {
+                      "items": {
+                        "additionalProperties": false,
+                        "description": "A contained detail translates late in the same reversible Swap progress.",
+                        "properties": {
+                          "part": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Part",
+                            "type": "string"
+                          },
+                          "element": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Element",
+                            "type": "string"
+                          },
+                          "x": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "start": {
+                            "maximum": 0.95,
+                            "minimum": 0.55,
+                            "title": "Start",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "part",
+                          "element",
+                          "start"
+                        ],
+                        "title": "SwapDetail",
+                        "type": "object"
+                      },
+                      "maxItems": 4,
+                      "title": "Details",
+                      "type": "array"
                     }
                   },
                   "required": [
@@ -1442,6 +1721,35 @@
                     "liftY"
                   ],
                   "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readingSurface": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "description": "Material continuity between a tile, its reading paper and surround.",
+                  "properties": {
+                    "pageColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Pagecolor",
+                      "type": "string"
+                    },
+                    "surroundColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Surroundcolor",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pageColor",
+                    "surroundColor"
+                  ],
+                  "title": "ReadingSurface",
                   "type": "object"
                 },
                 {
@@ -1797,6 +2105,54 @@
                       "minimum": -300,
                       "title": "Lifty",
                       "type": "number"
+                    },
+                    "details": {
+                      "items": {
+                        "additionalProperties": false,
+                        "description": "A contained detail translates late in the same reversible Swap progress.",
+                        "properties": {
+                          "part": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Part",
+                            "type": "string"
+                          },
+                          "element": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Element",
+                            "type": "string"
+                          },
+                          "x": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "start": {
+                            "maximum": 0.95,
+                            "minimum": 0.55,
+                            "title": "Start",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "part",
+                          "element",
+                          "start"
+                        ],
+                        "title": "SwapDetail",
+                        "type": "object"
+                      },
+                      "maxItems": 4,
+                      "title": "Details",
+                      "type": "array"
                     }
                   },
                   "required": [
@@ -1805,6 +2161,35 @@
                     "liftY"
                   ],
                   "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readingSurface": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "description": "Material continuity between a tile, its reading paper and surround.",
+                  "properties": {
+                    "pageColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Pagecolor",
+                      "type": "string"
+                    },
+                    "surroundColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Surroundcolor",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pageColor",
+                    "surroundColor"
+                  ],
+                  "title": "ReadingSurface",
                   "type": "object"
                 },
                 {
@@ -2160,6 +2545,54 @@
                       "minimum": -300,
                       "title": "Lifty",
                       "type": "number"
+                    },
+                    "details": {
+                      "items": {
+                        "additionalProperties": false,
+                        "description": "A contained detail translates late in the same reversible Swap progress.",
+                        "properties": {
+                          "part": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Part",
+                            "type": "string"
+                          },
+                          "element": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Element",
+                            "type": "string"
+                          },
+                          "x": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "start": {
+                            "maximum": 0.95,
+                            "minimum": 0.55,
+                            "title": "Start",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "part",
+                          "element",
+                          "start"
+                        ],
+                        "title": "SwapDetail",
+                        "type": "object"
+                      },
+                      "maxItems": 4,
+                      "title": "Details",
+                      "type": "array"
                     }
                   },
                   "required": [
@@ -2168,6 +2601,35 @@
                     "liftY"
                   ],
                   "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readingSurface": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "description": "Material continuity between a tile, its reading paper and surround.",
+                  "properties": {
+                    "pageColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Pagecolor",
+                      "type": "string"
+                    },
+                    "surroundColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Surroundcolor",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pageColor",
+                    "surroundColor"
+                  ],
+                  "title": "ReadingSurface",
                   "type": "object"
                 },
                 {
@@ -2523,6 +2985,54 @@
                       "minimum": -300,
                       "title": "Lifty",
                       "type": "number"
+                    },
+                    "details": {
+                      "items": {
+                        "additionalProperties": false,
+                        "description": "A contained detail translates late in the same reversible Swap progress.",
+                        "properties": {
+                          "part": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Part",
+                            "type": "string"
+                          },
+                          "element": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Element",
+                            "type": "string"
+                          },
+                          "x": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "start": {
+                            "maximum": 0.95,
+                            "minimum": 0.55,
+                            "title": "Start",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "part",
+                          "element",
+                          "start"
+                        ],
+                        "title": "SwapDetail",
+                        "type": "object"
+                      },
+                      "maxItems": 4,
+                      "title": "Details",
+                      "type": "array"
                     }
                   },
                   "required": [
@@ -2531,6 +3041,35 @@
                     "liftY"
                   ],
                   "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readingSurface": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "description": "Material continuity between a tile, its reading paper and surround.",
+                  "properties": {
+                    "pageColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Pagecolor",
+                      "type": "string"
+                    },
+                    "surroundColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Surroundcolor",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pageColor",
+                    "surroundColor"
+                  ],
+                  "title": "ReadingSurface",
                   "type": "object"
                 },
                 {
@@ -2886,6 +3425,54 @@
                       "minimum": -300,
                       "title": "Lifty",
                       "type": "number"
+                    },
+                    "details": {
+                      "items": {
+                        "additionalProperties": false,
+                        "description": "A contained detail translates late in the same reversible Swap progress.",
+                        "properties": {
+                          "part": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Part",
+                            "type": "string"
+                          },
+                          "element": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Element",
+                            "type": "string"
+                          },
+                          "x": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "start": {
+                            "maximum": 0.95,
+                            "minimum": 0.55,
+                            "title": "Start",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "part",
+                          "element",
+                          "start"
+                        ],
+                        "title": "SwapDetail",
+                        "type": "object"
+                      },
+                      "maxItems": 4,
+                      "title": "Details",
+                      "type": "array"
                     }
                   },
                   "required": [
@@ -2894,6 +3481,35 @@
                     "liftY"
                   ],
                   "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readingSurface": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "description": "Material continuity between a tile, its reading paper and surround.",
+                  "properties": {
+                    "pageColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Pagecolor",
+                      "type": "string"
+                    },
+                    "surroundColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Surroundcolor",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pageColor",
+                    "surroundColor"
+                  ],
+                  "title": "ReadingSurface",
                   "type": "object"
                 },
                 {
@@ -3249,6 +3865,54 @@
                       "minimum": -300,
                       "title": "Lifty",
                       "type": "number"
+                    },
+                    "details": {
+                      "items": {
+                        "additionalProperties": false,
+                        "description": "A contained detail translates late in the same reversible Swap progress.",
+                        "properties": {
+                          "part": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Part",
+                            "type": "string"
+                          },
+                          "element": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Element",
+                            "type": "string"
+                          },
+                          "x": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "start": {
+                            "maximum": 0.95,
+                            "minimum": 0.55,
+                            "title": "Start",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "part",
+                          "element",
+                          "start"
+                        ],
+                        "title": "SwapDetail",
+                        "type": "object"
+                      },
+                      "maxItems": 4,
+                      "title": "Details",
+                      "type": "array"
                     }
                   },
                   "required": [
@@ -3257,6 +3921,35 @@
                     "liftY"
                   ],
                   "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readingSurface": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "description": "Material continuity between a tile, its reading paper and surround.",
+                  "properties": {
+                    "pageColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Pagecolor",
+                      "type": "string"
+                    },
+                    "surroundColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Surroundcolor",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pageColor",
+                    "surroundColor"
+                  ],
+                  "title": "ReadingSurface",
                   "type": "object"
                 },
                 {
@@ -3612,6 +4305,54 @@
                       "minimum": -300,
                       "title": "Lifty",
                       "type": "number"
+                    },
+                    "details": {
+                      "items": {
+                        "additionalProperties": false,
+                        "description": "A contained detail translates late in the same reversible Swap progress.",
+                        "properties": {
+                          "part": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Part",
+                            "type": "string"
+                          },
+                          "element": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Element",
+                            "type": "string"
+                          },
+                          "x": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "start": {
+                            "maximum": 0.95,
+                            "minimum": 0.55,
+                            "title": "Start",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "part",
+                          "element",
+                          "start"
+                        ],
+                        "title": "SwapDetail",
+                        "type": "object"
+                      },
+                      "maxItems": 4,
+                      "title": "Details",
+                      "type": "array"
                     }
                   },
                   "required": [
@@ -3620,6 +4361,35 @@
                     "liftY"
                   ],
                   "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readingSurface": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "description": "Material continuity between a tile, its reading paper and surround.",
+                  "properties": {
+                    "pageColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Pagecolor",
+                      "type": "string"
+                    },
+                    "surroundColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Surroundcolor",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pageColor",
+                    "surroundColor"
+                  ],
+                  "title": "ReadingSurface",
                   "type": "object"
                 },
                 {
@@ -3975,6 +4745,54 @@
                       "minimum": -300,
                       "title": "Lifty",
                       "type": "number"
+                    },
+                    "details": {
+                      "items": {
+                        "additionalProperties": false,
+                        "description": "A contained detail translates late in the same reversible Swap progress.",
+                        "properties": {
+                          "part": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Part",
+                            "type": "string"
+                          },
+                          "element": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Element",
+                            "type": "string"
+                          },
+                          "x": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "start": {
+                            "maximum": 0.95,
+                            "minimum": 0.55,
+                            "title": "Start",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "part",
+                          "element",
+                          "start"
+                        ],
+                        "title": "SwapDetail",
+                        "type": "object"
+                      },
+                      "maxItems": 4,
+                      "title": "Details",
+                      "type": "array"
                     }
                   },
                   "required": [
@@ -3983,6 +4801,35 @@
                     "liftY"
                   ],
                   "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readingSurface": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "description": "Material continuity between a tile, its reading paper and surround.",
+                  "properties": {
+                    "pageColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Pagecolor",
+                      "type": "string"
+                    },
+                    "surroundColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Surroundcolor",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pageColor",
+                    "surroundColor"
+                  ],
+                  "title": "ReadingSurface",
                   "type": "object"
                 },
                 {
@@ -4338,6 +5185,54 @@
                       "minimum": -300,
                       "title": "Lifty",
                       "type": "number"
+                    },
+                    "details": {
+                      "items": {
+                        "additionalProperties": false,
+                        "description": "A contained detail translates late in the same reversible Swap progress.",
+                        "properties": {
+                          "part": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Part",
+                            "type": "string"
+                          },
+                          "element": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Element",
+                            "type": "string"
+                          },
+                          "x": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "start": {
+                            "maximum": 0.95,
+                            "minimum": 0.55,
+                            "title": "Start",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "part",
+                          "element",
+                          "start"
+                        ],
+                        "title": "SwapDetail",
+                        "type": "object"
+                      },
+                      "maxItems": 4,
+                      "title": "Details",
+                      "type": "array"
                     }
                   },
                   "required": [
@@ -4346,6 +5241,35 @@
                     "liftY"
                   ],
                   "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readingSurface": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "description": "Material continuity between a tile, its reading paper and surround.",
+                  "properties": {
+                    "pageColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Pagecolor",
+                      "type": "string"
+                    },
+                    "surroundColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Surroundcolor",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pageColor",
+                    "surroundColor"
+                  ],
+                  "title": "ReadingSurface",
                   "type": "object"
                 },
                 {
@@ -4701,6 +5625,54 @@
                       "minimum": -300,
                       "title": "Lifty",
                       "type": "number"
+                    },
+                    "details": {
+                      "items": {
+                        "additionalProperties": false,
+                        "description": "A contained detail translates late in the same reversible Swap progress.",
+                        "properties": {
+                          "part": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Part",
+                            "type": "string"
+                          },
+                          "element": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Element",
+                            "type": "string"
+                          },
+                          "x": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "start": {
+                            "maximum": 0.95,
+                            "minimum": 0.55,
+                            "title": "Start",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "part",
+                          "element",
+                          "start"
+                        ],
+                        "title": "SwapDetail",
+                        "type": "object"
+                      },
+                      "maxItems": 4,
+                      "title": "Details",
+                      "type": "array"
                     }
                   },
                   "required": [
@@ -4709,6 +5681,35 @@
                     "liftY"
                   ],
                   "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readingSurface": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "description": "Material continuity between a tile, its reading paper and surround.",
+                  "properties": {
+                    "pageColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Pagecolor",
+                      "type": "string"
+                    },
+                    "surroundColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Surroundcolor",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pageColor",
+                    "surroundColor"
+                  ],
+                  "title": "ReadingSurface",
                   "type": "object"
                 },
                 {
@@ -5064,6 +6065,54 @@
                       "minimum": -300,
                       "title": "Lifty",
                       "type": "number"
+                    },
+                    "details": {
+                      "items": {
+                        "additionalProperties": false,
+                        "description": "A contained detail translates late in the same reversible Swap progress.",
+                        "properties": {
+                          "part": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Part",
+                            "type": "string"
+                          },
+                          "element": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Element",
+                            "type": "string"
+                          },
+                          "x": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "start": {
+                            "maximum": 0.95,
+                            "minimum": 0.55,
+                            "title": "Start",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "part",
+                          "element",
+                          "start"
+                        ],
+                        "title": "SwapDetail",
+                        "type": "object"
+                      },
+                      "maxItems": 4,
+                      "title": "Details",
+                      "type": "array"
                     }
                   },
                   "required": [
@@ -5072,6 +6121,35 @@
                     "liftY"
                   ],
                   "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readingSurface": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "description": "Material continuity between a tile, its reading paper and surround.",
+                  "properties": {
+                    "pageColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Pagecolor",
+                      "type": "string"
+                    },
+                    "surroundColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Surroundcolor",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pageColor",
+                    "surroundColor"
+                  ],
+                  "title": "ReadingSurface",
                   "type": "object"
                 },
                 {
@@ -5427,6 +6505,54 @@
                       "minimum": -300,
                       "title": "Lifty",
                       "type": "number"
+                    },
+                    "details": {
+                      "items": {
+                        "additionalProperties": false,
+                        "description": "A contained detail translates late in the same reversible Swap progress.",
+                        "properties": {
+                          "part": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Part",
+                            "type": "string"
+                          },
+                          "element": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Element",
+                            "type": "string"
+                          },
+                          "x": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "start": {
+                            "maximum": 0.95,
+                            "minimum": 0.55,
+                            "title": "Start",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "part",
+                          "element",
+                          "start"
+                        ],
+                        "title": "SwapDetail",
+                        "type": "object"
+                      },
+                      "maxItems": 4,
+                      "title": "Details",
+                      "type": "array"
                     }
                   },
                   "required": [
@@ -5435,6 +6561,35 @@
                     "liftY"
                   ],
                   "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readingSurface": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "description": "Material continuity between a tile, its reading paper and surround.",
+                  "properties": {
+                    "pageColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Pagecolor",
+                      "type": "string"
+                    },
+                    "surroundColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Surroundcolor",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pageColor",
+                    "surroundColor"
+                  ],
+                  "title": "ReadingSurface",
                   "type": "object"
                 },
                 {
@@ -5790,6 +6945,54 @@
                       "minimum": -300,
                       "title": "Lifty",
                       "type": "number"
+                    },
+                    "details": {
+                      "items": {
+                        "additionalProperties": false,
+                        "description": "A contained detail translates late in the same reversible Swap progress.",
+                        "properties": {
+                          "part": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Part",
+                            "type": "string"
+                          },
+                          "element": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Element",
+                            "type": "string"
+                          },
+                          "x": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "start": {
+                            "maximum": 0.95,
+                            "minimum": 0.55,
+                            "title": "Start",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "part",
+                          "element",
+                          "start"
+                        ],
+                        "title": "SwapDetail",
+                        "type": "object"
+                      },
+                      "maxItems": 4,
+                      "title": "Details",
+                      "type": "array"
                     }
                   },
                   "required": [
@@ -5798,6 +7001,35 @@
                     "liftY"
                   ],
                   "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readingSurface": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "description": "Material continuity between a tile, its reading paper and surround.",
+                  "properties": {
+                    "pageColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Pagecolor",
+                      "type": "string"
+                    },
+                    "surroundColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Surroundcolor",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pageColor",
+                    "surroundColor"
+                  ],
+                  "title": "ReadingSurface",
                   "type": "object"
                 },
                 {
@@ -6153,6 +7385,54 @@
                       "minimum": -300,
                       "title": "Lifty",
                       "type": "number"
+                    },
+                    "details": {
+                      "items": {
+                        "additionalProperties": false,
+                        "description": "A contained detail translates late in the same reversible Swap progress.",
+                        "properties": {
+                          "part": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Part",
+                            "type": "string"
+                          },
+                          "element": {
+                            "pattern": "^[a-z][a-z0-9-]{0,31}$",
+                            "title": "Element",
+                            "type": "string"
+                          },
+                          "x": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "X",
+                            "type": "number"
+                          },
+                          "y": {
+                            "default": 0,
+                            "maximum": 100,
+                            "minimum": -100,
+                            "title": "Y",
+                            "type": "number"
+                          },
+                          "start": {
+                            "maximum": 0.95,
+                            "minimum": 0.55,
+                            "title": "Start",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "part",
+                          "element",
+                          "start"
+                        ],
+                        "title": "SwapDetail",
+                        "type": "object"
+                      },
+                      "maxItems": 4,
+                      "title": "Details",
+                      "type": "array"
                     }
                   },
                   "required": [
@@ -6161,6 +7441,35 @@
                     "liftY"
                   ],
                   "title": "TileSwap",
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readingSurface": {
+              "anyOf": [
+                {
+                  "additionalProperties": false,
+                  "description": "Material continuity between a tile, its reading paper and surround.",
+                  "properties": {
+                    "pageColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Pagecolor",
+                      "type": "string"
+                    },
+                    "surroundColor": {
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "title": "Surroundcolor",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pageColor",
+                    "surroundColor"
+                  ],
+                  "title": "ReadingSurface",
                   "type": "object"
                 },
                 {

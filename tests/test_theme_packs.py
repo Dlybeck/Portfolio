@@ -929,7 +929,7 @@ def test_files_only_fixture_pack_renders_without_engine_changes(
         "data-board-theme", "fixture-world"
     )
     expect(page.locator('[data-theme-object="fixture-world"]')).to_have_count(34)
-    expect(page.locator("[data-theme-selector]")).to_have_value("fixture-world")
+    expect(page.locator("[data-theme-name]")).to_have_text("Fixture World")
     assert page.locator("html").evaluate(
         "node => node.style.getPropertyValue('--theme-pack-font-navbar')"
     ) == "initial"

@@ -1,14 +1,10 @@
 {% if theme_selector_enabled %}
-<label class="home-theme-selector" data-home-theme-selector>
-  <span class="home-theme-question">Don't like what you see?</span>
-  <span class="home-theme-action">
-    <span aria-hidden="true">Switch it up <span class="home-theme-chevron">⌄</span></span>
-    <select data-theme-selector aria-label="Switch it up" aria-keyshortcuts="Alt+T" tabindex="-1">
-      <option value="__random__">Surprise me</option>
-      {% for theme in board_themes %}
-      <option class="theme-selector-option" value="{{ theme.key }}"{% if theme.key == active_theme %} selected{% endif %}>{{ theme.label }}</option>
-      {% endfor %}
-    </select>
-  </span>
-</label>
+<div class="home-theme-selector" data-home-theme-selector role="group" aria-label="Theme">
+  <span class="home-theme-caption" aria-hidden="true">Theme</span>
+  <div class="home-theme-dial">
+    <button type="button" data-theme-step="-1" aria-label="Previous theme" tabindex="-1">‹</button>
+    <span class="home-theme-name" data-theme-name aria-live="polite" aria-atomic="true">{% for theme in board_themes %}{% if theme.key == active_theme %}{{ theme.label }}{% endif %}{% endfor %}</span>
+    <button type="button" data-theme-step="1" aria-label="Next theme" aria-keyshortcuts="Alt+T" tabindex="-1">›</button>
+  </div>
+</div>
 {% endif %}

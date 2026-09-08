@@ -11,7 +11,9 @@
     const SVG_NS = "http://www.w3.org/2000/svg";
     const packNode = document.querySelector("#active-theme-pack");
     const catalogNode = document.querySelector("#theme-pack-catalog");
-    const selector = document.querySelector("[data-theme-selector]");
+    const chooser = document.querySelector("[data-home-theme-selector]");
+    const themeName = chooser?.querySelector("[data-theme-name]");
+    const themeSteps = [...(chooser?.querySelectorAll("[data-theme-step]") || [])];
     const viewerArtifactLabel = document.querySelector(".theme-viewer-label");
     let catalog = [];
     try { catalog = JSON.parse(catalogNode?.textContent || "[]"); } catch (_) {}
@@ -115,12 +117,6 @@
 
     function slug(value) {
         return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-    }
-
-    function unpinnedUrl() {
-        const url = new URL(location.href);
-        url.searchParams.delete("theme");
-        return `${url.pathname}${url.search}${url.hash}`;
     }
 
     function svgElement(pack, title, assignment, expanded) {
@@ -686,6 +682,8 @@
 
         if (syncUrl) state.pinned = true;
 
+        // Moving the carrier between physical layers can drop keyboard focus.
+        const focusedStep = themeSteps.includes(document.activeElement) ? document.activeElement : null;
         cleanWorld();
         applyVariables(document, pack.variables.board);
         document.documentElement.dataset.boardTheme = pack.id;
@@ -706,7 +704,9 @@
         state.current = pack.id;
         state.pack = pack;
         styleReadingMaterial();
-        if (selector) selector.value = pack.id;
+        if (themeName) themeName.textContent = catalog.find(item => item.key === pack.id)?.label || pack.id;
+        scheduleContentFit();
+        focusedStep?.focus({ preventScroll: true });
         const current = `${location.pathname}${location.search}${location.hash}`;
         if (
             syncUrl
@@ -729,30 +729,56 @@
         styleReadingMaterial,
     };
     document.addEventListener("DOMContentLoaded", () => {
-        // Native selects can match :focus-visible even after a pointer click.
-        // Keep focus intact, but only draw our custom ring for keyboard use.
-        const chooserAction = selector?.closest('.home-theme-action');
-        document.addEventListener('pointerdown', () => {
-            chooserAction?.removeAttribute('data-keyboard-focus');
-        }, true);
-        selector?.addEventListener("change", (event) => {
-            if (event.target.value === "__random__") {
-                location.assign(unpinnedUrl());
-                return;
+        // Use the requested position while loading so rapid steps don't all
+        // target the same next pack. activate's sequence guard handles races.
+        let dialTarget = state.current;
+        let dialSequence = 0;
+        let pendingStep = false;
+        async function stepTheme(direction) {
+            const keys = [...availableIds];
+            if (keys.length < 2) return;
+            if (!pendingStep) dialTarget = state.current;
+            dialTarget = keys[(keys.indexOf(dialTarget) + direction + keys.length) % keys.length];
+            const sequence = ++dialSequence;
+            pendingStep = true;
+            try {
+                await activate(dialTarget);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                if (sequence === dialSequence) {
+                    pendingStep = false;
+                    dialTarget = state.current;
+                }
             }
-            activate(event.target.value).catch(console.error);
+        }
+        document.addEventListener('pointerdown', () => {
+            chooser?.removeAttribute('data-keyboard-focus');
+        }, true);
+        themeSteps.forEach(button => {
+            button.disabled = availableIds.size < 2;
+            button.addEventListener('click', event => {
+                event.stopPropagation();
+                stepTheme(Number(button.dataset.themeStep));
+            });
+        });
+        chooser?.addEventListener('keydown', event => {
+            chooser.setAttribute('data-keyboard-focus', '');
+            if (event.key === 'Escape' || event.key === 'Tab') return;
+            event.stopPropagation();
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                event.preventDefault();
+                stepTheme(event.key === 'ArrowRight' ? 1 : -1);
+            }
         });
         document.addEventListener("keydown", (event) => {
-            if (document.activeElement === selector) {
-                chooserAction?.setAttribute('data-keyboard-focus', '');
-            }
-            if (!selector || !event.altKey || event.code !== "KeyT") return;
+            if (!chooser || !event.altKey || event.code !== "KeyT") return;
             event.preventDefault();
-            chooserAction?.setAttribute('data-keyboard-focus', '');
+            chooser.setAttribute('data-keyboard-focus', '');
             if ((window.currentTileTitle || "Home") !== "Home") {
                 window.returnHome?.();
             }
-            requestAnimationFrame(() => selector.focus({ preventScroll: true }));
+            requestAnimationFrame(() => themeSteps.find(button => !button.disabled && button.dataset.themeStep === '1')?.focus({ preventScroll: true }));
         });
         activate(state.current, { syncUrl: false }).catch(console.error);
         window.addEventListener("resize", scheduleContentFit, { passive: true });

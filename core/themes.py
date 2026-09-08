@@ -15,11 +15,7 @@ def theme_context(
     """Return the rendered Board Theme context for one request."""
     registry = registry or ThemePackRegistry.discover()
     requested = request.query_params.get("theme")
-    selected = registry.select_for_request(
-        requested,
-        enabled=enabled,
-        exclude_id=request.cookies.get("portfolio_theme") if requested is None else None,
-    )
+    selected = registry.resolve(requested, enabled=enabled)
     board_variables = dict(selected.board_variables) if enabled else {}
     document_variables = dict(selected.document_variables) if enabled else {}
     route = request.url.path.removeprefix('/_documents')
@@ -37,5 +33,4 @@ def theme_context(
         "theme_document_variables": document_variables,
         "theme_selector_enabled": enabled,
         "board_themes": registry.public_catalog(),
-        "remember_theme": selected.id if enabled and requested is None else None,
     }

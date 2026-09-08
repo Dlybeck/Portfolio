@@ -49,7 +49,7 @@ A theme that cannot remain physically coherent and readable is removed from
 selection, not rescued through magical text changes or distorted materials.
 
 **Theme Instance**:
-A selected Theme Pack and its deterministic per-location identities applied throughout one exploration. Refreshing without an explicit pin may select a new complete instance.
+A selected Theme Pack and its deterministic per-location identities applied throughout one exploration. Unpinned loads use Original; explicit theme URLs retain their selected pack across refreshes.
 _Avoid_: Theme, random skin
 
 **Theme Engine**:

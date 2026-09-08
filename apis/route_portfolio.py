@@ -54,21 +54,11 @@ def render_board(request: Request, document: PortfolioDocument | None = None):
             themes_enabled(),
         ),
     }
-    remember_theme = context.pop("remember_theme")
-    response = templates.TemplateResponse(
+    return templates.TemplateResponse(
         request,
         "pages/home.html",
         context,
     )
-    if remember_theme:
-        response.set_cookie(
-            "portfolio_theme",
-            remember_theme,
-            max_age=31_536_000,
-            httponly=True,
-            samesite="lax",
-        )
-    return response
 
 
 @portfolio_router.get("/")
@@ -90,7 +80,6 @@ async def embedded_document(request: Request, document_path: str):
             themes_enabled(),
         ),
     }
-    context.pop("remember_theme")
     return templates.TemplateResponse(
         request,
         document.template,

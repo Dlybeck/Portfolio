@@ -49,7 +49,7 @@ def test_new_theme_page_flow_and_neighbor_navigation(theme, width, browser_page)
     expect(surface).to_have_css('opacity', '1')
     page.evaluate("window.returnHome()")
     expect(page.locator('.tile-container.expanded')).to_have_attribute('data-title', 'Home')
-    expect(page.locator('.home-theme-selector select')).to_be_attached()
+    expect(page.get_by_role('button', name='Next theme', exact=True)).to_be_visible()
     assert page.locator('.tile-container.connected').count() >= 2
     page.get_by_role('button', name='Go to Hobbies', exact=True).click()
     expect(page.locator('.tile-container.expanded')).to_have_attribute('data-title', 'Hobbies')

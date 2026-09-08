@@ -1,5 +1,195 @@
 # Theme refinement
 
+## E integration — plan checkpoint, 2026-09-08
+
+Ready to integrate the selected Home dial into the existing selector carrier.
+Use the catalog and Theme Engine, never per-theme code; arrow controls stay out
+of the neighborhood Tab cycle, with the existing Alt+T shortcut for access.
+Writing travels with the same Home surface on focus/reversal. Existing scene,
+connectors, document flow and physical motion remain unchanged. Default loads
+become Original; explicit theme pins remain stable. Browser tests will check
+selection, rapid input, keyboard/pointer focus, navigation and refresh. Inspect
+desktop/phone fit across all enabled themes before handoff. No Git delivery.
+
+Rendered checkpoint: inspected seven enabled themes at 390 x 844 and 1440 x 900,
+Lily at 320 x 568, Vinyl's opened Tennis page, and intermediate Home return
+frames for Original/Lily/Vinyl in `/tmp/portfolio-dial-integration-yt9T6b/`.
+The label and arrows remain readable within the Home carrier, retain its ink
+and font, and travel with the physical surface. Neighbors/connectors remain
+visible; no changed page material or object art. Contact-sheet assembly initially
+failed in the capture helper; a separate browser sheet helper succeeded and the
+actual captures were opened and reviewed. This is scoped visual evidence, not
+a renewed aesthetic approval of every existing theme.
+
+Local whole-change review (not independent), baseline `f232cdf`, includes the
+new dial tests and integration diff; pre-existing Vinyl/connector changes and
+historical prototypes were preserved. Standards: no remaining findings; the
+control uses the existing pack catalog and carrier, with no new per-theme logic.
+Removed the now-unused rotation cookie and dropdown handlers. Spec: no remaining
+findings; E replaces the chooser, unpinned refresh keeps Original, explicit pins
+remain stable, and no prototype chrome or deployment is introduced. Focused
+checks: 19 passed, including rapid steps, rejected pack fallback, pointer/touch
+focus and Alt+T. Full regression completed: 414 passed and six failed. Five
+assertions still expected the retired dropdown; updated them to assert the
+dial's visible controls/current label. The token-consumption guard caught seven
+orphaned selector tokens: connected those existing presentation settings to the
+dial, and set the seven enabled packs to E's transparent, borderless, inherited
+ink/type treatment. This retains data-only control styling without a schema
+migration or dormant settings. No other Original presentation fields changed.
+
+All affected checks, including the six failures, passed on follow-up: 26 passed
+in `followup.xml`. The full suite was not rerun after these corrections. Final
+phone/desktop captures for all seven packs (`final-sheet-*.png` in the evidence
+directory) were opened and inspected; they retain E's approved treatment, with
+zero browser errors. Original fidelity/whitespace guards still pass. Standards
+and Spec re-review: no remaining findings within this integration. Local diff
+only on the pilot branch; normal private preview 51355, no push/deployment.
+
+## Theme switching — owner interview, 2026-09-07
+
+New explicit prototype authorization: add E (fixed-order Home theme dial) and F
+(collapsible bottom strip of theme names, immediately changing the actual scene).
+Keep A–D as historical comparisons, not selected designs. Both new options load
+the portfolio immediately and add no shuffle button, thumbnail gallery or entry
+confirmation. Plan checkpoint: ready for bounded comparison. E uses existing
+Home writing and physical carrier; F is a site control using current theme ink,
+type and control surface. Neither changes artwork, connections, navigation or
+document flow. Verify Home fit and F over opened pages on desktop/phone. Normal
+preview and production stay untouched; owner judgment remains unresolved.
+
+E/F delivery checkpoint: ready for comparison at port 51356. All seven themes
+visually inspected on phone/desktop; dial stepping, strip collapse/reopen,
+neighbor navigation and document-preserving selection checked. Initial strip
+overlap was revised by moving the lab comparison bar, not the navigation.
+Scoped evidence and remaining trade-offs are recorded beside the prototype in
+`static/prototypes/theme-switcher/README.md`. No integration or deployment.
+
+Owner review of A–D: none selected. A's control/chooser feels out of place in
+some themes. B's interaction is clean and liked, but the embedded previews do
+not belong in the scene. C is rejected as a direction: reserve shuffling for
+refresh, not a dedicated shuffle button. D is promising in concept, but its
+generic visual treatment is disliked and the separate entry step feels too
+complicated. Brainstorm a simpler, better-integrated combination; no further
+prototype changes or production integration authorized by this feedback alone.
+
+Prototype authorization: compare A header picker, B Home preview strip, C
+one-click shuffle with secondary choice, and D a simplified Switch-inspired
+startup scroll selector. The owner's startup suggestion supersedes the earlier
+assumption against an initial selection surface for this experiment only.
+Plan checkpoint: previews represent the real existing scenes, not new in-world
+objects. These are site controls; no changed tile/artwork/navigation mechanics.
+D may temporarily cover the board to choose a scene, with a direct random-entry
+escape hatch. No forced persistence or production default is selected. Keep
+the original preview on 51355; a separate prototype launcher owns 51356 and
+the comparison bar. Arrow-key variant cycling is scoped to that bar so it
+cannot steal the board's established navigation. Desktop/phone visual review
+and actual selection are required; this throwaway UI needs no new test suite.
+
+Prototype delivery: all four variants run through
+`scripts/prototype_theme_switcher.py` at private port 51356. Source, controls,
+preview images and reviewed trade-offs are in
+`static/prototypes/theme-switcher/README.md`. Actual phone/desktop views and
+selection/navigation checks are reviewed; ready for owner comparison, no winner
+or integration approval claimed. Normal preview 51355 and production remain
+unchanged by the prototype; earlier accepted local fixes remain preserved.
+
+Owner accepts the connector improvement ("Way better!") and requests a cleaner
+way to switch themes, using grill-with-docs before implementation. Keep the
+accepted themes, navigation and modular architecture; live AI generation is
+still out of scope. Existing direction is random assignment on unpinned loads
+plus manual choice. Current control is Home's embedded native dropdown with
+named themes and "Surprise me". First resolve access/location and what "cleaner"
+means to the owner; chooser presentation follows. No replacement UI is selected
+or authorized for implementation yet. Record settled answers here as they arrive;
+a reversible control-design choice does not currently warrant an ADR.
+
+Owner clarification: the dropdown itself looks unclear, and observed visitors
+do not notice the option; they assume the initial theme is the only theme.
+Discoverability of the theme collection is therefore a requirement, not just
+restyling the open menu. Header placement has not yet been confirmed. Next
+resolve how explicit/prominent the entry point should be, then the chooser.
+
+Owner refinement: prominence is not the objective. Prefer a middle ground,
+roughly as visible as the current control; less visible is acceptable if more
+intuitive. Do not interpret the discovery complaint as approval for a prominent
+gallery, onboarding prompt or attention-grabbing control. Proposed next step,
+not yet approved: a small labeled Themes control near Home opening a compact
+visual chooser; immediate selection, easy comparison, and unchanged location.
+
+## Connection direction follow-up — plan checkpoint
+
+Preserve the accepted local Vinyl size changes atop `f232cdf`. The new request
+is two heads or none for actual adjacency, not one-way travel or proximity
+links. Plan verdict: ready for the existing `headPosition: both` capability in
+Vinyl and Postcards only; Original and headless natural themes remain unchanged.
+Disabled Workbench/Botanical proposals remain outside the selectable collection.
+Check rendered Home/nested neighborhoods on phone, tall and desktop viewports,
+and verify actual path endpoints still resolve to the established 16 edges.
+No changed object motion, document content, hit targets or navigation; decorative
+heads stay attached to their existing strokes during panning. Rendered verdict
+pending. Private preview only, not a new production release.
+
+Rendered checkpoint: inspected Vinyl/Postcards Home at 705 x 863, nested
+ScribbleScan at 390 x 844, and desktop 1440 x 900 captures in
+`/tmp/portfolio-connectors-exULt1/`. Existing strokes now have two heads; the
+focused surface can naturally occlude the near end, as in Original. Neighbor
+heads remain attached to the same paths. No ScribbleScan-to-Programs stroke
+was present or introduced; Programs' visible stroke leads toward its actual
+offscreen parent, Projects. No object/material, reading surface, animation,
+text, action or destination changes were needed. The accepted Vinyl sizing
+remains in the private preview. Plan/rendered verdict: ready within this scope.
+
+Seven targeted tests passed, including rendered endpoints for all 16 existing
+edges at three viewports and both affected themes. The authoring-rule test
+failed on Postcards' former one-way setting before the change. Canonical
+fidelity passes. Local Standards review: no findings, pack-owned presentation
+only. Local Spec review: no findings, actual adjacency preserved and one-way
+heads removed from the selectable catalog. This was not an independent review.
+Full regression: 416 passed in 599.81s, exit 0; log, JUnit XML and terminal
+receipt in `/tmp/portfolio-connectors-exULt1/`. This includes the accepted Vinyl
+sizing and both connector updates. No commit/push/deployment authorized here.
+
+## Vinyl sizing follow-up — plan checkpoint
+
+Baseline `f232cdf`; owner screenshot reproduced at 705 x 863 CSS pixels in
+`/tmp/portfolio-vinyl-fit-qUAFPM`. All four Home connections are occluded;
+existing text-fit checks alone miss this. Plan verdict: ready to resize the
+square focused assembly through Vinyl's existing presentation tokens. Include
+the protruding record in visual review, retain physical swap/reversal and
+readable print, and check actual connector exposure on tall/phone/desktop
+layouts. Other themes, opened documents and navigation are unchanged. Rendered
+result remains unverified until screenshots and regression checks are reviewed.
+
+Rendered checkpoint: inspected the final Home captures at 705 x 863, 390 x 844,
+320 x 568, 1440 x 900, 844 x 390 and 600 x 400 in that evidence directory, plus
+`grounding-reviewed/` desktop/phone contact sheets (long copy, text/photo
+documents, and forward/reverse intermediate frames). The stack no longer
+swallows the four Home connections. Artwork and attached print preserve their
+physical proportions through the existing swap. The sleeve/jacket assembly
+scales together, so its closed artwork also becomes smaller without moving
+the destination or changing the hit target. Opened pages retain the accepted
+paper/surround treatment. Original and all other theme sources are untouched.
+
+Eight viewport regression cases pass: at least 24 CSS pixels of uninterrupted
+connector are exposed per Home neighbor, all 17 text-fit checks pass, and the
+focused record stays circular. The new test failed on the released tall case
+(all four runs were zero). A short-phone failure during iteration prompted a
+height cap; a 176px minimum prevents that cap crushing print on short landscape
+windows. This is a scoped geometry guard, not a general SVG visibility oracle
+or a substitute for owner review. Canonical fidelity and diff whitespace pass.
+
+Local whole-change review against `f232cdf` (tracked diff plus new test):
+Standards — no remaining findings; existing pack tokens only, no runtime
+branches or new abstraction. Spec — no remaining findings within inspected
+sizes; connection visibility, readable print, and preservation boundaries are
+covered. The review was local, not independent. Visual verdict: ready for owner
+review. Full suite: 408 passed in 578.14s, exit 0, recorded in
+`/tmp/portfolio-vinyl-fit-qUAFPM/regression.{log,xml,exit}`. The short-landscape
+minimum and eighth viewport case were added after suite collection; the final
+eight-case file separately passed in 21.19s. That minimum leaves every existing
+full-suite viewport's size unchanged. Preview is the normal app at private port
+51355, serving this worktree; no commit, push or production change.
+
 ## Owner-authorized main release — 2026-09-07
 
 The owner accepts the integrated preview ("I love it") and explicitly asks to

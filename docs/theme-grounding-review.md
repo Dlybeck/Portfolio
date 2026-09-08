@@ -1,5 +1,33 @@
 # Reality-grounding review
 
+## Owner selection: Home theme dial E — 2026-09-08
+
+Integrate E as the theme chooser. Unpinned loads/refreshes use Original rather
+than random assignment; explicit theme URLs (including manual selections) keep
+their chosen theme. E uses fixed-order previous/next controls and the current
+theme name in Home's existing writing. No shuffle, entrance screen, bottom
+strip, gallery or prototype comparison controls in the normal app. Preserve
+all artwork, navigation, opened pages and pack-based authoring. Local integration
+and private review are authorized, not a main push/deployment.
+
+## Owner correction: connections are not one-way routes — 2026-09-07
+
+Connectors express actual neighboring relationships, not directional travel.
+Selectable themes use two arrowheads or none, never one-way arrows. Preserve
+the existing graph: ScribbleScan connects to Websites, not Programs; spatial
+proximity alone does not create a connection. Original already uses both heads;
+retain it and the natural themes' headless treatments. Update Vinyl/Postcards
+through their pack settings, without new edges, layout or input changes.
+
+## Owner correction: Vinyl focused footprint — 2026-09-07
+
+The released Vinyl stack is too large, especially at the owner's tall window
+aspect ratio: it hides the connectors to neighboring destinations. Resize the
+focused assembly to be comparable to other themes while preserving readable
+print, square sleeves, circular records, accepted artwork and physical swap.
+Do not move neighbors or redraw navigation to work around oversized artwork.
+This follow-up authorizes a local fix and private review, not another deployment.
+
 ## Owner acceptance and main release — 2026-09-07
 
 After reviewing the integrated private preview and its 401-test receipt, the

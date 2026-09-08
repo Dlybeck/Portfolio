@@ -7,7 +7,6 @@ from playwright.sync_api import Page, expect
 
 from core.config import settings
 from core.portfolio import DOCUMENTS
-from core import theme_packs
 from scripts.audit_theme_variants import (
     MINIMUM_AXIS_COUNT,
     audit_world,
@@ -15,17 +14,6 @@ from scripts.audit_theme_variants import (
 
 
 VISUAL_THEMES = ["canonical", "lily", "planets", "islands"]
-
-
-def selection_ticket(theme: str, excluding: str | None = None) -> int:
-    """Pin random test choices without assuming a fixed installed catalog."""
-    tickets = [
-        pack.id
-        for pack in theme_packs.ThemePackRegistry.discover().random_candidates
-        if pack.id != excluding
-        for _ in range(pack.selection.random_weight)
-    ]
-    return tickets.index(theme)
 
 
 @pytest.mark.parametrize("theme", ["lily", "planets", "islands"])
@@ -399,7 +387,7 @@ def test_complete_theme_runtime_is_enabled_by_default(
     assert board.status_code == 200
     assert '<html lang="en" class="main" data-board-theme="lily" data-theme-pack-visual' in board.text
     assert 'data-home-theme-selector' in board.text
-    assert 'Switch it up' in board.text
+    assert 'aria-label="Next theme"' in board.text
     assert '/static/css/themes/board.css' in board.text
     assert '/static/scripts/themeEngine.js' in board.text
 
@@ -420,14 +408,10 @@ def test_enabled_theme_laboratory_renders_known_themes_and_fails_closed(
     document = client.get("/_documents/projects/programs?theme=planets")
 
     assert '<html lang="en" class="main" data-board-theme="lily" data-theme-pack-visual' in lily.text
-    assert 'select data-theme-selector' in lily.text
-    assert '<option value="__random__">Surprise me</option>' in lily.text
-    assert lily.text.count('class="theme-selector-option"') == len(
-        theme_packs.ThemePackRegistry.discover().public_catalog()
-    )
-    assert '<option class="theme-selector-option" value="canonical"' in lily.text
-    assert '<option class="theme-selector-option" value="islands"' in lily.text
-    assert '<option class="theme-selector-option" value="clouds"' in lily.text
+    assert 'data-theme-step="-1"' in lily.text
+    assert 'data-theme-step="1"' in lily.text
+    assert 'Surprise me' not in lily.text
+    assert 'data-theme-name' in lily.text
     assert '/static/css/themes/board.css' in lily.text
     assert '/static/css/theme-structure.css' in lily.text
     assert '/static/css/base.css' not in lily.text
@@ -448,14 +432,12 @@ def test_runtime_themes_include_the_home_theme_chooser(
 ) -> None:
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", False)
     monkeypatch.setattr(settings, "THEMES_ENABLED", True)
-    ticket = selection_ticket("islands")
-    monkeypatch.setattr(theme_packs.secrets, "randbelow", lambda total: ticket)
 
     board = client.get("/")
 
-    assert 'data-board-theme="islands"' in board.text
+    assert 'data-board-theme="canonical"' in board.text
     assert 'data-home-theme-selector' in board.text
-    assert 'data-theme-selector' in board.text
+    assert 'data-theme-step' in board.text
     assert 'id="theme-pack-catalog"' in board.text
     assert '/static/scripts/themeEngine.js' in board.text
 
@@ -482,7 +464,7 @@ def test_theme_switch_replaces_world_and_preserves_it_in_navigation(
         "data-theme-depth", "1"
     )
 
-    page.locator("[data-theme-selector]").select_option("planets")
+    page.get_by_role('button', name='Next theme', exact=True).click()
 
     expect(page.locator("html")).to_have_attribute("data-board-theme", "planets")
     expect(page.locator("html")).to_have_attribute("data-theme-focus-motion", "grow")
@@ -574,27 +556,21 @@ def test_focus_exit_finishes_once_and_keeps_neighbors_actionable(
     expect(home_cover).to_be_hidden()
 
 
-def test_unpinned_refresh_selects_a_new_world_while_a_query_pin_is_stable(
+def test_unpinned_refresh_keeps_original_while_a_query_pin_is_stable(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(settings, "THEME_LAB_ENABLED", True)
-    tickets = iter((
-        selection_ticket("islands"),
-        selection_ticket("planets", excluding="islands"),
-    ))
-    monkeypatch.setattr(theme_packs.secrets, "randbelow", lambda total: next(tickets))
     page, origin = browser_page
 
     page.goto(origin, wait_until="domcontentloaded")
     first = page.locator("html").get_attribute("data-board-theme")
-    assert first == "islands"
+    assert first == "canonical"
     expect(page).to_have_url(f"{origin}/")
 
     page.reload(wait_until="domcontentloaded")
     second = page.locator("html").get_attribute("data-board-theme")
-    assert second == "planets"
-    assert second != first
+    assert second == first
     expect(page).to_have_url(f"{origin}/")
 
     page.goto(f"{origin}/?theme=lily", wait_until="domcontentloaded")
@@ -682,14 +658,14 @@ def test_relationship_paths_belong_to_the_world_and_restore_canonical(
         "node => node.parentElement.querySelectorAll('path').length"
     ) == 2
 
-    page.locator("[data-theme-selector]").select_option("islands")
+    page.evaluate("window.themeEngine.activate('islands')")
     expect(page.locator('.chalk-arrows path[stroke="#bce8e2"]')).not_to_have_count(0)
     assert page.locator('.chalk-arrows .arrows-group').get_attribute("filter") is None
     assert page.locator('.chalk-arrows path[stroke="#bce8e2"]').first.get_attribute(
         "stroke-dasharray"
     )
 
-    page.locator("[data-theme-selector]").select_option("canonical")
+    page.evaluate("window.themeEngine.activate('canonical')")
     expect(page.locator('.chalk-arrows path[stroke="#f3efe2"]')).not_to_have_count(0)
     expect(page.locator('.chalk-arrows .arrows-group')).to_have_attribute(
         "filter", "url(#relationship-rough)"
@@ -1348,12 +1324,12 @@ def test_development_selector_has_an_explicit_keyboard_shortcut(
 
     page.get_by_role("button", name="Go to Projects").click()
     page.keyboard.press("Alt+t")
-    selector = page.locator("[data-theme-selector]")
+    selector = page.get_by_role('button', name='Next theme', exact=True)
     expect(page.locator(
         '.tile-container[data-title="Home"]'
     )).to_have_class(re.compile(r"\bexpanded\b"))
     expect(selector).to_be_focused()
-    selector.select_option("islands")
+    selector.press('ArrowLeft')
     expect(page).to_have_url(f"{origin}/?theme=islands")
 
 
@@ -1361,29 +1337,28 @@ def test_development_selector_has_an_explicit_keyboard_shortcut(
 def test_theme_chooser_pointer_does_not_leave_keyboard_highlight(browser_page, touch):
     page, origin = browser_page
     page.goto(f'{origin}/?theme=lily', wait_until='networkidle')
-    selector = page.locator('[data-theme-selector]')
-    action = page.locator('.home-theme-action')
+    selector = page.get_by_role('button', name='Next theme', exact=True)
     if touch:
         selector.dispatch_event('pointerdown', {'pointerType': 'touch'})
         selector.focus()
     else:
         selector.click()
-    assert action.evaluate('n=>getComputedStyle(n).outlineStyle') == 'none'
-    for theme in ('planets', 'canonical', 'postcards', 'lily'):
-        selector.select_option(theme)
-        expect(page.locator('html')).to_have_attribute('data-board-theme', theme)
-        assert action.evaluate('n=>getComputedStyle(n).outlineStyle') == 'none'
+    assert selector.evaluate('n=>getComputedStyle(n).outlineStyle') == 'none'
+    for _ in range(4):
+        selector.click()
+        assert selector.evaluate('n=>getComputedStyle(n).outlineStyle') == 'none'
     page.keyboard.press('Escape')
     page.keyboard.press('Alt+t')
     expect(selector).to_be_focused()
-    assert action.evaluate('n=>getComputedStyle(n).outlineStyle') == 'solid'
-    selector.select_option('planets')
-    expect(page.locator('html')).to_have_attribute('data-board-theme', 'planets')
+    assert selector.evaluate('n=>getComputedStyle(n).outlineStyle') == 'solid'
+    before = page.locator('html').get_attribute('data-board-theme')
+    selector.press('Enter')
+    expect(page.locator('html')).not_to_have_attribute('data-board-theme', before)
     expect(selector).to_be_focused()
-    assert action.evaluate('n=>getComputedStyle(n).outlineStyle') == 'solid'
+    assert selector.evaluate('n=>getComputedStyle(n).outlineStyle') == 'solid'
 
 
-def test_surprise_me_returns_theme_selection_to_unpinned_rotation(
+def test_home_dial_has_no_shuffle_or_dropdown(
     browser_page: tuple[Page, str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1391,10 +1366,9 @@ def test_surprise_me_returns_theme_selection_to_unpinned_rotation(
     page, origin = browser_page
     page.goto(f"{origin}/?theme=lily", wait_until="domcontentloaded")
 
-    page.locator("[data-theme-selector]").select_option("__random__")
-
-    expect(page).to_have_url(f"{origin}/")
-    expect(page.locator("html")).not_to_have_attribute("data-board-theme", "")
+    expect(page.locator('[data-home-theme-selector] select')).to_have_count(0)
+    expect(page.get_by_role('button', name='Next theme', exact=True)).to_be_visible()
+    expect(page.get_by_text('Surprise me', exact=True)).to_have_count(0)
 
 
 def test_home_switch_copy_uses_one_readable_font_and_fits_every_world(
@@ -1423,8 +1397,7 @@ def test_home_switch_copy_uses_one_readable_font_and_fits_every_world(
                 """node => [
                     '.expanded-title',
                     '.expanded-text',
-                    '.home-theme-question',
-                    '.home-theme-action > span',
+                    '.home-theme-name',
                 ].map(selector => {
                     const element = node.querySelector(selector);
                     const style = getComputedStyle(element);
@@ -1445,7 +1418,7 @@ def test_home_switch_copy_uses_one_readable_font_and_fits_every_world(
                 viewport,
                 typography,
             )
-            expect(home.locator(".home-theme-action")).to_contain_text("Switch it up")
+            expect(home.locator(".home-theme-name")).not_to_be_empty()
 
 
 def test_home_button_does_not_animate_an_already_closed_document_viewer(
@@ -1504,7 +1477,7 @@ def test_revisited_cloudscape_is_selectable_for_review(
     board = client.get("/?theme=clouds")
 
     assert 'data-board-theme="clouds"' in board.text
-    assert '<option class="theme-selector-option" value="clouds"' in board.text
+    assert 'data-theme-name aria-live="polite" aria-atomic="true">Cloudscape</span>' in board.text
 
 
 @pytest.mark.parametrize("theme", VISUAL_THEMES)

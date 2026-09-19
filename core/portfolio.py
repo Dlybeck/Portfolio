@@ -56,7 +56,7 @@ DOCUMENTS = (
     ),
     PortfolioDocument(
         "/projects/programs", "Programs", "Programs", "pages/projects/programs.html",
-        "Explore software experiments, class projects, and personal programs built by David Lybeck.",
+        "Explore current software projects, earlier experiments, and selected coursework built by David Lybeck.",
     ),
     PortfolioDocument(
         "/projects/nba_predictions", "Programs", "NBA Predictions",
@@ -91,7 +91,7 @@ DOCUMENTS = (
     PortfolioDocument(
         "/projects/websites/this_website/v3", "This website", "This Website v3",
         "pages/projects/websites/this_website/v3.html",
-        "See the current paper-and-chalkboard generation of DavidLybeck.com take shape through three development milestones.",
+        "See the current generation of DavidLybeck.com evolve from its paper-and-chalkboard Board into seven visual themes.",
     ),
 )
 

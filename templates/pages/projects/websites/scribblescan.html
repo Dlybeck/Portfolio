@@ -13,10 +13,6 @@
                 margin: 0 auto;
             }
 
-            html[data-board-theme="canonical"] .container {
-                box-sizing: border-box;
-            }
-
             .pdf-container {
                 /* narrower PDF display */
                 width: 70%;
@@ -64,6 +60,10 @@
                 .container {
                     padding: 10px;
                 }
+
+                html[data-board-theme="canonical"] .container {
+                    width: calc(100% - 20px);
+                }
             }
     </style>
 
@@ -72,16 +72,18 @@
         <div class="section">
             <a class="link versionBtn external-btn" href="https://scribblescan.app" target="_blank" rel="noopener">View the preserved demo</a>
             <br><br>
-            <p>ScribbleScan was a fully online OCR service I solo-developed as my capstone project and later spun off into ScribbleScan LLC. The company and service are no longer active; the linked site is a preserved demo of what it did. The application uses
-                AI to provide highly accurate handwriting digitization on just about any handwritten text, even preserving images or non-textual content in a document. It outperforms leading OCR and
-                AI-based OCR competitors by an average of ~11-20% (depending on the service) in character accuracy on particularly complicated handwriting. Here are some details of the development
-                of this service:
-            </p>
+            <p>ScribbleScan began as my 2025 capstone, grew into a hosted handwriting-digitization service and LLC, and is now preserved as a demo. It digitized handwritten pages while keeping images and other non-text elements in the resulting document.</p>
+            <p>In the five sample pages shown below, ScribbleScan averaged 95.10% character accuracy, compared with 83.46% for Pen to Print AI and 74.39% for baseline OCR. This was a small project comparison, not a general benchmark.</p>
         </div>
 
         <div class="section">
             <h3>ScribbleScan VS Alternatives | Character Accuracy</h3>
             <img class="media" src="/static/images/projects/ScribbleScan/ScribbleScan_Stats.webp" alt="Chart comparing ScribbleScan character accuracy with OCR alternatives">
+        </div>
+
+        <div class="section">
+            <h3>What I’m exploring now</h3>
+            <p>I’m rebuilding the idea around an offline, privacy-first mobile reader. The current work focuses on on-device transcription, preserving non-text visuals as source crops, and local correction, history, and export. It is active R&amp;D, not a finished product; model quality and device behavior still need validation.</p>
         </div>
 
         <div class="section">

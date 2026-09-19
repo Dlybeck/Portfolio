@@ -39,7 +39,7 @@ window.tileInfo = {
     "Work Experience": [
         [1, 1],
         `
-        Junior Tennis Pro --> Innovation AI Developer
+        From coaching tennis to building AI tools.
         `,
     ],
     "Education": [
@@ -93,7 +93,7 @@ window.tileInfo = {
     "Programs": [
         [2, 0],
         `
-        Code from side projects, old experiments and class
+        Software projects, experiments, and selected coursework.
         `,
     ],
     "Websites": [
@@ -121,9 +121,7 @@ window.tileInfo = {
     "ScribbleScan": [
         [3, -1],
         `
-        AI-powered OCR with industry-leading accuracy on handwritten text.
-        <br><br>
-        Also my capstone project!
+        Handwriting digitization, from a hosted product to an offline, privacy-first experiment.
         `,
     ],
 

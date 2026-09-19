@@ -53,7 +53,7 @@ window.tileInfo = {
     "3D Printing": [
         [-2, -2],
         `
-        Here's some 3d models I've designed and printed for fun
+        Here's some 3D models I've designed and printed for fun
         `,
     ],
     "Gaming": [
@@ -121,7 +121,7 @@ window.tileInfo = {
     "ScribbleScan": [
         [3, -1],
         `
-        AI-powered OCR with industry leading accuracy on handwritten text.
+        AI-powered OCR with industry-leading accuracy on handwritten text.
         <br><br>
         Also my capstone project!
         `,

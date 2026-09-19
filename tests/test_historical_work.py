@@ -63,6 +63,27 @@ def test_historical_work_has_no_missing_local_media(client: TestClient) -> None:
     assert missing == []
 
 
+def test_all_public_documents_have_no_missing_local_assets(
+    client: TestClient,
+) -> None:
+    missing: list[tuple[str, str, int]] = []
+
+    for route in DOCUMENT_ROUTES:
+        page = document_response(client, route)
+        assert page.status_code == 200
+
+        assets = re.findall(
+            r'\b(?:href|poster|src)="(/static/[^"#?]+)',
+            page.text,
+        )
+        for asset in assets:
+            response = client.get(asset)
+            if response.status_code != 200:
+                missing.append((route, asset, response.status_code))
+
+    assert missing == []
+
+
 def test_work_history_uses_confirmed_technology_services_end_date(
     client: TestClient,
 ) -> None:
@@ -117,8 +138,14 @@ def test_confirmed_mechanical_copy_errors_are_absent(client: TestClient) -> None
             "a windows",
         ),
         "/projects/websites/digital_planner": ("aswell", "calander"),
-        "/projects/programs": (">onvolutional",),
+        "/projects/programs": (
+            ">onvolutional",
+            "^^^",
+            "(2021)bitwise",
+        ),
         "/hobbies/3d_printing/puzzles": ("downlaods",),
+        "/hobbies/gaming": ("thorugh", "years and i've"),
+        "/education/agile_report": ("stratagies",),
     }
 
     for route, mistakes in checks.items():
@@ -127,6 +154,9 @@ def test_confirmed_mechanical_copy_errors_are_absent(client: TestClient) -> None
         copy = page.text.lower()
         for mistake in mistakes:
             assert mistake not in copy, (route, mistake)
+
+    programs = document_response(client, "/projects/programs").text
+    assert "Naive bayes" not in programs
 
 
 def test_board_copy_uses_calendar_and_mario_kart_spellings(
@@ -139,6 +169,8 @@ def test_board_copy_uses_calendar_and_mario_kart_spellings(
     assert "Mariokart" not in script.text
     assert "calendar and to-do list" in script.text
     assert "Mario Kart Wii" in script.text
+    assert "3d models" not in script.text
+    assert "industry leading" not in script.text.lower()
 
 
 def test_scribblescan_is_labeled_as_a_preserved_demo(client: TestClient) -> None:

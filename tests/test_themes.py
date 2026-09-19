@@ -326,11 +326,12 @@ def test_original_document_components_match_the_live_page_treatment(
         wait_until="domcontentloaded",
     )
     document = page.frame_locator(".mini-window")
-    expect(document.locator(".external-btn")).to_have_css("display", "inline")
-    expect(document.locator(".external-btn")).to_have_css(
+    external_action = document.locator(".external-btn").first
+    expect(external_action).to_have_css("display", "inline")
+    expect(external_action).to_have_css(
         "font-family", 'Georgia, "Times New Roman", Times, serif'
     )
-    expect(document.locator(".external-btn")).to_have_css(
+    expect(external_action).to_have_css(
         "text-decoration-line", "none"
     )
 

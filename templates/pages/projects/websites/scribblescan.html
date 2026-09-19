@@ -13,6 +13,10 @@
                 margin: 0 auto;
             }
 
+            html[data-board-theme="canonical"] .container {
+                box-sizing: border-box;
+            }
+
             .pdf-container {
                 /* narrower PDF display */
                 width: 70%;
@@ -32,6 +36,12 @@
                 border: none;
                 border-radius: 10px;
                 margin: 0;
+            }
+
+            html[data-board-theme="canonical"] body .external-btn {
+                display: inline-block !important;
+                max-width: 100%;
+                box-sizing: border-box;
             }
 
             .external-btn {

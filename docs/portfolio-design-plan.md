@@ -72,7 +72,7 @@ ScribbleScan's historical performance claims remain on its pages. Numerical and 
 - Add canonical, page-specific description, Open Graph, social-card, and appropriate `Person` structured metadata.
 - Use a stable wide capture of the canonical Home Board as the social-preview image, incorporating the existing Personal Mark for now.
 
-The bundled resume is stale and predates the Denali role. Replacing it is worthwhile but remains outside this effort; do not silently rewrite or fabricate a replacement.
+The bundled resume is stale and predates the Denali role. Do not publish a replacement: tailored resumes are shared privately with applications, while the public Portfolio presents current professional evidence without signaling a job search.
 
 ## Workstream 3: Theme laboratory
 
@@ -97,7 +97,6 @@ The bundled resume is stale and predates the Denali role. Replacing it is worthw
 
 - Create or select a new Personal Mark.
 - Produce dedicated favicon, navbar, full-resolution, and social-preview derivatives of that mark.
-- Update the resume.
 - Randomly assign public themes.
 - Remove historical coursework merely because it is old.
 - Convert the visible site into a professional landing page.

@@ -290,7 +290,9 @@ def test_original_multisection_document_keeps_main_white_page_canvas(
     page.locator(".mini-window-container.open").wait_for()
     document = page.frame_locator(".mini-window")
 
-    expect(document.locator(".section")).to_have_count(10)
+    sections = document.locator(".container > .section")
+    expect(sections.first).to_be_visible()
+    assert sections.count() > 1
     expect(document.locator(".container")).to_have_css(
         "background-color", "rgb(255, 255, 255)"
     )

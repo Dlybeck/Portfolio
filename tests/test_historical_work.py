@@ -73,6 +73,16 @@ def test_work_history_uses_confirmed_technology_services_end_date(
     assert "August 2022 - Present" not in page.text
 
 
+def test_public_work_history_does_not_publish_a_resume(
+    client: TestClient,
+) -> None:
+    page = document_response(client, "/jobs")
+
+    assert page.status_code == 200
+    assert "resume" not in page.text.lower()
+    assert client.get("/static/PDF/Resume_DavidLybeck.pdf").status_code == 404
+
+
 def test_other_models_document_has_its_own_title(client: TestClient) -> None:
     page = document_response(client, "/hobbies/3d_printing/other_models")
 

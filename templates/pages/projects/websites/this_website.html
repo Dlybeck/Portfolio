@@ -5,30 +5,16 @@
 {% endblock %}
 
 {% block content %}
-<style>
-    .versionBtn{
-        display: block;
-        font-size: xx-large;
-        padding: 30px;
-    }
-
-    .versionBtn:hover{
-        transform: scale(1.02);
-    }
-</style>
-
 <div class="container"> 
     <h2 id="location">This Website</h2>
 
     <h4>Check out the processes behind developing this website:</h4>
     <br>
-    <div class="section">
-        <a class="link internal-link versionBtn" href="/projects/websites/this_website/v1">Version 1</a>
-        <br>
-        <a class="link internal-link versionBtn" href="/projects/websites/this_website/v2">Version 2</a>
-        <br>
-        <a class="link internal-link versionBtn" href="/projects/websites/this_website/v3">Version 3</a>
-    </div>
+    <nav class="section document-actions" aria-label="Portfolio version history">
+        <a class="link internal-link" href="/projects/websites/this_website/v1">Version 1</a>
+        <a class="link internal-link" href="/projects/websites/this_website/v2">Version 2</a>
+        <a class="link internal-link" href="/projects/websites/this_website/v3">Version 3</a>
+    </nav>
 </div>
 
 {% endblock %}

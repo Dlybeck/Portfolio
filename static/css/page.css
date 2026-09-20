@@ -97,6 +97,23 @@ ul li::before {
     text-decoration-color: darkblue;
 }
 
+.internal-link:not(.plain-internal-link),
+.external-btn {
+    padding: 10px;
+    border: 2px solid black;
+    border-radius: 5px;
+    background-color: #006699;
+    color: white;
+    text-decoration: none;
+    transition: all .2s ease-in-out;
+}
+
+.internal-link:not(.plain-internal-link):hover,
+.external-btn:hover {
+    transform: scale(1.04);
+    background-color: #004477;
+}
+
 #buttonHolder {
     text-align: center;
 }

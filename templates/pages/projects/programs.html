@@ -6,111 +6,163 @@
 
 {% block content %}
   <style>
-    .section h4 {
-      margin-bottom: 0;
+    .project-list {
+      display: grid;
+      gap: 1.25rem;
+      text-align: left;
     }
 
-    br {
-      margin: 10px;
+    .project-card + .project-card {
+      padding-top: 1.25rem;
+      border-top: 2px solid currentColor;
     }
 
-    .external-btn {
-      padding: 10px;
-      background-color: #006699;
-      color: white;
-      text-decoration: none;
-      border-color: black;
-      border-style: solid;
-      border-width: 2px;
-      border-radius: 5px;
-      transition: all .2s ease-in-out;
+    .project-card h4,
+    .project-card p {
+      text-align: left;
     }
-    .external-btn:hover {
-      transform: scale(1.1);
-      background-color: #004477;
+
+    .project-card h4 {
+      margin: 0 0 .35rem;
+      font-size: 1.2rem;
     }
-    
+
     .plain-internal-link {
       padding: 0 !important;
-      background-color: transparent !important;
-      color: #006699 !important;
       border: none !important;
-      border-radius: 0 !important;
+      background: transparent !important;
+      color: #006699;
+      text-decoration: underline;
       transition: none !important;
     }
-    .plain-internal-link:hover {
-      transform: none !important;
-      background-color: transparent !important;
-      text-decoration: underline !important;
+
+    .project-card p {
+      margin: 0;
+      padding: 0;
     }
+
+    .coursework-archive {
+      text-align: left;
+    }
+
+    .coursework-archive summary {
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .coursework-archive h4 {
+      margin-bottom: .3rem;
+    }
+
+    .coursework-archive ul {
+      display: block;
+      margin-top: .25rem;
+    }
+
   </style>
 
-  <div class="container"> 
+  <div class="container programs-page">
     <h2 id="location">Programs</h2>
 
     <div class="section">
-      <h3>Featured Programs</h3>
-      <a class="link plain-internal-link" href="/projects/websites/scribblescan" onclick="window.parent.navigateToPage('/projects/websites/scribblescan'); return false;">ScribbleScan</a><br>
-      <br>
-      <a class="link versionBtn external-btn" href="https://scribblescan.app" target="_blank" rel="noopener">^^^View the preserved demo</a>
-      <br><br>
-      <a class="link" target="_parent" href="https://github.com/mattzou1/NBA-predictor">(2024 - Python) Recurrent Neural Network/Naive bayes NBA game predictor</a><br>
-      <br>
-      <a class="link internal-link" href="/projects/nba_predictions">^^^Test it out!</a><br>
-      <br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/AI/tree/main/HW_2">(2024 - Python) Negamax Connect 4 bot</a><br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/Algorithms/tree/main/Assignment4/src">(2023 - Java) Red Black Tree Binary Search</a><br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/AI/tree/main/HW_1">(2024 - Python) A* Sliding Puzzle Solver</a><br>
-      <span>(2024 - C) Heap Sort</span><br>
+      <h3>Current projects</h3>
+      <div class="project-list">
+        <article class="project-card">
+          <h4><a class="link internal-link plain-internal-link" href="/projects/websites/scribblescan">ScribbleScan</a></h4>
+          <p>I built ScribbleScan from a college capstone into a hosted handwriting-digitization service. The original service is archived, and I’m now exploring an offline, privacy-first mobile successor.</p>
+          <div class="document-actions">
+            <a class="link internal-link" href="/projects/websites/scribblescan">View the ScribbleScan project history</a>
+            <a class="link external-btn" href="https://scribblescan.app" target="_blank" rel="noopener">Open the preserved demo</a>
+          </div>
+        </article>
+
+        <article class="project-card">
+          <h4>This portfolio</h4>
+          <p>A long-running experiment in spatial navigation, responsive interfaces, accessibility, and seven visual themes built on one underlying map.</p>
+          <div class="document-actions">
+            <a class="link internal-link" href="/projects/websites/this_website">See how it evolved</a>
+          </div>
+        </article>
+      </div>
     </div>
 
     <div class="section">
-      <h3>2024</h3>
+      <h3>Earlier projects</h3>
+      <div class="project-list">
+        <article class="project-card">
+          <h4>NBA Prediction AI</h4>
+          <p>A 2024 partner project that trained PyTorch and TensorFlow models on a custom NBA statistics data set. The preserved demo uses data through May 2024.</p>
+          <div class="document-actions">
+            <a class="link internal-link" href="/projects/nba_predictions">Try the demo</a>
+            <a class="link external-btn" href="https://github.com/mattzou1/NBA-predictor" target="_blank" rel="noopener">View the repository</a>
+          </div>
+        </article>
 
-      <h4>Python</h4>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/AI/tree/main/HW_5">Representative voting history by K-Means</a><br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/AI/tree/main/HW_4">Convolutional Neural Network cat vs dog detector</a><br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/AI/blob/main/HW_3">Representative voting history by Decision Tree</a><br>
-  
-      <h4>C</h4>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/cs475-hwk5-mmm">Parallel Matrix Multiplication</a><br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/cs475-hwk4-os-dsh">Mini Shell</a><br>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/cs475-hwk3-ls2">ls Command Recreation</a><br>
-      <span>Hash Map</span><br>
-    </div>
-    
-    <div class="section">
-      <h3>2023</h3>
-
-      <h4>Java</h4>
-      <a class="link" target="_parent" href="https://github.com/Dlybeck/Algorithms/tree/main/Assignment%206/src">Digraph and Topological Sort for Strings</a><br>
-      <span>Priority Queue</span><br>
-  
-      <h4>Haskell</h4>
-      <a class="link" href="/static/programs/Haskell/EvilHangman.hs">Evil Hangman File</a><br>
-      <a class="link" target="_parent" href="/static/programs/Assignments/Evilhangman.html">Run Evil Hangman Demo</a><br>
-  
-      <h4>Prolog</h4>
-      <a class="link" target="_parent" href="https://swish.swi-prolog.org/p/Covid-Test.pl">Mass Covid Test Process</a>
+        <article class="project-card">
+          <h4>Digital Planner</h4>
+          <p>A team software-engineering course project that combined assignments, events, and drag-and-drop calendar planning across two development sprints.</p>
+          <div class="document-actions">
+            <a class="link internal-link" href="/projects/websites/digital_planner">View the sprint history</a>
+          </div>
+        </article>
+      </div>
     </div>
 
     <div class="section">
-      <h3>2022</h3>
+      <details class="coursework-archive">
+        <summary>Coursework archive</summary>
 
-      <h4>Java</h4>
-      <a class="link" href="/static/programs/Java/SelectionSort.zip">(2022) Selection Sort</a><br>
-      <a class="link" href="/static/programs/Java/QuickSort.zip">(2022) Quick Sort</a><br>
-      <a class="link" href="/static/programs/Java/InsertionSort.zip"> (2022) Insertion Sort</a><br>
-      <a class="link" href="/static/programs/Java/HeapSort.zip">(2022) Heap Sort</a><br>
+        <h4>2024 · Python</h4>
+        <ul>
+          <li><a class="link" target="_blank" rel="noopener" href="https://github.com/Dlybeck/AI/tree/main/HW_2">Negamax Connect 4 bot</a></li>
+          <li><a class="link" target="_blank" rel="noopener" href="https://github.com/Dlybeck/AI/tree/main/HW_1">A* Sliding Puzzle Solver</a></li>
+          <li><a class="link" target="_blank" rel="noopener" href="https://github.com/Dlybeck/AI/tree/main/HW_5">Representative voting history by K-Means</a></li>
+          <li><a class="link" target="_blank" rel="noopener" href="https://github.com/Dlybeck/AI/tree/main/HW_4">Convolutional Neural Network cat vs dog detector</a></li>
+          <li><a class="link" target="_blank" rel="noopener" href="https://github.com/Dlybeck/AI/blob/main/HW_3">Representative voting history by Decision Tree</a></li>
+        </ul>
+
+        <h4>2024 · C</h4>
+        <ul>
+          <li><a class="link" target="_blank" rel="noopener" href="https://github.com/Dlybeck/cs475-hwk5-mmm">Parallel Matrix Multiplication</a></li>
+          <li><a class="link" target="_blank" rel="noopener" href="https://github.com/Dlybeck/cs475-hwk4-os-dsh">Mini Shell</a></li>
+          <li><a class="link" target="_blank" rel="noopener" href="https://github.com/Dlybeck/cs475-hwk3-ls2">ls Command Recreation</a></li>
+          <li><span>Hash Map</span></li>
+          <li><span>Heap Sort</span></li>
+        </ul>
+
+        <h4>2023 · Java</h4>
+        <ul>
+          <li><a class="link" target="_blank" rel="noopener" href="https://github.com/Dlybeck/Algorithms/tree/main/Assignment4/src">Red-Black Tree Binary Search</a></li>
+          <li><a class="link" target="_blank" rel="noopener" href="https://github.com/Dlybeck/Algorithms/tree/main/Assignment%206/src">Digraph and Topological Sort for Strings</a></li>
+          <li><span>Priority Queue</span></li>
+        </ul>
+
+        <h4>2023 · Haskell</h4>
+        <ul>
+          <li><a class="link" href="/static/programs/Haskell/EvilHangman.hs">Evil Hangman file</a></li>
+          <li><a class="link" target="_blank" rel="noopener" href="/static/programs/Assignments/Evilhangman.html">Run Evil Hangman demo</a></li>
+        </ul>
+
+        <h4>2023 · Prolog</h4>
+        <ul>
+          <li><a class="link" target="_blank" rel="noopener" href="https://swish.swi-prolog.org/p/Covid-Test.pl">Mass Covid Test Process</a></li>
+        </ul>
+
+        <h4>2022 · Java</h4>
+        <ul>
+          <li><a class="link" href="/static/programs/Java/SelectionSort.zip">Selection Sort</a></li>
+          <li><a class="link" href="/static/programs/Java/QuickSort.zip">Quick Sort</a></li>
+          <li><a class="link" href="/static/programs/Java/InsertionSort.zip">Insertion Sort</a></li>
+          <li><a class="link" href="/static/programs/Java/HeapSort.zip">Heap Sort</a></li>
+        </ul>
+
+        <h4>2021 · Java</h4>
+        <ul>
+          <li><a class="link" href="/static/programs/Java/BubbleSort.zip">Bubble Sort</a></li>
+          <li><a class="link" href="/static/programs/Java/BitwiseHash.zip">Bitwise to Hash</a></li>
+        </ul>
+      </details>
     </div>
-
-    <div class="section">
-      <h3>2021</h3>
-      <a class="link" href="/static/programs/Java/BubbleSort.zip">(2021) Bubble Sort</a><br>
-      <a class="link" href="/static/programs/Java/BitwiseHash.zip">(2021)Bitwise to Hash</a><br>
-    </div>
-
   </div>
-
-
 {% endblock %}

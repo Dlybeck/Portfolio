@@ -443,6 +443,21 @@ html[data-theme-focus-motion="settle"] .tile-container.cover-leaving-down .tile-
   animation: viewer-exit var(--theme-pack-viewer-exit-duration) var(--theme-pack-viewer-exit-easing) both;
 }
 
+.mini-window-container.handoff-leaving {
+  display: block;
+  pointer-events: none;
+  animation: viewer-exit var(--theme-pack-viewer-exit-duration) var(--theme-pack-viewer-exit-easing) both;
+}
+
+.mini-window-container.handoff-moving {
+  display: none;
+}
+
+.mini-window-container.open.handoff-entering {
+  pointer-events: none;
+  animation-duration: var(--theme-pack-viewer-enter-duration);
+}
+
 @keyframes viewer-enter {
   from { transform: translateX(calc(-50% + var(--theme-pack-viewer-enter-offset))) rotate(var(--theme-pack-viewer-enter-rotation)); }
   to { transform: translateX(-50%) rotate(var(--theme-pack-viewer-rotation)); }
@@ -490,6 +505,11 @@ html[data-theme-focus-motion="settle"] .tile-container.cover-leaving-down .tile-
 
 .close-button .tab { display: inline-block; }
 body.page-open .close-button { display: flex; }
+body.document-transitioning .close-button {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
 .close-button:hover .tab { transform: var(--theme-pack-control-hover-transform); }
 
 @media (max-width: 700px) {

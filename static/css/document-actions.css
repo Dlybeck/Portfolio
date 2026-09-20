@@ -1,0 +1,30 @@
+/* Invariant action layout shared by every opened Portfolio document. */
+
+.internal-link:not(.plain-internal-link),
+.external-btn {
+  display: inline-flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 44px;
+  max-inline-size: 100%;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.document-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: clamp(.5rem, 1.5vw, .75rem);
+  margin-block-start: 1rem;
+}
+
+.document-actions > .internal-link:not(.plain-internal-link),
+.document-actions > .external-btn {
+  flex: 1 1 12rem;
+  inline-size: auto;
+  max-inline-size: 20rem;
+  margin: 0;
+}

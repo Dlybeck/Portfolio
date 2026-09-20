@@ -22,8 +22,12 @@ class MiniWindow {
         this.closeButton = document.querySelector(".close-button");
         this.closeLabel  = this.closeButton ? this.closeButton.querySelector('.tab') : null;
         this.navigationHistory = [];
+        this.navigationIndex = -1;
         this.teardownTimer = null;
         this.outsideHandlerTimer = null;
+        this.transitionRevision = 0;
+        this.pendingLoadResolve = null;
+        this.motionCleanups = new Set();
 
         this.setEvents();
     }
@@ -37,6 +41,7 @@ class MiniWindow {
     // ---------------------- open / close ----------------------
 
     open(route, options = {}) {
+        this._cancelHandoff();
         if (this.teardownTimer !== null) {
             clearTimeout(this.teardownTimer);
             this.teardownTimer = null;
@@ -49,7 +54,12 @@ class MiniWindow {
 
         const normalized = this.normalizeUrl(route);
         this.initialRoute = normalized;
-        this.navigationHistory = [normalized];
+        const restoredHistory = this._historyForRoute(
+            normalized,
+            options.navigationHistory,
+        );
+        this.navigationHistory = restoredHistory || [normalized];
+        this.navigationIndex = this.navigationHistory.length - 1;
         this._displayRoute(normalized, options);
 
         this.container.classList.remove('closing');
@@ -71,34 +81,149 @@ class MiniWindow {
 
     navigateTo(route) {
         const normalized = this.normalizeUrl(route);
+        this.navigationHistory = this.navigationHistory.slice(
+            0,
+            this.navigationIndex + 1,
+        );
         this.navigationHistory.push(normalized);
-        this._displayRoute(normalized);
+        this.navigationIndex = this.navigationHistory.length - 1;
+        this._handoffTo(normalized);
     }
 
     goBack() {
-        if (!this.isVisible() || this.navigationHistory.length <= 1) return false;
-        this.navigationHistory.pop();
-        const previousUrl = this.navigationHistory[this.navigationHistory.length - 1];
-        this._displayRoute(previousUrl);
+        if (!this.isVisible() || this.navigationIndex <= 0) return false;
+        window.history.back();
         return true;
+    }
+
+    restore(route, historyState = window.history.state) {
+        const normalized = this.normalizeUrl(route);
+        const restoredHistory = this._historyForRoute(
+            normalized,
+            historyState?.documentHistory,
+        );
+
+        if (!this.isVisible()) {
+            this.open(normalized, {
+                syncUrl: false,
+                navigationHistory: restoredHistory,
+            });
+            return;
+        }
+
+        if (restoredHistory) {
+            this.navigationHistory = restoredHistory;
+            this.navigationIndex = restoredHistory.length - 1;
+        } else {
+            this.navigationHistory = [normalized];
+            this.navigationIndex = 0;
+        }
+        this._handoffTo(normalized, { syncUrl: false });
     }
 
     _displayRoute(route, options = {}) {
         window.centerOnDestination(route);
         window.themeEngine?.styleReadingMaterial();
+        this._setRouteMetadata(route, options);
+        this._loadInto(window.documentUrlForRoute(route));
+    }
+
+    _setRouteMetadata(route, options = {}) {
         const routePath = new URL(route, window.location.origin).pathname;
         const documentTitle = window.portfolioState.documentTitles[routePath]
             || 'Portfolio';
         this.page.setAttribute('title', `${documentTitle} portfolio document`);
-        this._loadInto(window.documentUrlForRoute(route));
-        if (options.syncUrl !== false) window.setDestinationUrl(route);
+        if (options.syncUrl !== false) {
+            window.setDestinationUrl(route, {
+                documentHistory: this.navigationHistory,
+            });
+        }
         this.updateCloseButtonLabel();
+    }
+
+    async _handoffTo(route, options = {}) {
+        if (this.motionDuration(1) === 0) {
+            this._cancelHandoff();
+            this._displayRoute(route, options);
+            return;
+        }
+
+        const revision = ++this.transitionRevision;
+        this._setRouteMetadata(route, options);
+        this.container.setAttribute('aria-busy', 'true');
+        document.body.classList.add('document-transitioning');
+        if (this.closeButton) this.closeButton.disabled = true;
+
+        const needsExit = this.container.classList.contains('open');
+        if (needsExit) {
+            this.container.classList.remove('open', 'handoff-entering');
+            this.container.classList.add('handoff-leaving');
+            await this._waitForMotion(this.container, {
+                eventName: 'animationend',
+                animationName: 'viewer-exit',
+            });
+            if (revision !== this.transitionRevision) return;
+        }
+
+        this.container.classList.remove('handoff-leaving', 'closing');
+        this.container.classList.add('handoff-moving');
+
+        const movement = this._moveBoardTo(route);
+        window.themeEngine?.styleReadingMaterial();
+        const loading = this._loadInto(window.documentUrlForRoute(route));
+        await Promise.all([movement, loading]);
+        if (revision !== this.transitionRevision) return;
+
+        this.container.classList.remove('handoff-moving');
+        this.container.classList.add('open', 'handoff-entering');
+        await this._waitForMotion(this.container, {
+            eventName: 'animationend',
+            animationName: 'viewer-enter',
+        });
+        if (revision !== this.transitionRevision) return;
+
+        this.container.classList.remove('handoff-entering');
+        this.container.removeAttribute('aria-busy');
+        document.body.classList.remove('document-transitioning');
+        if (this.closeButton) this.closeButton.disabled = false;
+    }
+
+    _moveBoardTo(route) {
+        const layer = document.querySelector('.tile-layer');
+        const before = layer?.style.transform || '';
+        window.centerOnDestination(route);
+        const after = layer?.style.transform || '';
+        if (!layer || before === after) return Promise.resolve();
+        return this._waitForMotion(layer, {
+            eventName: 'transitionend',
+            propertyName: 'transform',
+        });
     }
 
     _loadInto(url) {
         this._showLoadingScrap();
-        this.page.onload = () => this._onIframeLoad();
-        this.page.setAttribute('src', url);
+        if (this.pendingLoadResolve) this.pendingLoadResolve(false);
+        return new Promise((resolve) => {
+            this.pendingLoadResolve = resolve;
+            this.page.onload = () => {
+                this.pendingLoadResolve = null;
+                this._onIframeLoad();
+                resolve(true);
+            };
+            // The outer Portfolio URL owns browser history. Replacing the iframe
+            // document avoids adding a second joint-session-history entry that
+            // would otherwise leave the URL and visible document out of sync when
+            // the viewer presses the browser Back button.
+            this._replaceIframeLocation(url);
+        });
+    }
+
+    _replaceIframeLocation(url) {
+        if (this.page.contentWindow) {
+            this.page.contentWindow.location.replace(url);
+        } else {
+            this.page.setAttribute('src', url);
+        }
     }
 
     _onIframeLoad() {
@@ -139,6 +264,7 @@ class MiniWindow {
         // over the Board even though no document had been opened.
         if (!this.isVisible()) return false;
 
+        this._cancelHandoff();
         if (this.outsideHandlerTimer !== null) {
             clearTimeout(this.outsideHandlerTimer);
             this.outsideHandlerTimer = null;
@@ -162,8 +288,14 @@ class MiniWindow {
             this.teardownTimer = null;
             if (this.isVisible()) return;
             this.container.classList.remove('closing');
-            this.page.setAttribute('src', '');
+            this.page.onload = null;
+            if (this.pendingLoadResolve) {
+                this.pendingLoadResolve(false);
+                this.pendingLoadResolve = null;
+            }
+            this._replaceIframeLocation('about:blank');
             this.navigationHistory = [];
+            this.navigationIndex = -1;
         }, EXIT_MS);
         return true;
     }
@@ -171,7 +303,92 @@ class MiniWindow {
     // ---------------------- helpers ----------------------
 
     isVisible() {
-        return this.container.classList.contains('open');
+        return document.body.classList.contains('page-open');
+    }
+
+    _cancelHandoff() {
+        this.transitionRevision += 1;
+        [...this.motionCleanups].forEach((cleanup) => cleanup());
+        this.motionCleanups.clear();
+        if (this.pendingLoadResolve) {
+            this.pendingLoadResolve(false);
+            this.pendingLoadResolve = null;
+        }
+        this.container.classList.remove(
+            'handoff-leaving',
+            'handoff-moving',
+            'handoff-entering',
+        );
+        this.container.removeAttribute('aria-busy');
+        document.body.classList.remove('document-transitioning');
+        if (this.closeButton) this.closeButton.disabled = false;
+    }
+
+    _motionMilliseconds(value) {
+        const trimmed = value.trim();
+        if (trimmed.endsWith('ms')) return Number.parseFloat(trimmed) || 0;
+        if (trimmed.endsWith('s')) {
+            return (Number.parseFloat(trimmed) || 0) * 1000;
+        }
+        return 0;
+    }
+
+    _motionFallbackMilliseconds(element, eventName) {
+        const style = getComputedStyle(element);
+        const durationSource = eventName === 'animationend'
+            ? style.animationDuration
+            : style.transitionDuration;
+        const delaySource = eventName === 'animationend'
+            ? style.animationDelay
+            : style.transitionDelay;
+        const durations = durationSource.split(',').map(
+            (value) => this._motionMilliseconds(value),
+        );
+        const delays = delaySource.split(',').map(
+            (value) => this._motionMilliseconds(value),
+        );
+        const count = Math.max(durations.length, delays.length);
+        let longest = 0;
+        for (let index = 0; index < count; index += 1) {
+            longest = Math.max(
+                longest,
+                durations[index % durations.length] + delays[index % delays.length],
+            );
+        }
+        return longest;
+    }
+
+    _waitForMotion(element, {
+        eventName,
+        animationName = null,
+        propertyName = null,
+    }) {
+        if (this.motionDuration(1) === 0) return Promise.resolve();
+        const fallbackMilliseconds = this._motionFallbackMilliseconds(
+            element,
+            eventName,
+        );
+        if (fallbackMilliseconds <= 1) return Promise.resolve();
+
+        return new Promise((resolve) => {
+            let timeout = null;
+            const finish = () => {
+                element.removeEventListener(eventName, onMotionEnd);
+                if (timeout !== null) clearTimeout(timeout);
+                this.motionCleanups.delete(finish);
+                resolve();
+            };
+            const onMotionEnd = (event) => {
+                if (event.target !== element) return;
+                if (animationName && event.animationName !== animationName) return;
+                if (propertyName && event.propertyName !== propertyName) return;
+                finish();
+            };
+
+            element.addEventListener(eventName, onMotionEnd);
+            timeout = setTimeout(finish, fallbackMilliseconds + 150);
+            this.motionCleanups.add(finish);
+        });
     }
 
     /**
@@ -181,7 +398,7 @@ class MiniWindow {
      */
     updateCloseButtonLabel() {
         if (!this.closeLabel) return;
-        if (this.navigationHistory.length > 1) {
+        if (this.navigationIndex > 0) {
             this.closeLabel.textContent = '← back';
             this.closeButton.setAttribute('aria-label', 'Go back to previous document');
         } else {
@@ -216,12 +433,18 @@ class MiniWindow {
         return url;
     }
 
+    _historyForRoute(route, history) {
+        if (!Array.isArray(history) || history.length === 0) return null;
+        const normalized = history.map((entry) => this.normalizeUrl(entry));
+        return normalized.at(-1) === route ? normalized : null;
+    }
+
     setEvents() {
         // Single button — contextual action.
         if (this.closeButton) {
             this.closeButton.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (this.navigationHistory.length > 1) this.goBack();
+                if (this.navigationIndex > 0) this.goBack();
                 else this.hide();
             });
         }
@@ -255,6 +478,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const miniWindow = new MiniWindow();
     window.openPage = (route, options) => miniWindow.open(route, options);
     window.navigateToPage = (route) => miniWindow.navigateTo(route);
+    window.restorePageFromHistory = (route, historyState) => (
+        miniWindow.restore(route, historyState)
+    );
     window.closePage = (options) => miniWindow.hide(options);
     window.handlePortfolioEscape = () => {
         if (miniWindow.isVisible()) {

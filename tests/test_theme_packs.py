@@ -896,7 +896,11 @@ def test_stable_styles_consume_every_published_presentation_token() -> None:
     assert '--theme-pack-content-area-space' in theme_engine
     assert referenced_tokens(
         "document-structure.css", "themes/documents.css"
-    ) == DOCUMENT_PRESENTATION_TOKENS
+    ) == DOCUMENT_PRESENTATION_TOKENS - {
+        # Required Theme Pack v1 compatibility data; invariant action layout
+        # intentionally ignores the historical per-pack display value.
+        "action-display",
+    }
 
 
 def test_files_only_fixture_pack_renders_without_engine_changes(

@@ -21,10 +21,20 @@ window.documentUrlForRoute = function(route) {
     return window.portfolioDocumentUrlTransform(documentRoute);
 };
 
-window.setDestinationUrl = function(route, { replace = false } = {}) {
+window.setDestinationUrl = function(
+    route,
+    { replace = false, documentHistory = [route] } = {},
+) {
     const method = replace ? 'replaceState' : 'pushState';
     const destination = window.portfolioUrlTransform(route);
-    window.history[method]({ documentRoute: destination }, '', destination);
+    window.history[method](
+        {
+            documentRoute: destination,
+            documentHistory: [...documentHistory],
+        },
+        '',
+        destination,
+    );
 };
 
 window.setBoardUrl = function(title, { replace = false } = {}) {
@@ -40,9 +50,23 @@ window.setBoardUrl = function(title, { replace = false } = {}) {
 };
 
 window.centerOnDestination = function(route) {
-    const title = window.portfolioState.destinationMap[route];
+    const path = new URL(route, window.location.origin).pathname;
+    const title = window.portfolioState.destinationMap[path];
     if (title) window.centerOnTile(title);
 };
+
+window.restorePortfolioLocation = function() {
+    const route = window.location.pathname;
+    if (window.portfolioState.destinationMap[route]) {
+        window.restorePageFromHistory(route, window.history.state);
+        return;
+    }
+
+    window.closePage({ syncUrl: false });
+    window.checkUrlHash();
+};
+
+window.addEventListener('popstate', window.restorePortfolioLocation);
 
 window.checkUrlHash = function() {
     const initial = window.portfolioState.initialDestination;

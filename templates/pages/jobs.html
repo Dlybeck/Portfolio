@@ -13,6 +13,10 @@
             padding: 20px;
         }
 
+        html[data-board-theme="canonical"] .container {
+            width: calc(100% - 40px);
+        }
+
         /* Logos: cap to 100px tall on desktop, scale down on narrow
            viewports so wide logos (e.g. ScribbleScan) don't exceed the
            page width. max-width: 100% prevents horizontal overflow;
@@ -28,16 +32,16 @@
             .container {
                 padding: 10px;
             }
+
+            html[data-board-theme="canonical"] .container {
+                width: calc(100% - 20px);
+            }
         }
 </style>
 
 
 <div class="container"> 
     <h2 id="location">Professional History</h2>
-
-    <div class="section">
-        <h2>Work History</h2>
-    </div>
 
     <div class="section">
         <img src="/static/images/Work/Denali.webp" alt="Denali Advanced Integration logo" height="100px" width="auto">
@@ -50,7 +54,7 @@
         <img src="/static/images/Work/ScribbleScan.webp" alt="ScribbleScan logo" height="100px" width="auto">
         <h3>ScribbleScan LLC - Founder and Developer</h3>
         <p>February 2025 - April 2026<br>
-        Solo-developed an industry-leading AI-based handwriting digitization service. Achieving ~11-22% higher character accuracy on average when compared to leading OCR and AI-based OCR services such as Pen to Print. This service is also capable of image/non-textual element preservation, ensuring no information is lost in translation. The company and service have since closed; a preserved demo remains at <a href="https://scribblescan.app" target="_blank" rel="noopener">scribblescan.app</a>.</p>
+        I solo-developed a handwriting-digitization service that preserved images and other non-text elements in the resulting document. Across the five sample pages in my project comparison, ScribbleScan averaged 95.10% character accuracy, compared with 83.46% for Pen to Print AI and 74.39% for baseline OCR; this was a small project comparison, not a general benchmark. The company and original service have since closed, and a preserved demo remains at <a href="https://scribblescan.app" target="_blank" rel="noopener">scribblescan.app</a>.</p>
     </div>
 
     <div class="section">
@@ -64,35 +68,35 @@
         <img src="/static/images/Work/Tech.webp" alt="University of Puget Sound Technology Services logo" height="100px" width="auto">
         <h3>University of Puget Sound Technology Services Assistant II</h3>
         <p>August 2022 - May 2025<br>
-        Answering phone calls and tickets from UPS faculty, staff and incoming students about varying tech issues. Then either helping fix those issues, or passing them to the correct people.</p>    
+        Answered phone calls and tickets from UPS faculty, staff, and incoming students about a range of technology issues, then either resolved them or routed them to the right team.</p>
     </div>
 
     <div class="section">
         <img src="/static/images/Work/TCGC.webp" alt="Tacoma Country and Golf Club logo" height="100px" width="auto">
         <h3>Tacoma Country and Golf Club Tennis Instructor</h3>
         <p>July 2023 - August 2023<br>
-        Coaching tennis to groups of kids with varying tennis abilities, from ages 6 to 15. And private coaching for all ages.</p>    
+        Coached group tennis lessons for children ages 6 to 15 with a range of abilities, along with private lessons for players of all ages.</p>
     </div>
 
     <div class="section">
         <img src="/static/images/Work/GTC.webp" alt="Galbraith Tennis Center logo" height="100px" width="auto">
         <h3>Galbraith Tennis Center On Court Associate</h3>
         <p>July 2023 - August 2023<br>
-        Coaching tennis to groups of adults and kids with varying tennis abilities, from ages 5 to 18.</p>
+        Coached group tennis lessons for adults and children ages 5 to 18 with a range of abilities.</p>
     </div>
 
     <div class="section">
         <img src="/static/images/Work/PTC.webp" alt="Portland Tennis Center logo" height="100px" width="auto">
         <h3>Portland Tennis Center Assistant Coach</h3>
         <p>June 2022 - January 2023<br>
-        Helping coach tennis to groups of kids with a wide range of abilities from ages 4 to 18.</p>
+        Helped coach group tennis lessons for children ages 4 to 18 with a wide range of abilities.</p>
     </div>
 
     <div class="section">
         <img src="/static/images/Work/Tech.webp" alt="University of Puget Sound Technology Services logo" height="100px" width="auto">
         <h3>University of Puget Sound Technology Services Assistant I</h3>
         <p>January 2022 - May 2022<br>
-        Answering phone calls from UPS faculty, staff and incoming students about varying tech issues. Then either helping fix those issues, or passing them to the correct people.</p>
+        Answered calls from UPS faculty, staff, and incoming students about technology issues, then either resolved them or routed them to the right team.</p>
     </div>
 </div>
 {% endblock %}

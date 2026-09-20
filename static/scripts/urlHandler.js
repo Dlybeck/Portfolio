@@ -40,9 +40,23 @@ window.setBoardUrl = function(title, { replace = false } = {}) {
 };
 
 window.centerOnDestination = function(route) {
-    const title = window.portfolioState.destinationMap[route];
+    const path = new URL(route, window.location.origin).pathname;
+    const title = window.portfolioState.destinationMap[path];
     if (title) window.centerOnTile(title);
 };
+
+window.restorePortfolioLocation = function() {
+    const route = window.location.pathname;
+    if (window.portfolioState.destinationMap[route]) {
+        window.restorePageFromHistory(route);
+        return;
+    }
+
+    window.closePage({ syncUrl: false });
+    window.checkUrlHash();
+};
+
+window.addEventListener('popstate', window.restorePortfolioLocation);
 
 window.checkUrlHash = function() {
     const initial = window.portfolioState.initialDestination;

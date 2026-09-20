@@ -53,3 +53,34 @@ def test_narrow_scribblescan_action_renders_as_one_button_box(
     assert metrics["display"] == "inline-block"
     assert metrics["boxes"] == 1
     assert metrics["width"] <= metrics["parentWidth"] + 1
+
+
+@pytest.mark.parametrize("width", (320, 390))
+@pytest.mark.parametrize(
+    "theme",
+    ("canonical", "clouds", "islands", "lily", "planets", "postcards", "vinyl"),
+)
+def test_website_version_actions_do_not_overlap_on_phones(
+    browser_page,
+    theme: str,
+    width: int,
+) -> None:
+    page, origin = browser_page
+    page.set_viewport_size({"width": width, "height": 844})
+    page.goto(
+        f"{origin}/projects/websites/this_website?theme={theme}",
+        wait_until="domcontentloaded",
+    )
+
+    document = page.frame_locator(".mini-window")
+    document.locator("#location").wait_for()
+    actions = document.locator(".versionBtn")
+    expect_count = 3
+    assert actions.count() == expect_count
+    boxes = [actions.nth(index).bounding_box() for index in range(expect_count)]
+    assert all(box is not None for box in boxes)
+
+    for previous, current in zip(boxes, boxes[1:]):
+        assert previous is not None
+        assert current is not None
+        assert previous["y"] + previous["height"] <= current["y"] + 1

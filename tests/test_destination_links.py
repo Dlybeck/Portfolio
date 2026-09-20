@@ -166,6 +166,89 @@ def test_document_controls_preserve_board_aware_destinations(
     assert page.locator('.tile-container[data-title="Home"].expanded').count() == 1
 
 
+@pytest.mark.parametrize(
+    ("link_name", "destination_route", "destination_heading", "board_title"),
+    (
+        (
+            "View the ScribbleScan project history",
+            "/projects/websites/scribblescan",
+            "ScribbleScan",
+            "ScribbleScan",
+        ),
+        (
+            "See how it evolved",
+            "/projects/websites/this_website",
+            "This Website",
+            "This website",
+        ),
+        (
+            "Try the demo",
+            "/projects/nba_predictions",
+            "NBA Prediction AI",
+            "Programs",
+        ),
+        (
+            "View the sprint history",
+            "/projects/websites/digital_planner",
+            "Digital Planner",
+            "Digital Planner",
+        ),
+    ),
+)
+def test_browser_history_keeps_internal_document_url_and_content_in_sync(
+    browser_page: tuple[Page, str],
+    link_name: str,
+    destination_route: str,
+    destination_heading: str,
+    board_title: str,
+) -> None:
+    page, origin = browser_page
+    page.goto(
+        f"{origin}/projects/programs?theme=canonical",
+        wait_until="domcontentloaded",
+    )
+    document = page.frame_locator(".mini-window")
+    expect(document.locator("#location")).to_have_text("Programs")
+
+    document.get_by_role("link", name=link_name).click()
+    expect(page).to_have_url(
+        f"{origin}{destination_route}?theme=canonical"
+    )
+    expect(document.locator("#location")).to_have_text(destination_heading)
+    assert page.locator(
+        f'.tile-container[data-title="{board_title}"].expanded'
+    ).count() == 1
+
+    page.evaluate("history.back()")
+    expect(page).to_have_url(f"{origin}/projects/programs?theme=canonical")
+    expect(document.locator("#location")).to_have_text("Programs")
+    assert page.locator(
+        '.tile-container[data-title="Programs"].expanded'
+    ).count() == 1
+
+    page.evaluate("history.forward()")
+    expect(page).to_have_url(
+        f"{origin}{destination_route}?theme=canonical"
+    )
+    expect(document.locator("#location")).to_have_text(destination_heading)
+    assert page.locator(
+        f'.tile-container[data-title="{board_title}"].expanded'
+    ).count() == 1
+
+    page.get_by_role("button", name="Go back to previous document").click()
+    expect(page).to_have_url(f"{origin}/projects/programs?theme=canonical")
+    expect(document.locator("#location")).to_have_text("Programs")
+
+    page.get_by_role("button", name="Close document").click()
+    expect(page).to_have_url(f"{origin}/?theme=canonical#Programs")
+    page.locator(".mini-window-container:not(.open)").wait_for()
+    page.wait_for_timeout(500)
+
+    page.evaluate("history.back()")
+    expect(page).to_have_url(f"{origin}/projects/programs?theme=canonical")
+    expect(document.locator("#location")).to_have_text("Programs")
+
+
 def focused_control_name(page: Page) -> str | None:
     return page.evaluate(
         """() => document.activeElement?.getAttribute('aria-label')

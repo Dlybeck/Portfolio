@@ -22,6 +22,7 @@ class MiniWindow {
         this.closeButton = document.querySelector(".close-button");
         this.closeLabel  = this.closeButton ? this.closeButton.querySelector('.tab') : null;
         this.navigationHistory = [];
+        this.navigationIndex = -1;
         this.teardownTimer = null;
         this.outsideHandlerTimer = null;
 
@@ -50,6 +51,7 @@ class MiniWindow {
         const normalized = this.normalizeUrl(route);
         this.initialRoute = normalized;
         this.navigationHistory = [normalized];
+        this.navigationIndex = 0;
         this._displayRoute(normalized, options);
 
         this.container.classList.remove('closing');
@@ -71,16 +73,37 @@ class MiniWindow {
 
     navigateTo(route) {
         const normalized = this.normalizeUrl(route);
+        this.navigationHistory = this.navigationHistory.slice(
+            0,
+            this.navigationIndex + 1,
+        );
         this.navigationHistory.push(normalized);
+        this.navigationIndex = this.navigationHistory.length - 1;
         this._displayRoute(normalized);
     }
 
     goBack() {
-        if (!this.isVisible() || this.navigationHistory.length <= 1) return false;
-        this.navigationHistory.pop();
-        const previousUrl = this.navigationHistory[this.navigationHistory.length - 1];
-        this._displayRoute(previousUrl);
+        if (!this.isVisible() || this.navigationIndex <= 0) return false;
+        window.history.back();
         return true;
+    }
+
+    restore(route) {
+        const normalized = this.normalizeUrl(route);
+        const knownIndex = this.navigationHistory.lastIndexOf(normalized);
+
+        if (!this.isVisible()) {
+            this.open(normalized, { syncUrl: false });
+            return;
+        }
+
+        if (knownIndex >= 0) {
+            this.navigationIndex = knownIndex;
+        } else {
+            this.navigationHistory = [normalized];
+            this.navigationIndex = 0;
+        }
+        this._displayRoute(normalized, { syncUrl: false });
     }
 
     _displayRoute(route, options = {}) {
@@ -98,7 +121,19 @@ class MiniWindow {
     _loadInto(url) {
         this._showLoadingScrap();
         this.page.onload = () => this._onIframeLoad();
-        this.page.setAttribute('src', url);
+        // The outer Portfolio URL owns browser history. Replacing the iframe
+        // document avoids adding a second joint-session-history entry that
+        // would otherwise leave the URL and visible document out of sync when
+        // the viewer presses the browser Back button.
+        this._replaceIframeLocation(url);
+    }
+
+    _replaceIframeLocation(url) {
+        if (this.page.contentWindow) {
+            this.page.contentWindow.location.replace(url);
+        } else {
+            this.page.setAttribute('src', url);
+        }
     }
 
     _onIframeLoad() {
@@ -162,8 +197,10 @@ class MiniWindow {
             this.teardownTimer = null;
             if (this.isVisible()) return;
             this.container.classList.remove('closing');
-            this.page.setAttribute('src', '');
+            this.page.onload = null;
+            this._replaceIframeLocation('about:blank');
             this.navigationHistory = [];
+            this.navigationIndex = -1;
         }, EXIT_MS);
         return true;
     }
@@ -181,7 +218,7 @@ class MiniWindow {
      */
     updateCloseButtonLabel() {
         if (!this.closeLabel) return;
-        if (this.navigationHistory.length > 1) {
+        if (this.navigationIndex > 0) {
             this.closeLabel.textContent = '← back';
             this.closeButton.setAttribute('aria-label', 'Go back to previous document');
         } else {
@@ -221,7 +258,7 @@ class MiniWindow {
         if (this.closeButton) {
             this.closeButton.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (this.navigationHistory.length > 1) this.goBack();
+                if (this.navigationIndex > 0) this.goBack();
                 else this.hide();
             });
         }
@@ -255,6 +292,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const miniWindow = new MiniWindow();
     window.openPage = (route, options) => miniWindow.open(route, options);
     window.navigateToPage = (route) => miniWindow.navigateTo(route);
+    window.restorePageFromHistory = (route) => miniWindow.restore(route);
     window.closePage = (options) => miniWindow.hide(options);
     window.handlePortfolioEscape = () => {
         if (miniWindow.isVisible()) {

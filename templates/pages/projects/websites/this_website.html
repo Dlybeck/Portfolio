@@ -6,10 +6,16 @@
 
 {% block content %}
 <style>
+    .version-links {
+        display: grid;
+        gap: .75rem;
+    }
+
     .versionBtn{
         display: block;
-        font-size: xx-large;
-        padding: 30px;
+        box-sizing: border-box;
+        width: 100%;
+        text-align: center;
     }
 
     .versionBtn:hover{
@@ -22,13 +28,11 @@
 
     <h4>Check out the processes behind developing this website:</h4>
     <br>
-    <div class="section">
+    <nav class="section version-links" aria-label="Portfolio version history">
         <a class="link internal-link versionBtn" href="/projects/websites/this_website/v1">Version 1</a>
-        <br>
         <a class="link internal-link versionBtn" href="/projects/websites/this_website/v2">Version 2</a>
-        <br>
         <a class="link internal-link versionBtn" href="/projects/websites/this_website/v3">Version 3</a>
-    </div>
+    </nav>
 </div>
 
 {% endblock %}

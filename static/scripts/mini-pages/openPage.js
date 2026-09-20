@@ -50,8 +50,12 @@ class MiniWindow {
 
         const normalized = this.normalizeUrl(route);
         this.initialRoute = normalized;
-        this.navigationHistory = [normalized];
-        this.navigationIndex = 0;
+        const restoredHistory = this._historyForRoute(
+            normalized,
+            options.navigationHistory,
+        );
+        this.navigationHistory = restoredHistory || [normalized];
+        this.navigationIndex = this.navigationHistory.length - 1;
         this._displayRoute(normalized, options);
 
         this.container.classList.remove('closing');
@@ -88,17 +92,24 @@ class MiniWindow {
         return true;
     }
 
-    restore(route) {
+    restore(route, historyState = window.history.state) {
         const normalized = this.normalizeUrl(route);
-        const knownIndex = this.navigationHistory.lastIndexOf(normalized);
+        const restoredHistory = this._historyForRoute(
+            normalized,
+            historyState?.documentHistory,
+        );
 
         if (!this.isVisible()) {
-            this.open(normalized, { syncUrl: false });
+            this.open(normalized, {
+                syncUrl: false,
+                navigationHistory: restoredHistory,
+            });
             return;
         }
 
-        if (knownIndex >= 0) {
-            this.navigationIndex = knownIndex;
+        if (restoredHistory) {
+            this.navigationHistory = restoredHistory;
+            this.navigationIndex = restoredHistory.length - 1;
         } else {
             this.navigationHistory = [normalized];
             this.navigationIndex = 0;
@@ -114,7 +125,11 @@ class MiniWindow {
             || 'Portfolio';
         this.page.setAttribute('title', `${documentTitle} portfolio document`);
         this._loadInto(window.documentUrlForRoute(route));
-        if (options.syncUrl !== false) window.setDestinationUrl(route);
+        if (options.syncUrl !== false) {
+            window.setDestinationUrl(route, {
+                documentHistory: this.navigationHistory,
+            });
+        }
         this.updateCloseButtonLabel();
     }
 
@@ -253,6 +268,12 @@ class MiniWindow {
         return url;
     }
 
+    _historyForRoute(route, history) {
+        if (!Array.isArray(history) || history.length === 0) return null;
+        const normalized = history.map((entry) => this.normalizeUrl(entry));
+        return normalized.at(-1) === route ? normalized : null;
+    }
+
     setEvents() {
         // Single button — contextual action.
         if (this.closeButton) {
@@ -292,7 +313,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const miniWindow = new MiniWindow();
     window.openPage = (route, options) => miniWindow.open(route, options);
     window.navigateToPage = (route) => miniWindow.navigateTo(route);
-    window.restorePageFromHistory = (route) => miniWindow.restore(route);
+    window.restorePageFromHistory = (route, historyState) => (
+        miniWindow.restore(route, historyState)
+    );
     window.closePage = (options) => miniWindow.hide(options);
     window.handlePortfolioEscape = () => {
         if (miniWindow.isVisible()) {

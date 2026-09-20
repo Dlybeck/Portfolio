@@ -21,10 +21,20 @@ window.documentUrlForRoute = function(route) {
     return window.portfolioDocumentUrlTransform(documentRoute);
 };
 
-window.setDestinationUrl = function(route, { replace = false } = {}) {
+window.setDestinationUrl = function(
+    route,
+    { replace = false, documentHistory = [route] } = {},
+) {
     const method = replace ? 'replaceState' : 'pushState';
     const destination = window.portfolioUrlTransform(route);
-    window.history[method]({ documentRoute: destination }, '', destination);
+    window.history[method](
+        {
+            documentRoute: destination,
+            documentHistory: [...documentHistory],
+        },
+        '',
+        destination,
+    );
 };
 
 window.setBoardUrl = function(title, { replace = false } = {}) {
@@ -48,7 +58,7 @@ window.centerOnDestination = function(route) {
 window.restorePortfolioLocation = function() {
     const route = window.location.pathname;
     if (window.portfolioState.destinationMap[route]) {
-        window.restorePageFromHistory(route);
+        window.restorePageFromHistory(route, window.history.state);
         return;
     }
 

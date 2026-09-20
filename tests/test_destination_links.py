@@ -249,6 +249,43 @@ def test_browser_history_keeps_internal_document_url_and_content_in_sync(
     expect(document.locator("#location")).to_have_text("Programs")
 
 
+def test_reopened_nested_document_preserves_escape_history(
+    browser_page: tuple[Page, str],
+) -> None:
+    page, origin = browser_page
+    page.goto(
+        f"{origin}/projects/programs?theme=canonical",
+        wait_until="domcontentloaded",
+    )
+    document = page.frame_locator(".mini-window")
+    document.get_by_role(
+        "link",
+        name="View the ScribbleScan project history",
+    ).click()
+    expect(page).to_have_url(
+        f"{origin}/projects/websites/scribblescan?theme=canonical"
+    )
+    expect(document.locator("#location")).to_have_text("ScribbleScan")
+
+    page.get_by_role("button", name="Home").click()
+    expect(page).to_have_url(f"{origin}/?theme=canonical")
+    page.locator(".mini-window-container:not(.open)").wait_for()
+
+    page.evaluate("history.back()")
+    expect(page).to_have_url(
+        f"{origin}/projects/websites/scribblescan?theme=canonical"
+    )
+    expect(document.locator("#location")).to_have_text("ScribbleScan")
+    expect(
+        page.get_by_role("button", name="Go back to previous document")
+    ).to_be_visible()
+
+    page.keyboard.press("Escape")
+    expect(page).to_have_url(f"{origin}/projects/programs?theme=canonical")
+    expect(document.locator("#location")).to_have_text("Programs")
+    expect(page.get_by_role("button", name="Close document")).to_be_visible()
+
+
 def focused_control_name(page: Page) -> str | None:
     return page.evaluate(
         """() => document.activeElement?.getAttribute('aria-label')

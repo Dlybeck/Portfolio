@@ -197,8 +197,6 @@ def test_internal_document_handoff_reveals_the_board_between_documents(
             root.style.setProperty('--theme-pack-viewer-exit-duration', '10s');
             root.style.setProperty('--theme-pack-navigation-transition-duration', '10s');
             root.style.setProperty('--theme-pack-viewer-enter-duration', '10s');
-            root.style.setProperty('--theme-pack-viewer-handoff-exit-duration', '10s');
-            root.style.setProperty('--theme-pack-viewer-handoff-enter-duration', '10s');
         }"""
     )
 
@@ -261,8 +259,8 @@ def test_document_handoff_browser_reversal_keeps_the_latest_destination(
         """() => {
             const root = document.documentElement;
             root.style.setProperty('--theme-pack-navigation-transition-duration', '10s');
-            root.style.setProperty('--theme-pack-viewer-handoff-exit-duration', '10s');
-            root.style.setProperty('--theme-pack-viewer-handoff-enter-duration', '10s');
+            root.style.setProperty('--theme-pack-viewer-exit-duration', '10s');
+            root.style.setProperty('--theme-pack-viewer-enter-duration', '10s');
         }"""
     )
 

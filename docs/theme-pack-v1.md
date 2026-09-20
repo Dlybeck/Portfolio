@@ -245,12 +245,18 @@ colors, backgrounds, borders, radii, and shadows. It cannot hide or reorder
 content.
 
 The document contract also exposes container and panel box sizing, paragraph
-rhythm, per-heading-level sizes, action display, separate form-button styling,
-and distinct media/model geometry. `title-margin` controls the document title's
-outer spacing; `media-margin-block` separates adjacent photos without changing
-their ordering or adding markup. These are presentation choices rather than
+rhythm, per-heading-level sizes, separate form-button styling, and distinct
+media/model geometry. `title-margin` controls the document title's outer
+spacing; `media-margin-block` separates adjacent photos without changing their
+ordering or adding markup. These are presentation choices rather than
 invariant layout so a pack can reproduce a real reference without adding a
 theme-name branch to the engine.
+
+`action-display` remains required compatibility data for Theme Pack v1, but the
+renderer intentionally ignores it. Action layout is an invariant document
+behavior: one shared intrinsic wrapping contract owns containment, target size,
+and responsive flow, while packs continue to own action typography, color,
+border, radius, and hover treatment.
 
 Text-dense and media/model-rich Documents are mandatory validation fixtures.
 Document theming must be structurally visible; changing only colors does not

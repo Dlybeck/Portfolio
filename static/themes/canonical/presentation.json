@@ -277,6 +277,7 @@
     "separator-opacity": ".65",
     "interaction-transition": ".2s ease-in-out",
     "button-hover-transform": "scale(1.1)",
+    "action-display": "inline",
     "action-font": "Georgia, 'Times New Roman', Times, serif",
     "action-size": "inherit",
     "action-text-decoration": "none",

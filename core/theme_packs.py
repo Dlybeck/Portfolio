@@ -130,7 +130,7 @@ DOCUMENT_PRESENTATION_TOKENS = frozenset(
         "container-bg", "container-box-sizing", "panel-box-sizing", "panel-max-width",
         "paragraph-margin", "paragraph-line-height", "heading-2-size",
         "title-margin", "media-margin-block",
-        "heading-3-size", "heading-4-size",
+        "heading-3-size", "heading-4-size", "action-display",
         "link-decoration-thickness", "media-box-sizing", "model-bg",
         "model-border", "model-border-style", "model-border-width", "model-radius",
         "model-shadow", "model-box-sizing", "action-font", "action-size",

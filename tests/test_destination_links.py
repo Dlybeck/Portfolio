@@ -424,25 +424,25 @@ def test_browser_history_keeps_internal_document_url_and_content_in_sync(
         f"{origin}{destination_route}?theme=canonical"
     )
     expect(document.locator("#location")).to_have_text(destination_heading)
-    assert page.locator(
-        f'.tile-container[data-title="{board_title}"].expanded'
-    ).count() == 1
+    expect(
+        page.locator(f'.tile-container[data-title="{board_title}"]')
+    ).to_have_class(re.compile(r"\bexpanded\b"))
 
     page.evaluate("history.back()")
     expect(page).to_have_url(f"{origin}/projects/programs?theme=canonical")
     expect(document.locator("#location")).to_have_text("Programs")
-    assert page.locator(
-        '.tile-container[data-title="Programs"].expanded'
-    ).count() == 1
+    expect(
+        page.locator('.tile-container[data-title="Programs"]')
+    ).to_have_class(re.compile(r"\bexpanded\b"))
 
     page.evaluate("history.forward()")
     expect(page).to_have_url(
         f"{origin}{destination_route}?theme=canonical"
     )
     expect(document.locator("#location")).to_have_text(destination_heading)
-    assert page.locator(
-        f'.tile-container[data-title="{board_title}"].expanded'
-    ).count() == 1
+    expect(
+        page.locator(f'.tile-container[data-title="{board_title}"]')
+    ).to_have_class(re.compile(r"\bexpanded\b"))
 
     page.get_by_role("button", name="Go back to previous document").click()
     expect(page).to_have_url(f"{origin}/projects/programs?theme=canonical")

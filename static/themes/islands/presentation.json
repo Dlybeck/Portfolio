@@ -277,7 +277,6 @@
     "separator-opacity": ".7",
     "interaction-transition": ".2s ease-in-out",
     "button-hover-transform": "translateY(-2px)",
-    "action-display": "inline-block",
     "action-font": "'Patrick Hand', cursive",
     "action-size": "1.02rem",
     "action-text-decoration": "underline",

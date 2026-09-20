@@ -34,28 +34,6 @@
                 margin: 0;
             }
 
-            html[data-board-theme="canonical"] body .external-btn {
-                display: inline-block !important;
-                max-width: 100%;
-                box-sizing: border-box;
-            }
-
-            .external-btn {
-                padding: 10px;
-                background-color: #006699;
-                color: white;
-                text-decoration: none;
-                border-color: black;
-                border-style: solid;
-                border-width: 2px;
-                border-radius: 5px;
-                transition: all .2s ease-in-out;
-            }
-            .external-btn:hover {
-                transform: scale(1.1);
-                background-color: #004477;
-            }
-
             @media (max-width: 768px) {
                 .container {
                     padding: 10px;
@@ -70,8 +48,9 @@
     <div class="container"> 
         <h2 id="location">ScribbleScan</h2>
         <div class="section">
-            <a class="link versionBtn external-btn" href="https://scribblescan.app" target="_blank" rel="noopener">View the preserved demo</a>
-            <br><br>
+            <div class="document-actions">
+                <a class="link external-btn" href="https://scribblescan.app" target="_blank" rel="noopener">View the preserved demo</a>
+            </div>
             <p>ScribbleScan began as my 2025 capstone, grew into a hosted handwriting-digitization service and LLC, and is now preserved as a demo. It digitized handwritten pages while keeping images and other non-text elements in the resulting document.</p>
             <p>In the five sample pages shown below, ScribbleScan averaged 95.10% character accuracy, compared with 83.46% for Pen to Print AI and 74.39% for baseline OCR. This was a small project comparison, not a general benchmark.</p>
         </div>

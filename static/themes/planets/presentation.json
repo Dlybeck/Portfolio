@@ -277,7 +277,6 @@
     "separator-opacity": ".8",
     "interaction-transition": ".2s ease-in-out",
     "button-hover-transform": "scale(1.04)",
-    "action-display": "inline-block",
     "action-font": "system-ui, sans-serif",
     "action-size": "1rem",
     "action-text-decoration": "underline",

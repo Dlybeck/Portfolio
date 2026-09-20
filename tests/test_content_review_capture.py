@@ -2,7 +2,18 @@ import argparse
 
 import pytest
 
-from scripts.capture_content_review import parse_named_route, themed_url
+from scripts.capture_content_review import VIEWPORTS, parse_named_route, themed_url
+
+
+def test_review_matrix_covers_portrait_landscape_and_short_viewports() -> None:
+    assert VIEWPORTS == {
+        "desktop": {"width": 1440, "height": 900},
+        "short-laptop": {"width": 1024, "height": 600},
+        "phone": {"width": 390, "height": 844},
+        "narrow-phone": {"width": 320, "height": 568},
+        "phone-landscape": {"width": 568, "height": 320},
+        "tablet-landscape": {"width": 844, "height": 390},
+    }
 
 
 @pytest.mark.parametrize(

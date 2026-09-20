@@ -2244,17 +2244,6 @@
     "document": {
       "type": "object",
       "properties": {
-        "action-display": {
-          "oneOf": [
-            {
-              "type": "string",
-              "maxLength": 500
-            },
-            {
-              "type": "number"
-            }
-          ]
-        },
         "action-font": {
           "oneOf": [
             {
@@ -3522,7 +3511,6 @@
         }
       },
       "required": [
-        "action-display",
         "action-font",
         "action-hover-text-decoration",
         "action-size",

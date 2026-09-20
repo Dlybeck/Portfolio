@@ -169,7 +169,6 @@ html[data-theme-pack-visual] #topBtn {
 
 html[data-theme-pack-visual] body .external-btn,
 html[data-theme-pack-visual] body .internal-link:not(.plain-internal-link) {
-  display: var(--theme-pack-action-display);
   font-family: var(--theme-pack-action-font) !important;
   font-size: var(--theme-pack-action-size) !important;
   text-decoration: var(--theme-pack-action-text-decoration) !important;

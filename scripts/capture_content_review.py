@@ -16,8 +16,11 @@ from playwright.sync_api import Browser, Page, sync_playwright
 
 VIEWPORTS = {
     "desktop": {"width": 1440, "height": 900},
+    "short-laptop": {"width": 1024, "height": 600},
     "phone": {"width": 390, "height": 844},
     "narrow-phone": {"width": 320, "height": 568},
+    "phone-landscape": {"width": 568, "height": 320},
+    "tablet-landscape": {"width": 844, "height": 390},
 }
 
 
@@ -161,12 +164,18 @@ def main() -> int:
             )
             try:
                 for viewport_name, viewport in VIEWPORTS.items():
+                    mobile = viewport_name in {
+                        "phone",
+                        "narrow-phone",
+                        "phone-landscape",
+                        "tablet-landscape",
+                    }
                     context = browser.new_context(
                         viewport=viewport,
                         device_scale_factor=1,
                         reduced_motion="reduce",
-                        is_mobile=viewport_name != "desktop",
-                        has_touch=viewport_name != "desktop",
+                        is_mobile=mobile,
+                        has_touch=mobile,
                     )
                     page = context.new_page()
                     page.on(

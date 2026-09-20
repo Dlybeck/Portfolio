@@ -41,34 +41,6 @@
       padding: 0;
     }
 
-    .project-actions {
-      margin-top: 1rem;
-    }
-
-    .project-actions .internal-link,
-    .project-actions .external-btn {
-      box-sizing: border-box;
-      max-width: 100%;
-      margin: .3rem;
-      padding: 10px;
-      border: 2px solid black;
-      border-radius: 5px;
-      background-color: #006699;
-      color: white;
-      text-decoration: none;
-      transition: all .2s ease-in-out;
-    }
-
-    .project-actions .internal-link:hover,
-    .project-actions .external-btn:hover {
-      transform: scale(1.04);
-      background-color: #004477;
-    }
-
-    .project-actions .internal-link {
-      display: inline-block;
-    }
-
     .coursework-archive {
       text-align: left;
     }
@@ -88,20 +60,6 @@
       margin-top: .25rem;
     }
 
-    @media (max-width: 600px) {
-      .project-actions {
-        display: grid;
-        gap: .65rem;
-      }
-
-      .project-actions .internal-link,
-      .project-actions .external-btn {
-        display: block;
-        width: 100%;
-        margin: 0;
-        text-align: center;
-      }
-    }
   </style>
 
   <div class="container programs-page">
@@ -113,7 +71,7 @@
         <article class="project-card">
           <h4><a class="link internal-link plain-internal-link" href="/projects/websites/scribblescan">ScribbleScan</a></h4>
           <p>I built ScribbleScan from a college capstone into a hosted handwriting-digitization service. The original service is archived, and I’m now exploring an offline, privacy-first mobile successor.</p>
-          <div class="project-actions">
+          <div class="document-actions">
             <a class="link internal-link" href="/projects/websites/scribblescan">View the ScribbleScan project history</a>
             <a class="link external-btn" href="https://scribblescan.app" target="_blank" rel="noopener">Open the preserved demo</a>
           </div>
@@ -122,7 +80,7 @@
         <article class="project-card">
           <h4>This portfolio</h4>
           <p>A long-running experiment in spatial navigation, responsive interfaces, accessibility, and seven visual themes built on one underlying map.</p>
-          <div class="project-actions">
+          <div class="document-actions">
             <a class="link internal-link" href="/projects/websites/this_website">See how it evolved</a>
           </div>
         </article>
@@ -135,7 +93,7 @@
         <article class="project-card">
           <h4>NBA Prediction AI</h4>
           <p>A 2024 partner project that trained PyTorch and TensorFlow models on a custom NBA statistics data set. The preserved demo uses data through May 2024.</p>
-          <div class="project-actions">
+          <div class="document-actions">
             <a class="link internal-link" href="/projects/nba_predictions">Try the demo</a>
             <a class="link external-btn" href="https://github.com/mattzou1/NBA-predictor" target="_blank" rel="noopener">View the repository</a>
           </div>
@@ -144,7 +102,7 @@
         <article class="project-card">
           <h4>Digital Planner</h4>
           <p>A team software-engineering course project that combined assignments, events, and drag-and-drop calendar planning across two development sprints.</p>
-          <div class="project-actions">
+          <div class="document-actions">
             <a class="link internal-link" href="/projects/websites/digital_planner">View the sprint history</a>
           </div>
         </article>

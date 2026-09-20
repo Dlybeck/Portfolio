@@ -99,6 +99,8 @@
     "cover-exit-duration": ".24s",
     "viewer-enter-duration": ".38s",
     "viewer-exit-duration": ".24s",
+    "viewer-handoff-enter-duration": ".22s",
+    "viewer-handoff-exit-duration": ".18s",
     "cover-enter-easing": "cubic-bezier(.16,.72,.22,1)",
     "cover-exit-easing": "cubic-bezier(.45,0,.72,.2)",
     "cover-enter-offset": "0px",

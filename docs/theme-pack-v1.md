@@ -269,10 +269,11 @@ larger surface arrives), and `swap` (extract, bring in front, lay on top).
 The earlier `reveal` interpretation was rejected by the owner; it remains only
 as dormant-source compatibility, not an approved authoring choice.
 The existing `settle` preset remains supported for installed packs;
-approved themes are not migrated to a different behavior. Timing, easing,
-offsets, scale, and rotation remain
-pack-owned presentation tokens. Adding an ordinary theme therefore requires a
-preset selection and parameters, not theme-specific runtime code.
+approved themes are not migrated to a different behavior. Timing, including
+the shorter Viewer handoff enter/exit phases, easing, offsets, scale, and
+rotation remain pack-owned presentation tokens. Adding an ordinary theme
+therefore requires a preset selection and parameters, not theme-specific
+runtime code.
 
 Grow packs whose base and expanded artwork share a viewBox and silhouette may
 opt into `var(--theme-object-size-ratio, .43)` for `cover-enter-scale` and

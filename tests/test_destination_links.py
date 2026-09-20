@@ -44,6 +44,16 @@ DIRECT_DESTINATION_HEADINGS = (
     ("/projects/websites/this_website/v3", "This website", "DavidLybeck.com Version 3"),
 )
 
+DOCUMENT_HANDOFF_THEMES = (
+    "canonical",
+    "clouds",
+    "islands",
+    "lily",
+    "planets",
+    "postcards",
+    "vinyl",
+)
+
 
 def portfolio_state(html: str) -> dict[str, object]:
     match = re.search(
@@ -187,9 +197,8 @@ def test_internal_document_handoff_reveals_the_board_between_documents(
             root.style.setProperty('--theme-pack-viewer-exit-duration', '10s');
             root.style.setProperty('--theme-pack-navigation-transition-duration', '10s');
             root.style.setProperty('--theme-pack-viewer-enter-duration', '10s');
-            const viewer = document.querySelector('.mini-window-container');
-            viewer.style.setProperty('--document-handoff-exit-duration', '10s');
-            viewer.style.setProperty('--document-handoff-enter-duration', '10s');
+            root.style.setProperty('--theme-pack-viewer-handoff-exit-duration', '10s');
+            root.style.setProperty('--theme-pack-viewer-handoff-enter-duration', '10s');
         }"""
     )
 
@@ -252,9 +261,8 @@ def test_document_handoff_browser_reversal_keeps_the_latest_destination(
         """() => {
             const root = document.documentElement;
             root.style.setProperty('--theme-pack-navigation-transition-duration', '10s');
-            const viewer = document.querySelector('.mini-window-container');
-            viewer.style.setProperty('--document-handoff-exit-duration', '10s');
-            viewer.style.setProperty('--document-handoff-enter-duration', '10s');
+            root.style.setProperty('--theme-pack-viewer-handoff-exit-duration', '10s');
+            root.style.setProperty('--theme-pack-viewer-handoff-enter-duration', '10s');
         }"""
     )
 
@@ -322,6 +330,50 @@ def test_reduced_motion_swaps_documents_without_handoff_animation(
     expect(viewer).not_to_have_class(re.compile(r"\bhandoff-"))
     expect(page.locator("body")).not_to_have_class(
         re.compile(r"\bdocument-transitioning\b")
+    )
+
+
+@pytest.mark.parametrize("theme", DOCUMENT_HANDOFF_THEMES)
+@pytest.mark.parametrize(
+    "viewport",
+    (
+        {"width": 390, "height": 844},
+        {"width": 1440, "height": 900},
+    ),
+    ids=("phone", "desktop"),
+)
+def test_document_handoff_completes_forward_and_reverse_in_every_theme(
+    browser_page: tuple[Page, str],
+    theme: str,
+    viewport: dict[str, int],
+) -> None:
+    page, origin = browser_page
+    page.set_viewport_size(viewport)
+    page.goto(
+        f"{origin}/projects/programs?theme={theme}",
+        wait_until="domcontentloaded",
+    )
+    document = page.frame_locator(".mini-window")
+    expect(document.locator("#location")).to_have_text("Programs")
+
+    document.get_by_role(
+        "link",
+        name="View the ScribbleScan project history",
+    ).click()
+    expect(page).to_have_url(
+        f"{origin}/projects/websites/scribblescan?theme={theme}"
+    )
+    expect(document.locator("#location")).to_have_text("ScribbleScan")
+    expect(page.locator(".mini-window-container")).to_have_class(
+        re.compile(r"\bopen\b")
+    )
+    expect(page.locator("html")).to_have_attribute("data-board-theme", theme)
+
+    page.get_by_role("button", name="Go back to previous document").click()
+    expect(page).to_have_url(f"{origin}/projects/programs?theme={theme}")
+    expect(document.locator("#location")).to_have_text("Programs")
+    expect(page.locator(".mini-window-container")).not_to_have_class(
+        re.compile(r"\bhandoff-")
     )
 
 

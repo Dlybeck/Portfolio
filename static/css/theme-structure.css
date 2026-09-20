@@ -420,8 +420,6 @@ html[data-theme-focus-motion="settle"] .tile-container.cover-leaving-down .tile-
 }
 
 .mini-window-container {
-  --document-handoff-exit-duration: 180ms;
-  --document-handoff-enter-duration: 220ms;
   display: none;
   position: fixed;
   top: 5vh;
@@ -448,7 +446,7 @@ html[data-theme-focus-motion="settle"] .tile-container.cover-leaving-down .tile-
 .mini-window-container.handoff-leaving {
   display: block;
   pointer-events: none;
-  animation: viewer-exit var(--document-handoff-exit-duration) var(--theme-pack-viewer-exit-easing) both;
+  animation: viewer-exit var(--theme-pack-viewer-handoff-exit-duration) var(--theme-pack-viewer-exit-easing) both;
 }
 
 .mini-window-container.handoff-moving {
@@ -457,7 +455,7 @@ html[data-theme-focus-motion="settle"] .tile-container.cover-leaving-down .tile-
 
 .mini-window-container.open.handoff-entering {
   pointer-events: none;
-  animation-duration: var(--document-handoff-enter-duration);
+  animation-duration: var(--theme-pack-viewer-handoff-enter-duration);
 }
 
 @keyframes viewer-enter {

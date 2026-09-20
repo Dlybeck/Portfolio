@@ -1961,6 +1961,28 @@
             }
           ]
         },
+        "viewer-handoff-enter-duration": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "viewer-handoff-exit-duration": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
         "viewer-height": {
           "oneOf": [
             {
@@ -2230,6 +2252,8 @@
         "viewer-exit-easing",
         "viewer-exit-offset",
         "viewer-exit-rotation",
+        "viewer-handoff-enter-duration",
+        "viewer-handoff-exit-duration",
         "viewer-height",
         "viewer-iframe-radius",
         "viewer-padding",

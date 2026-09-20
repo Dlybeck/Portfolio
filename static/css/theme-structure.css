@@ -420,6 +420,8 @@ html[data-theme-focus-motion="settle"] .tile-container.cover-leaving-down .tile-
 }
 
 .mini-window-container {
+  --document-handoff-exit-duration: 180ms;
+  --document-handoff-enter-duration: 220ms;
   display: none;
   position: fixed;
   top: 5vh;
@@ -441,6 +443,21 @@ html[data-theme-focus-motion="settle"] .tile-container.cover-leaving-down .tile-
   display: block;
   pointer-events: none;
   animation: viewer-exit var(--theme-pack-viewer-exit-duration) var(--theme-pack-viewer-exit-easing) both;
+}
+
+.mini-window-container.handoff-leaving {
+  display: block;
+  pointer-events: none;
+  animation: viewer-exit var(--document-handoff-exit-duration) var(--theme-pack-viewer-exit-easing) both;
+}
+
+.mini-window-container.handoff-moving {
+  display: none;
+}
+
+.mini-window-container.open.handoff-entering {
+  pointer-events: none;
+  animation-duration: var(--document-handoff-enter-duration);
 }
 
 @keyframes viewer-enter {
@@ -490,6 +507,11 @@ html[data-theme-focus-motion="settle"] .tile-container.cover-leaving-down .tile-
 
 .close-button .tab { display: inline-block; }
 body.page-open .close-button { display: flex; }
+body.document-transitioning .close-button {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
 .close-button:hover .tab { transform: var(--theme-pack-control-hover-transform); }
 
 @media (max-width: 700px) {

@@ -818,6 +818,8 @@
    Full content height (set by JS). Pans with the rest of the map.
    ========================================================================= */
 .mini-window-container {
+  --document-handoff-exit-duration: 180ms;
+  --document-handoff-enter-duration: 220ms;
   /* Fixed overlay centered in viewport. Iframe inside scrolls its own
      content internally. Slide-in/out from the side is the entry/exit. */
   display: none;
@@ -884,6 +886,21 @@
   display: block;
   pointer-events: none;
   animation: paper-slide-out 0.4s cubic-bezier(.4,0,.7,0) both;
+}
+
+.mini-window-container.handoff-leaving {
+  display: block;
+  pointer-events: none;
+  animation: paper-slide-out var(--document-handoff-exit-duration) cubic-bezier(.4,0,.7,0) both;
+}
+
+.mini-window-container.handoff-moving {
+  display: none;
+}
+
+.mini-window-container.open.handoff-entering {
+  pointer-events: none;
+  animation-duration: var(--document-handoff-enter-duration);
 }
 
 /* Entry: paper slides in from the right edge. The container's usual
@@ -986,6 +1003,12 @@
 
 body.page-open .close-button {
   display: flex;
+}
+
+body.document-transitioning .close-button {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .close-button:hover { box-shadow: 3px 5px 10px rgba(0,0,0,0.45); }

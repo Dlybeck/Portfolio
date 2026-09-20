@@ -150,7 +150,9 @@ def test_document_controls_preserve_board_aware_destinations(
     document = page.frame_locator(".mini-window")
     document.locator("a", has_text="ScribbleScan").first.click()
     assert page.url == f"{origin}/projects/websites/scribblescan"
-    assert page.locator('.tile-container[data-title="ScribbleScan"].expanded').count() == 1
+    expect(
+        page.locator('.tile-container[data-title="ScribbleScan"]')
+    ).to_have_class(re.compile(r"\bexpanded\b"))
     expect(document.locator("#location")).to_have_text("ScribbleScan")
 
     page.locator(".close-button").click()
@@ -164,6 +166,163 @@ def test_document_controls_preserve_board_aware_destinations(
     page.locator(".home-button").click()
     assert page.url == f"{origin}/"
     assert page.locator('.tile-container[data-title="Home"].expanded').count() == 1
+
+
+def test_internal_document_handoff_reveals_the_board_between_documents(
+    browser_page: tuple[Page, str],
+) -> None:
+    page, origin = browser_page
+    page.goto(
+        f"{origin}/projects/programs?theme=canonical",
+        wait_until="domcontentloaded",
+    )
+    document = page.frame_locator(".mini-window")
+    expect(document.locator("#location")).to_have_text("Programs")
+
+    # Hold each motion phase until the test advances it. This verifies the
+    # rendered handoff through the same DOM/events a Viewer experiences.
+    page.evaluate(
+        """() => {
+            const root = document.documentElement;
+            root.style.setProperty('--theme-pack-viewer-exit-duration', '10s');
+            root.style.setProperty('--theme-pack-navigation-transition-duration', '10s');
+            root.style.setProperty('--theme-pack-viewer-enter-duration', '10s');
+            const viewer = document.querySelector('.mini-window-container');
+            viewer.style.setProperty('--document-handoff-exit-duration', '10s');
+            viewer.style.setProperty('--document-handoff-enter-duration', '10s');
+        }"""
+    )
+
+    document.get_by_role(
+        "link",
+        name="View the ScribbleScan project history",
+    ).click()
+
+    expect(page).to_have_url(
+        f"{origin}/projects/websites/scribblescan?theme=canonical"
+    )
+    viewer = page.locator(".mini-window-container")
+    expect(viewer).to_have_class(re.compile(r"\bhandoff-leaving\b"))
+    expect(document.locator("#location")).to_have_text("Programs")
+    expect(page.locator(".close-button")).to_be_disabled()
+    assert page.locator(
+        '.tile-container[data-title="Programs"].expanded'
+    ).count() == 1
+
+    viewer.evaluate(
+        """node => node.dispatchEvent(new AnimationEvent(
+            'animationend', {animationName: 'viewer-exit', bubbles: true}
+        ))"""
+    )
+    expect(viewer).to_have_class(re.compile(r"\bhandoff-moving\b"))
+    expect(viewer).to_be_hidden()
+    assert page.locator(
+        '.tile-container[data-title="ScribbleScan"].expanded'
+    ).count() == 1
+
+    page.locator(".tile-layer").evaluate(
+        """node => node.dispatchEvent(new TransitionEvent(
+            'transitionend', {propertyName: 'transform', bubbles: true}
+        ))"""
+    )
+    expect(viewer).to_have_class(re.compile(r"\bopen\b.*\bhandoff-entering\b"))
+    expect(document.locator("#location")).to_have_text("ScribbleScan")
+
+    viewer.evaluate(
+        """node => node.dispatchEvent(new AnimationEvent(
+            'animationend', {animationName: 'viewer-enter', bubbles: true}
+        ))"""
+    )
+    expect(viewer).to_have_class(re.compile(r"\bopen\b"))
+    expect(viewer).not_to_have_class(re.compile(r"\bhandoff-"))
+    expect(page.get_by_role("button", name="Go back to previous document")).to_be_enabled()
+
+
+def test_document_handoff_browser_reversal_keeps_the_latest_destination(
+    browser_page: tuple[Page, str],
+) -> None:
+    page, origin = browser_page
+    page.goto(
+        f"{origin}/projects/programs?theme=canonical",
+        wait_until="domcontentloaded",
+    )
+    document = page.frame_locator(".mini-window")
+    expect(document.locator("#location")).to_have_text("Programs")
+    page.evaluate(
+        """() => {
+            const root = document.documentElement;
+            root.style.setProperty('--theme-pack-navigation-transition-duration', '10s');
+            const viewer = document.querySelector('.mini-window-container');
+            viewer.style.setProperty('--document-handoff-exit-duration', '10s');
+            viewer.style.setProperty('--document-handoff-enter-duration', '10s');
+        }"""
+    )
+
+    document.get_by_role(
+        "link",
+        name="View the ScribbleScan project history",
+    ).click()
+    viewer = page.locator(".mini-window-container")
+    expect(viewer).to_have_class(re.compile(r"\bhandoff-leaving\b"))
+    viewer.evaluate(
+        """node => node.dispatchEvent(new AnimationEvent(
+            'animationend', {animationName: 'viewer-exit', bubbles: true}
+        ))"""
+    )
+    expect(viewer).to_have_class(re.compile(r"\bhandoff-moving\b"))
+    expect(
+        page.locator('.tile-container[data-title="ScribbleScan"]')
+    ).to_have_class(re.compile(r"\bexpanded\b"))
+
+    page.evaluate("history.back()")
+    expect(page).to_have_url(f"{origin}/projects/programs?theme=canonical")
+    expect(
+        page.locator('.tile-container[data-title="Programs"]')
+    ).to_have_class(re.compile(r"\bexpanded\b"))
+    page.locator(".tile-layer").evaluate(
+        """node => node.dispatchEvent(new TransitionEvent(
+            'transitionend', {propertyName: 'transform', bubbles: true}
+        ))"""
+    )
+    expect(viewer).to_have_class(re.compile(r"\bopen\b.*\bhandoff-entering\b"))
+    expect(document.locator("#location")).to_have_text("Programs")
+    viewer.evaluate(
+        """node => node.dispatchEvent(new AnimationEvent(
+            'animationend', {animationName: 'viewer-enter', bubbles: true}
+        ))"""
+    )
+
+    expect(viewer).not_to_have_class(re.compile(r"\bhandoff-"))
+    expect(document.locator("#location")).to_have_text("Programs")
+
+
+def test_reduced_motion_swaps_documents_without_handoff_animation(
+    browser_page: tuple[Page, str],
+) -> None:
+    page, origin = browser_page
+    page.emulate_media(reduced_motion="reduce")
+    page.goto(
+        f"{origin}/projects/programs?theme=canonical",
+        wait_until="domcontentloaded",
+    )
+    document = page.frame_locator(".mini-window")
+    expect(document.locator("#location")).to_have_text("Programs")
+
+    document.get_by_role(
+        "link",
+        name="View the ScribbleScan project history",
+    ).click()
+
+    expect(page).to_have_url(
+        f"{origin}/projects/websites/scribblescan?theme=canonical"
+    )
+    expect(document.locator("#location")).to_have_text("ScribbleScan")
+    viewer = page.locator(".mini-window-container")
+    expect(viewer).to_have_class(re.compile(r"\bopen\b"))
+    expect(viewer).not_to_have_class(re.compile(r"\bhandoff-"))
+    expect(page.locator("body")).not_to_have_class(
+        re.compile(r"\bdocument-transitioning\b")
+    )
 
 
 @pytest.mark.parametrize(

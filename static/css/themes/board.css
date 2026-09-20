@@ -593,6 +593,14 @@ html[data-theme-pack-visual] .mini-window-container.closing {
   animation-duration: var(--theme-pack-viewer-exit-duration);
 }
 
+html[data-theme-pack-visual] .mini-window-container.handoff-leaving {
+  animation-duration: var(--document-handoff-exit-duration);
+}
+
+html[data-theme-pack-visual] .mini-window-container.open.handoff-entering {
+  animation-duration: var(--document-handoff-enter-duration);
+}
+
 @media (max-width: 700px) {
   html[data-theme-pack-visual] .mini-window-container {
     top: var(--theme-pack-phone-viewer-top);

@@ -22,7 +22,7 @@ function paintAll() {
   for (const el of document.querySelectorAll(".wd-mine")) {
     el.classList.toggle("has", Boolean(mine));
     el.querySelector(".mn-img").style.backgroundImage = mine ? `url("${mine}")` : "";
-    el.setAttribute("aria-label", mine ? "Your sticker. Tap to change it." : "Your sticker. Tap to draw one or add a picture.");
+    el.setAttribute("aria-label", mine ? "Your sticker. Tap to change it." : "your sticker here. Tap to draw one or add a picture.");
   }
 }
 
@@ -128,7 +128,7 @@ function open() {
 }
 
 export const blankSticker = {
-  html: () => `<div class="wd wd-blank wd-round wd-mine" role="button" tabindex="0" aria-label="Your sticker. Tap to draw one or add a picture."><span class="mn-t">your<br>sticker<br>here</span><i class="mn-img" aria-hidden="true"></i></div>`,
+  html: () => `<div class="wd wd-blank wd-round wd-mine" role="button" tabindex="0" aria-label="your sticker here. Tap to draw one or add a picture."><span class="mn-t">your<br>sticker<br>here</span><i class="mn-img" aria-hidden="true"></i></div>`,
   wire(sticker) {
     tap(sticker, open);
     paintAll();

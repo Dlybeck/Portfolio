@@ -27,6 +27,37 @@ def test_pictures_fonts_and_video_are_sent_as_they_are_and_kept_for_a_week(clien
         assert response.headers["cache-control"] == "public, max-age=604800", path
 
 
+def test_gzipped_text_decodes_to_the_file(client: TestClient) -> None:
+    response = client.get("/static/css/notebook/content.css", headers={"accept-encoding": "gzip"})
+
+    assert response.headers["content-encoding"] == "gzip" and "accept-encoding" in response.headers["vary"].lower()
+    assert response.text == (ROOT / "static/css/notebook/content.css").read_text()  # the client has already unzipped it
+
+
+def test_a_byte_range_of_a_text_file_is_never_compressed(client: TestClient) -> None:
+    whole = (ROOT / "static/css/notebook/content.css").read_bytes()
+    response = client.get("/static/css/notebook/content.css", headers={"range": "bytes=0-999", "accept-encoding": "gzip"})
+
+    assert response.status_code == 206
+    assert "content-encoding" not in response.headers
+    assert response.content == whole[:1000]
+    assert response.headers["content-range"] == f"bytes 0-999/{len(whole)}"
+
+
+def test_an_unchanged_text_file_answers_304_and_says_it_varies_by_encoding(client: TestClient) -> None:
+    first = client.get("/static/css/notebook/content.css", headers={"accept-encoding": "gzip"})
+    again = client.get("/static/css/notebook/content.css", headers={"accept-encoding": "gzip", "if-none-match": first.headers["etag"]})
+
+    assert again.status_code == 304
+    assert "accept-encoding" in again.headers["vary"].lower()
+
+
+def test_stylesheets_and_scripts_are_never_kept_for_long_even_in_art_folders(client: TestClient) -> None:
+    for path in ("/static/dlybeck/tokens.css", "/static/css/notebook/fonts.css"):
+        assert client.get(path).headers["cache-control"] == "no-cache", path
+    assert client.get("/static/vendor/model-viewer/model-viewer.min.js").headers["cache-control"] == "public, max-age=604800"
+
+
 def test_video_still_answers_byte_ranges(client: TestClient) -> None:
     response = client.get("/static/img/planner/old.mp4", headers={"range": "bytes=0-99", "accept-encoding": "gzip"})
 

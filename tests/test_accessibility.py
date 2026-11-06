@@ -27,6 +27,22 @@ def test_the_page_has_landmarks_and_one_h1(browser_page) -> None:
     assert page.locator("#nb-status").get_attribute("role") == "status"
 
 
+def test_sticker_labels_start_with_the_words_you_can_see(browser_page) -> None:
+    # speech-input users say what they see (WCAG 2.5.3, label in name)
+    page = open_notebook(browser_page, "/")
+
+    pairs = page.locator(".cover-front > .wd[role=button]").evaluate_all(
+        """els => els.map(e => [(e.getAttribute('aria-label') || '').toLowerCase(),
+             (e.innerText || '').replace(/\\s+/g, ' ').trim().toLowerCase()])"""
+    )
+    checked = 0
+    for label, seen in pairs:
+        if seen:
+            checked += 1
+            assert label.startswith(seen), (label, seen)
+    assert checked >= 3  # the name tag, the now pill and your sticker
+
+
 def test_the_wheel_is_one_slider_with_no_controls_inside_it(browser_page) -> None:
     page = open_notebook(browser_page)
 

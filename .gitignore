@@ -40,3 +40,7 @@ Thumbs.db
 # Tests
 tests/results/
 tests/*.log
+
+# Local files that stay on a machine
+.DS_Store
+.claude/settings.local.json

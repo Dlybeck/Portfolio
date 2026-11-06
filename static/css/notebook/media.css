@@ -34,7 +34,7 @@
 /* ---------- swipe rows ---------- */
 .page .slides {
   list-style: none; margin: 8px 0 0; padding: 0 0 4px; display: grid; grid-auto-flow: column; grid-auto-columns: 86%; gap: 12px;
-  overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; scroll-behavior: smooth;
+  touch-action: pan-x pan-y; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; scroll-behavior: smooth;
 }
 .page .slides::-webkit-scrollbar { display: none; }
 .page .slide { scroll-snap-align: start; min-width: 0; }

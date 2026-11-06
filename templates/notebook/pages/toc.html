@@ -1,0 +1,8 @@
+{% from "notebook/_ui.html" import toc %}
+<article class="page" id="page-toc" data-page="toc" aria-label="Contents">
+  <section>
+    <h2>Contents</h2>
+    {{ toc(nb.CONTENTS, nb) }}
+    <p class="hint js-only">spin the wheel, or turn the page</p>
+  </section>
+</article>

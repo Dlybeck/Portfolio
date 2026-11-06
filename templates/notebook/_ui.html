@@ -1,0 +1,28 @@
+{# Small building blocks shared by the page templates. #}
+
+{% macro head(kicker, title, lead="") -%}
+  {% if kicker and kicker != title %}<p class="k">{{ kicker }}</p>{% endif %}
+  <h2>{{ title }}</h2>
+  {% if lead %}<p class="lead">{{ lead }}</p>{% endif %}
+{%- endmacro %}
+
+{# Real links, drawn as small dashed chips. items: (label, href) pairs. #}
+{% macro links(items) -%}
+  <p class="links">{% for label, href in items %}<a class="link-chip" href="{{ href }}" target="_blank" rel="noopener">{{ label }}</a>{% endfor %}</p>
+{%- endmacro %}
+
+{% macro chips(items) -%}
+  <ul class="chips">{% for item in items %}<li>{{ item }}</li>{% endfor %}</ul>
+{%- endmacro %}
+
+{# A list of stories: the contents page, and the lists at the front of a section. #}
+{% macro toc(ids, nb) -%}
+  <ul class="toc">
+    {% for id in ids %}{% set page = nb.PAGES_BY_ID[id] %}
+    <li><a href="{{ page.href }}" data-open="{{ page.id }}" data-page-link="{{ page.id }}">
+      <span class="toc-text"><b>{{ page.title }}</b>{% if page.summary %}<small>{{ page.summary }}</small>{% endif %}</span>
+      <span class="toc-dots" aria-hidden="true"></span><span class="toc-pg" data-pg-for="{{ page.id }}"></span>
+    </a></li>
+    {% endfor %}
+  </ul>
+{%- endmacro %}

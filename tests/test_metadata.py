@@ -105,14 +105,9 @@ def test_every_public_destination_has_specific_canonical_social_metadata(
     assert head.meta["twitter:description"] == document.description
 
 
-def test_internal_documents_are_noindex_and_canonicalize_to_public_destinations(
-    client: TestClient,
-) -> None:
-    response = client.get("/_documents/projects/programs")
-    head = parsed_head(response.text)
-
-    assert head.meta["robots"] == "noindex, nofollow"
-    assert head.links["canonical"] == f"{SITE_URL}/projects/programs"
+def test_retired_internal_routes_are_gone(client: TestClient) -> None:
+    assert client.get("/_documents/projects/programs").status_code == 404
+    assert client.get("/_theme-packs/original.json").status_code == 404
 
 
 def test_metadata_excludes_private_and_historical_promotional_claims(

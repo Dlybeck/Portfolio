@@ -1,0 +1,14 @@
+{% from "notebook/_ui.html" import head, links, chips %}
+<article class="page" id="page-nba" data-page="nba" aria-label="NBA Prediction AI">
+  <section>
+    {{ head("2024 · partner project", "NBA Prediction AI", "A neural network that called the 2024 playoffs with only 2 mistakes.") }}
+    {# The live predictor, wired to static/json/results.json, arrives in step 2. #}
+    {{ chips(["PyTorch", "TensorFlow", "Data through May 2024"]) }}
+    {{ links([("View the repository", "https://github.com/mattzou1/NBA-predictor")]) }}
+  </section>
+  <section>
+    <h3>How it works</h3>
+    <p>A partner project I worked on starting April 28th: a convolutional neural network trained on a custom-made data set of NBA stats. This model was built with PyTorch, and we also made a very similar version with TensorFlow.</p>
+    <p>From our testing it's pretty good at predicting the win or loss, and as expected it has a bit of trouble with the exact point differential. It predicted the 2024 NBA Playoffs with high accuracy, making only 2 mistakes while predicting multiple upsets.</p>
+  </section>
+</article>

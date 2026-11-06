@@ -1,0 +1,183 @@
+/* dlybeck design: generated from tokens.json. Set data-theme="light|dark|chalkboard|high-contrast" on <html>; with none, follows the OS. */
+
+:root, [data-theme="light"] {
+  --ground: #f4f6fa;
+  --grid: #e3e8f0;
+  --surface: #ffffff;
+  --ink: #141c2b;
+  --ink-2: #5a6578;
+  --ink-fixed: #141c2b;
+  --line: #141c2b;
+  --line-control: #737f92;
+  --line-soft: #c9d1dd;
+  --brand: #007bff;
+  --on-brand: #ffffff;
+  --action: var(--blue-600);
+  --on-action: #ffffff;
+  --link: var(--blue-600);
+  --tint: var(--blue-50);
+  --lift-color: #141c2b;
+  --hi: #ffe94d;
+  --paper-lemon: #ffe94d;
+  --paper-pink: #ff8fcf;
+  --paper-tangerine: #ffb238;
+  --paper-mint: #6cf0b0;
+  --paper-sky: #a5d0fd;
+  --paper-note: #fffdf6;
+  --ok: #1a7f45;
+  --warn: #9a5b00;
+  --bad: #b42a33;
+  --scrim: rgba(20,28,43,0.3);
+  --blue-50: #ebf4fe;
+  --blue-100: #d2e7fe;
+  --blue-200: #a5d0fd;
+  --blue-300: #6fb3fb;
+  --blue-400: #3896fa;
+  --blue-500: #007bff;
+  --blue-600: #0062cc;
+  --blue-700: #004fa3;
+  --blue-800: #003b7a;
+  --lift-sm: 2px 2px 0 #141c2b;
+  --lift: 4px 4px 0 #141c2b;
+  --lift-paper: 3px 3px 0 rgba(20,28,43,0.35);
+  --lift-high: 10px 14px 0 rgba(20,28,43,0.22);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --ground: #0f1522;
+    --grid: #1a2232;
+    --surface: #171f2f;
+    --ink: #e8edf5;
+    --ink-2: #97a3b6;
+    --line: #3a4558;
+    --line-control: #6e7a8f;
+    --line-soft: #2a3446;
+    --action: var(--blue-400);
+    --on-action: #141c2b;
+    --link: var(--blue-300);
+    --tint: #14233d;
+    --lift-color: #007bff;
+    --ok: #4cc27e;
+    --warn: #f0a43a;
+    --bad: #ff6b73;
+    --scrim: rgba(0,0,0,0.5);
+    --lift-sm: 2px 2px 0 #007bff;
+    --lift: 4px 4px 0 #007bff;
+    color-scheme: dark;
+  }
+}
+
+[data-theme="dark"] {
+  --ground: #0f1522;
+  --grid: #1a2232;
+  --surface: #171f2f;
+  --ink: #e8edf5;
+  --ink-2: #97a3b6;
+  --line: #3a4558;
+  --line-control: #6e7a8f;
+  --line-soft: #2a3446;
+  --action: var(--blue-400);
+  --on-action: #141c2b;
+  --link: var(--blue-300);
+  --tint: #14233d;
+  --lift-color: #007bff;
+  --ok: #4cc27e;
+  --warn: #f0a43a;
+  --bad: #ff6b73;
+  --scrim: rgba(0,0,0,0.5);
+  --lift-sm: 2px 2px 0 #007bff;
+  --lift: 4px 4px 0 #007bff;
+  color-scheme: dark;
+}
+
+[data-theme="chalkboard"] {
+  --ground: #1f332e;
+  --grid: #2a443d;
+  --surface: #26403a;
+  --ink: #f1efe6;
+  --ink-2: #b9c4bc;
+  --line: #5f7a71;
+  --line-control: #8aa096;
+  --line-soft: #35514a;
+  --action: var(--paper-sky);
+  --on-action: #141c2b;
+  --link: var(--paper-sky);
+  --tint: #2c4a43;
+  --lift-color: #0b1714;
+  --ok: #7ee0a6;
+  --warn: #ffc46b;
+  --bad: #ffa3a7;
+  --scrim: rgba(0,0,0,0.45);
+  --lift-sm: 2px 2px 0 #0b1714;
+  --lift: 4px 4px 0 #0b1714;
+  color-scheme: dark;
+}
+
+[data-theme="high-contrast"] {
+  --ground: #ffffff;
+  --grid: #d5dbe5;
+  --ink: #000000;
+  --ink-2: #2e3645;
+  --line: #000000;
+  --line-control: #2e3645;
+  --line-soft: #5a6578;
+  --brand: #0047a3;
+  --action: #003b7a;
+  --link: #003b7a;
+  --tint: #e6f0ff;
+  --lift-color: #000000;
+  --ok: #0b5c2e;
+  --warn: #6b3e00;
+  --bad: #8a1c24;
+  --scrim: rgba(0,0,0,0.5);
+  --lift-sm: 2px 2px 0 #000000;
+  --lift: 4px 4px 0 #000000;
+  color-scheme: light;
+}
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --radius-paper: 3px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+  --edge: 1.5px;
+  --duration-press: 160ms;
+  --duration-settle: 420ms;
+  --duration-move: 800ms;
+  --duration-slide: 900ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-settle: cubic-bezier(0.3, 0.9, 0.35, 1);
+  --font-sans: "Schibsted Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-hand: Caveat, "Segoe Print", "Bradley Hand", cursive;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+
+.display { font-family: var(--font-sans); font-size: 3.052rem; line-height: 1.02; font-weight: 800; letter-spacing: -0.03em; }
+
+.h1 { font-family: var(--font-sans); font-size: 2.441rem; line-height: 1.08; font-weight: 800; letter-spacing: -0.025em; }
+
+.h2 { font-family: var(--font-sans); font-size: 1.953rem; line-height: 1.1; font-weight: 800; letter-spacing: -0.02em; }
+
+.h3 { font-family: var(--font-sans); font-size: 1.563rem; line-height: 1.2; font-weight: 700; }
+
+.lead { font-family: var(--font-sans); font-size: 1.25rem; line-height: 1.5; font-weight: 400; }
+
+.body { font-family: var(--font-sans); font-size: 1rem; line-height: 1.55; font-weight: 400; }
+
+.small { font-family: var(--font-sans); font-size: 0.875rem; line-height: 1.45; font-weight: 500; }
+
+.label { font-family: var(--font-mono); font-size: 0.75rem; line-height: 1.4; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+
+.note { font-family: var(--font-hand); font-size: 1.4rem; line-height: 1.1; font-weight: 700; }

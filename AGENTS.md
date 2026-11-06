@@ -1,30 +1,41 @@
 # Portfolio working rules
 
-This is a living self-portrait, not a resume redesign. Read `CONTEXT.md` for
-project language. Preserve existing unrelated work and the current authorized
-delivery boundary; theme work does not authorize a main push or deployment.
+This is a living self-portrait, not a resume redesign. Read `CONTEXT.md` for project
+language and `docs/adr/` for the decisions behind the notebook. Preserve unrelated work
+and the current authorized delivery boundary. Pushing to `main` deploys the live site,
+so work on a branch and open PRs into `dev`.
 
-## Theme grounding
+## The notebook is the interface
 
-Before implementing a theme plan and before a voluntary handoff of theme work,
-use `.agents/skills/portfolio-grounding/SKILL.md`. This applies to tiles,
-backgrounds, connectors, controls, animation, and opened pages, including small
-visual fixes. Scope the evidence to the change without exempting its context.
-After compaction/resumption, re-read the current rules and review checkpoint
-before continuing theme decisions. Ordinary nonvisual work needs no theme audit.
+- A worn kraft cover opens onto a notebook you page through with the side wheel. Each story
+  is one page that scrolls. Do not add a second way around the site (menus, tab bars, a
+  board). Every page stays reachable by the wheel, the page corners, a swipe, the contents
+  and plain links.
+- Every route in `core/portfolio.py` renders the whole notebook, opened at its page. Page
+  words are written into the HTML by the templates in `templates/notebook/pages/`; scripts
+  only turn the pages. A visitor without scripts, a search engine and a link preview must
+  all get the words.
+- The order of pages and the phone and desktop layouts live in `core/notebook.py`. Change
+  them there; the templates and the browser engine read the same data.
 
-`docs/theme-grounding-review.md` is the authority for physical/scene coherence
-and current owner decisions. Historical design receipts are evidence, not
-approval; newer owner decisions supersede them. Record confirmed changes there
-instead of accumulating competing rule documents. Treat examples as examples,
-not universal prescriptions.
+## Content
 
-Navigation is exempt from redesign: preserve the point-and-click tile system,
-spatial arrangement, relationships, destinations, input behavior, and document
-flow. Only its visual presentation is themeable. Preserve Original's approved
-presentation; use `scripts/check_canonical_fidelity.py` and visual evidence.
+- The words are David's. Move them from where they live; do not retype or "improve" them.
+  Never add copy that calls out recruiters or hiring.
+- Real links go to real targets. Nothing that looks clickable is a placeholder.
 
-Passing tests does not approve a theme. Review what the viewer actually sees,
-including transitions; fix in-scope failures and review again. Report missing
-evidence or authority honestly rather than inventing a pass. A forced stop or
-genuine blocker permits an incomplete handoff, not a completion claim.
+## Design and code
+
+- Use the dlybeck design system (`static/dlybeck/`): tokens for every color, size and
+  duration. Light theme only until a dark theme is asked for; keep colors as tokens.
+- No build step, no CDN: fonts, scripts and 3D viewer files are served from `static/`.
+- Hand-written ES modules in `static/js/notebook/`, plain CSS in `static/css/notebook/`.
+- Keyboard operable (wheel, page corners, links), reduced motion respected, text pairs
+  at 4.5:1 or better.
+
+## Checking work
+
+- Passing tests does not approve the look. Open the page at 390px wide and at desktop width,
+  watch a page turn, and fix what is wrong before handing off.
+- Each PR into `dev` carries phone and desktop screenshots, written in your own words, with
+  no secrets (the repository is public).

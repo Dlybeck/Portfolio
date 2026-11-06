@@ -1,0 +1,13 @@
+{% from "notebook/_ui.html" import head, links %}
+<article class="page" id="page-tennis" data-page="tennis" aria-label="Tennis">
+  <section>
+    {{ head("Since middle school", "Tennis", "I've played for as long as I remember. Let me know if you want to hit.") }}
+    <p>I've played competitively since middle school: four years on my high school's varsity team, four more on the University of Puget Sound team. Still hitting whenever I can.</p>
+    <h4>Current rankings and profiles</h4>
+    {{ links([
+      ("Puget Sound tennis profile", "https://loggerathletics.com/sports/mens-tennis/roster/david-lybeck/8842"),
+      ("World Tennis Number", "https://worldtennisnumber.com/eng/player-profile?id=60a4ed89bf0fe5a69879dcdf"),
+      ("Universal Tennis Rating", "https://app.universaltennis.com/profiles/202815"),
+    ]) }}
+  </section>
+</article>

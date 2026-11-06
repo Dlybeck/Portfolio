@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en" data-theme="light" class="no-js">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>{{ metadata.title }}</title>
+    <script>document.documentElement.className = "js";</script>
+    {% include "notebook/_metadata.html" %}
+    <script type="application/ld+json">{{ person_schema | tojson }}</script>
+    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/static/dlybeck/tokens.css?v=1">
+    <link rel="stylesheet" href="/static/css/notebook/fonts.css?v=1">
+    <link rel="stylesheet" href="/static/css/notebook/notebook.css?v=1">
+    <link rel="stylesheet" href="/static/css/notebook/content.css?v=1">
+    <link rel="stylesheet" href="/static/css/notebook/wheel.css?v=1">
+    <link rel="stylesheet" href="/static/css/notebook/cover.css?v=1">
+    <link rel="preload" href="/static/fonts/schibsted-grotesk-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+  </head>
+  <body>
+    <h1 class="sr-only">David Lybeck</h1>
+    <div id="notebook" class="nb">
+      <header class="nb-top">
+        <a class="nb-brand" href="/" data-home><img src="/static/dlybeck/dl-note.svg" alt="" width="30" height="30">David Lybeck</a>
+        <a class="nb-hi" href="/#say-hi" data-open="say">Say hi</a>
+      </header>
+      {# Every page is written out here, so search engines, link previews and
+         visitors without scripts get the whole notebook. The engine takes
+         these pages and turns them one at a time. #}
+      <main class="nb-sources" id="nb-sources">
+        {% for page in nb.PAGES %}
+        {% include "notebook/pages/" ~ page.id ~ ".html" %}
+        {% endfor %}
+      </main>
+    </div>
+    <script type="application/json" id="nb-data">{{ nb_data | tojson }}</script>
+    <script type="module" src="/static/js/notebook/main.js?v=1"></script>
+  </body>
+</html>

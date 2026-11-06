@@ -6,7 +6,7 @@ import { reducedMotion, tap } from "./common.js";
 const HANDS = [["Caveat", 1, 700], ["Permanent Marker", 0.74, 400], ["Homemade Apple", 0.62, 400], ["Gochi Hand", 0.92, 400], ["Nothing You Could Do", 0.72, 400]];
 
 export const name = {
-  html: () => `<div class="wd wd-name" role="button" tabindex="0" aria-label="Name tag: David. Tap to write it in another hand." data-hand="0"><b>HELLO</b><small>my name is</small><span class="nm"><span class="nm-w"><span class="nm-i">David</span><i class="nm-pen" aria-hidden="true"></i></span></span></div>`,
+  html: () => `<div class="wd wd-name" role="button" tabindex="0" aria-label="Name tag: David. Tap to write it in another hand." data-hand="0"><span class="tag"><b>HELLO</b><small>my name is</small><span class="nm"><span class="nm-w"><span class="nm-i">David</span><i class="nm-pen" aria-hidden="true"></i></span></span></span></div>`,
 
   wire(tag, { alive }) {
     const nm = tag.querySelector(".nm");

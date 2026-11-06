@@ -14,6 +14,7 @@ export const now = {
       pill.querySelector("b").textContent = when;
       pill.querySelector("span").textContent = what;
       pill.classList.toggle("live", Boolean(live));
+      pill.setAttribute("aria-label", `${live ? "Right now" : when}: ${what}. Tap for an earlier one.`);
     };
     show();
     tap(pill, () => {

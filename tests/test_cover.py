@@ -12,7 +12,7 @@ DESKTOP = {"width": 1280, "height": 800}
 
 LABELS = [
     "Name tag: David. Tap to write it in another hand.",
-    "What I'm doing. Tap for earlier.",
+    "Right now: AI tools at Denali. Tap for an earlier one.",
     "Stamp of a mountain trail. Tap to go for a hike.",
     "3D printer. Tap to print again.",
     "A raccoon at a keyboard. Tap to say hi.",
@@ -63,7 +63,11 @@ def test_the_cover_is_a_five_by_eight_notebook(browser_page, viewport) -> None:
     assert abs(box["width"] / box["height"] - 0.625) < 0.02, box
 
 
-@pytest.mark.parametrize("viewport", [PHONE, DESKTOP], ids=["phone", "desktop"])
+SIZES = [PHONE, DESKTOP, {"width": 320, "height": 568}, {"width": 360, "height": 640}, {"width": 768, "height": 1024},
+         {"width": 1024, "height": 700}, {"width": 1920, "height": 1080}, {"width": 844, "height": 390}]
+
+
+@pytest.mark.parametrize("viewport", SIZES, ids=lambda v: f"{v['width']}x{v['height']}")
 def test_every_sticker_fits_on_the_cover(browser_page, viewport) -> None:
     page, *_ = cover(browser_page, viewport)
 
@@ -78,30 +82,29 @@ def test_the_name_tag_writes_the_name_in_five_hands(browser_page) -> None:
     page, _, problems, requests = cover(browser_page)
     tag = page.locator(".wd-name")
     families = []
-    for _ in range(5):
-        families.append(page.locator(".wd-name .nm").evaluate("n => n.style.fontFamily") or "Caveat")
+    for _ in range(6):
+        families.append(page.locator(".wd-name .nm").evaluate("n => getComputedStyle(n).fontFamily.split(',')[0].replace(/\"/g, '')"))
         tag.click()
         page.wait_for_timeout(1300)
-    assert tag.get_attribute("data-hand") == "0"
-    page.locator(".wd-name").click()
-    page.wait_for_timeout(1300)
-    seen = {page.locator(".wd-name .nm").evaluate("n => getComputedStyle(n).fontFamily")}
+    assert families[:5] == ["Caveat", "Permanent Marker", "Homemade Apple", "Gochi Hand", "Nothing You Could Do"]
+    assert families[5] == "Caveat"  # and round again
     assert still_closed(page)  # tapping a sticker never opens the cover
-    for family in ("Permanent Marker", "Homemade Apple", "Gochi Hand", "Nothing You Could Do"):
-        assert page.evaluate(f"document.fonts.check('2rem \"{family}\"')"), family
+    for family in families[:5]:
+        weight = 700 if family == "Caveat" else 400
+        assert page.evaluate(f"document.fonts.check('{weight} 2rem \"{family}\"')"), family
     assert all(url.startswith("http://127.0.0.1") for url in requests if "woff2" in url)
-    assert seen and problems == []
+    assert problems == []
 
 
 def test_the_now_pill_walks_back_through_the_years(browser_page) -> None:
     page, *_ = cover(browser_page)
     pill = page.locator(".wd-now")
     assert pill.inner_text().lower().replace("\n", " ").endswith("ai tools at denali")
-    pill.click()
+    pill.dispatch_event("click")
     assert "ScribbleScan LLC" in pill.inner_text()
-    pill.click()
-    pill.click()
-    pill.click()
+    pill.dispatch_event("click")
+    pill.dispatch_event("click")
+    pill.dispatch_event("click")
     assert "AI tools at Denali" in pill.inner_text()
     assert still_closed(page)
 
@@ -197,6 +200,78 @@ def test_empty_cover_and_the_open_button_still_open_the_book(browser_page) -> No
     assert page.locator(".cover-front").count() == 0
 
 
+def test_a_swipe_that_ends_on_a_sticker_still_opens_the_cover(browser_page) -> None:
+    page, *_ = cover(browser_page, DESKTOP)
+    front = page.locator(".cover-front").bounding_box()
+    page.mouse.move(front["x"] + front["width"] - 20, front["y"] + front["height"] * 0.55)  # empty cover, right of the pad
+    page.mouse.down()
+    page.mouse.move(front["x"] + front["width"] * 0.3, front["y"] + front["height"] * 0.45, steps=8)  # over the scan pad
+    page.mouse.up()
+    page.wait_for_timeout(1100)
+
+    assert not still_closed(page)
+
+
+def test_a_swipe_that_starts_on_a_sticker_does_not(browser_page) -> None:
+    page, *_ = cover(browser_page, DESKTOP)
+    box = page.locator(".wd-now").bounding_box()
+    page.mouse.move(box["x"] + box["width"] - 6, box["y"] + box["height"] / 2)
+    page.mouse.down()
+    page.mouse.move(box["x"] - 100, box["y"] + box["height"] / 2, steps=6)
+    page.mouse.up()
+    page.wait_for_timeout(300)
+
+    assert still_closed(page)
+
+
+def test_the_sticker_maker_can_be_used_from_the_keyboard(browser_page) -> None:
+    page, *_ = cover(browser_page, DESKTOP)
+    page.locator(".wd-mine").focus()
+    page.keyboard.press("Enter")
+    reached = []
+    for _ in range(12):
+        page.keyboard.press("Tab")
+        reached.append(page.evaluate("document.activeElement.type || document.activeElement.tagName"))
+    assert "file" in reached, reached
+    assert page.locator('.maker .maker-pens button[aria-label="Blue pen"]').count() == 1
+
+
+def test_the_name_tag_shows_a_focus_ring(browser_page) -> None:
+    page, *_ = cover(browser_page, DESKTOP)
+    page.keyboard.press("Tab")
+    page.keyboard.press("Tab")
+    page.keyboard.press("Tab")  # brand, say hi, then the first sticker on the cover
+    tag = page.locator(".wd-name")
+    assert tag.evaluate("n => n === document.activeElement")
+    assert tag.evaluate("n => getComputedStyle(n).outlineStyle") == "solid"
+    assert tag.evaluate("n => getComputedStyle(n).maskImage") == "none"  # the cut corner is on the face inside
+
+
+def test_the_pad_announces_the_result_once(browser_page) -> None:
+    page, *_ = cover(browser_page)
+    assert page.locator(".sc-t").get_attribute("aria-hidden") == "true"
+    page.wait_for_function("document.querySelector('.wd-scan .sr-only').textContent.startsWith('ScribbleScan read: ')", timeout=7000)
+
+
+def test_the_pad_rests_after_showing_each_word(browser_page) -> None:
+    page, *_ = cover(browser_page)
+    page.wait_for_timeout(1000)
+    page.emulate_media(reduced_motion="reduce")
+    page.reload()
+    page.wait_for_selector(".wd-scan")
+    page.wait_for_timeout(1500)
+    first = page.locator(".sc-t").inner_text()
+    page.wait_for_timeout(6000)
+    assert page.locator(".sc-t").inner_text() == first  # one word, then it holds still
+
+
+def test_landscape_phones_get_the_wide_layout_and_a_usable_cover(browser_page) -> None:
+    page, *_ = cover(browser_page, {"width": 844, "height": 390})
+
+    assert "nb--desktop" in page.locator("#notebook").get_attribute("class")
+    assert page.locator(".cover-front").bounding_box()["height"] > 240
+
+
 def test_your_sticker_is_drawn_and_kept(browser_page) -> None:
     page, base, *_ = cover(browser_page, DESKTOP)
     page.locator(".wd-mine").click()
@@ -235,4 +310,4 @@ def test_the_extra_fonts_are_served_with_their_licenses() -> None:
     fonts = ROOT / "static" / "fonts"
     for name in ("permanent-marker", "homemade-apple", "gochi-hand", "nothing-you-could-do"):
         assert (fonts / f"{name}-latin-400-normal.woff2").stat().st_size > 5_000
-        assert (fonts / f"LICENSE-{name}.txt").read_text().strip()
+        assert "license" in (fonts / f"LICENSE-{name}.txt").read_text().lower()

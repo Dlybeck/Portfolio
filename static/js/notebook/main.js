@@ -10,7 +10,7 @@ const root = document.getElementById("notebook");
 const data = JSON.parse(document.getElementById("nb-data").textContent);
 const sourceNode = document.getElementById("nb-sources");
 const sources = new Map([...sourceNode.querySelectorAll(":scope > article")].map((a) => [a.dataset.page, a]));
-const wide = window.matchMedia("(min-width: 900px)");
+const wide = window.matchMedia("(min-width: 900px), (orientation: landscape) and (min-width: 640px)");
 
 /** Where an address points: a page and maybe a part of it, or null for the closed cover. */
 function targetFor({ pathname, hash }) {

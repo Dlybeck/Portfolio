@@ -62,7 +62,7 @@ body {
 
 /* The book is always a 5 by 8 notebook (one page on a phone, two side by side on desktop), as big as fits. */
 .nb-book {
-  --avail-h: calc(100dvh - 70px - var(--nb-wheel-room) - env(safe-area-inset-bottom, 0px));
+  --avail-h: calc(100vh - 70px - var(--nb-wheel-room) - env(safe-area-inset-bottom, 0px));
   --bw: min(calc(100vw - 34px), calc(var(--avail-h) * 0.625));
   position: absolute; width: var(--bw); height: calc(var(--bw) / 0.625); left: 50%; margin-left: calc(var(--bw) / -2 - 3px);
   top: calc(70px + (var(--avail-h) - var(--bw) / 0.625) / 2);
@@ -133,11 +133,16 @@ body {
 .nb-ear[disabled] { display: none; }
 .nb-hint-flip { position: absolute; right: 52px; bottom: 40px; rotate: -6deg; color: var(--nb-pen); pointer-events: none; z-index: 7; font: 700 1.25rem/1 var(--font-hand); transition: opacity 0.4s; }
 
+/* browsers that know the dynamic viewport height use it, so the phone's toolbar does not cover the wheel */
+@supports (height: 100dvh) {
+  .nb-book { --avail-h: calc(100dvh - 70px - var(--nb-wheel-room) - env(safe-area-inset-bottom, 0px)); }
+}
+
 /* ---------- desktop: an open book, two pages ---------- */
-@media (min-width: 900px) {
+@media (min-width: 900px), (orientation: landscape) and (min-width: 640px) {
   .nb-top { padding: 14px 28px; }
   .nb-book {
-    --avail-h: calc(100dvh - 124px);
+    --avail-h: calc(100vh - 124px);
     --bw: min(calc(var(--avail-h) * 1.25), calc(100vw - 340px), 1280px);
     left: calc(300px + (100vw - 340px - var(--bw)) / 2); margin-left: 0; width: var(--bw); height: calc(var(--bw) / 1.25);
     top: calc(84px + (var(--avail-h) - var(--bw) / 1.25) / 2); transition: transform 950ms var(--nb-turn-ease);

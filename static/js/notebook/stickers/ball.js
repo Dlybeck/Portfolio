@@ -26,8 +26,8 @@ export const ball = {
       if (homed) return;
       const r = el.getBoundingClientRect();
       const c = cover.getBoundingClientRect();
-      x = r.left - c.left;
-      y = r.top - c.top;
+      x = r.left - c.left - cover.clientLeft;
+      y = r.top - c.top - cover.clientTop;
       Object.assign(el.style, { left: "0", top: "0", right: "auto", bottom: "auto" });
       el.classList.add("free");
       homed = true;
@@ -72,6 +72,14 @@ export const ball = {
       spin = (Math.random() < 0.5 ? -1 : 1) * (800 + Math.random() * 900);
       run();
     };
+
+    // a cover that gets smaller (turning the phone) must not leave the ball outside it
+    new ResizeObserver(() => {
+      if (!homed || !alive()) return;
+      x = Math.max(0, Math.min(width() - size(), x));
+      y = Math.max(0, Math.min(height() - size(), y));
+      put();
+    }).observe(cover);
 
     el.addEventListener("pointerdown", (e) => {
       if (e.button) return;

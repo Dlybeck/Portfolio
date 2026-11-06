@@ -8,12 +8,14 @@ const DOODLE_RESULT = "1 doodle, saved";
 
 export const scan = {
   html: () => `<div class="wd wd-scan"><div class="sc-pad"><svg viewBox="0 0 220 64" aria-hidden="true"><text x="12" y="46" class="sc-w"></text></svg><canvas aria-label="Write or draw here"></canvas><i class="sc-bar"></i></div>
-    <div class="sc-out"><span class="sc-k">ScribbleScan</span><code class="sc-t" aria-live="polite"></code></div></div>`,
+    <div class="sc-out"><span class="sc-k">ScribbleScan</span><code class="sc-t" aria-hidden="true"></code></div><span class="sr-only" role="status"></span></div>`,
 
   wire(card, { alive }) {
     const word = card.querySelector(".sc-w");
     const bar = card.querySelector(".sc-bar");
     const out = card.querySelector(".sc-t");
+    const announce = card.querySelector(".sr-only");
+    let cycles = 0;
     const canvas = card.querySelector("canvas");
     let index = 0;
     let timers = [];
@@ -23,13 +25,14 @@ export const scan = {
 
     function type(text, then) {
       out.textContent = "";
-      if (reducedMotion()) { out.textContent = text; then?.(); return; }
+      announce.textContent = "";
+      if (reducedMotion()) { out.textContent = text; announce.textContent = `ScribbleScan read: ${text}`; then?.(); return; }
       let k = 0;
       card.classList.add("typing");
       const tick = () => {
         out.textContent = text.slice(0, ++k);
         if (k < text.length) later(tick, 55);
-        else { later(() => card.classList.remove("typing"), 200); then?.(); }
+        else { announce.textContent = `ScribbleScan read: ${text}`; later(() => card.classList.remove("typing"), 200); then?.(); }
       };
       tick();
     }
@@ -43,6 +46,8 @@ export const scan = {
     function demo() {
       clear();
       if (drawing) return;
+      // the pad shows each word once, then rests (and always rests with reduced motion)
+      if (cycles++ >= WORDS.length || (reducedMotion() && cycles > 1)) return;
       const w = WORDS[index++ % WORDS.length];
       word.textContent = w;
       word.classList.remove("wr");
@@ -98,6 +103,7 @@ export const scan = {
         ink.clearRect(0, 0, canvas.width, canvas.height);
         inked = false;
         drawing = false;
+        cycles = 0;
         demo();
       }, 2200))), 700);
     };

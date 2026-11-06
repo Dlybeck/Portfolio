@@ -40,15 +40,21 @@ export function createCover({ root, book, phone, onTap }) {
     book.append(leaf);
     wireStickers(front);
 
+    // A swipe to the left opens the cover wherever it ends; one that starts on a sticker belongs to the sticker.
     let startX = null;
-    leaf.addEventListener("pointerdown", (e) => { e.stopPropagation(); startX = e.clientX; });
+    let onSticker = false;
+    leaf.addEventListener("pointerdown", (e) => { onSticker = Boolean(e.target.closest(".wd")); startX = onSticker ? null : e.clientX; }, true);
     leaf.addEventListener("pointerup", (e) => {
-      e.stopPropagation();
       const swiped = startX !== null && e.clientX - startX < -30;
       startX = null;
       if (swiped) onTap();
+    }, true);
+    leaf.addEventListener("pointerdown", (e) => e.stopPropagation());
+    leaf.addEventListener("pointerup", (e) => e.stopPropagation());
+    leaf.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!onSticker) onTap(); // a press that began on a sticker and ended elsewhere is not a tap on the cover
     });
-    leaf.addEventListener("click", (e) => { e.stopPropagation(); onTap(); });
 
     if (swingShut && !reducedMotion()) {
       if (phone) tuck(leaf, -180, 0, OPEN_MS - 50, SWING).onfinish = (e) => e.target.cancel();

@@ -4,7 +4,7 @@ import { tap } from "./common.js";
 
 const KEY = "nb-your-sticker";
 const SIZE = 400; // the drawing is square, shown in a circle
-const PENS = ["#1b2436", "#0062cc", "#c8372d", "#2e8b57", "#f2b705"];
+const PENS = [["#1b2436", "Ink"], ["#0062cc", "Blue"], ["#c8372d", "Red"], ["#2e8b57", "Green"], ["#f2b705", "Yellow"]];
 
 const store = {
   get() { try { return localStorage.getItem(KEY); } catch { return null; } },
@@ -15,7 +15,7 @@ let mine = store.get();
 let dialog = null;
 let canvas = null;
 let pen = null;
-let color = PENS[0];
+let color = PENS[0][0];
 let dirty = false;
 
 function paintAll() {
@@ -43,8 +43,8 @@ function build() {
     <p class="maker-note">Draw on the circle, or add a picture and draw on top. It stays in this browser only.</p>
     <div class="maker-stage"><canvas width="${SIZE}" height="${SIZE}" aria-label="Drawing area"></canvas></div>
     <div class="maker-tools">
-      <div class="maker-pens" role="group" aria-label="Pen color">${PENS.map((c, i) => `<button type="button" data-color="${c}" aria-label="Pen color ${i + 1}" aria-pressed="${i === 0}" style="--c:${c}"></button>`).join("")}</div>
-      <label class="maker-btn">Add a picture<input type="file" accept="image/*" hidden></label>
+      <div class="maker-pens" role="group" aria-label="Pen color">${PENS.map(([c, label], i) => `<button type="button" data-color="${c}" aria-label="${label} pen" aria-pressed="${i === 0}" style="--c:${c}"></button>`).join("")}</div>
+      <label class="maker-btn">Add a picture<input class="sr-only" type="file" accept="image/*"></label>
       <button type="button" class="maker-btn" data-action="clear">Clear</button>
     </div>
     <div class="maker-foot">

@@ -30,17 +30,17 @@ export function createWheel({ root, data, order, phone, hooks }) {
   const base = phone ? -90 : 0; // where notch 0 sits on the circle
   const firstOf = data.sections.map((s) => order.findIndex((id) => data.pages[id].section === s.id));
 
-  const wrap = el("div", "wheel");
+  const wrap = el("nav", "wheel", { "aria-label": "Page wheel" });
   wrap.innerHTML = `<div class="wheel-pointer"></div>
     <div class="wheel-dial" role="slider" tabindex="0" aria-label="Turn the pages" aria-valuemin="0" aria-valuemax="${count}">
       ${order.map((_, i) => `<i class="wheel-tick" style="--a:${base + i * step}deg;--tr:${tickRadius}px"></i>`).join("")}
-      <div class="wheel-dot is-cover"><button type="button" data-notch="${COVER}" tabindex="-1" aria-label="Cover"><i></i></button></div>
-      ${data.sections.map((s, k) => (firstOf[k] < 0 ? "" : `<div class="wheel-dot"><button type="button" data-notch="${firstOf[k]}" data-section="${k}" tabindex="-1" aria-label="${s.tab}" style="--dot:var(--paper-${s.color})"><i></i></button></div>`)).join("")}
+      <div class="wheel-dot is-cover"><span class="wheel-hit" data-notch="${COVER}"><i></i></span></div>
+      ${data.sections.map((s, k) => (firstOf[k] < 0 ? "" : `<div class="wheel-dot"><span class="wheel-hit" data-notch="${firstOf[k]}" data-section="${k}" style="--dot:var(--paper-${s.color})"><i></i></span></div>`)).join("")}
     </div>
     <div class="wheel-name"><b></b><small></small></div>`;
   root.append(wrap);
   const dial = wrap.querySelector(".wheel-dial");
-  const buttons = [...dial.querySelectorAll("button")];
+  const buttons = [...dial.querySelectorAll(".wheel-hit")];
   const nameEl = wrap.querySelector(".wheel-name b");
   const subEl = wrap.querySelector(".wheel-name small");
   for (const b of buttons) {
@@ -186,7 +186,7 @@ export function createWheel({ root, data, order, phone, hooks }) {
       lastInput = 0;
       if (reducedMotion() || Math.abs(speed) < 1.4) target = nearest(pos + speed * 0.08);
     } else {
-      const dot = hit.closest && hit.closest("button[data-notch]");
+      const dot = hit.closest && hit.closest(".wheel-hit");
       target = dot ? Number(dot.dataset.notch) : nearest(pos);
     }
     kick();

@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from core.config import settings
 from fastapi.staticfiles import StaticFiles
 from apis.route_portfolio import portfolio_router
+from core.delivery import CacheControl, SelectiveGZip
 from pathlib import Path
 import logging
 
@@ -24,6 +25,8 @@ def start_application():
     app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION)
     include_router(app)
     configure_static(app)
+    app.add_middleware(CacheControl)
+    app.add_middleware(SelectiveGZip)  # added last, so it wraps everything
 
     @app.middleware("http")
     async def log_requests(request: Request, call_next):

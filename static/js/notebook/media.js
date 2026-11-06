@@ -11,6 +11,7 @@ function enhanceSlides(scope) {
     list.dataset.ready = "1";
     const slides = [...list.children];
     if (slides.length < 2) continue;
+    list.tabIndex = 0; // a scrolling row can be scrolled with the arrow keys once it has focus
     const bar = el("div", "slides-bar");
     bar.innerHTML = `<button type="button" class="slides-prev" aria-label="Previous">‹</button><span class="slides-count" aria-live="polite"></span><button type="button" class="slides-next" aria-label="Next">›</button>`;
     list.after(bar);

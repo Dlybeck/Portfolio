@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#f4f6fa">
     <title>{{ metadata.title }}</title>
     <script>document.documentElement.className = "js";</script>
     {% include "notebook/_metadata.html" %}
@@ -19,9 +20,10 @@
     <link rel="preload" href="/static/fonts/schibsted-grotesk-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
   </head>
   <body>
-    <h1 class="sr-only">David Lybeck</h1>
+
     <div id="notebook" class="nb">
       <header class="nb-top">
+        <h1 class="sr-only">David Lybeck</h1>
         <a class="nb-brand" href="/" data-home><img src="/static/dlybeck/dl-note.svg" alt="" width="30" height="30">David Lybeck</a>
         <a class="nb-hi" href="/#say-hi" data-open="say">Say hi</a>
       </header>

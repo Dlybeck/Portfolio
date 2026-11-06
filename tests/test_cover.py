@@ -11,12 +11,12 @@ PHONE = {"width": 390, "height": 844}
 DESKTOP = {"width": 1280, "height": 800}
 
 LABELS = [
-    "Name tag: David. Tap to write it in another hand.",
-    "Right now: AI tools at Denali. Tap for an earlier one.",
+    "HELLO my name is David. Tap to write it in another hand.",
+    "now AI tools at Denali. Tap for an earlier one.",
     "Stamp of a mountain trail. Tap to go for a hike.",
     "3D printer. Tap to print again.",
     "A raccoon at a keyboard. Tap to say hi.",
-    "Your sticker. Tap to draw one or add a picture.",
+    "your sticker here. Tap to draw one or add a picture.",
     "Tennis ball. Tap to bounce it, or throw it.",
 ]
 

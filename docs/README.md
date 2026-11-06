@@ -32,5 +32,8 @@ pytest
 - `templates/notebook/`: the page and the words on every notebook page
 - `static/js/notebook/`: the book (page turns), the wheel and the cover
 - `static/css/notebook/` and `static/dlybeck/`: styles and the dlybeck design system files
+- `core/delivery.py`: compression and caching rules for static files
+- `scripts/build_notebook_images.py`: makes the phone-sized pictures in `static/img` from the originals in `static/images`
+- `scripts/build_social_image.py`: makes the link-preview picture from the running site
 
 Pushing to `main` deploys the live site (Cloud Build to Cloud Run).

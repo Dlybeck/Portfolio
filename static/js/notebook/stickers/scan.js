@@ -1,5 +1,5 @@
 // The ScribbleScan pad. It writes a word, scans it and types it out. Draw on it and it "scans" your doodle too.
-// (The typed result is a stand-in: the preserved ScribbleScan could read handwriting, this pad only plays the part.)
+// The pad keeps its typed-text animation.
 
 import { reducedMotion } from "./common.js";
 

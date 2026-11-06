@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from html.parser import HTMLParser
@@ -255,3 +256,24 @@ def test_each_poster_matches_its_video() -> None:
     for name in ("old", "new"):
         video, poster = sizes[f"planner/{name}.mp4"], sizes[f"planner/{name}-poster.webp"]
         assert abs(video[0] / video[1] - poster[0] / poster[1]) < 0.03, (name, video, poster)
+
+
+def test_say_hi_lists_contacts_and_the_resume(client: TestClient) -> None:
+    html = client.get("/").text
+
+    assert 'href="https://www.linkedin.com/in/davidlybeck"' in html
+    assert 'href="mailto:Dlybeck383@gmail.com"' in html
+    assert 'href="https://github.com/Dlybeck"' in html
+    assert re.search(r'href="/static/PDF/David-Lybeck-Resume.pdf"[^>]*target="_blank"[^>]*>Resume', html)
+    pdf = client.get("/static/PDF/David-Lybeck-Resume.pdf")
+    assert pdf.status_code == 200 and pdf.headers["content-type"] == "application/pdf"
+    # the supplied resume, unedited
+    assert hashlib.sha256(pdf.content).hexdigest() == "a9531b23a1c704a577e9aad53a484d4a1515bf6b2ffda0af7ec6ca96165338f0"
+
+
+def test_the_scribblescan_page_says_what_comes_next_in_one_plain_line(client: TestClient) -> None:
+    html = client.get("/projects/websites/scribblescan").text
+
+    assert "I'm now exploring what comes next for it, with privacy as the main goal. It's early work, not a finished product." in html
+    assert "from a hosted product to a privacy-first experiment." in html
+    assert "an offline" not in html

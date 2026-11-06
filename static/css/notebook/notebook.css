@@ -148,7 +148,8 @@ body {
     --avail-h: calc(100vh - 124px);
     --bw: min(calc(var(--avail-h) * 1.25), calc(100vw - 376px), 1280px);
     left: calc(300px + (100vw - 376px - var(--bw)) / 2); margin-left: 0; width: var(--bw); height: calc(var(--bw) / 1.25);
-    top: calc(84px + (var(--avail-h) - var(--bw) / 1.25) / 2); transition: transform 950ms var(--nb-turn-ease);
+    --book-top: calc(84px + (var(--avail-h) - var(--bw) / 1.25) / 2); /* tabs measure from it */
+    top: var(--book-top); transition: transform 950ms var(--nb-turn-ease);
   }
   .nb--desktop.is-closed .nb-book { transform: translateX(calc(var(--bw) * -0.25)); }
   .nb-back { inset: -10px -12px -12px -12px; border-radius: 10px; transition: left 950ms var(--nb-turn-ease); }

@@ -61,7 +61,7 @@ function mount(initial) {
   });
   wheel = createWheel({ root, data, order: book.order, phone, hooks });
   cover = createCover({ root, book: book.book, phone, onTap: () => openCover() });
-  tabs = createTabs({ root, book: book.book, data, variant: tabsVariant });
+  tabs = createTabs({ root, book: book.book, data, variant: tabsVariant, addressOf });
 
   function openCover({ fromWheel = false } = {}) {
     if (!cover.closed) return;

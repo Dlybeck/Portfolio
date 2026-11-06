@@ -285,12 +285,16 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
   let start = null;
   // a swipe that starts on a swipe row, a model, a video or a field belongs to that thing, not the book
   const OWN_GESTURE = "[data-slides], model-viewer, video, select, input, button.slides-prev, button.slides-next";
-  book.addEventListener("pointerdown", (e) => { start = e.target.closest(OWN_GESTURE) ? null : { x: e.clientX, y: e.clientY, at: e.timeStamp }; });
+  // Only a single finger can swipe: a second finger (a pinch or a two-finger drag) is a non-primary pointer and cancels it.
+  book.addEventListener("pointerdown", (e) => {
+    if (!e.isPrimary) { start = null; return; }
+    start = e.target.closest(OWN_GESTURE) ? null : { x: e.clientX, y: e.clientY, at: e.timeStamp };
+  });
   // The browser takes a gesture that starts moving up or down (it scrolls the page and cancels ours),
   // so what reaches pointerup here began sideways. Even so, only a clearly horizontal stroke turns the page.
   book.addEventListener("pointercancel", () => { start = null; });
   book.addEventListener("pointerup", (e) => {
-    if (!start) return;
+    if (!e.isPrimary || !start) return;
     const dx = e.clientX - start.x;
     const dy = e.clientY - start.y;
     const quick = e.timeStamp - start.at < 900;

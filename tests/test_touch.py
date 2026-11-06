@@ -102,3 +102,18 @@ def test_a_tap_does_not_flash_a_highlight_and_the_keyboard_ring_remains(mobile_b
     page.keyboard.press("Tab")
     page.keyboard.press("Shift+Tab")
     assert page.locator(".nb-ear.next").evaluate("n => getComputedStyle(n).outlineStyle") == "solid"
+
+
+def test_two_fingers_spreading_sideways_is_not_a_swipe(mobile_browser_page) -> None:
+    page, cdp = open_with_touch(mobile_browser_page, "/jobs")
+
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": 190, "y": 400, "id": 1}, {"x": 200, "y": 400, "id": 2}]})
+    for i in range(1, 9):
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": 190 - 12 * i, "y": 400, "id": 1}, {"x": 200 + 12 * i, "y": 400, "id": 2}]})
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+    page.wait_for_timeout(800)
+
+    assert current(page) == "work"
+    swipe(cdp, 300, 400, 120, 410)  # and a one-finger swipe still works afterwards
+    page.wait_for_timeout(900)
+    assert current(page) == "school"

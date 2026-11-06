@@ -93,7 +93,17 @@ def test_tabs_are_hidden_while_the_cover_is_shut_and_appear_when_it_opens(browse
     assert page.locator(".nb-tabs").is_visible()
 
 
-@pytest.mark.parametrize("viewport", [PHONE, SMALL_PHONE], ids=["390", "320"])
+ROOMY = [PHONE, {"width": 414, "height": 896}]
+NARROW = [SMALL_PHONE, {"width": 360, "height": 640}, {"width": 375, "height": 667}]
+
+
+def every_label_fits(page) -> list:
+    return page.locator(".nb-tab").evaluate_all(
+        "els => els.filter(e => e.scrollWidth > e.clientWidth + 1 || e.scrollHeight > e.clientHeight + 1).map(e => e.textContent)"
+    )
+
+
+@pytest.mark.parametrize("viewport", ROOMY, ids=lambda v: str(v["width"]))
 def test_placement_a_on_a_phone_sits_on_the_top_edge_below_the_header(browser_page, viewport) -> None:
     page = visit(browser_page, "/jobs", viewport, "a")
 
@@ -104,9 +114,21 @@ def test_placement_a_on_a_phone_sits_on_the_top_edge_below_the_header(browser_pa
     assert tabs["x"] >= 0 and tabs["x"] + tabs["width"] <= viewport["width"]
     widths = page.locator(".nb-tab").evaluate_all("els => els.map(e => e.getBoundingClientRect().width)")
     assert min(widths) >= 28  # wide enough to tap (24px is the minimum a finger needs)
+    assert every_label_fits(page) == []  # no word is cut off
+    assert "nb--tabs-a" in classes(page)
 
 
-@pytest.mark.parametrize("viewport", [PHONE, SMALL_PHONE], ids=["390", "320"])
+@pytest.mark.parametrize("viewport", NARROW, ids=lambda v: str(v["width"]))
+def test_placement_a_on_a_narrow_phone_moves_to_the_right_edge_so_words_fit(browser_page, viewport) -> None:
+    page = visit(browser_page, "/jobs", viewport, "a")
+
+    assert "nb--tabs-b" in classes(page)
+    assert every_label_fits(page) == []
+    book, tabs = page.locator(".nb-book").bounding_box(), page.locator(".nb-tabs").bounding_box()
+    assert tabs["x"] >= book["x"] + book["width"] - 1 and tabs["x"] + tabs["width"] <= viewport["width"]
+
+
+@pytest.mark.parametrize("viewport", [PHONE, SMALL_PHONE, {"width": 360, "height": 640}], ids=lambda v: str(v["width"]))
 def test_placement_b_on_a_phone_sits_on_the_right_edge_inside_the_screen(browser_page, viewport) -> None:
     page = visit(browser_page, "/jobs", viewport, "b")
 
@@ -117,6 +139,7 @@ def test_placement_b_on_a_phone_sits_on_the_right_edge_inside_the_screen(browser
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
     heights = page.locator(".nb-tab").evaluate_all("els => els.map(e => e.getBoundingClientRect().height)")
     assert min(heights) >= 36
+    assert every_label_fits(page) == []
 
 
 @pytest.mark.parametrize("tabs", ["a", "b"])
@@ -136,3 +159,25 @@ def test_the_wheel_and_pages_still_fit_with_tabs_on(browser_page) -> None:
     book = page.locator(".nb-book").bounding_box()
     wheel = page.locator(".wheel").bounding_box()
     assert book["y"] + book["height"] <= wheel["y"] + 10  # the wheel starts below the book
+
+
+@pytest.mark.parametrize("tabs", ["a", "b"])
+@pytest.mark.parametrize("viewport", [{"width": 844, "height": 390}, {"width": 1000, "height": 520}, {"width": 700, "height": 420}], ids=lambda v: f"{v['width']}x{v['height']}")
+def test_on_a_short_window_all_six_tabs_stay_on_screen_and_readable(browser_page, viewport, tabs) -> None:
+    page = visit(browser_page, "/jobs", viewport, tabs)
+
+    assert "nb--desktop" in classes(page)
+    boxes = page.locator(".nb-tab").evaluate_all("els => els.map(e => { const r = e.getBoundingClientRect(); return [r.top, r.bottom, r.right]; })")
+    assert len(boxes) == 6
+    for top, bottom, right in boxes:
+        assert top >= 0 and bottom <= viewport["height"], boxes
+        assert right <= viewport["width"]
+    assert every_label_fits(page) == []
+    assert min(b - t for t, b, _ in boxes) >= 28
+
+
+def test_tab_links_carry_the_placement_so_a_new_tab_keeps_it(browser_page) -> None:
+    page = visit(browser_page, "/jobs", PHONE, "b")
+
+    hrefs = page.locator(".nb-tab").evaluate_all("els => els.map(e => e.getAttribute('href'))")
+    assert hrefs == ["/?tabs=b#about", "/?tabs=b#projects", "/jobs?tabs=b", "/education/college?tabs=b", "/?tabs=b#hobbies", "/?tabs=b#say-hi"]

@@ -23,12 +23,18 @@
 .nb--phone.nb--tabs-a .nb-tab[aria-current] { transform: translateY(0); }
 
 /* down the right edge (desktop, and phone placement b) */
-.nb--desktop .nb-tabs, .nb--phone.nb--tabs-b .nb-tabs { left: calc(100% + 8px); top: 26px; flex-direction: column; gap: 6px; }
+.nb--desktop .nb-tabs, .nb--phone.nb--tabs-b .nb-tabs { left: calc(100% + 8px); top: 22px; bottom: 22px; flex-direction: column; gap: 6px; }
 .nb--desktop .nb-tab, .nb--phone.nb--tabs-b .nb-tab {
-  writing-mode: vertical-rl; width: 30px; min-height: 76px; padding: 8px 0; border-left: 0; border-radius: 0 8px 8px 0; transform: translateX(-4px); font-size: 0.8rem;
+  writing-mode: vertical-rl; width: 30px; flex: 1 1 0; min-height: 0; max-height: 96px; padding: 2px 0; border-left: 0; border-radius: 0 8px 8px 0; transform: translateX(-4px); font-size: 0.8rem;
 }
 .nb--desktop .nb-tab[aria-current], .nb--phone.nb--tabs-b .nb-tab[aria-current] { transform: translateX(4px); }
-.nb--phone.nb--tabs-b .nb-tab { width: 26px; flex: 1 1 0; min-height: 40px; max-height: 64px; font-size: 0.66rem; }
+.nb--phone.nb--tabs-b .nb-tab { width: 26px; min-height: 40px; max-height: 64px; padding: 4px 0; font-size: 0.64rem; letter-spacing: 0; }
+@media (max-width: 359px), (max-height: 600px) { .nb--phone.nb--tabs-b .nb-tab { font-size: 0.58rem; } }
 .nb--phone.nb--tabs-b .nb-tabs { left: calc(100% + 5px); top: 14px; bottom: 14px; gap: 4px; } /* shares the book's height, so six tabs fit even on a short phone */
+
+/* On desktop the column runs from just under the header down to the bottom of the window, whatever the book's
+   height, and the words shrink with the window, so all six stay on screen and readable on a short landscape window. */
+.nb--desktop .nb-tabs { top: calc(72px - var(--book-top)); bottom: auto; height: min(calc(100vh - 82px), 600px); gap: 4px; }
+.nb--desktop .nb-tab { font-size: clamp(9px, calc(((100vh - 97px) / 6 - 4px) / 4.9), 12.8px); letter-spacing: 0; }
 
 @media (prefers-reduced-motion: reduce) { .nb-tab { transition: none; } }

@@ -2,7 +2,14 @@
 <article class="page" id="page-nba" data-page="nba" aria-label="NBA Prediction AI">
   <section>
     {{ head("2024 · partner project", "NBA Prediction AI", "A neural network that called the 2024 playoffs with only 2 mistakes.") }}
-    {# The live predictor, wired to static/json/results.json, arrives in step 2. #}
+    {# Filled in by media.js from /static/json/results.json; hidden without scripts. #}
+    <div class="predictor js-only" data-predictor>
+      <p class="predictor-k">Live predictor</p>
+      <label>Home team <select class="team-home" disabled><option>Loading teams</option></select></label>
+      <label>Away team <select class="team-away" disabled><option>Loading teams</option></select></label>
+      <button type="button" class="predict-go" disabled>Predict</button>
+      <p class="predict-result" role="status" aria-live="polite">Select two teams to make a prediction. Data through May 2024.</p>
+    </div>
     {{ chips(["PyTorch", "TensorFlow", "Data through May 2024"]) }}
     {{ links([("View the repository", "https://github.com/mattzou1/NBA-predictor")]) }}
   </section>

@@ -1,7 +1,8 @@
-{% from "notebook/_ui.html" import head, links %}
+{% from "notebook/_ui.html" import head, links, figure %}
 <article class="page" id="page-scribblescan" data-page="scribblescan" aria-label="ScribbleScan">
   <section>
     {{ head("2025 to now", "ScribbleScan", "Handwriting digitization, from a hosted product to an offline, privacy-first experiment.") }}
+    {{ figure("scribblescan/jul1.webp", "ScribbleScan web app showing a digitized handwritten page", "The finished hosted version, July 2025") }}
     <p>ScribbleScan began as my 2025 capstone, grew into a hosted handwriting-digitization service and LLC, and is now preserved as a demo. It digitized handwritten pages while keeping images and other non-text elements in the resulting document.</p>
     {{ links([("View the preserved demo", "https://scribblescan.app")]) }}
   </section>
@@ -14,7 +15,7 @@
       <div class="bar"><span>Baseline OCR</span><i style="width:74.39%"></i><b>74.39%</b></div>
     </div>
     <p class="caption">A small project comparison, not a general benchmark.</p>
-    <h3>What I'm exploring now</h3>
+    <h3 class="gap">What I'm exploring now</h3>
     <p>I'm rebuilding the idea around an offline, privacy-first mobile reader: on-device transcription, preserving non-text visuals as source crops, and local correction, history and export. It is active R&amp;D, not a finished product.</p>
   </section>
   <section>
@@ -22,12 +23,12 @@
     <ul class="steps">
       <li><time>January 2025 · proposal</time><p>The initial proposal I submitted for my capstone. It's interesting to see what I stuck with (like the export options) and what I changed (target audience, some features).</p>
         {{ links([("Read the proposal", "/static/PDF/ScribbleScan_Proposal.pdf")]) }}</li>
-      <li><time>February 7th 2025</time><p>The first working version. The results split each line into a section and showed them line by line. Rough, but it matched the design I had in mind, and I was very happy with it at the time.</p></li>
-      <li><time>February 8th 2025</time><p>Only a day later, but big UI improvements: much larger tiles, and the digitize button hides once clicked. That stayed in every later version.</p></li>
-      <li><time>March 12th 2025</time><p>A month after the proof of concept: PDF export, copy to clipboard, corrections and accuracy scores. The focus shifted from a demo to a usable tool.</p></li>
-      <li><time>April 28th 2025</time><p>The version I presented for my capstone: a batch page limit, Google sign-in and a toned down UI. Not a full product, but a finished tool.</p></li>
-      <li><time>June 25th 2025</time><p>After graduating, ScribbleScan LLC full time: profiles and support, a cloud-hosted database, paid tiers and many smaller features. A complete product.</p></li>
-      <li><time>July 1st 2025</time><p>A week later I called it finished. The big addition was a demo mode, so anyone could try pre-calculated pages of tough handwriting without costing the service.</p></li>
+      <li><time>February 7th 2025</time>{{ figure("scribblescan/feb7.webp", "First working version of ScribbleScan", cls="shot") }}<p>The first working version. The results split each line into a section and showed them line by line. Rough, but it matched the design I had in mind, and I was very happy with it at the time.</p></li>
+      <li><time>February 8th 2025</time>{{ figure("scribblescan/feb8.webp", "ScribbleScan a day later with larger tiles", cls="shot") }}<p>Only a day later, but big UI improvements: much larger tiles, and the digitize button hides once clicked. That stayed in every later version.</p></li>
+      <li><time>March 12th 2025</time>{{ figure("scribblescan/mar12.webp", "ScribbleScan with export and corrections", cls="shot") }}<p>A month after the proof of concept: PDF export, copy to clipboard, corrections and accuracy scores. The focus shifted from a demo to a usable tool.</p></li>
+      <li><time>April 28th 2025</time>{{ figure("scribblescan/apr28.webp", "ScribbleScan as presented for the capstone", cls="shot") }}<p>The version I presented for my capstone: a batch page limit, Google sign-in and a toned down UI. Not a full product, but a finished tool.</p></li>
+      <li><time>June 25th 2025</time>{{ figure("scribblescan/jun25.webp", "ScribbleScan as a hosted product", cls="shot") }}<p>After graduating, ScribbleScan LLC full time: profiles and support, a cloud-hosted database, paid tiers and many smaller features. A complete product.</p></li>
+      <li><time>July 1st 2025</time>{{ figure("scribblescan/jul1.webp", "ScribbleScan with demo mode", cls="shot") }}<p>A week later I called it finished. The big addition was a demo mode, so anyone could try pre-calculated pages of tough handwriting without costing the service.</p></li>
     </ul>
   </section>
 </article>

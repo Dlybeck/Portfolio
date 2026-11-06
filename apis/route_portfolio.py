@@ -9,10 +9,12 @@ from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
 
 from core import notebook, notebook_content
+from core.images import img_size
 from core.discovery import PERSON_SCHEMA, metadata_for
 from core.portfolio import DOCUMENTS, PortfolioDocument
 
 templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))
+templates.env.globals["img_size"] = img_size
 portfolio_router = APIRouter()
 
 

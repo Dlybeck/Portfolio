@@ -97,6 +97,7 @@ body {
 .nb:not(.is-closed) .nb-band { right: -5px; width: 5px; top: 14%; bottom: 14%; opacity: 0.4; border-width: 1px; border-radius: 2px; }
 
 .nb-in {
+  overflow-anchor: none; /* the engine keeps a named part in place itself */
   position: absolute; inset: 0; padding: 22px 44px 50px 26px; overflow: auto; overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch; scroll-behavior: smooth;
   -webkit-mask-image: linear-gradient(#000 calc(100% - 52px), transparent calc(100% - 26px));

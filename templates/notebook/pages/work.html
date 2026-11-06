@@ -1,6 +1,7 @@
-{% from "notebook/_ui.html" import head %}
+{% from "notebook/_ui.html" import head, picture %}
 {% macro job(j) %}
 <li class="job">
+  <span class="job-mark">{{ picture("work/" ~ j.logo ~ ".webp", j.org ~ " logo") }}</span>
   <span class="job-text"><span class="when">{{ j.when }}</span><b>{{ j.role }}</b><small>{{ j.org }}</small><span class="job-note">{{ j.text }}</span></span>
 </li>
 {% endmacro %}

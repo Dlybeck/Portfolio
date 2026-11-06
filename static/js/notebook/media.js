@@ -47,7 +47,7 @@ let results = null;
 const loadResults = () => (results ??= fetch("/static/json/results.json").then((r) => {
   if (!r.ok) throw new Error(`results.json ${r.status}`);
   return r.json();
-}));
+}).catch((error) => { results = null; throw error; })); // a failed load may be retried
 
 export function predictionFor(data, home, away) {
   if (home === away) return "Pick two different teams.";
@@ -81,13 +81,18 @@ async function enhancePredictor(scope) {
 // ---------- 3D models ----------
 
 let viewerReady = null;
-const loadViewer = () => (viewerReady ??= import("/static/vendor/model-viewer/model-viewer.min.js"));
+const loadViewer = () => (viewerReady ??= import("/static/vendor/model-viewer/model-viewer.min.js").catch((error) => { viewerReady = null; throw error; }));
 
 /** Called when a page has stopped turning: only then do models start to load. */
 async function enhanceModels(scope) {
   const models = [...scope.querySelectorAll("model-viewer[data-src]:not([src])")];
   if (!models.length) return;
-  await loadViewer();
+  try {
+    await loadViewer();
+  } catch (error) {
+    console.warn("The 3D viewer could not load", error);
+    return;
+  }
   for (const model of models) {
     if (reducedMotion()) model.removeAttribute("auto-rotate");
     model.setAttribute("loading", "lazy"); // only the ones scrolled into view are fetched
@@ -102,7 +107,7 @@ document.addEventListener("click", (e) => {
   const model = button.parentElement.querySelector("model-viewer");
   const opened = model.getAttribute("src") === model.dataset.altSrc;
   model.setAttribute("src", opened ? model.dataset.src : model.dataset.altSrc);
-  button.textContent = opened ? button.dataset.word : "Close it";
+  button.textContent = opened ? button.dataset.word : button.dataset.close;
   button.classList.toggle("is-on", !opened);
 });
 

@@ -141,17 +141,19 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
       const target = scroller?.querySelector(`[data-id="${anchor}"]`);
       if (!target) continue;
       stopWatching(scroller);
-      let placed = -1;
       const place = () => {
         const box = scroller.getBoundingClientRect();
         scroller.scrollTo({ top: scroller.scrollTop + target.getBoundingClientRect().top - box.top - 14, behavior: "instant" });
-        placed = scroller.scrollTop;
       };
       place();
-      const observer = new ResizeObserver(() => (scroller.scrollTop === placed ? place() : stopWatching(scroller)));
+      // anything the visitor does with the page ends the watch; the browser's own scroll adjustments do not
+      const done = () => stopWatching(scroller);
+      const gestures = ["wheel", "touchstart", "pointerdown", "keydown"];
+      for (const type of gestures) scroller.addEventListener(type, done, { once: true, passive: true });
+      const observer = new ResizeObserver(place);
       observer.observe(scroller.firstElementChild);
-      const timer = setTimeout(() => stopWatching(scroller), 2500);
-      watching.set(scroller, { stop() { observer.disconnect(); clearTimeout(timer); } });
+      const timer = setTimeout(done, 2500);
+      watching.set(scroller, { stop() { observer.disconnect(); clearTimeout(timer); for (const type of gestures) scroller.removeEventListener(type, done); } });
     }
   }
 

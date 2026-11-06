@@ -16,7 +16,7 @@
     <p class="when">{{ version.when }} · {{ version.steps | selectattr("n") | list | length }} snapshots</p>
     <ul class="slides" data-slides aria-label="{{ version.name }} snapshots">
       {% for step in version.steps if step.n %}
-      <li class="slide">{{ figure("site/" ~ version.id ~ "-" ~ step.n ~ ".webp", version.name ~ ", " ~ step.date) }}
+      <li class="slide">{{ figure("site/" ~ version.id ~ "-" ~ step.n ~ ".webp", step.alt) }}
         <time>{{ step.date }}</time><p>{{ step.text }}</p></li>
       {% endfor %}
     </ul>

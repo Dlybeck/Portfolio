@@ -215,3 +215,43 @@ def test_games_and_work_show_their_pictures(browser_page, viewport: dict) -> Non
     page.wait_for_selector("#notebook[data-page=work]")
     page.wait_for_function("[...document.querySelectorAll('.nb-in .job-mark img')].every(i => i.complete)", timeout=8000)
     assert page.locator(".nb-in .job-mark img").first.evaluate("i => i.naturalWidth") > 0
+
+
+# ---------- review follow-ups ----------
+
+def test_models_stay_uncompressed_so_the_viewer_never_calls_a_cdn() -> None:
+    import struct
+
+    for glb in (ROOT / "static" / "3Dmodels").rglob("*.glb"):
+        blob = glb.read_bytes()
+        header = json.loads(blob[20 : 20 + struct.unpack("<I", blob[12:16])[0]])
+        assert not header.get("extensionsUsed"), f"{glb.name} uses {header.get('extensionsUsed')}"
+
+
+def test_the_haskell_file_and_the_demo_are_both_linked(client: TestClient) -> None:
+    html = client.get("/").text
+
+    assert 'href="/static/programs/Haskell/EvilHangman.hs"' in html
+    assert re.search(r'href="/static/programs/Assignments/Evilhangman.html"[^>]*target="_blank"', html)
+
+
+def test_pdfs_open_outside_the_book(client: TestClient) -> None:
+    html = client.get("/").text
+
+    for pdf in ("ScribbleScan_Proposal.pdf", "AgileManagement_Report_David.pdf"):
+        assert re.search(rf'href="/static/PDF/{pdf}"[^>]*target="_blank"', html), pdf
+
+
+def test_snapshots_have_descriptive_alts(client: TestClient) -> None:
+    html = client.get("/").text
+
+    assert 'alt="Version 2 sand background and navbar Home button"' in html
+    assert "Version 1, January" not in html
+
+
+def test_each_poster_matches_its_video() -> None:
+    sizes = json.loads((ROOT / "static" / "img" / "manifest.json").read_text())
+
+    for name in ("old", "new"):
+        video, poster = sizes[f"planner/{name}.mp4"], sizes[f"planner/{name}-poster.webp"]
+        assert abs(video[0] / video[1] - poster[0] / poster[1]) < 0.03, (name, video, poster)

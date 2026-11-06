@@ -42,6 +42,7 @@
 .page .slide time { display: block; font: 500 0.7rem/1.5 var(--font-mono); letter-spacing: 0.06em; color: var(--soft); }
 .page .slide p { margin: 2px 0 0; font-size: 0.9rem; line-height: 1.45; }
 .page .slides.themes { grid-auto-columns: 62%; }
+html.no-js .page .model-view { display: none; }
 html.no-js .page .slides { display: grid; grid-auto-flow: row; grid-auto-columns: auto; overflow: visible; }
 .page .slides-bar { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 4px 0 8px; }
 .page .slides-bar button {

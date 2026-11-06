@@ -8,7 +8,7 @@
 
 {# Real links, drawn as small dashed chips. items: (label, href) pairs. #}
 {% macro links(items) -%}
-  <p class="links">{% for label, href in items %}<a class="link-chip" href="{{ href }}"{% if href.startswith("http") %} target="_blank" rel="noopener"{% endif %}>{{ label }}</a>{% endfor %}</p>
+  <p class="links">{% for label, href in items %}<a class="link-chip" href="{{ href }}"{% if href.startswith("http") or href.endswith((".pdf", ".html")) %} target="_blank" rel="noopener"{% endif %}>{{ label }}</a>{% endfor %}</p>
 {%- endmacro %}
 
 {% macro chips(items) -%}
@@ -32,7 +32,7 @@
       <model-viewer data-src="/static/3Dmodels/{{ m.folder }}/{{ m.file }}.glb"{% if m.open %} data-alt-src="/static/3Dmodels/{{ m.folder }}/{{ m.open }}.glb"{% endif %}
         poster="/static/img/hobbies/model-icon.webp" alt="{{ m.name }}, 3D model" camera-controls auto-rotate auto-rotate-delay="0" rotation-per-second="18deg"
         interaction-prompt="none" shadow-intensity="0.8" exposure="1.05" touch-action="pan-y"></model-viewer>
-      {% if m.open %}<button type="button" class="model-toggle" data-word="{{ m.word }}">{{ m.word }}</button>{% endif %}
+      {% if m.open %}<button type="button" class="model-toggle" data-word="{{ m.word }}" data-close="{{ m.close }}">{{ m.word }}</button>{% endif %}
     </div>
     <div class="model-text"><b>{{ m.name }}</b><span class="when">{{ m.downloads }}</span>
       {% if m.links %}<span class="model-links">{% for label, href in m.links %}<a href="{{ href }}" target="_blank" rel="noopener">{{ label }}</a>{% endfor %}</span>{% endif %}</div>

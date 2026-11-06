@@ -1,0 +1,87 @@
+/* ================= ROUND 15: roomier pages ================= */
+/* both: the page gets back the room the old bookmark band kept on the right */
+:is(.s15a,.s15b).phone .nb-in{padding-right:20px}
+:is(.s15a,.s15b).desktop :is(.nb-page.r,.nb-leaf .r-face) .nb-in{padding-right:46px}
+:is(.s15a,.s15b) .x p{font-size:.98rem;line-height:1.5}
+
+/* ---- A: swipe cards ---- */
+.s15a .nb-in :is(.tl14,.m14s,.j14s,.th14,.ar14){display:flex!important;gap:12px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:none;touch-action:pan-x pan-y;
+  margin:8px 0 0;padding:4px 2px 8px;border-left:0;list-style:none}
+.s15a .nb-in :is(.tl14,.m14s,.j14s,.th14,.ar14)::-webkit-scrollbar{display:none}
+.s15a .nb-in :is(.tl14,.m14s,.j14s,.th14,.ar14)>*{flex:0 0 88%;scroll-snap-align:start;min-width:0;box-sizing:border-box}
+.s15a .nb-in :is(.tl14,.j14s,.ar14)>*{background:color-mix(in srgb,#fff 62%,transparent);border:1px solid var(--rule);border-radius:8px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.s15a .nb-in .tl14 li::before{display:none}
+.s15a .nb-in .tl14 li{margin:0}
+.s15a .nb-in .tl14 time{display:block;margin-bottom:4px}
+.s15a .nb-in .tl14 li p{font-size:.94rem;line-height:1.5}
+.s15a .nb-in .tl14 figure.shot{margin:4px 0 10px}
+.s15a .nb-in .th14>*{flex-basis:78%}
+.s15a .nb-in .ar14>*{flex-basis:70%}
+.s15a .nb-in .ar14 ul{font-size:.94rem;line-height:1.55}
+.s15a .nb-in .j14s li.j14{display:grid;grid-template-columns:1fr;gap:10px;align-content:start}
+.s15a .nb-in .j14s .j14-l{width:100%;height:86px;padding:12px}
+.s15a .nb-in .j14s .j14-t b{font-size:1.02rem}
+.s15a .nb-in .j14s .j14-s{font-size:.94rem;line-height:1.5}
+.s15a .nb-in .m14s>*{flex-basis:90%}
+.s15a .nb-in .m14-t b{font-size:.98rem}
+.s15a .x .covers.c14g{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.s15a.desktop .x .covers.c14g{grid-template-columns:repeat(3,minmax(0,1fr))}
+.s15a .club14{grid-template-columns:120px minmax(0,1fr)}
+.s15a .club14 img{height:90px!important}
+.s15a .club14 p{font-size:.94rem}
+.s15a .tl14+.lks{margin-left:0}
+.sw15{display:flex;align-items:center;justify-content:center;gap:12px;margin:2px 0 12px;font:500 .7rem/1 var(--font-mono);letter-spacing:.06em;color:var(--soft)}
+.sw15 button{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--ink-fixed);background:#fff;color:var(--ink-fixed);font:700 1.05rem/1 var(--font-sans);cursor:pointer;display:grid;place-items:center;padding:0 0 2px}
+.sw15 button:disabled{opacity:.3;cursor:default}
+.sw15 span{min-width:96px;text-align:center}
+
+/* ---- B: short pages, the whole story on tap ---- */
+.s15b .x figure.big15{margin:12px 0 10px}
+.s15b .x figure.big15 figcaption{font-size:.84rem}
+.s15b .nba14.big15{max-width:none;padding:16px;gap:8px}
+.s15b .nba14.big15 .nba14-r{padding:9px 12px;font-size:.95rem}
+.st15-b{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;margin:16px 0 4px;padding:11px 14px;border-radius:10px;border:1.5px solid var(--ink-fixed);background:#fff;color:var(--ink-fixed);
+  font:700 .9rem/1.25 var(--font-sans);text-align:left;cursor:pointer;box-shadow:2px 2px 0 var(--ink-fixed)}
+.st15-b span{font-size:1.1rem}
+.st15-b:hover{background:var(--hi)}
+.st15-b:active{translate:1px 1px;box-shadow:1px 1px 0 var(--ink-fixed)}
+.yr15{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0 0}
+.yr15>div{display:grid;gap:2px;padding:12px;border:1px solid var(--rule);border-radius:8px;background:color-mix(in srgb,#fff 62%,transparent)}
+.yr15 b{font-size:1.08rem}
+.yr15 small{font-size:.82rem;color:var(--soft)}
+.s15b .m14s.one15{grid-template-columns:minmax(0,1fr);margin-top:10px}
+.s15b .one15 .m14-t b{font-size:1rem}
+.s15b .covers.g15{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.s15b .covers.g15 img{width:100%;height:auto;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.jr15s{margin-top:8px}
+.jr15s li.jr15{display:grid;grid-template-columns:48px minmax(0,1fr);gap:4px 12px;align-items:center;padding:10px 0}
+.jr15 .j14-l{width:48px;height:48px;grid-row:span 2}
+.jr15 b{display:block;font-size:.95rem;line-height:1.25}
+.jr15 small{display:block;font-size:.82rem;color:var(--soft);line-height:1.3}
+.jr15 .when{grid-column:2}
+/* the paper that slides over the notebook */
+.nb-page.st15{z-index:50;opacity:0;transform:translateY(16px);transition:opacity .25s,transform .25s;box-shadow:0 8px 28px rgba(0,0,0,.25)}
+.nb-page.st15.on{opacity:1;transform:none}
+.st15-bar{position:absolute;left:0;right:0;top:0;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 12px 0 22px;z-index:2;
+  background:color-mix(in srgb,var(--in-paper,#fbf6e9) 92%,transparent);border-bottom:1px solid var(--rule)}
+.st15-bar span{font:600 .72rem/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
+.st15-x{font:700 .8rem/1 var(--font-sans);padding:7px 13px;border-radius:var(--r-pill);border:1.5px solid var(--ink-fixed);background:var(--hi);color:var(--ink-fixed);cursor:pointer}
+.st15 .nb-in.st15-in{top:46px;padding:16px 20px 56px 22px}
+.desktop .st15 .nb-in.st15-in{padding:24px 48px 60px}
+.desktop .st15 .st15-in>.x{max-width:640px;margin:0 auto}
+.desktop .st15 .x p{font-size:1.02rem}
+.phone .st15 .m14s{grid-template-columns:minmax(0,1fr)}
+.st15 .x .covers.c14g{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.desktop .st15 .x .covers.c14g{grid-template-columns:repeat(4,minmax(0,1fr))}
+.desktop .st15 .j14s li.j14{grid-template-columns:72px minmax(0,1fr)}
+.desktop .st15 .j14-l{width:72px;height:72px}
+.st15 .th14{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;touch-action:pan-x pan-y}
+.st15 .th14>*{flex:0 0 80%;scroll-snap-align:start}
+.desktop .st15 .th14>*{flex-basis:48%}
+/* accuracy bars: name on its own line so it never gets cut */
+:is(.s15a,.s15b) .x .bar{grid-template-columns:minmax(0,1fr) 58px;gap:3px 8px}
+:is(.s15a,.s15b) .x .bar span{grid-column:1/-1;max-width:none;white-space:normal}
+:is(.s15a,.s15b) .x .bar i{height:14px}
+.c14 .tl14 li .lks{margin:6px 0 0}
+.s15a .nb-in .j14s .j14-l img{max-height:60px;max-width:80%}
+.st15-x:focus:not(:focus-visible){outline:none}

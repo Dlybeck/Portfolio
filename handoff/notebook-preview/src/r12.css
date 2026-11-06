@@ -1,0 +1,52 @@
+/* ================= ROUND 12: from your round 10 cover review ================= */
+/* the printer, take A: a 3D printer you can tell is one */
+.wd-p12{background:#fff;border-radius:12px;padding:6px 6px 5px}
+.p12-m{position:relative;aspect-ratio:1/1.08;container-type:inline-size}
+.p12-top{position:absolute;left:12%;right:12%;top:20%;height:3.5%;background:#2b313d;border-radius:2px}
+.p12-rl,.p12-rr{position:absolute;top:20%;bottom:16%;width:3.5%;background:#2b313d;border-radius:2px}
+.p12-rl{left:12%}.p12-rr{right:12%}
+.p12-sp{position:absolute;right:10%;top:0;width:30%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#2b313d 0 16%,#f2b705 17% 60%,#c48f00 61% 66%,#f2b705 67%);border:2px solid #2b313d;box-sizing:border-box;z-index:1}
+.p12-fil{position:absolute;left:47%;top:8%;width:22%;height:28%;border:2px solid #c48f00;border-right:0;border-bottom:0;border-radius:12px 0 0 0}
+.p12-bed{position:absolute;left:4%;right:4%;bottom:6%;height:11%;background:linear-gradient(#59627a 0 40%,#2b313d 40%);border-radius:2px;clip-path:polygon(10% 0,90% 0,100% 40%,100% 100%,0 100%,0 40%)}
+.p12-g{position:absolute;left:10%;right:10%;top:31%;height:4%;background:#59627a;border:1.5px solid #2b313d;border-radius:2px;box-sizing:border-box;transition:top .4s}
+.p12-n{position:absolute;left:42%;top:-90%;width:16%;height:300%;background:#f2b705;border:2px solid #2b313d;border-radius:2px 2px 7px 7px;box-sizing:border-box}
+.p12-o{position:absolute;left:27%;right:27%;bottom:17%;top:40%;background:var(--logo) bottom center/contain no-repeat;
+  filter:drop-shadow(1px -1px 0 #b98d00) drop-shadow(1px -1px 0 #b98d00) drop-shadow(1px 0 0 #8a6a00)}
+.p12-o::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(transparent 0 1.5px,rgba(43,49,61,.22) 1.5px 2.5px);
+  -webkit-mask:var(--logo) bottom center/contain no-repeat;mask:var(--logo) bottom center/contain no-repeat}
+.p12-k{display:block;text-align:center;font:700 .58rem/1 var(--font-sans);letter-spacing:.08em;text-transform:uppercase;padding-top:4px;color:#2b313d}
+.p12a.go .p12-o{animation:print12 3.2s steps(16,end) both}
+.p12a.go .p12-g{animation:gantry12 3.2s steps(16,end) both}
+.p12a.go .p12-n{animation:noz12 .35s ease-in-out infinite alternate}
+@keyframes print12{from{clip-path:inset(100% 0 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes gantry12{from{top:79%}to{top:31%}}
+@keyframes noz12{from{translate:-160% 0}to{translate:160% 0}}
+
+/* take B: the printed piece itself, a thick logo tile tipped back so it reads as solid */
+.p12-t{aspect-ratio:1/1;display:grid;place-items:center;perspective:400px}
+.p12-tile{position:relative;width:70%;aspect-ratio:1;transform-style:preserve-3d;rotate:x 32deg;transform:rotateZ(-14deg);
+  background:var(--logo) center/contain no-repeat;
+  filter:drop-shadow(0 1px 0 #b98d00) drop-shadow(0 1px 0 #b98d00) drop-shadow(0 1px 0 #a07a00) drop-shadow(0 1px 0 #a07a00) drop-shadow(0 1px 0 #8a6a00) drop-shadow(0 4px 3px rgba(0,0,0,.3))}
+.p12-face{position:absolute;inset:0;background:repeating-linear-gradient(transparent 0 2px,rgba(43,49,61,.16) 2px 3px);
+  -webkit-mask:var(--logo) center/contain no-repeat;mask:var(--logo) center/contain no-repeat}
+.p12b.spin .p12-tile{animation:spin12 1.1s cubic-bezier(.3,.7,.3,1)}
+@keyframes spin12{from{transform:rotateZ(-14deg)}to{transform:rotateZ(346deg)}}
+@media (prefers-reduced-motion:reduce){.wd-p12 *{animation:none!important}}
+
+/* the round 12 cover: the round 10 set without the octopus; the raccoon takes its spot */
+:is(.cv7-cover12a,.cv7-cover12b) .wd-name{left:12cqw;top:3cqh;width:44cqw;rotate:-4deg;z-index:2}
+:is(.cv7-cover12a,.cv7-cover12b) .wd-hike{left:auto;right:11cqw;top:6cqh;width:36cqw;rotate:5deg;z-index:1}
+:is(.cv7-cover12a,.cv7-cover12b) .wd-now{left:13cqw;top:22.5cqh;rotate:-2deg;z-index:3;font-size:clamp(.5rem,3.3cqw,.82rem);padding:1.6cqw 3cqw;gap:1.6cqw}
+:is(.cv7-cover12a,.cv7-cover12b) .wd-ten{left:auto;right:8cqw;top:26.5cqh;width:31cqw;rotate:5deg;z-index:2;padding:1.4cqw 1cqw 1cqw}
+:is(.cv7-cover12a,.cv7-cover12b) .wd-ten b{font-size:clamp(.8rem,6.2cqw,1.7rem);white-space:nowrap}
+:is(.cv7-cover12a,.cv7-cover12b) .wd-scan{left:12cqw;top:33.5cqh;width:58cqw;rotate:-2deg;z-index:2}
+:is(.cv7-cover12a,.cv7-cover12b) .wd-scan .sc-pad{height:13cqh}
+:is(.cv7-cover12a,.cv7-cover12b) .wd-scan .sc-k{font-size:clamp(.4rem,2.1cqw,.56rem)}
+:is(.cv7-cover12a,.cv7-cover12b) .wd-scan .sc-t{font-size:clamp(.66rem,3.6cqw,.92rem)}
+:is(.cv7-cover12a,.cv7-cover12b) .wd-pal-raccoon{left:70cqw;top:38.5cqh;width:19cqw;rotate:7deg;z-index:3}
+:is(.cv7-cover12a,.cv7-cover12b) .wd-puzzle{left:auto;right:11cqw;top:53cqh;rotate:6deg;z-index:3}
+:is(.cv7-cover12a,.cv7-cover12b) .pz{width:23cqw}
+:is(.cv7-cover12a,.cv7-cover12b) .wd-p12{left:13cqw;top:55cqh;width:23cqw;rotate:-5deg;padding:1.2cqw 1.2cqw 1cqw}
+:is(.cv7-cover12a,.cv7-cover12b) .p12-k,:is(.cv7-cover12a,.cv7-cover12b) .pz-k{font-size:clamp(.42rem,2.5cqw,.62rem)}
+:is(.cv7-cover12a,.cv7-cover12b) .wd-mine{left:40cqw;top:60cqh;width:19cqw}
+:is(.cv7-cover12a,.cv7-cover12b) .wd-ball{left:58cqw;top:77cqh;width:14cqw}

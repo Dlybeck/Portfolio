@@ -1,0 +1,55 @@
+/* ================= ROUND 3: the mix, three thumb controls ================= */
+/* Same notebook and pages in every variant; only the control (and the room it needs) changes. */
+.v3.phone .nb-book{left:14px;right:36px;top:70px;bottom:92px}
+.v3.desktop .nb-book{left:calc(50% - 450px);margin-left:0;width:900px;top:96px;bottom:92px;right:auto}
+.v3a.desktop .nb-book{left:320px}
+.v3 .bubble{position:absolute;z-index:25;pointer-events:none;background:var(--hi);color:var(--ink-fixed);border:var(--edge) solid var(--ink-fixed);border-radius:var(--r-md);
+  padding:6px 10px;font:800 1rem/1.15 var(--font-sans);white-space:nowrap;box-shadow:3px 3px 0 rgba(20,28,43,.35);opacity:0;transition:opacity 120ms}
+.v3 .bubble small{display:block;font:500 .68rem/1.4 var(--font-mono);letter-spacing:.06em;opacity:.8}
+.v3 .bubble.on{opacity:1}
+
+/* A. the wheel: the round 2 dial, recoloured as part of the cover, with dots instead of words */
+.kb-wrap{position:absolute;left:50%;bottom:-148px;width:240px;height:240px;margin-left:-120px;z-index:12}
+.desktop .kb-wrap{left:-180px;bottom:auto;top:calc(50% - 26px);margin:-220px 0 0;width:440px;height:440px}
+.kb-dial{position:absolute;inset:0;border-radius:50%;background:var(--brand);border:var(--edge) solid var(--ink-fixed);box-shadow:var(--ring-hero);touch-action:none;cursor:grab;transition:rotate var(--d-settle) var(--ease-settle);will-change:rotate}
+.kb-dial.drag{transition:none;cursor:grabbing}
+.kb-dial::before{content:"";position:absolute;inset:5px;border-radius:50%;background:repeating-conic-gradient(from -1deg,rgba(255,255,255,.55) 0 1.6deg,transparent 1.6deg 8deg);
+  -webkit-mask:radial-gradient(circle,transparent calc(100% - 9px),#000 calc(100% - 8px));mask:radial-gradient(circle,transparent calc(100% - 9px),#000 calc(100% - 8px))}
+.kb-dot{position:absolute;left:50%;top:50%;width:0;height:0}
+.kb-dot button{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border:0;padding:0;background:none;cursor:pointer;display:grid;place-items:center}
+.kb-dot button i{width:13px;height:13px;border-radius:50%;background:var(--dot);border:1.5px solid var(--ink-fixed);transition:transform var(--d-press) var(--ease-out)}
+.kb-dot button.cur i{transform:scale(1.45);box-shadow:0 0 0 2.5px #fff}
+.kb-name{position:absolute;left:0;right:0;top:40px;text-align:center;color:#fff;font:800 1.15rem/1 var(--font-sans);letter-spacing:-.01em;pointer-events:none;z-index:2}
+.desktop .kb-name{left:auto;right:58px;top:50%;margin-top:-10px;text-align:right;font-size:1.3rem}
+.kb-pointer{position:absolute;left:50%;top:-12px;margin-left:-8px;width:16px;height:12px;background:var(--ink-fixed);clip-path:polygon(0 0,100% 0,50% 100%);z-index:13}
+.desktop .kb-pointer{left:auto;right:-14px;top:50%;margin:-8px 0 0;width:12px;height:16px;clip-path:polygon(100% 0,100% 100%,0 50%)}
+:root[data-theme="dark"] .kb-pointer{background:var(--ink)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .kb-pointer{background:var(--ink)}}
+
+/* B. thumb index: the page edges are colored by section, like a dictionary; slide your thumb down them */
+.ti{position:absolute;z-index:4;display:flex;flex-direction:column;touch-action:none;cursor:ns-resize}
+.phone .ti{right:2px;top:72px;bottom:94px;width:26px}
+.desktop .ti{left:calc(50% + 464px);top:98px;bottom:94px;width:40px}
+.ti-seg{flex:1 1 0;min-height:0;display:grid;place-items:center;padding:0;margin:0;background:color-mix(in srgb,var(--pc) 58%,var(--surface));border:var(--edge) solid var(--p-edge);border-left:0;border-top-width:0;color:var(--ink-fixed);
+  writing-mode:vertical-rl;font:700 .74rem/1 var(--font-sans);letter-spacing:.01em;cursor:inherit;border-radius:0 6px 6px 0;transition:background-color var(--d-press) var(--ease-out),box-shadow var(--d-press) var(--ease-out)}
+.ti-seg:first-child{border-top-width:1.5px}
+.desktop .ti-seg{font-size:.86rem}
+.ti-seg[aria-current]{background:var(--pc);font-weight:800;box-shadow:inset 3px 0 0 var(--ink-fixed)}
+.ti-seg.hover{background:var(--pc);box-shadow:inset 3px 0 0 var(--brand)}
+.ti .bubble{right:calc(100% + 14px)}
+
+/* C. riffle: the bottom edge of the pages; slide along it to thumb through every page */
+.rf{position:absolute;z-index:3;touch-action:none;cursor:ew-resize}
+.phone .rf{left:14px;right:36px;bottom:48px;height:44px}
+.desktop .rf{left:calc(50% - 450px);width:900px;bottom:34px;height:48px}
+.rf-edges{position:absolute;left:0;right:0;top:0;height:22px;display:flex;border:var(--edge) solid var(--p-edge);border-top:0;border-radius:0 0 4px 4px;overflow:hidden}
+.rf-edges i{flex:1 1 0;background:var(--pc);background-image:repeating-linear-gradient(90deg,transparent 0 3px,rgba(20,28,43,.16) 3px 4px);border-left:1px solid rgba(20,28,43,.28)}
+.rf-edges i:first-child{border-left:0}
+.rf-mark{position:absolute;top:-6px;height:34px;width:4px;margin-left:-2px;background:var(--ink-fixed);border-radius:2px;transition:left var(--d-settle) var(--ease-settle);box-shadow:0 0 0 2px var(--hi)}
+.rf.drag .rf-mark{transition:none}
+.rf-secs{position:absolute;left:0;right:0;top:26px;height:16px;display:flex;font:500 .62rem/16px var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.rf-secs span{overflow:hidden;white-space:nowrap;text-overflow:clip;padding-left:3px;border-left:1px solid var(--line-soft)}
+.rf .bubble{bottom:calc(100% + 14px);transform:translateX(-50%)}
+
+
+@media (prefers-reduced-motion:reduce){.kb-dial,.ti-seg,.rf-mark{transition:none!important}}

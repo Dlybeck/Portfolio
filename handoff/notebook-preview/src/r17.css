@@ -1,0 +1,21 @@
+/* ================= ROUND 17: stories that flow onto the next page ================= */
+:is(.s17,.s18) .x .h17{margin-top:22px}
+:is(.s17,.s18) .x p.when{margin:-2px 0 8px;font-size:.78rem;line-height:1.35}
+:is(.s17,.s18) .x .covers.c17{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+:is(.s17,.s18) .x .covers.c17 img{width:100%;height:auto;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+:is(.s17,.s18) .x .tl14 li p{font-size:.95rem;line-height:1.5}
+:is(.s17,.s18) .x .tl14 figure.shot{margin:6px 0 8px}
+:is(.s17,.s18) .x .ar14{grid-template-columns:minmax(0,1fr)!important}
+:is(.s17,.s18) .x .ar14 ul{font-size:.95rem;line-height:1.55}
+:is(.s17,.s18) .x .j14s li.j14{grid-template-columns:64px minmax(0,1fr);padding:12px 0}
+:is(.s17,.s18) .x .j14-l{width:64px;height:64px}
+:is(.s17,.s18) .x .j14-s{font-size:.93rem;line-height:1.5}
+:is(.s17,.s18) .x .club14{grid-template-columns:120px minmax(0,1fr)}
+:is(.s17,.s18) .x .club14 img{height:88px!important}
+:is(.s17,.s18) .x .club14 p{font-size:.93rem}
+:is(.s17,.s18) .x .sch14{gap:14px}
+.x17-end{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.x17-next{font:700 .9rem/1.2 var(--font-sans);padding:10px 16px;border-radius:10px;border:1.5px solid var(--ink-fixed);background:#fff;color:var(--ink-fixed);cursor:pointer;box-shadow:2px 2px 0 var(--ink-fixed)}
+.x17-next:hover{background:var(--hi)}
+.x17-next b{margin-left:4px}
+.x17-end span{font:500 .7rem/1 var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);opacity:.7}

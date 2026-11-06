@@ -1,0 +1,88 @@
+/* ================= ROUND 8: making the stickers feel like stickers ================= */
+.cv7c-midnight,.r7c-midnight{--cov:#1b2436}.cv7c-forest,.r7c-forest{--cov:#23443a}.cv7c-kraft,.r7c-kraft{--cov:#b58b55}
+.wd-sh,.wd-curl{display:none}
+
+/* your favorites, plus who you are */
+.cv7-fav .wd-name{left:6cqw;top:5cqh;width:52cqw;rotate:-6deg;z-index:2}
+.cv7-fav .wd-ai{left:52cqw;top:3.5cqh;width:21cqw;rotate:10deg;z-index:3}
+.cv7-fav .wd-hike{right:5cqw;top:18cqh;width:40cqw;rotate:5deg;z-index:1}
+.cv7-fav .wd-scan{left:6cqw;top:37cqh;width:64cqw;rotate:-2deg;z-index:2}
+.cv7-fav .wd-scan .sc-pad{height:15cqh}
+.cv7-fav .wd-puzzle{right:7cqw;top:59cqh;rotate:7deg;z-index:3}
+.cv7-fav .pz{width:27cqw}
+.cv7-fav .wd-ball{left:15cqw;top:71cqh;width:16cqw}
+.cv7-fav .cv-open{left:auto;right:9cqw;bottom:4cqh}
+
+/* A. vinyl: a white die-cut edge that follows each shape, a soft lifted shadow, a gloss sweep, one corner peeling */
+.tr-vinyl .wd{filter:drop-shadow(1.6px 0 0 #fff) drop-shadow(-1.6px 0 0 #fff) drop-shadow(0 1.6px 0 #fff) drop-shadow(0 -1.6px 0 #fff) drop-shadow(0 5px 5px rgba(0,0,0,.45))}
+.tr-vinyl .wd-sh,.tr-bomb .wd-sh{display:block;position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:6;
+  background:linear-gradient(118deg,transparent 34%,rgba(255,255,255,.42) 46%,rgba(255,255,255,.12) 53%,transparent 61%);mix-blend-mode:screen}
+.tr-vinyl .wd-hike .wd-sh,.tr-bomb .wd-hike .wd-sh{inset:6px}
+.tr-vinyl .wd-ball .wd-sh,.tr-bomb .wd-ball .wd-sh{background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.6) 0 9%,transparent 30%)}
+.tr-vinyl .wd-name,.tr-worn .wd-name{-webkit-mask:linear-gradient(to top left,transparent 14px,#000 14.5px);mask:linear-gradient(to top left,transparent 14px,#000 14.5px);border-bottom-right-radius:2px}
+.tr-vinyl .wd-curl,.tr-worn .wd-curl{display:block;position:absolute;right:0;bottom:0;width:20px;height:20px;pointer-events:none;z-index:7;
+  background:linear-gradient(to top left,transparent 50%,rgba(0,0,0,.28) 50%,#c9ccd3 56%,#f4f5f7 80%,#fff);border-top-left-radius:6px}
+.tr-vinyl .wd:hover .wd-sh{animation:gloss8 .9s ease-out}
+@keyframes gloss8{from{background-position:-120px 0}to{background-position:0 0}}
+
+/* B. worn notebook: a cloth spine, scuffed corners, an elastic band and a label; matte stickers that have been there a while */
+.tr-worn .cv-front{box-shadow:inset 26px 0 0 rgba(0,0,0,.30),inset 27px 0 0 rgba(255,255,255,.10)}
+.tr-worn .cv-front .cv7-stitch{left:34px}
+.tr-worn .cv-front::after{content:"";position:absolute;inset:0;width:auto;height:auto;pointer-events:none;z-index:1;border-radius:inherit;background:
+  radial-gradient(60px 60px at 100% 0,rgba(255,255,255,.16),transparent 70%),radial-gradient(60px 60px at 100% 100%,rgba(255,255,255,.14),transparent 70%),
+  radial-gradient(rgba(255,255,255,.05) 1px,transparent 1.4px) 0 0/7px 9px}
+.tr-worn .cv7-band{display:block;position:absolute;right:4.5cqw;top:-2px;bottom:-2px;width:9px;background:#2b2f38;border-left:1px solid #000;border-right:1px solid #000;z-index:7;pointer-events:none;box-shadow:2px 0 0 rgba(0,0,0,.2)}
+.tr-worn .cv7-name,.tr-bomb .cv7-name{display:block;left:14cqw;bottom:4.5cqh;padding:7px 12px 6px;background:#f3ead6;color:#3a3226;border:1px solid rgba(58,50,38,.35);border-radius:3px;
+  text-shadow:none;letter-spacing:.18em;box-shadow:0 1px 0 rgba(0,0,0,.25);font-size:clamp(.56rem,2.8cqw,.72rem)}
+.tr-worn .cv7-name::after,.tr-bomb .cv7-name::after{content:"notes";display:block;margin-top:4px;font:700 clamp(.9rem,4.6cqw,1.15rem)/1 var(--font-hand);letter-spacing:0;text-transform:none;color:#6b5b45}
+.tr-worn .wd{filter:drop-shadow(0 1px 0 rgba(0,0,0,.45)) drop-shadow(0 2px 3px rgba(0,0,0,.22)) saturate(.84) contrast(.97)}
+.tr-worn .wd-sh{display:block;position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:6;mix-blend-mode:soft-light;
+  background:radial-gradient(rgba(255,255,255,.55) .6px,transparent 1px) 0 0/5px 6px,radial-gradient(rgba(0,0,0,.25) .6px,transparent 1px) 2px 3px/7px 5px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),inset 0 0 7px rgba(110,90,60,.35)}
+.tr-worn .wd-hike .wd-sh{inset:6px}
+.tr-worn .cv-open{right:14cqw}
+.tr-worn .wd-name{left:13cqw;top:4cqh;width:48cqw;rotate:-3deg}
+.tr-worn .wd-ai{left:60cqw;top:5cqh;width:21cqw;rotate:-8deg}
+.tr-worn .wd-hike{right:9cqw;top:20cqh;width:40cqw;rotate:4deg}
+.tr-worn .wd-scan{left:13cqw;top:38cqh;width:64cqw;rotate:1.5deg}
+.tr-worn .wd-puzzle{right:11cqw;top:58cqh;rotate:-5deg}
+.tr-worn .wd-ball{left:22cqw;top:64cqh}
+
+/* C. sticker bomb: everything layered in one cluster, the way stickers pile up; the rest of the cover is plain, with a label */
+.tr-bomb .wd{filter:drop-shadow(2.4px 0 0 #fff) drop-shadow(-2.4px 0 0 #fff) drop-shadow(0 2.4px 0 #fff) drop-shadow(0 -2.4px 0 #fff) drop-shadow(2px 3px 0 rgba(0,0,0,.4))}
+.tr-bomb .wd-hike{left:35cqw;right:auto;top:5cqh;width:46cqw;rotate:9deg;z-index:1}
+.tr-bomb .wd-name{left:6cqw;top:9cqh;width:50cqw;rotate:-10deg;z-index:3}
+.tr-bomb .wd-ai{left:70cqw;top:2.5cqh;width:21cqw;rotate:16deg;z-index:4}
+.tr-bomb .wd-puzzle{right:6cqw;top:28cqh;rotate:-9deg;z-index:3}
+.tr-bomb .wd-scan{left:5cqw;top:34cqh;width:60cqw;rotate:5deg;z-index:5}
+.tr-bomb .wd-ball{left:63cqw;top:54cqh;width:17cqw;z-index:6}
+.tr-bomb .cv7-name{left:9cqw;bottom:7cqh;rotate:-2deg}
+
+/* ScribbleScan, take 2: a sticky note you write on, and a label maker prints what it reads */
+.sv-sticky .wd-scan{background:none;border:0;border-radius:0;overflow:visible}
+.sv-sticky .wd-scan .sc-pad{height:auto!important;aspect-ratio:2.15;background:#ffe27a;background-image:linear-gradient(180deg,rgba(0,0,0,.07),transparent 16%),radial-gradient(120% 90% at 100% 100%,rgba(0,0,0,.08),transparent 40%);
+  border-radius:2px 2px 16px 2px;box-shadow:0 1px 0 rgba(0,0,0,.1)}
+.sv-sticky .wd-scan .sc-out{position:relative;margin:-7px 3% 0 14%;min-height:30px;background:#1d2230;border:0;border-radius:2px;padding:6px 64px 6px 10px;rotate:-2deg;
+  background-image:linear-gradient(rgba(255,255,255,.05) 50%,transparent 50%);background-size:100% 4px;box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.sv-sticky .wd-scan .sc-out::before{content:"";position:absolute;left:-6px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--cov,#1b2436);box-shadow:inset 0 0 0 2px rgba(255,255,255,.08)}
+.sv-sticky .wd-scan .sc-k{display:none}
+.sv-sticky .wd-scan .sc-t{font:800 .78rem/1 var(--font-mono);letter-spacing:.16em;text-transform:uppercase;color:#f3f4f6;text-shadow:0 -1px 0 rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.22)}
+.sv-sticky .wd-scan.typing .sc-out{animation:tape8 .35s ease-out}
+@keyframes tape8{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+
+/* ScribbleScan, take 3: a phone that scans what you write and shows the text */
+.sv-phone .wd-scan{background:#171a21;border:0;border-radius:20px;padding:16px 7px 7px;box-shadow:inset 0 0 0 1.5px #3a3f4b}
+.sv-phone .wd-scan::before{content:"";position:absolute;left:50%;top:6px;width:34px;height:5px;margin-left:-17px;border-radius:9px;background:#000}
+.sv-phone .wd-scan .sc-pad{border-radius:12px}
+.sv-phone .wd-scan .sc-pad::after{content:"";position:absolute;inset:7px;pointer-events:none;z-index:2;--b:#2f8fff;background:
+  linear-gradient(var(--b),var(--b)) 0 0/14px 2.5px,linear-gradient(var(--b),var(--b)) 0 0/2.5px 14px,
+  linear-gradient(var(--b),var(--b)) 100% 0/14px 2.5px,linear-gradient(var(--b),var(--b)) 100% 0/2.5px 14px,
+  linear-gradient(var(--b),var(--b)) 0 100%/14px 2.5px,linear-gradient(var(--b),var(--b)) 0 100%/2.5px 14px,
+  linear-gradient(var(--b),var(--b)) 100% 100%/14px 2.5px,linear-gradient(var(--b),var(--b)) 100% 100%/2.5px 14px;background-repeat:no-repeat}
+.sv-phone .wd-scan .sc-out{margin-top:6px;background:#fff;border:0;border-radius:11px}
+.sv-phone .wd-scan .sc-k{background:#2f8fff;color:#fff}
+.sv-phone .wd-scan.typing .sc-out{animation:pop8 .3s ease-out}
+@keyframes pop8{from{translate:0 6px;opacity:.4}to{translate:0 0;opacity:1}}
+@media (prefers-reduced-motion:reduce){.wd-sh,.sc-out{animation:none!important}}
+.sv-sticky .wd-scan>.wd-sh{display:none}
+.covrow [hidden]{display:none!important}

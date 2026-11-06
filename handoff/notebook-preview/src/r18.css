@@ -1,0 +1,4 @@
+/* ================= ROUND 18 (shown as round 17): one longer page per story ================= */
+.s18 .x .s18-sec+.s18-sec{margin-top:26px;padding-top:18px;border-top:1px dashed var(--rule)}
+.s18 .x h3.h18{font:700 1.18rem/1.2 var(--font-sans);color:var(--ink-fixed);margin:0 0 8px}
+.s18 .x .s18-sec>p.when:first-of-type{margin-top:-4px}

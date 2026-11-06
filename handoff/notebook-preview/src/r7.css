@@ -1,0 +1,94 @@
+/* ================= ROUND 7: live stickers, back to the cover ================= */
+.covrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.covrow[hidden]{display:none}
+.covrow>span{font:500 .72rem/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+/* the cover's own dot on the wheel, one click before page 1 */
+.kb-cv button i{--dot:#1b2436;border-radius:3px;background:var(--dot);box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
+.r7c-forest .kb-cv button i{--dot:#23443a}.r7c-kraft .kb-cv button i{--dot:#b58b55}
+
+/* cover details shared by every cover */
+.cv7 .cv-front{border-radius:3px 9px 9px 3px}
+.cv7-stitch{position:absolute;inset:9px 9px 9px 16px;border:1.5px dashed rgba(255,255,255,.22);border-radius:3px 6px 6px 3px;pointer-events:none}
+.cv7-name{position:absolute;left:8cqw;bottom:3.2cqh;font:600 clamp(.56rem,2.8cqw,.72rem)/1 var(--font-mono);letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.34);
+  text-shadow:0 -1px 0 rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.08);pointer-events:none}
+.cv7-band{display:none}
+.cv7 .cv-open{z-index:6}
+
+/* covers */
+.cv.cv7c-midnight .cv-front{background:#1b2436;background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px),repeating-linear-gradient(-45deg,rgba(0,0,0,.12) 0 1px,transparent 1px 4px)}
+.r7c-midnight .nb-cover{background:#1b2436}
+.cv.cv7c-forest .cv-front{background:#23443a;background-image:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1.3px),linear-gradient(160deg,rgba(255,255,255,.06),transparent 40%);background-size:5px 5px,100% 100%}
+.r7c-forest .nb-cover{background:#23443a}
+.cv7c-forest .cv-front::after{content:"";position:absolute;right:0;top:0;width:22px;height:22px;background:linear-gradient(225deg,#c9a45c 50%,transparent 50%);border-top-right-radius:9px;pointer-events:none}
+.cv7c-forest .cv-front::before{content:"";position:absolute;right:0;bottom:0;width:22px;height:22px;background:linear-gradient(315deg,#c9a45c 50%,transparent 50%);border-bottom-right-radius:9px;pointer-events:none;z-index:1}
+.cv.cv7c-kraft .cv-front{background:#b58b55;color:var(--ink-fixed);background-image:radial-gradient(rgba(60,40,10,.14) 1px,transparent 1.3px),radial-gradient(rgba(255,255,255,.12) 1px,transparent 1.3px);background-size:6px 6px,9px 9px;background-position:0 0,3px 4px}
+.r7c-kraft .nb-cover{background:#b58b55}
+.cv7c-kraft .cv7-stitch{border-color:rgba(60,40,10,.35)}
+.cv7c-kraft .cv7-name{color:rgba(60,40,10,.45);text-shadow:0 1px 0 rgba(255,255,255,.25)}
+.cv7c-kraft .cv-open{color:var(--ink-fixed)}
+.cv7c-kraft .wd-blank{border-color:rgba(40,28,10,.55);color:var(--ink-fixed)}
+.cv7c-kraft .cv7-band{display:block;position:absolute;right:5.5cqw;top:-2px;bottom:-2px;width:11px;background:#2b2f38;border-left:1px solid #000;border-right:1px solid #000;z-index:7;pointer-events:none;box-shadow:2px 0 0 rgba(0,0,0,.2)}
+
+/* set 1: five */
+.cv7-five .wd-name{left:7cqw;top:6cqh;width:58cqw;rotate:-5deg}
+.cv7-five .wd-ai{right:7cqw;top:8cqh;width:24cqw;rotate:8deg}
+.cv7-five .wd-scan{left:7cqw;top:35cqh;width:66cqw;rotate:2deg}
+.cv7-five .wd-scan .sc-pad{height:18cqh}
+.cv7-five .wd-puzzle{right:9cqw;top:64cqh;rotate:-6deg}
+.cv7-five .pz{width:28cqw}
+.cv7-five .wd-ball{left:16cqw;top:72cqh;width:17cqw}
+.cv7-five .cv-open,.cv7-eight .cv-open{right:auto;left:42cqw;bottom:5cqh}
+
+/* set 2: eight */
+.cv7-eight .wd-name{left:6cqw;top:4cqh;width:54cqw;rotate:-5deg}
+.cv7-eight .wd-ai{right:8cqw;top:4cqh;width:20cqw;rotate:8deg}
+.cv7-eight .wd-hoop{right:9cqw;top:17.5cqh;width:18cqw;rotate:-6deg}
+.cv7-eight .wd-scan{left:5cqw;top:31cqh;width:58cqw;rotate:2deg}
+.cv7-eight .wd-scan .sc-pad{height:14cqh}
+.cv7-eight .wd-hike{right:5cqw;top:36cqh;width:31cqw;rotate:6deg;z-index:2}
+.cv7-eight .wd-puzzle{left:7cqw;top:59cqh;rotate:-6deg}
+.cv7-eight .wd-print{left:39cqw;top:61cqh;width:23cqw;rotate:4deg}
+.cv7-eight .wd-ball{left:72cqw;top:66cqh;width:15cqw}
+.cv7-eight .cv-open{left:auto;right:9cqw;bottom:4cqh}
+.cv7-five .cv-open{left:auto;right:9cqw}
+
+/* set 3: the round 6 layout on a real cover */
+.cv7-packed .cv7-name{display:none}
+.cv7-packed .cv7-stitch{inset:6px 6px 6px 13px}
+.cv7c-kraft .cv7-band{right:1.6cqw;width:8px}
+
+/* the typist on the ScribbleScan pad */
+.cv7 .sc-out{position:relative;padding-right:64px}
+.cv7 .ty{position:absolute;right:4px;bottom:1px;width:58px;height:44px;cursor:pointer;z-index:3;filter:drop-shadow(0 1px 0 rgba(0,0,0,.18))}
+.cv7 .ty svg{width:100%;height:100%;overflow:visible}
+.ty-kb{fill:#2b2f38}.ty-ks{stroke:rgba(255,255,255,.35);stroke-width:.8;stroke-dasharray:2.2 1.2;fill:none}
+.ty-pu{fill:#141b2b}
+.ty .ty-a,.ty .ty-b,.ty .ty-eye,.ty .ty-hd{transform-box:fill-box}
+.ty .ty-eye{transform-origin:center;animation:blink7 5s infinite}
+.cv7 .typing .ty .ty-a{animation:tap7 .2s ease-in-out infinite alternate}
+.cv7 .typing .ty .ty-b{animation:tap7 .2s ease-in-out .1s infinite alternate}
+.cv7 .typing .ty .ty-hd{animation:bob7 .4s ease-in-out infinite alternate}
+.ty.hi{animation:hop7 .55s ease-out}
+@keyframes tap7{from{translate:0 -2.4px}to{translate:0 .5px}}
+@keyframes bob7{from{translate:0 0}to{translate:0 .9px}}
+@keyframes blink7{0%,93%,100%{scale:1 1}96%{scale:1 .12}}
+@keyframes hop7{0%,100%{translate:0 0}35%{translate:0 -9px;rotate:-6deg}70%{translate:0 0;rotate:4deg}}
+/* octopus: Puget Sound giant Pacific octopus */
+.ty-octopus .ty-c1{fill:#e0674a}.ty-octopus .ty-c1s{stroke:#e0674a}.ty-octopus .ty-c2{fill:#b84a33}.ty-octopus .ty-tn{stroke:#c9563d}
+/* orca */
+.ty-orca .ty-c1{fill:#1d222b}.ty-orca .ty-c2{fill:#f4f4f2}
+/* robot */
+.ty-robot .ty-c1{fill:#a7b3c4}.ty-robot .ty-c1s{stroke:#8795a9}.ty-robot .ty-c2{fill:#7c8aa0}.ty-robot .ty-c2s{stroke:#7c8aa0}
+.ty-robot .ty-sc{fill:#1b2436}.ty-robot .ty-ey{fill:#7fe0ff}.ty-led{fill:#e0674a;transition:fill .2s}
+.cv7 .typing .ty-led{fill:#ffd23f;animation:led7 .3s steps(2) infinite}
+@keyframes led7{50%{opacity:.4}}
+/* raccoon */
+.ty-raccoon .ty-c1{fill:#8e8f97}.ty-raccoon .ty-c2{fill:#f3f1ec}.ty-raccoon .ty-c3{fill:#2e2f35}
+.covrow .seg+span{margin-left:10px}
+@media (prefers-reduced-motion:reduce){.ty,.ty *{animation:none!important}}
+
+/* phone page turns: the turned page tucks behind the left edge, onto a thin stack of pages already turned */
+.phone .nb-leaf .back{background:linear-gradient(90deg,#d6cdb6,#fbf7ec 45%,#e4dccb)}
+.phone .nb-book::before{content:"";position:absolute;right:100%;top:5px;bottom:5px;width:0;margin-right:1px;border-radius:3px 0 0 3px;
+  background:repeating-linear-gradient(90deg,#fffdf6 0 2px,#cfc6b0 2px 3px);box-shadow:-1px 1px 0 rgba(20,28,43,.25);transition:width .35s ease;z-index:0}
+.phone.nb-turned:not(.closed) .nb-book::before{width:11px}

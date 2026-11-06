@@ -1,0 +1,19 @@
+/* ================= ROUND 4: the wheel, page by page ================= */
+.v4 .kb-dial{transition:none}
+.v4 .kb-dial::before{display:none}
+.kb-tick{position:absolute;left:50%;top:50%;width:11px;height:2px;margin:-1px 0 0 -5.5px;border-radius:1px;background:rgba(255,255,255,.62);transform:rotate(var(--a)) translateX(var(--tr));pointer-events:none}
+.v4 .kb-name b{display:block;font:inherit}
+.v4 .kb-name small{display:block;margin-top:4px;font:500 .7rem/1 var(--font-mono);letter-spacing:.08em;opacity:.85}
+.v4.phone .kb-name{top:34px}
+.v4.desktop .kb-name{margin-top:-18px}
+.v4 .nb-band{z-index:70}
+.rf-leaf .face{box-shadow:0 0 0 1px rgba(20,28,43,.06)}
+
+/* revision log in the preview shell */
+.revlog{margin:0 0 18px;border:var(--edge) solid var(--line);border-radius:var(--r-md);background:var(--surface);max-width:760px}
+.revlog summary{cursor:pointer;padding:10px 14px;font:700 .95rem/1.2 var(--font-sans);color:var(--ink);display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.revlog summary span{font:500 .72rem/1 var(--font-mono);letter-spacing:.06em;color:var(--ink-2);text-transform:uppercase}
+.revlog ol{list-style:none;margin:0;padding:0 14px 12px;display:grid;gap:8px}
+.revlog li{font:400 .9rem/1.45 var(--font-sans);color:var(--ink-2);padding-top:8px;border-top:1px solid var(--line-soft)}
+.revlog li b{display:block;font:500 .72rem/1.4 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink)}
+.revlog li.next b{color:var(--link)}

@@ -1,0 +1,134 @@
+/* ================= ROUND 9: from your sticker review notes ================= */
+
+/* the treatment: vinyl die-cut stickers on the worn notebook (spine, band, label plate) */
+.tr-r9 .wd{filter:drop-shadow(1.6px 0 0 #fff) drop-shadow(-1.6px 0 0 #fff) drop-shadow(0 1.6px 0 #fff) drop-shadow(0 -1.6px 0 #fff) drop-shadow(0 5px 5px rgba(0,0,0,.45))}
+.tr-r9 .wd-sh{mix-blend-mode:screen;box-shadow:none;background:linear-gradient(118deg,transparent 34%,rgba(255,255,255,.42) 46%,rgba(255,255,255,.12) 53%,transparent 61%)}
+.tr-r9 .wd-ball .wd-sh{background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.6) 0 9%,transparent 30%)}
+.tr-r9 .wd-blank:not(.has){filter:none}
+.tr-r9 .wd-blank:not(.has) .wd-sh,.tr-r9 .wd-pal .wd-sh{display:none}
+
+/* puzzle: the empty slot is now a dark hole and each tile has an edge, so it reads as tiles */
+.pz{background:#1b2436;box-shadow:inset 0 2px 4px rgba(0,0,0,.5)}
+.pz-t{border:1.5px solid #1b2436;border-radius:5px;background-origin:border-box;box-shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -2px 0 rgba(0,0,0,.18)}
+
+/* ScribbleScan: the lines to write on stay; under them, plainly, the typed text it read (no character) */
+.tr-r9 .wd-scan .sc-out{padding:1cqh 10px 1.2cqh;gap:7px;border-top:1.5px dashed rgba(20,28,43,.25);background:#fff}
+.tr-r9 .wd-scan .sc-k{background:none;padding:0;border-radius:0;color:#5b6474;font:700 .56rem/1 var(--font-sans);letter-spacing:.08em}
+.tr-r9 .wd-scan .sc-k::after{content:" \2192";letter-spacing:0}
+.tr-r9 .wd-scan .sc-t{font:700 .92rem/1.1 var(--font-mono);color:#0b4f9c}
+.tr-r9 .wd-scan.typing .sc-t::after{content:"";display:inline-block;width:.5em;height:1em;margin-left:1px;vertical-align:-2px;background:currentColor;animation:car9 .45s steps(1) infinite}
+@keyframes car9{50%{opacity:0}}
+
+/* name tag, take A: it writes your name in marker; take B: it just sits there */
+.n9 .nm-w{position:relative;display:inline-block}
+.n9-write.go .nm-i{display:inline-block;animation:wr9 1.15s cubic-bezier(.45,.05,.55,.95) both}
+@keyframes wr9{from{clip-path:inset(-20% 100% -20% 0)}to{clip-path:inset(-20% -4% -20% 0)}}
+.nm-pen{position:absolute;left:0;bottom:22%;width:.26em;height:1.05em;border-radius:3px 3px 2px 2px;background:linear-gradient(#1b2436 0 70%,#3b4252 70%);transform-origin:50% 100%;rotate:28deg;opacity:0;pointer-events:none}
+.nm-pen::after{content:"";position:absolute;left:50%;bottom:-4px;width:5px;height:5px;margin-left:-2.5px;border-radius:0 0 3px 3px;background:#1b2436}
+.n9-write.go .nm-pen{animation:pen9 1.15s cubic-bezier(.45,.05,.55,.95) both}
+@keyframes pen9{0%{left:0;opacity:1;translate:0 0}25%{translate:0 -3px}50%{translate:0 2px}75%{translate:0 -2px}92%{left:100%;opacity:1;translate:0 0}100%{left:100%;opacity:0}}
+.n9-still.press{animation:press9 .32s var(--ease-out)}
+@keyframes press9{40%{scale:.96}}
+
+/* TENNIS, without the middle school line */
+.wd-ten9{padding:6px 12px 4px}
+.wd-ten9 .t9-arc{display:block;width:86%;height:auto;margin:3px auto 0;overflow:visible}
+.wd-ten9 .t9-arc path{stroke:var(--maroon,#8a2433);stroke-width:2;stroke-dasharray:3 4;stroke-linecap:round}
+.wd-ten9 .t9-arc circle{fill:#d7ea4f;stroke:#8a9a22;stroke-width:.8}
+.wd-ten9.hit{animation:peel6 640ms var(--ease-out)}
+.wd-ten9.hit .t9-arc path{animation:arc9 .6s ease-out}
+@keyframes arc9{from{stroke-dashoffset:40}}
+
+/* the typists, as stickers of their own */
+.wd-pal{width:19cqw;aspect-ratio:1/.9;background:#fffaf0;border-radius:48% 52% 46% 54%/56% 50% 50% 44%;display:flex;align-items:center;justify-content:center;padding:1.6cqw 1.2cqw .8cqw;box-sizing:border-box}
+.wd-pal .pty{display:block;width:100%;flex:none}
+.wd-pal .pty svg{display:block;width:100%;height:auto;overflow:visible}
+.pty .ty-a,.pty .ty-b,.pty .ty-eye,.pty .ty-hd{transform-box:fill-box}
+.pty .ty-eye{transform-origin:center;animation:blink7 5s infinite}
+.wd-pal.typing .ty-a{animation:tap7 .2s ease-in-out infinite alternate}
+.wd-pal.typing .ty-b{animation:tap7 .2s ease-in-out .1s infinite alternate}
+.wd-pal.typing .ty-hd{animation:bob7 .4s ease-in-out infinite alternate}
+.wd-pal-raccoon{border-radius:52% 48% 54% 46%/50% 56% 44% 50%;background:#f4f8ff}
+.pal-say{position:absolute;left:58%;top:-18%;min-width:2.4em;padding:4px 7px;border-radius:9px 9px 9px 2px;background:#fff;color:#1b2436;font:700 .7rem/1 var(--font-mono);white-space:nowrap;box-shadow:0 1px 0 rgba(0,0,0,.25);opacity:0;scale:.6;transform-origin:0 100%;transition:opacity .15s,scale .15s;pointer-events:none}
+.wd-pal.saying .pal-say:not(:empty){opacity:1;scale:1}
+
+/* your sticker: draw one or add a picture */
+.wd-mine{overflow:hidden}
+.wd-mine .mn-img{position:absolute;inset:0;border-radius:50%;background:center/cover no-repeat;display:none}
+.wd-mine.has{border:3px solid #fff;background:#fff}
+.wd-mine.has .mn-img{display:block}
+.wd-mine.has .mn-t{visibility:hidden}
+.wd-mine:not(.has):hover{border-color:#fff}
+
+/* the sticker maker */
+.mk9{border:var(--edge,2px) solid var(--line,#141c2b);border-radius:var(--r-lg,16px);padding:0;background:var(--surface,#fff);color:var(--ink,#141c2b);width:min(92vw,380px);box-shadow:var(--lift-md,0 6px 0 rgba(0,0,0,.25))}
+.mk9::backdrop{background:rgba(10,14,22,.55)}
+.mk9-in{display:flex;flex-direction:column;gap:12px;padding:16px}
+.mk9 h2{margin:0;font:800 1.15rem/1.2 var(--font-sans)}
+.mk9-p{margin:0;color:var(--ink-2,#4b5563);font-size:.9rem;line-height:1.4}
+.mk9-st{display:grid;place-items:center;padding:6px 0;background:repeating-linear-gradient(45deg,var(--ground,#f3f4f6) 0 6px,transparent 6px 12px);border-radius:12px}
+.mk9-st canvas{width:min(70vw,250px);aspect-ratio:1;border-radius:50%;background:#fff;box-shadow:0 0 0 4px #fff,0 0 0 5.5px rgba(20,28,43,.25),0 6px 10px rgba(0,0,0,.18);touch-action:none;cursor:crosshair}
+.mk9-tools,.mk9-foot{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.mk9-sw{display:flex;gap:6px;margin-right:auto}
+.mk9-sw button{width:28px;height:28px;border-radius:50%;border:2px solid var(--surface,#fff);background:var(--c);box-shadow:0 0 0 1.5px var(--line-control,#9aa3b2);cursor:pointer;padding:0}
+.mk9-sw button[aria-pressed=true]{box-shadow:0 0 0 2.5px var(--ink,#141c2b)}
+.mk9-btn{font:700 .88rem/1 var(--font-sans);padding:10px 13px;border-radius:var(--r-md,10px);border:var(--edge,2px) solid var(--line-control,#9aa3b2);background:var(--surface,#fff);color:var(--ink,#141c2b);cursor:pointer}
+.mk9-btn.primary{background:var(--action,#0062cc);color:var(--on-action,#fff);border-color:var(--line,#141c2b)}
+.mk9-btn.quiet{border-color:transparent;padding-left:4px;padding-right:4px;text-decoration:underline}
+.mk9-btn[hidden]{display:none}
+.mk9-sp{flex:1}
+.mk9 button:focus-visible,.mk9 label:focus-within{outline:2px solid var(--brand,#007bff);outline-offset:2px}
+
+/* round 9 cover: everything you kept */
+.cv7-kept .wd-name{left:12cqw;top:3cqh;width:44cqw;rotate:-4deg;z-index:2}
+.cv7-kept .wd-hike{left:auto;right:11cqw;top:6cqh;width:36cqw;rotate:5deg;z-index:1}
+.cv7-kept .wd-now{left:13cqw;top:22.5cqh;rotate:-2deg;z-index:3}
+.cv7-kept .wd-ten{left:auto;right:11cqw;top:23cqh;width:29cqw;rotate:5deg;z-index:2}
+.cv7-kept .wd-ten b{font-size:clamp(1rem,7.4cqw,1.8rem)}
+.cv7-kept .wd-scan{left:12cqw;top:33.5cqh;width:58cqw;rotate:-2deg;z-index:2}
+.cv7-kept .wd-scan .sc-pad{height:13cqh}
+.cv7-kept .wd-pal-octopus{left:70cqw;top:35cqh;width:19cqw;rotate:7deg;z-index:3}
+.cv7-kept .wd-puzzle{left:auto;right:11cqw;top:53cqh;rotate:6deg;z-index:3}
+.cv7-kept .pz{width:23cqw}
+.cv7-kept .wd-print{left:13cqw;top:56cqh;width:21cqw;rotate:-5deg}
+.cv7-kept .wd-pal-raccoon{left:37cqw;top:58cqh;width:19cqw;rotate:-4deg;z-index:2}
+.cv7-kept .wd-mine{left:41cqw;top:73cqh;width:19cqw}
+.cv7-kept .wd-ball{left:67cqw;top:78cqh;width:14cqw}
+
+/* round 9 cover: just the favorites */
+.cv7-fav9 .wd-name{left:12cqw;top:5cqh;width:48cqw;rotate:-5deg;z-index:2}
+.cv7-fav9 .wd-hike{left:auto;right:11cqw;top:17cqh;width:40cqw;rotate:5deg;z-index:1}
+.cv7-fav9 .wd-scan{left:12cqw;top:38cqh;width:60cqw;rotate:-2deg;z-index:2}
+.cv7-fav9 .wd-scan .sc-pad{height:15cqh}
+.cv7-fav9 .wd-pal-octopus{left:70cqw;top:39cqh;width:19cqw;rotate:7deg;z-index:3}
+.cv7-fav9 .wd-puzzle{left:auto;right:12cqw;top:59cqh;rotate:6deg;z-index:3}
+.cv7-fav9 .pz{width:25cqw}
+.cv7-fav9 .wd-mine{left:16cqw;top:62cqh;width:22cqw}
+.cv7-fav9 .wd-ball{left:42cqw;top:78cqh;width:15cqw}
+
+@media (prefers-reduced-motion:reduce){.n9 *,.wd-pal *,.wd-ten9 *{animation:none!important}}
+.tr-r9 .wd-scan .sc-pad{background-color:#fffdf6}
+
+/* round 10 cover: the settled set */
+.cv7-cover10 .wd-name{left:12cqw;top:3cqh;width:44cqw;rotate:-4deg;z-index:2}
+.cv7-cover10 .wd-hike{left:auto;right:11cqw;top:6cqh;width:36cqw;rotate:5deg;z-index:1}
+.cv7-cover10 .wd-now{left:13cqw;top:22.5cqh;rotate:-2deg;z-index:3}
+.cv7-cover10 .wd-ten{left:auto;right:10cqw;top:24.5cqh;width:27cqw;rotate:5deg;z-index:2}
+.cv7-cover10 .wd-ten b{font-size:clamp(1rem,7.4cqw,1.8rem)}
+.cv7-cover10 .wd-scan{left:12cqw;top:33.5cqh;width:58cqw;rotate:-2deg;z-index:2}
+.cv7-cover10 .wd-scan .sc-pad{height:13cqh}
+.cv7-cover10 .wd-pal-octopus{left:70cqw;top:35cqh;width:19cqw;rotate:7deg;z-index:3}
+.cv7-cover10 .wd-puzzle{left:auto;right:11cqw;top:53cqh;rotate:6deg;z-index:3}
+.cv7-cover10 .pz{width:23cqw}
+.cv7-cover10 .wd-print{left:13cqw;top:56cqh;width:21cqw;rotate:-5deg}
+.cv7-cover10 .wd-pal-raccoon{left:37cqw;top:58cqh;width:19cqw;rotate:-4deg;z-index:2}
+.cv7-cover10 .wd-mine{left:41cqw;top:73cqh;width:19cqw}
+.cv7-cover10 .wd-ball{left:67cqw;top:78cqh;width:14cqw}
+
+/* round 10: text that scales with the cover, so small phones don't crowd or clip */
+.cv7-cover10 .wd-ten{width:31cqw;padding:1.4cqw 1cqw 1cqw}
+.cv7-cover10 .wd-ten b{font-size:clamp(.8rem,6.2cqw,1.7rem);white-space:nowrap}
+.cv7-cover10 .wd-now{font-size:clamp(.5rem,3.3cqw,.82rem);padding:1.6cqw 3cqw;gap:1.6cqw}
+.cv7-cover10 .wd-scan .sc-k{font-size:clamp(.4rem,2.1cqw,.56rem)}
+.cv7-cover10 .wd-scan .sc-t{font-size:clamp(.66rem,3.6cqw,.92rem)}
+.cv7-cover10 .pr-k,.cv7-cover10 .pz-k{font-size:clamp(.42rem,2.5cqw,.62rem)}

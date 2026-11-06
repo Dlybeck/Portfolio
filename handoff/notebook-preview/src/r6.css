@@ -1,0 +1,303 @@
+/* ================= ROUND 6: a live sticker cover ================= */
+/* the book keeps a real 5 by 8 notebook shape; JS sizes .nb-book. Closed on desktop it slides half a spread to the middle */
+.r6 .nb-book{transition:transform 950ms cubic-bezier(0.45,0.05,0.25,1)}
+.cvr.r6.desktop.closed .nb-book{transform:translateX(calc(var(--pw) * -.5))}
+.r6.phone .nb-cover{inset:-4px -8px -8px -4px;border-radius:7px}
+.r6.phone .nb-book::after{content:"";position:absolute;right:-5px;top:3px;bottom:-1px;width:4px;border-radius:0 3px 3px 0;
+  background:repeating-linear-gradient(to bottom,#e9e3d3 0 2px,#cfc8b6 2px 3px);z-index:0;pointer-events:none}
+.cvr.r6.closed.phone .nb-book::after{opacity:0}
+.cv6 .cv-front{container-type:size;cursor:pointer}
+.cv6 .cv-open{pointer-events:auto;background:none;border:0;padding:4px 6px;cursor:pointer;color:#fff;font:700 clamp(1.1rem,6cqw,1.6rem)/1 var(--font-hand);right:5cqw;bottom:2.4cqh;rotate:-6deg;opacity:.9}
+.cv6 .cv-open:focus-visible{outline:2px solid #fff;outline-offset:2px;border-radius:6px}
+
+/* shared widget look: a die-cut sticker, white edge and a hard shadow */
+.wd{position:absolute;color:var(--ink-fixed);filter:drop-shadow(2px 3px 0 rgba(0,0,0,.35));cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:none;
+  transition:scale var(--d-press) var(--ease-out)}
+.wd:active{scale:.97}
+.wd:focus-visible{outline:2px dashed #fff;outline-offset:4px}
+.wd[role=button]{-webkit-tap-highlight-color:transparent}
+
+/* name tag */
+.wd-name{background:#fff;border:2px solid #fff;border-radius:10px;overflow:hidden;text-align:center;padding-bottom:1.6cqh}
+.wd-name b{display:block;background:var(--brand);color:#fff;font:800 clamp(1rem,7.6cqw,1.6rem)/1.1 var(--font-sans);letter-spacing:.06em;padding:1.4cqh 0 0}
+.wd-name small{display:block;background:var(--brand);color:#fff;font:600 clamp(.56rem,3.2cqw,.72rem)/1 var(--font-sans);padding:2px 0 1.4cqh;letter-spacing:.04em}
+.wd-name .nm{display:block;font:700 clamp(1.6rem,11cqw,2.5rem)/1.15 var(--font-hand);padding-top:.8cqh;white-space:nowrap}
+.nm.wr{animation:wr6 520ms steps(14,end)}
+@keyframes wr6{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+
+/* logo */
+.wd-logo{background:#fff;border-radius:16px;display:grid;place-items:center;width:20cqw;aspect-ratio:1}
+.wd-logo img{width:76%}
+.wd-logo.peel{animation:peel6 640ms var(--ease-out)}
+@keyframes peel6{30%{transform:rotate(-14deg) scale(1.08) translateY(-6px)}60%{transform:rotate(8deg)}to{transform:none}}
+
+/* ScribbleScan pad */
+.wd-scan{background:#fff;border:2px solid #fff;border-radius:12px;overflow:hidden;cursor:crosshair}
+.sc-pad{position:relative;height:17cqh;background:var(--p-note);background-image:linear-gradient(transparent calc(100% - 1px),rgba(11,79,156,.18) 0);background-size:100% 25%;overflow:hidden}
+.wd-scan.big .sc-pad{height:28cqh}
+.sc-pad svg{position:absolute;inset:0;width:100%;height:100%}
+.sc-w{font:700 46px var(--font-hand);fill:transparent;stroke:#0b4f9c;stroke-width:1.4;stroke-dasharray:420;stroke-dashoffset:0}
+.sc-w.wr{animation:ink6 1.4s ease-out both}
+@keyframes ink6{0%{stroke-dashoffset:420;fill:transparent}70%{stroke-dashoffset:0;fill:transparent}100%{stroke-dashoffset:0;fill:#0b4f9c}}
+.sc-pad canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.sc-bar{position:absolute;top:0;bottom:0;left:0;width:30%;background:linear-gradient(90deg,transparent,rgba(0,122,255,.28) 70%,rgba(0,122,255,.75) 98%,transparent);translate:-100% 0;pointer-events:none}
+.sc-bar.go{animation:scan6 600ms ease-in-out}
+@keyframes scan6{from{translate:-100% 0}to{translate:340% 0}}
+.sc-try{position:absolute;right:8px;top:6px;font:700 1rem/1 var(--font-hand);color:var(--link);opacity:.75;transition:opacity .3s}
+.sc-try.gone{opacity:0}
+.sc-out{display:flex;align-items:center;gap:8px;padding:1.2cqh 10px;border-top:1px solid rgba(20,28,43,.12);min-height:1.6em}
+.sc-k{font:700 .6rem/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;background:var(--p-sky);border-radius:999px;padding:4px 8px;flex:none}
+.sc-t{font:500 .8rem/1 var(--font-mono);white-space:nowrap;overflow:hidden}
+.sc-t:empty::after{content:"…";opacity:.4}
+
+/* tennis ball */
+.wd-ball{width:clamp(40px,15cqw,64px);aspect-ratio:1;border-radius:50%;background:#d7ea4f;border:3px solid #fff;overflow:hidden;cursor:grab;touch-action:none;z-index:5;
+  background-image:radial-gradient(circle at 34% 30%,rgba(255,255,255,.55),transparent 34%)}
+.wd-ball::before,.wd-ball::after{content:"";position:absolute;width:100%;height:100%;border-radius:50%;border:2.5px solid #fff;top:-10%}
+.wd-ball::before{left:-66%}.wd-ball::after{left:56%}
+.wd-ball.held{cursor:grabbing;scale:1.06}
+.wd-ball.free{left:0;top:0}
+.wd-ball.hop{animation:hop6 500ms var(--ease-out)}
+@keyframes hop6{40%{transform:translateY(-14px)}}
+
+/* court tile, for the grid */
+.wd-court{background:#3d7d55;border:2px solid #fff;border-radius:16px;overflow:hidden;cursor:default;
+  background-image:linear-gradient(#fff 0 0),linear-gradient(#fff 0 0);background-size:100% 2px,2px 40%;background-position:0 62%,50% 100%;background-repeat:no-repeat}
+.wd-court .wd-ball{position:absolute;position:absolute;right:12%;bottom:4%;width:clamp(30px,11cqw,46px);filter:none}
+.ct-k,.ct-n{position:absolute;left:10px;color:#fff;font:700 .62rem/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase}
+.ct-k{top:10px}.ct-n{top:24px;font:500 .62rem/1 var(--font-mono);text-transform:none;opacity:.85}
+
+/* sliding puzzle */
+.wd-puzzle{background:#fff;border:2px solid #fff;border-radius:10px;padding:5px;cursor:default}
+.pz{position:relative;width:24cqw;aspect-ratio:1;background:var(--p-lemon);border-radius:6px;overflow:hidden}
+.pz-t{position:absolute;left:0;top:0;width:33.34%;height:33.34%;padding:0;border:1px solid rgba(20,28,43,.35);border-radius:4px;background-color:var(--p-lemon);background-size:300% 300%;cursor:pointer;transition:translate 160ms var(--ease-out)}
+.pz-k{display:block;text-align:center;font:700 .62rem/1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;padding-top:5px}
+.wd-puzzle.solved .pz{background-image:var(--logo-img);background-size:100% 100%;outline:2px solid var(--hi);outline-offset:-2px}
+.wd-puzzle.solved .pz-k{color:#1a7f37}
+
+/* now pill */
+.wd-now{display:flex;align-items:center;gap:7px;background:var(--p-sky);border:2px solid #fff;border-radius:999px;padding:7px 14px;outline:2px solid var(--ink-fixed);outline-offset:-5px;white-space:nowrap;font:700 .82rem/1 var(--font-sans)}
+.wd-now b{font:500 .66rem/1 var(--font-mono);letter-spacing:.04em;text-transform:uppercase}
+.wd-now .dot{width:8px;height:8px;border-radius:50%;background:#8b93a1;flex:none}
+.wd-now.live .dot{background:#1fbf5a;box-shadow:0 0 0 0 rgba(31,191,90,.6);animation:pulse6 1.6s infinite}
+@keyframes pulse6{70%{box-shadow:0 0 0 7px rgba(31,191,90,0)}100%{box-shadow:0 0 0 0 rgba(31,191,90,0)}}
+.wd-now.flip{animation:flip6 360ms var(--ease-out)}
+@keyframes flip6{from{transform:rotateX(80deg)}}
+
+/* NBA scoreboard */
+.wd-nba{background:#141a26;border:2px solid #fff;border-radius:16px;color:#fff;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.nb-k{font:700 .6rem/1.1 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:#ffb35c}
+.nb-n{font:800 2.4rem/1 var(--font-mono);color:#ffd84a;text-shadow:0 0 10px rgba(255,216,74,.45)}
+.nb-s{font:500 .62rem/1.25 var(--font-mono);opacity:.85}
+
+/* planner note */
+.wd-plan{background:var(--p-lemon);padding:10px 10px 8px;display:flex;flex-direction:column;gap:4px;cursor:default;border-radius:2px}
+.pl-k{font:700 1.15rem/1 var(--font-hand);margin-bottom:2px}
+.pl-i{display:flex;align-items:center;gap:7px;background:none;border:0;padding:3px 0;font:700 1.02rem/1.05 var(--font-hand);color:var(--ink-fixed);text-align:left;cursor:pointer}
+.pl-i i{width:13px;height:13px;border:2px solid var(--ink-fixed);border-radius:3px;flex:none;position:relative}
+.pl-i.done{text-decoration:line-through;text-decoration-thickness:2px;opacity:.7;cursor:default}
+.pl-i.done i::after{content:"";position:absolute;left:2px;top:-4px;width:5px;height:10px;border:solid var(--ink-fixed);border-width:0 2.5px 2.5px 0;rotate:40deg}
+.pl-i:not(.done):hover i{background:rgba(255,255,255,.6)}
+
+/* ---- A: live stickers, scattered ---- */
+.cv6-stickers .wd-name{left:7cqw;top:5cqh;width:56cqw;rotate:-5deg}
+.cv6-stickers .wd-logo{right:8cqw;top:6cqh;rotate:9deg}
+.cv6-stickers .wd-scan{left:6cqw;top:33cqh;width:58cqw;rotate:3deg}
+.cv6-stickers .wd-puzzle{right:6cqw;top:34cqh;rotate:-7deg}
+.cv6-stickers .wd-now{left:7cqw;top:63cqh;rotate:-3deg}
+.cv6-stickers .wd-plan{right:7cqw;top:64cqh;width:40cqw;rotate:4deg}
+.cv6-stickers .wd-ball{left:12cqw;bottom:3cqh}
+.cv6-stickers .cv-open,.cv6-pad .cv-open{right:auto;left:42cqw}
+
+/* ---- B: widget grid ---- */
+.cv6-grid .cv-front{background:#161d2b;background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1.4px);background-size:7px 7px}
+.g6{position:absolute;inset:5cqh 6cqw 9cqh;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr 1fr;gap:3cqw}
+.g6 .wd{position:relative;filter:drop-shadow(0 3px 0 rgba(0,0,0,.35));border-radius:16px}
+.g6 .wd-name{grid-column:span 2;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;text-align:left;padding:0;align-items:end}
+.g6 .wd-name b{grid-row:span 2;writing-mode:vertical-rl;rotate:180deg;font-size:.9rem;padding:8px 6px;letter-spacing:.1em}
+.g6 .wd-name small{background:none;color:var(--ink-2);padding:10px 12px 0;align-self:start}
+.g6 .wd-name .nm{padding:0 12px 6px;font-size:clamp(1.6rem,10cqw,2.3rem)}
+.g6 .wd-scan{grid-column:span 2;border-radius:16px}
+.g6 .wd-scan .sc-pad{height:14cqh}
+.g6 .wd-puzzle{display:grid;place-items:center;border-radius:16px}
+.g6 .pz{width:min(24cqw,15cqh)}
+.g6 .wd-plan{border-radius:16px}
+.g6 .wd-nba,.g6 .wd-plan,.g6 .wd-court{min-height:0}
+.cv6-grid .cv-open{right:6cqw;bottom:2cqh;rotate:0deg}
+
+/* ---- C: one big pad ---- */
+.cv6-pad .wd-name{left:6cqw;top:4cqh;width:50cqw;rotate:-4deg}
+.cv6-pad .wd-now{right:5cqw;top:9cqh;rotate:5deg;font-size:.74rem;padding:6px 11px}
+.cv6-pad .wd-scan{left:6cqw;right:6cqw;top:28cqh;rotate:-1deg}
+.cv6-pad .wd-puzzle{left:8cqw;top:68cqh;rotate:-6deg}
+.cv6-pad .wd-plan{right:7cqw;top:66cqh;width:40cqw;rotate:4deg}
+.cv6-pad .wd-ball{left:44cqw;bottom:3cqh}
+@media (prefers-reduced-motion:reduce){.r6 .nb-book,.wd,.pz-t,.sc-w.wr,.nm.wr,.wd-now.live .dot{transition:none!important;animation:none!important}}
+/* fit fixes */
+.wd-now{font-size:clamp(.66rem,3.6cqw,.82rem);padding:6px 11px}
+.cv6-stickers .wd-now{top:60cqh}
+.cv6-stickers .wd-plan{top:68cqh}
+.g6 .wd-plan{padding:7px 9px;gap:0}
+.g6 .pl-k{font-size:1rem;margin:0}
+.g6 .pl-i{font-size:.95rem;padding:2px 0}
+.cv6-pad .cv-open{left:auto;right:5cqw}
+.cv6-pad .wd-ball{left:46cqw}
+
+/* ===== D: the laptop lid. Stickers inspired by his own lid: the Northwest, tennis, college in Tacoma, security jokes. Original art. ===== */
+.cv6-lid{--maroon:#8a2433;--cream:#f6efe1}
+.cv6-lid .cv-front{background:#626a77;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(0,0,0,.05) 0 1px,transparent 1px 3px)}
+.cvr6-lid .nb-cover{background:#626a77}
+.cv6-lid .wd-name b,.cv6-lid .wd-name small{background:var(--maroon)}
+/* mountain badge */
+.wd-mtn{border-radius:50%;border:3px solid #fff;overflow:hidden;aspect-ratio:1;background:#fff}
+.wd-mtn svg{display:block;width:100%;height:100%}
+.m-sky{fill:#f4d27a;transition:fill .9s}.m-sun{fill:#fff6d8;transition:transform .9s cubic-bezier(.45,.05,.25,1),fill .9s;transform-box:fill-box}
+.m-far{fill:#5d8a86;transition:fill .9s}.m-snow{fill:#fff}.m-tree{fill:#24453f;transition:fill .9s}.m-lake{fill:#3e6f8a;transition:fill .9s}
+.wd-mtn.dusk .m-sky{fill:#e9785a}.wd-mtn.dusk .m-sun{transform:translateY(38px);fill:#ffd36b}.wd-mtn.dusk .m-far{fill:#5b4a6b}.wd-mtn.dusk .m-tree{fill:#1d1f33}.wd-mtn.dusk .m-lake{fill:#3b3a63}
+/* stamp */
+.wd-stamp{padding:6px;background:radial-gradient(circle,transparent 2.3px,#fff 2.6px) -3.5px -3.5px/7px 7px;overflow:visible}
+.sp-in{background:var(--cream,#f6efe1);border:2px solid var(--maroon,#8a2433);padding:4px 5px;display:flex;flex-direction:column;align-items:center;gap:3px}
+.sp-in svg{width:100%;display:block;border:1px solid rgba(20,28,43,.4)}
+.s-sky{fill:#f2c88a}.s-sun{fill:#e2574c}.s-mtn{fill:#3c5d8c}.s-sea{fill:#244a3e}
+.sp-t,.sp-b{font:800 clamp(.5rem,2.8cqw,.7rem)/1 var(--font-sans);letter-spacing:.06em;color:var(--maroon,#8a2433);white-space:nowrap}
+.pm{position:absolute;right:-18%;top:30%;width:62%;aspect-ratio:1;border-radius:50%;border:2.5px solid rgba(30,40,90,.7);color:rgba(30,40,90,.75);display:grid;place-content:center;text-align:center;font:800 clamp(.55rem,3cqw,.8rem)/1 var(--font-mono);rotate:-18deg;opacity:0;scale:1.6;pointer-events:none}
+.pm b{font-size:.6em;font-weight:700}
+.wd-stamp.mk .pm{animation:pm6 380ms var(--ease-out) forwards}
+@keyframes pm6{to{opacity:1;scale:1}}
+/* tennis block */
+.wd-ten{background:#fff;border-radius:10px;padding:6px 10px 7px;text-align:center}
+.wd-ten b{display:block;font:900 clamp(1.5rem,11cqw,2.6rem)/.9 var(--font-sans);letter-spacing:-.02em;color:var(--maroon,#8a2433);-webkit-text-stroke:1px var(--maroon,#8a2433)}
+.wd-ten small{display:block;font:700 clamp(.5rem,2.8cqw,.68rem)/1 var(--font-sans);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);padding-top:4px}
+.wd-ten.peel{animation:peel6 640ms var(--ease-out)}
+/* 2FA token */
+.wd-mfa{background:#fff;border:3px solid #fff;border-radius:14px;padding:8px 10px 7px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 8px;background-image:linear-gradient(var(--p-mint,#cdeedd),var(--p-mint,#cdeedd));background-size:100% 30%;background-repeat:no-repeat}
+.mf-k{font:800 .72rem/1 var(--font-sans);letter-spacing:.1em}
+.mf-c{grid-column:1;white-space:nowrap;font:700 clamp(.82rem,5cqw,1.2rem)/1 var(--font-mono);letter-spacing:.04em;padding-top:4px}
+.mf-r{grid-column:2;grid-row:1 / span 2;width:24px;height:24px;border-radius:50%;background:conic-gradient(var(--brand) calc(var(--p,100) * 1%),rgba(20,28,43,.12) 0);-webkit-mask:radial-gradient(circle,transparent 6px,#000 6.5px);mask:radial-gradient(circle,transparent 6px,#000 6.5px)}
+.wd-mfa small{grid-column:span 2;font:600 clamp(.48rem,2.6cqw,.62rem)/1 var(--font-sans);color:#b3261e;letter-spacing:.02em}
+.wd-mfa.new .mf-c{animation:flip6 300ms var(--ease-out)}
+/* 3D printer */
+.wd-print{background:#fff;border-radius:12px;padding:6px 6px 5px;border:2px solid #fff}
+.pr-fr{position:relative;aspect-ratio:1/1.05;border:3px solid #2b313d;border-bottom-width:6px;border-radius:4px;background:#eef1f5;overflow:hidden}
+.pr-o{position:absolute;left:20%;right:20%;bottom:6%;top:30%;background-size:contain;background-repeat:no-repeat;background-position:bottom center;clip-path:inset(0 0 0 0)}
+.pr-b{position:absolute;left:8%;right:8%;bottom:2%;height:4%;background:#2b313d;border-radius:2px}
+.pr-g{position:absolute;left:0;right:0;top:24%;height:3px;background:#2b313d;opacity:0}
+.pr-n{position:absolute;top:-4px;left:40%;width:10px;height:12px;background:var(--hi,#ffd84a);border:2px solid #2b313d;border-radius:2px 2px 5px 5px}
+.wd-print.go .pr-o{animation:print6 3.2s steps(16,end) both}
+.wd-print.go .pr-g{opacity:1;animation:gantry6 3.2s steps(16,end) both}
+.wd-print.go .pr-n{animation:noz6 .35s ease-in-out infinite alternate}
+.wd-print.done .pr-g{opacity:0;animation:none}
+@keyframes print6{from{clip-path:inset(100% 0 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes gantry6{from{top:92%}to{top:26%}}
+@keyframes noz6{from{left:20%}to{left:68%}}
+.pr-k{display:block;text-align:center;font:700 .58rem/1 var(--font-sans);letter-spacing:.08em;text-transform:uppercase;padding-top:4px}
+/* campfire */
+.wd-fire{width:24cqw;aspect-ratio:1;background:#fff;border-radius:40% 40% 18px 18px;padding:0}
+.fi-f{position:absolute;left:18%;right:18%;bottom:24%;height:64%}
+.fi-f i{position:absolute;bottom:0;left:50%;width:60%;aspect-ratio:1;margin-left:-30%;border-radius:50% 0 50% 50%;rotate:-45deg;background:#f5a623;transform-origin:50% 50%;animation:flick6 .9s ease-in-out infinite alternate}
+.fi-f i:nth-child(2){width:46%;margin-left:-38%;background:#ee5a24;animation-delay:-.3s;animation-duration:.7s}
+.fi-f i:nth-child(3){width:30%;margin-left:-6%;background:#ffd84a;bottom:4%;animation-delay:-.6s}
+@keyframes flick6{from{transform:scale(1,1)}to{transform:scale(.88,1.12) translate(2px,-2px)}}
+.fi-l{position:absolute;left:14%;right:14%;bottom:16%;height:14%;background:linear-gradient(#a0522d,#7a3e1d);border-radius:20px;rotate:-8deg;box-shadow:0 0 0 2px #5a2e15}
+.fi-l::after{content:"";position:absolute;inset:0;background:inherit;border-radius:inherit;rotate:16deg;box-shadow:0 0 0 2px #5a2e15}
+.fi-s i{position:absolute;left:50%;bottom:50%;width:4px;height:4px;border-radius:50%;background:#ffb000;opacity:0}
+.wd-fire.stoke .fi-f{animation:stoke6 1.2s var(--ease-out)}
+.wd-fire.stoke .fi-s i{animation:spark6 1s ease-out forwards}
+.wd-fire.stoke .fi-s i:nth-child(2){animation-delay:.12s;margin-left:-10px}.wd-fire.stoke .fi-s i:nth-child(3){animation-delay:.25s;margin-left:8px}.wd-fire.stoke .fi-s i:nth-child(4){animation-delay:.38s;margin-left:-3px}
+@keyframes stoke6{30%{transform:scale(1.35);transform-origin:50% 100%}}
+@keyframes spark6{0%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-34px)}}
+
+/* layout D: a matched set, mirrored around the middle like the two scenes on his lid */
+.cv6-lid{--navy:#24364f;--teal:#3f7f7a;--sun:#f4d27a;--dusk:#e9785a}
+.cv6-lid .wd{z-index:1}
+.cv6-lid .wd-name{left:21cqw;top:3cqh;width:58cqw}
+.cv6-lid .wd-name .nm{color:var(--navy)}
+/* the pair: a waterfront postcard and a trail stamp, same size, tilted toward each other */
+.wd-card,.wd-hike{aspect-ratio:120/72;padding:4px;background:#fff;border-radius:6px}
+.wd-card svg,.wd-hike svg{display:block;width:100%;height:100%;border-radius:2px}
+.wd-hike{border-radius:0;padding:6px;background:radial-gradient(circle,transparent 2.3px,#fff 2.6px) -3.5px -3.5px/7px 7px;aspect-ratio:auto}
+.wd-hike svg{aspect-ratio:120/72;height:auto}
+.cv6-lid .wd-card{left:3cqw;top:21cqh;width:46cqw;rotate:-6deg}
+.cv6-lid .wd-hike{right:3cqw;top:20.4cqh;width:46cqw;rotate:6deg}
+.c-sky{fill:var(--sun,#f4d27a);transition:fill .9s}.c-band{fill:#f2a65a;opacity:.7;transition:opacity .9s}.c-band.b2{fill:var(--dusk,#e9785a)}
+.c-sun{fill:#fff6d8;transition:fill .9s,transform .9s;transform-box:fill-box}
+.c-stars circle{fill:#fff;opacity:0;transition:opacity .9s}
+.c-hill{fill:var(--teal,#3f7f7a);transition:fill .9s}.c-bridge{stroke:var(--navy,#24364f);stroke-width:1.6;transition:stroke .9s}
+.c-water{fill:var(--navy,#24364f)}.c-shine{stroke:#f4d27a;stroke-width:1.2;opacity:.8}
+.c-piers rect{fill:#141c2b}.c-lights circle{fill:#ffd36b;opacity:0;transition:opacity .9s}
+.c-t{font:800 7px var(--font-sans);letter-spacing:4px;fill:#fff;text-anchor:middle}
+.wd-card.night .c-sky{fill:#1d2a48}.wd-card.night .c-band{opacity:0}.wd-card.night .c-sun{fill:#e8ecf5;transform:scale(.7)}.wd-card.night .c-stars circle,.wd-card.night .c-lights circle{opacity:1}
+.wd-card.night .c-hill{fill:#22324f}.wd-card.night .c-bridge{stroke:#5d7096}.wd-card.night .c-shine{stroke:#e8ecf5}
+.m-band{fill:#f2a65a;opacity:.7;transition:opacity .9s}.m-mead{fill:#c6b26a;transition:fill .9s}.m-trail{stroke:#f6efe1;stroke-width:1.6;stroke-dasharray:2.5 2}
+.m-hiker{fill:var(--maroon,#8a2433)}.m-hiker .pack{fill:var(--navy,#24364f)}
+.wd-hike .m-sun{cx:28}
+.wd-mtn.dusk .m-band{opacity:0}.wd-mtn.dusk .m-mead{fill:#6b5a63}
+.wd-hike .m-tree{fill:var(--navy,#24364f)}.wd-hike .m-far{fill:var(--teal,#3f7f7a)}.wd-hike .m-lake{display:none}
+/* centre: the ScribbleScan pad, with a banana slug crawling along its top */
+.cv6-lid .wd-scan{left:16cqw;width:68cqw;top:41cqh}
+.cv6-lid .wd-scan .sc-pad{height:11cqh;background-color:#f6efe1}
+.cv6-lid .sc-k{background:var(--sun)}
+.wd-slug{left:20cqw;top:37.6cqh;width:13cqw;height:4.2cqh;z-index:3!important;filter:drop-shadow(1px 2px 0 rgba(0,0,0,.3));animation:crawl6 26s ease-in-out infinite alternate}
+@keyframes crawl6{from{translate:0 0}to{translate:44cqw 0}}
+.sl-body{position:absolute;inset:0;background:#f4cf3d;border:2px solid #fff;border-radius:60% 80% 30% 30%/90% 90% 30% 30%;box-shadow:inset -3px -3px 0 rgba(160,110,0,.25)}
+.sl-sp{position:absolute;left:30%;top:40%;width:4px;height:4px;border-radius:50%;background:#2b2b2b;box-shadow:6px 2px 0 #2b2b2b,-4px 3px 0 #2b2b2b}
+.sl-e{position:absolute;right:10%;top:-55%;width:2px;height:70%;background:#d9b11f;transform-origin:bottom;rotate:14deg;transition:scale .25s}
+.sl-e::after{content:"";position:absolute;top:-3px;left:-2px;width:6px;height:6px;border-radius:50%;background:#2b2b2b}
+.sl-e.b{right:22%;rotate:-6deg}
+.sl-say{position:absolute;right:-10px;top:-24px;background:#fff;border-radius:8px;padding:2px 6px;font:700 .9rem/1 var(--font-hand);opacity:0;pointer-events:none}
+.wd-slug.hi{animation-play-state:paused}
+.wd-slug.hi .sl-e{animation:eyes6 1.4s}.wd-slug.hi .sl-say{animation:say6 1.4s}
+@keyframes eyes6{20%,60%{scale:1 .2}}
+@keyframes say6{20%,80%{opacity:1}}
+/* bottom pairs: puzzle and printer around the tennis sticker, planner and campfire */
+.cv6-lid .wd-puzzle{left:4cqw;top:61cqh;rotate:-6deg}
+.cv6-lid .pz,.cv6-lid .pz-t{background-color:#f6efe1}
+.cv6-lid .wd-print{right:4cqw;top:61cqh;width:26cqw;rotate:6deg}
+.cv6-lid .pr-fr{border-color:var(--navy)}.cv6-lid .pr-n{background:var(--dusk)}
+.cv6-lid .wd-ten{left:33cqw;width:34cqw;top:67cqh;padding:5px 4px 6px}
+.cv6-lid .wd-ten b{font-size:clamp(1rem,7.6cqw,1.8rem)}
+.cv6-lid .wd-ten small{font-size:clamp(.42rem,2.2cqw,.58rem);letter-spacing:.08em}
+.cv6-lid .wd-ball{left:44cqw;top:60cqh;bottom:auto;width:12cqw}
+.cv6-lid .wd-plan{left:5cqw;top:81cqh;width:40cqw;rotate:-3deg;background:#f6efe1}
+.cv6-lid .wd-fire{right:8cqw;top:81.5cqh;width:22cqw;rotate:3deg;background:#f6efe1}
+.cv6-lid .cv-open{left:auto;right:auto;left:50%;translate:-50% 0;bottom:1.5cqh}
+@media (prefers-reduced-motion:reduce){.fi-f i,.wd-print *, .wd-stamp .pm{animation:none!important}.wd-stamp.mk .pm{opacity:1;scale:1}}
+/* layout D spacing */
+.cv6-lid .wd-name{left:24cqw;width:52cqw;top:2.4cqh}
+.cv6-lid .wd-name b{font-size:clamp(.9rem,6.6cqw,1.4rem);padding-top:1cqh}
+.cv6-lid .wd-name small{padding-bottom:1cqh}
+.cv6-lid .wd-name .nm{font-size:clamp(1.3rem,8.6cqw,2rem);padding-top:.2cqh}
+.cv6-lid .wd-card{top:22.5cqh}.cv6-lid .wd-hike{top:21.9cqh}
+.cv6-lid .wd-scan{top:44cqh}.wd-slug{top:40.6cqh}
+.cv6-lid .wd-scan .sc-pad{height:10cqh}
+.cv6-lid .wd-puzzle{top:61.5cqh}.cv6-lid .wd-print{top:61.5cqh}
+.cv6-lid .wd-ten{top:67.5cqh}.cv6-lid .wd-ball{top:60.5cqh}
+.cv6-lid .pz{width:21cqw}.cv6-lid .wd-print{width:23cqw}
+.cv6-lid .wd-plan{left:5cqw;top:80cqh;width:36cqw;padding:7px 9px;gap:0}
+.cv6-lid .pl-k{font-size:.95rem;margin:0}.cv6-lid .pl-i{font-size:.9rem;padding:1px 0}
+.cv6-lid .wd-fire{right:7cqw;top:80.5cqh;width:20cqw}
+.cv6-lid .cv-open{z-index:4;left:50%;bottom:3cqh;font-size:clamp(1rem,5cqw,1.4rem)}
+/* round badges: AI and the NBA model flank the name tag; an empty spot waits for a sticker he picks */
+.wd-round{width:19cqw;aspect-ratio:1;border-radius:50%;border:3px solid #fff;display:grid;place-items:center}
+.wd-ai{background:var(--navy,#24364f)}
+.wd-ai svg{position:absolute;inset:14%;width:72%;height:72%}
+.ai-st{fill:var(--sun,#f4d27a)}.ai-st.s2{fill:var(--dusk,#e9785a)}
+.wd-ai b{position:relative;font:900 clamp(.7rem,4.4cqw,1rem)/1 var(--font-sans);color:var(--navy,#24364f);letter-spacing:.02em}
+.wd-ai.think svg{animation:spin6 1s linear infinite}
+@keyframes spin6{to{rotate:360deg}}
+.wd-hoop{background:var(--cream,#f6efe1)}
+.wd-hoop svg{width:86%;height:86%}
+.hp-b circle{fill:#f2a65a}.hp-b path{fill:none;stroke:var(--navy,#24364f);stroke-width:1.6}
+.hp-b{transform-origin:20px 20px;transform-box:view-box}
+.wd-hoop.think .hp-b{animation:spin6 .65s linear}
+.pop{position:absolute;top:100%;margin-top:8px;width:max-content;max-width:44cqw;background:#fff;color:var(--ink-fixed);border-radius:10px;padding:6px 9px;font:700 clamp(.85rem,4.6cqw,1.05rem)/1.1 var(--font-hand);opacity:0;scale:.8;transition:opacity .2s,scale .2s;pointer-events:none;z-index:9;box-shadow:2px 3px 0 rgba(0,0,0,.3)}
+.wd-ai .pop{left:0}.wd-hoop .pop{right:0}
+.wd-round.think .pop,.wd-round.said .pop{opacity:1;scale:1}
+.wd-blank{background:transparent;border:2.5px dashed rgba(255,255,255,.75);filter:none;text-align:center;color:#fff;font:700 clamp(.6rem,3.4cqw,.82rem)/1 var(--font-hand)}
+.wd-blank.peel{animation:peel6 640ms var(--ease-out)}
+.cv6-lid .wd-ai{left:3cqw;top:5cqh;rotate:-8deg;z-index:4}
+.cv6-lid .wd-hoop{right:3cqw;top:5cqh;rotate:8deg;z-index:4}
+.cv6-lid .wd-blank{left:40.5cqw;top:81cqh}
+.cv6-lid .cv-open{bottom:2cqh}
+.wd-ai svg{inset:8% 20% 30%;width:60%;height:62%}
+.wd-ai b{position:absolute;bottom:13%;color:var(--sun,#f4d27a)}

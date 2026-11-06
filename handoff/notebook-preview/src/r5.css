@@ -1,0 +1,111 @@
+/* ================= ROUND 5: the first screen ================= */
+/* closed notebook: a real cover over the first page; on desktop the closed book is one page wide and slides to center as it opens */
+.cvr .nb-book{transition:transform 950ms cubic-bezier(0.45,0.05,0.25,1)}
+.cvr .nb-cover{transition:left 950ms cubic-bezier(0.45,0.05,0.25,1)}
+.cvr .nb-page.l,.cvr .nb-gutter{transition:opacity 500ms 200ms}
+.cvr.desktop.closed .nb-book{transform:translateX(-225px)}
+.cvr.desktop.closed .nb-cover{left:calc(50% - 2px)}
+.cvr.desktop.closed .nb-page.l,.cvr.desktop.closed .nb-gutter{opacity:0;transition:none}
+.cvr.closed .nb-ear,.cvr.closed .nb-pn,.cvr.closed .nb-flip{visibility:hidden}
+.cvr-stickers.closed .nb-band,.cvr-spiral.closed .nb-band{opacity:0}
+.cvr .nb-band{transition:opacity .3s .6s}
+.cv{z-index:65;left:0;right:0;transform-origin:left center;cursor:pointer;outline-offset:4px}
+.desktop .cv{left:50%}
+.cv .cv-front{background-image:none;border:var(--edge) solid var(--ink-fixed);border-radius:3px 7px 7px 3px;overflow:hidden;color:#fff;
+  box-shadow:inset 9px 0 0 rgba(0,0,0,.14),inset 10px 0 0 rgba(255,255,255,.12)}
+.cv .back{background-color:var(--p-note)}
+.cv-open{position:absolute;right:30px;bottom:24px;font:700 1.5rem/1 var(--font-hand);rotate:-6deg;color:inherit;opacity:.9;pointer-events:none}
+.cv-open::after{content:" \2192"}
+
+/* A. classic: cover cloth in the brand blue, a name plate, the elastic band across it */
+.cv-classic .cv-front{background:var(--brand);background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.05) 0 2px,transparent 2px 5px),repeating-linear-gradient(-45deg,rgba(0,0,0,.05) 0 2px,transparent 2px 5px)}
+.cv-plate{position:absolute;left:12%;right:20%;top:20%;background:var(--p-note);color:var(--ink-fixed);border:var(--edge) solid var(--ink-fixed);border-radius:8px;padding:16px 18px 14px;box-shadow:3px 3px 0 rgba(20,28,43,.4)}
+.cv-plate::before{content:"";position:absolute;inset:5px;border:1px solid rgba(20,28,43,.25);border-radius:5px;pointer-events:none}
+.cv-k{font:500 .68rem/1 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+.cv-name{display:flex;align-items:center;gap:10px;margin:10px 0 8px;font:800 1.7rem/1.02 var(--font-sans);letter-spacing:-.02em}
+.cv-name img{width:38px;height:38px;flex:none}
+.desktop .cv-name{font-size:2.1rem}
+.cv-secs{font:500 .64rem/1.4 var(--font-mono);letter-spacing:.06em;color:var(--ink-2)}
+
+/* B. stickers: a dark cover covered in stickers of things from the pages */
+.cv-stickers .cv-front{background:#1b2436;background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1.4px);background-size:7px 7px}
+.st{position:absolute;color:var(--ink-fixed);filter:drop-shadow(0 0 0 #fff) drop-shadow(2px 3px 0 rgba(0,0,0,.35))}
+.st-tag{left:9%;top:9%;width:min(230px,62%);rotate:-5deg;background:#fff;border-radius:10px;overflow:hidden;text-align:center;padding-bottom:10px;border:2px solid #fff}
+.st-tag b{display:block;background:var(--brand);color:#fff;font:800 1.5rem/1.1 var(--font-sans);letter-spacing:.06em;padding:8px 0 0}
+.st-tag small{display:block;background:var(--brand);color:#fff;font:600 .7rem/1 var(--font-sans);padding:2px 0 8px;letter-spacing:.04em}
+.st-tag span{display:block;font:700 2.6rem/1.1 var(--font-hand);padding-top:6px}
+.st-logo{right:10%;top:10%;rotate:9deg;width:70px;height:70px;background:#fff;border-radius:16px;display:grid;place-items:center}
+.st-logo img{width:54px;height:54px}
+.st-ss{left:12%;top:48%;rotate:6deg;background:var(--p-sky);border:2px solid #fff;border-radius:999px;padding:9px 16px;font:800 1.05rem/1 var(--font-sans);outline:2px solid var(--ink-fixed);outline-offset:-5px}
+.st-ball{right:14%;top:44%;width:62px;height:62px;border-radius:50%;background:#d7ea4f;border:3px solid #fff;overflow:hidden}
+.st-ball::before,.st-ball::after{content:"";position:absolute;width:62px;height:62px;border-radius:50%;border:2.5px solid #fff;top:-6px}
+.st-ball::before{left:-40px}.st-ball::after{left:34px}
+.st-box{left:18%;top:68%;width:64px;height:64px;rotate:-10deg;background:var(--p-tangerine);border:3px solid #fff;border-radius:8px;
+  background-image:linear-gradient(var(--ink-fixed) 0 0),linear-gradient(var(--ink-fixed) 0 0),linear-gradient(var(--ink-fixed) 0 0),linear-gradient(var(--ink-fixed) 0 0);
+  background-size:2px 100%,2px 100%,100% 2px,100% 2px;background-position:33% 0,66% 0,0 33%,0 66%;background-repeat:no-repeat}
+.st-box i{display:none}
+.st-wheel{right:20%;top:70%;width:66px;height:66px;border-radius:50%;background:var(--hi);border:3px solid #fff;display:grid;place-items:center;font:800 1.4rem/1 var(--font-sans);rotate:-8deg}
+.phone .st-ball{width:52px;height:52px}.phone .st-wheel{width:56px;height:56px}
+.cv-stickers .cv-open{color:#fff}
+
+/* C. spiral: a kraft sketchbook with a wire spiral, a handwritten title and a sticky note */
+.cv-spiral .cv-front{background:color-mix(in srgb,var(--p-tangerine) 62%,#9c7748);color:var(--ink-fixed);border-radius:3px;
+  background-image:radial-gradient(rgba(60,40,10,.12) 1px,transparent 1.3px),radial-gradient(rgba(255,255,255,.12) 1px,transparent 1.3px);background-size:6px 6px,9px 9px;background-position:0 0,3px 4px}
+.sp-rings{position:absolute;left:-4px;top:4%;bottom:4%;width:26px;display:flex;flex-direction:column;justify-content:space-between}
+.sp-rings i{display:block;height:9px;width:26px;border:2.5px solid #3c4352;border-radius:6px;background:linear-gradient(90deg,#b8bfcb,#eef1f5 45%,#8d95a3);box-shadow:1px 1px 0 rgba(0,0,0,.3)}
+.sp-title{position:absolute;left:16%;right:10%;top:16%;font:700 3.3rem/.95 var(--font-hand);rotate:-4deg;color:var(--ink-fixed)}
+.desktop .sp-title{font-size:4rem}
+.sp-line{position:absolute;left:16%;width:58%;top:calc(16% + 7.2rem);height:14px;border-bottom:3px solid var(--brand);border-radius:0 0 50% 50%;rotate:-4deg}
+.desktop .sp-line{top:calc(16% + 4.6rem)}
+.sp-note{position:absolute;right:12%;bottom:18%;width:136px;height:128px;background:var(--p-lemon);rotate:5deg;padding:14px 12px;box-shadow:2px 4px 0 rgba(20,28,43,.25);display:flex;flex-direction:column;gap:6px}
+.sp-note img{width:34px;height:34px}
+.sp-note span{font:700 1.45rem/1 var(--font-hand)}
+.cv-spiral .cv-open{left:16%;right:auto;color:var(--ink-fixed)}
+
+/* D. shelf: one book per section; pick one and it opens there */
+.shelf{position:absolute;z-index:6;transition:opacity 420ms;opacity:0;pointer-events:none}
+.on-shelf .shelf{opacity:1;pointer-events:auto}
+.phone .shelf{left:14px;right:36px;top:70px;bottom:92px}
+.desktop .shelf{left:calc(50% - 450px);width:900px;top:96px;bottom:92px}
+.shelfmode .nb-book{transition:opacity 420ms,transform 420ms}
+.on-shelf .nb-book{opacity:0;pointer-events:none;transform:scale(.97)}
+.shelfmode .kb-wrap{transition:translate 420ms,opacity 420ms}
+.on-shelf .kb-wrap{opacity:0;pointer-events:none;translate:0 60px}
+.desktop.on-shelf .kb-wrap{translate:-80px 0}
+.sh-row{position:absolute;display:flex;gap:7px}
+.desktop .sh-row{left:8%;right:8%;bottom:14%;height:72%;align-items:flex-end;justify-content:center}
+.phone .sh-row{left:0;right:0;bottom:16px;top:50px;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px}
+.bk{position:relative;border:var(--edge) solid var(--ink-fixed);border-radius:4px;background:var(--bc);color:var(--bi);cursor:pointer;padding:0;display:flex;
+  transition:translate var(--d-press) var(--ease-out),opacity 300ms,scale 300ms;box-shadow:3px 3px 0 rgba(20,28,43,.25)}
+.desktop .bk{height:var(--h);width:var(--w);flex-direction:column;align-items:center;justify-content:space-between;padding:16px 0 12px;
+  background-image:linear-gradient(to bottom,transparent 7%,rgba(20,28,43,.2) 7% 8.4%,transparent 8.4% 90%,rgba(20,28,43,.2) 90% 91.4%,transparent 91.4%)}
+.phone .bk{width:calc(var(--h) * 1%);height:62px;translate:var(--o) 0;align-items:center;justify-content:space-between;padding:0 14px;
+  background-image:linear-gradient(to right,transparent 5%,rgba(20,28,43,.2) 5% 6.5%,transparent 6.5% 93.5%,rgba(20,28,43,.2) 93.5% 95%,transparent 95%)}
+.desktop .bk-t{writing-mode:vertical-rl;font:800 1.1rem/1 var(--font-sans);letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.phone .bk-t{font:800 1.05rem/1 var(--font-sans);display:flex;align-items:center;gap:8px;padding-left:10px}
+.bk-t img{width:22px;height:22px}
+.desktop .bk-t img{rotate:90deg}
+.bk-r{font:500 .62rem/1 var(--font-mono);letter-spacing:.06em;opacity:.8}
+.desktop .bk-r{writing-mode:vertical-rl}
+.phone .bk-r{padding-right:8px}
+.desktop .bk.lean{rotate:7deg;transform-origin:bottom left;margin-left:8px}
+.desktop .bk:hover{translate:0 -12px}
+.phone .bk:hover{translate:calc(var(--o) + 8px) 0}
+.shelf:has(.picked) .bk:not(.picked){opacity:.2}
+.desktop .bk.picked{translate:0 -30px;scale:1.06}
+.phone .bk.picked{translate:var(--o) -10px;scale:1.05}
+.sh-plank{position:absolute;left:4%;right:4%;height:14px;border:var(--edge) solid var(--line);border-radius:3px;background:var(--surface-raised);box-shadow:0 4px 0 rgba(20,28,43,.12)}
+.desktop .sh-plank{bottom:calc(14% - 14px)}
+.phone .sh-plank{bottom:2px}
+.sh-hint{position:absolute;color:var(--link);font:700 1.4rem/1 var(--font-hand);rotate:-4deg}
+.desktop .sh-hint{left:9%;top:4%}
+.phone .sh-hint{left:6px;top:8px}
+@media (prefers-reduced-motion:reduce){.cvr .nb-book,.cvr .nb-cover,.bk,.shelf,.shelfmode .nb-book,.shelfmode .kb-wrap{transition:none!important}}
+/* round 5 touch-ups: keep "open" clear of the band, give each cover its own board, room between spine title and pages */
+.desktop .cv-open{right:96px}
+.phone .cv-open{right:48px}
+.cvr-stickers .nb-cover{background:#1b2436}
+.cvr-spiral .nb-cover{background:color-mix(in srgb,var(--p-tangerine) 62%,#9c7748)}
+.phone .bk{gap:12px}
+.phone .bk-t{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phone .bk-r{flex:none;font-size:.56rem}

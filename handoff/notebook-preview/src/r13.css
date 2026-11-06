@@ -1,0 +1,50 @@
+/* ================= ROUND 13: from your round 12 review ================= */
+/* the name tag: a tap wipes the name and writes it again in the next hand */
+.n13 .nm{font-size:calc(clamp(1.6rem,11cqw,2.5rem)*var(--hs,1));height:calc(clamp(1.6rem,11cqw,2.5rem)*1.15);display:flex;align-items:center;justify-content:center}
+.n13.out .nm-i{display:inline-block;animation:out13 .26s ease-in both}
+@keyframes out13{from{clip-path:inset(-30% -4% -30% 0)}to{clip-path:inset(-30% -4% -30% 100%)}}
+.n13.go .nm-i{display:inline-block;animation:wr13 .9s cubic-bezier(.45,.05,.55,.95) both}
+@keyframes wr13{from{clip-path:inset(-30% 100% -30% 0)}to{clip-path:inset(-30% -4% -30% 0)}}
+.n13.go .nm-pen{animation:pen9 .9s cubic-bezier(.45,.05,.55,.95) both}
+.n13 .nm-pen{font-size:clamp(1.6rem,11cqw,2.5rem)}
+
+/* TENNIS, switched up: a racket and "let's hit?" */
+.wd-hit13{background:#fff;border-radius:14px;padding:4px 6px 6px;display:flex;flex-direction:column;align-items:center}
+.h13-r{display:block;width:100%;height:auto;overflow:visible}
+.h13-sw{transform-box:view-box;transform-origin:30px 56px}
+.h13-t{font:700 1.15rem/1 var(--font-hand);color:#8a2433;margin-top:2px;white-space:nowrap}
+.wd-hit13.sw .h13-sw{animation:sw13 .6s cubic-bezier(.3,.7,.3,1)}
+.wd-hit13.sw .h13-b{animation:ball13 .9s ease-out}
+@keyframes sw13{0%{rotate:0deg}30%{rotate:-38deg}55%{rotate:22deg}100%{rotate:0deg}}
+@keyframes ball13{0%{translate:0 0}25%{translate:-14px 6px}45%{translate:-12px 4px}70%{translate:26px -26px;opacity:0}71%{translate:0 0;opacity:0}100%{translate:0 0;opacity:1}}
+@media (prefers-reduced-motion:reduce){.n13 *,.wd-hit13 *{animation:none!important}}
+
+/* the printer with no label: the picture fills the sticker */
+.p13{padding:6px}
+
+/* the round 13 covers */
+:is(.cv7-cover13a,.cv7-cover13b) .wd-name{left:12cqw;top:3cqh;width:44cqw;rotate:-4deg;z-index:2}
+:is(.cv7-cover13a,.cv7-cover13b) .wd-hike{left:auto;right:10cqw;top:7cqh;width:36cqw;rotate:5deg;z-index:1}
+:is(.cv7-cover13a,.cv7-cover13b) .wd-now{left:13cqw;top:26cqh;rotate:-2deg;z-index:3;font-size:clamp(.5rem,3.3cqw,.82rem);padding:1.6cqw 3cqw;gap:1.6cqw}
+:is(.cv7-cover13a,.cv7-cover13b) .wd-scan{left:11cqw;top:38.5cqh;width:58cqw;rotate:-2deg;z-index:2}
+:is(.cv7-cover13a,.cv7-cover13b) .wd-scan .sc-pad{height:13cqh}
+:is(.cv7-cover13a,.cv7-cover13b) .wd-scan .sc-k{font-size:clamp(.4rem,2.1cqw,.56rem)}
+:is(.cv7-cover13a,.cv7-cover13b) .wd-scan .sc-t{font-size:clamp(.66rem,3.6cqw,.92rem)}
+:is(.cv7-cover13a,.cv7-cover13b) .wd-puzzle{left:auto;right:10cqw;top:60cqh;rotate:6deg;z-index:3}
+:is(.cv7-cover13a,.cv7-cover13b) .pz{width:23cqw}
+:is(.cv7-cover13a,.cv7-cover13b) .pz-k{font-size:clamp(.42rem,2.5cqw,.62rem)}
+:is(.cv7-cover13a,.cv7-cover13b) .wd-p12{left:12cqw;top:62cqh;width:23cqw;rotate:-5deg;padding:1.4cqw}
+:is(.cv7-cover13a,.cv7-cover13b) .wd-mine{left:41cqw;top:70cqh;width:19cqw}
+/* A: TENNIS gone, the raccoon moves up into its place and the ball sits beside ScribbleScan */
+.cv7-cover13a .wd-pal-raccoon{left:69cqw;top:27cqh;width:19cqw;rotate:7deg;z-index:3}
+.cv7-cover13a .wd-ball{left:74cqw;top:47cqh;width:14cqw}
+/* B: the racket takes TENNIS's place */
+.cv7-cover13b .wd-hit13{left:auto;right:8cqw;top:26cqh;width:22cqw;rotate:6deg;z-index:2;padding:1cqw 1.4cqw 1.4cqw}
+.cv7-cover13b .h13-t{font-size:clamp(.8rem,4.6cqw,1.25rem)}
+.cv7-cover13b .wd-pal-raccoon{left:71cqw;top:45cqh;width:19cqw;rotate:7deg;z-index:3}
+.cv7-cover13b .wd-ball{left:43cqw;top:59cqh;width:14cqw}
+
+/* round 14 review fix: once the notebook is open the elastic band tucks to the outer edge, thin and quiet */
+.in-r13 .nb-band{transition:right .5s,width .5s,opacity .5s,top .5s,bottom .5s}
+.in-r13:not(.closed) .nb-band{right:-5px;width:5px;top:14%;bottom:14%;opacity:.4;border-width:1px;border-radius:2px}
+.desktop.in-r13:not(.closed) .nb-band{right:-9px}

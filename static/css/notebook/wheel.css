@@ -33,7 +33,7 @@
 }
 .wheel-name small { display: block; margin-top: 4px; font: 500 0.7rem/1 var(--font-mono); letter-spacing: 0.08em; opacity: 0.85; }
 
-@media (min-width: 900px) {
+@media (min-width: 900px), (orientation: landscape) and (min-width: 640px) {
   .wheel { left: -180px; bottom: auto; top: calc(50% - 26px); margin: -220px 0 0; width: 440px; height: 440px; }
   .wheel-pointer { left: auto; right: -14px; top: 50%; margin: -8px 0 0; width: 12px; height: 16px; clip-path: polygon(100% 0, 100% 100%, 0 50%); }
   .wheel-name { left: auto; right: 58px; top: 50%; margin-top: -18px; text-align: right; font-size: 1.3rem; }

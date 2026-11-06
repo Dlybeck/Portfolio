@@ -2,6 +2,7 @@
 // when you spin the wheel past page 1.
 
 import { el, reducedMotion, tuck } from "./motion.js";
+import { stickersHtml, wireStickers } from "./stickers/index.js";
 
 const OPEN_MS = 950;
 const SWING = "cubic-bezier(0.45, 0.05, 0.25, 1)";
@@ -31,22 +32,29 @@ export function createCover({ root, book, phone, onTap }) {
   function build({ swingShut }) {
     leaf = el("div", "nb-leaf cover");
     const front = el("div", "face front cover-front");
-    front.innerHTML = `<i class="cover-stitch"></i><i class="cover-band"></i><span class="cover-label">David Lybeck</span><button type="button" class="cover-open">open</button>`;
+    front.innerHTML = `<i class="cover-stitch"></i>${stickersHtml()}<span class="cover-label">David Lybeck</span><i class="cover-band"></i><button type="button" class="cover-open">open</button>`;
     const back = el("div", "face back");
     // on desktop the cover's inside is the left page, so it lands on the left as the book opens
     if (!phone) back.append(backFace());
     leaf.append(front, back);
     book.append(leaf);
+    wireStickers(front);
 
+    // A swipe to the left opens the cover wherever it ends; one that starts on a sticker belongs to the sticker.
     let startX = null;
-    leaf.addEventListener("pointerdown", (e) => { e.stopPropagation(); startX = e.clientX; });
+    let onSticker = false;
+    leaf.addEventListener("pointerdown", (e) => { onSticker = Boolean(e.target.closest(".wd")); startX = onSticker ? null : e.clientX; }, true);
     leaf.addEventListener("pointerup", (e) => {
-      e.stopPropagation();
       const swiped = startX !== null && e.clientX - startX < -30;
       startX = null;
       if (swiped) onTap();
+    }, true);
+    leaf.addEventListener("pointerdown", (e) => e.stopPropagation());
+    leaf.addEventListener("pointerup", (e) => e.stopPropagation());
+    leaf.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!onSticker) onTap(); // a press that began on a sticker and ended elsewhere is not a tap on the cover
     });
-    leaf.addEventListener("click", (e) => { e.stopPropagation(); onTap(); });
 
     if (swingShut && !reducedMotion()) {
       if (phone) tuck(leaf, -180, 0, OPEN_MS - 50, SWING).onfinish = (e) => e.target.cancel();

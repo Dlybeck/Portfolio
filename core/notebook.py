@@ -121,6 +121,7 @@ def client_data() -> dict[str, object]:
                 "pair": page.pair,
                 "path": page.path,
                 "hash": HASHES.get(page.id),
+                "href": page.href,
             }
             for page in PAGES
         },

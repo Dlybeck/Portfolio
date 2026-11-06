@@ -1,0 +1,34 @@
+/* Section tabs on the edge of the open notebook. Two placements are being tried (?tabs=a or ?tabs=b):
+     a: the top edge of the book on a phone; the right edge on desktop
+     b: the right edge on both
+   .nb--tabs-a / .nb--tabs-b on #notebook say which. The book leaves room for them (see --nb-top and --nb-gutter). */
+
+.nb--phone.nb--tabs-a { --nb-top: 104px; }
+.nb--phone.nb--tabs-b { --nb-gutter: 30px; }
+
+.nb-tabs { position: absolute; z-index: 3; display: flex; margin: 0; padding: 0; }
+.nb.is-closed .nb-tabs { display: none; }
+.nb-tab {
+  display: grid; place-items: center; box-sizing: border-box; min-width: 0; padding: 0 3px; white-space: nowrap; text-decoration: none; overflow: hidden;
+  background: var(--tab); color: var(--ink-fixed); border: var(--edge) solid var(--nb-edge);
+  font: 700 0.7rem / 1 var(--font-sans); letter-spacing: 0.01em;
+  transition: transform var(--duration-press) var(--ease-out), filter var(--duration-press) var(--ease-out);
+}
+.nb-tab:hover { filter: brightness(1.05); }
+.nb-tab[aria-current] { font-weight: 800; box-shadow: var(--lift-sm); }
+
+/* along the top edge (phone, placement a) */
+.nb--phone.nb--tabs-a .nb-tabs { left: 4px; right: 4px; bottom: calc(100% - 1px); height: 32px; gap: 3px; }
+.nb--phone.nb--tabs-a .nb-tab { flex: 1 1 0; border-bottom: 0; border-radius: 8px 8px 0 0; transform: translateY(3px); font-size: 0.64rem; }
+.nb--phone.nb--tabs-a .nb-tab[aria-current] { transform: translateY(0); }
+
+/* down the right edge (desktop, and phone placement b) */
+.nb--desktop .nb-tabs, .nb--phone.nb--tabs-b .nb-tabs { left: calc(100% + 8px); top: 26px; flex-direction: column; gap: 6px; }
+.nb--desktop .nb-tab, .nb--phone.nb--tabs-b .nb-tab {
+  writing-mode: vertical-rl; width: 30px; min-height: 76px; padding: 8px 0; border-left: 0; border-radius: 0 8px 8px 0; transform: translateX(-4px); font-size: 0.8rem;
+}
+.nb--desktop .nb-tab[aria-current], .nb--phone.nb--tabs-b .nb-tab[aria-current] { transform: translateX(4px); }
+.nb--phone.nb--tabs-b .nb-tab { width: 26px; flex: 1 1 0; min-height: 40px; max-height: 64px; font-size: 0.66rem; }
+.nb--phone.nb--tabs-b .nb-tabs { left: calc(100% + 5px); top: 14px; bottom: 14px; gap: 4px; } /* shares the book's height, so six tabs fit even on a short phone */
+
+@media (prefers-reduced-motion: reduce) { .nb-tab { transition: none; } }

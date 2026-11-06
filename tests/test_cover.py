@@ -214,10 +214,16 @@ def test_a_swipe_that_ends_on_a_sticker_still_opens_the_cover(browser_page) -> N
 
 def test_a_swipe_that_starts_on_a_sticker_does_not(browser_page) -> None:
     page, *_ = cover(browser_page, DESKTOP)
+    # let fonts and first animations settle so the sticker is where we measure it
+    page.evaluate("document.fonts.ready")
+    page.wait_for_timeout(800)
     box = page.locator(".wd-now").bounding_box()
-    page.mouse.move(box["x"] + box["width"] - 6, box["y"] + box["height"] / 2)
+    y = box["y"] + box["height"] / 2
+    start = page.evaluate("([x, y]) => document.elementFromPoint(x, y).closest('.wd') !== null", [box["x"] + box["width"] / 2, y])
+    assert start  # the press really lands on the sticker
+    page.mouse.move(box["x"] + box["width"] / 2, y)
     page.mouse.down()
-    page.mouse.move(box["x"] - 100, box["y"] + box["height"] / 2, steps=6)
+    page.mouse.move(box["x"] - 120, y, steps=8)
     page.mouse.up()
     page.wait_for_timeout(300)
 

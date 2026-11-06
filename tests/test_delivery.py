@@ -89,8 +89,13 @@ def test_every_route_has_its_own_title_description_and_canonical(client: TestCli
         assert '<meta name="theme-color"' in html
 
 
-def test_the_old_social_picture_of_the_board_is_gone() -> None:
-    assert not (ROOT / "static" / "images" / "social").exists()
+def test_the_old_link_preview_picture_still_answers_at_its_old_address(client: TestClient) -> None:
+    # pasted links from before the notebook may still point at it; the other old pictures are gone on purpose
+    old = client.get("/static/images/social/home-board.webp")
+
+    assert old.status_code == 200 and old.headers["content-type"] == "image/webp" and len(old.content) > 20_000
+    assert sorted(p.name for p in (ROOT / "static" / "images" / "social").iterdir()) == ["home-board.webp"]
+    assert "static/images/social/home-board.webp" in (ROOT / ".dockerignore").read_text()  # kept in the image
     assert (ROOT / "static" / "img" / "social" / "home-notebook.webp").stat().st_size > 20_000
 
 

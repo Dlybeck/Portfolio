@@ -6,6 +6,8 @@ import { el, reducedMotion, tuck } from "./motion.js";
 const TURN_MS = 720;
 const EASE = "cubic-bezier(0.4, 0.1, 0.3, 1)";
 const MAX_IN_AIR = 8;
+const SWIPE_MIN = 56; // px sideways
+const SWIPE_RATIO = 2; // and at least twice as far sideways as up or down
 
 /**
  * @param {object} o
@@ -118,6 +120,7 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
   function chrome(id) {
     const i = order.indexOf(id);
     root.dataset.page = id;
+    root.dispatchEvent(new CustomEvent("nb:view", { detail: id }));
     const title = data.pages[id].title;
     inL.setAttribute("aria-label", phone ? title : `${title}, left page`);
     inR?.setAttribute("aria-label", `${title}, right page`);
@@ -282,14 +285,17 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
   let start = null;
   // a swipe that starts on a swipe row, a model, a video or a field belongs to that thing, not the book
   const OWN_GESTURE = "[data-slides], model-viewer, video, select, input, button.slides-prev, button.slides-next";
-  book.addEventListener("pointerdown", (e) => { start = e.target.closest(OWN_GESTURE) ? null : [e.clientX, e.clientY]; });
+  book.addEventListener("pointerdown", (e) => { start = e.target.closest(OWN_GESTURE) ? null : { x: e.clientX, y: e.clientY, at: e.timeStamp }; });
+  // The browser takes a gesture that starts moving up or down (it scrolls the page and cancels ours),
+  // so what reaches pointerup here began sideways. Even so, only a clearly horizontal stroke turns the page.
   book.addEventListener("pointercancel", () => { start = null; });
   book.addEventListener("pointerup", (e) => {
     if (!start) return;
-    const dx = e.clientX - start[0];
-    const dy = e.clientY - start[1];
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    const quick = e.timeStamp - start.at < 900;
     start = null;
-    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) step(dx < 0 ? 1 : -1);
+    if (Math.abs(dx) >= SWIPE_MIN && Math.abs(dx) > Math.abs(dy) * SWIPE_RATIO && quick) step(dx < 0 ? 1 : -1);
   });
 
   return {

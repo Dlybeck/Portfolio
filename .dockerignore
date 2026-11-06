@@ -12,3 +12,4 @@ docs
 scripts
 # the full-size originals; the site serves the phone-sized copies in static/img
 static/images
+!static/images/social/home-board.webp

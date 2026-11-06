@@ -63,7 +63,7 @@ PAGES = (
     _page("toc", "me", "Contents", "", "", phone_only=True),
     _page("projects", "projects", "Projects", "5 entries", "", phone_only=True),
     _page("scribblescan", "projects", "ScribbleScan", "2025 to now",
-          "Handwriting digitization, from a hosted product to an offline, privacy-first experiment."),
+          "Handwriting digitization, from a hosted product to a privacy-first experiment."),
     _page("site", "projects", "This website", "2022 to now",
           "You're looking at it! Four versions so far, and how each was made."),
     _page("nba", "projects", "NBA Prediction AI", "2024 · partner project",

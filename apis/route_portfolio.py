@@ -5,12 +5,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from core import notebook, notebook_content
 from core.images import img_size
-from core.discovery import PERSON_SCHEMA, metadata_for
+from core.discovery import PERSON_SCHEMA, SITE_URL, metadata_for
 from core.portfolio import DOCUMENTS, PortfolioDocument
 
 templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))
@@ -32,6 +32,20 @@ def render_notebook(request: Request, document: PortfolioDocument | None = None)
 @portfolio_router.get("/")
 async def home(request: Request):
     return render_notebook(request)
+
+
+@portfolio_router.get("/robots.txt", include_in_schema=False)
+async def robots():
+    return PlainTextResponse(f"User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}/sitemap.xml\n")
+
+
+@portfolio_router.get("/sitemap.xml", include_in_schema=False)
+async def sitemap():
+    """Every public address: the cover and each page route."""
+    addresses = ["/", *(document.route for document in DOCUMENTS)]
+    urls = "".join(f"<url><loc>{SITE_URL}{address}</loc></url>" for address in addresses)
+    xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>'
+    return Response(xml, media_type="application/xml")
 
 
 @portfolio_router.get("/favicon.ico", include_in_schema=False)

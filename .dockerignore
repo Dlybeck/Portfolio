@@ -1,0 +1,14 @@
+.git
+.claude
+.specify
+.opencode
+.venv
+venv
+__pycache__
+*.pyc
+.env
+tests
+docs
+scripts
+# the full-size originals; the site serves the phone-sized copies in static/img
+static/images

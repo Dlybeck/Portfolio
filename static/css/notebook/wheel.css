@@ -17,7 +17,7 @@
   background: rgba(255, 255, 255, 0.62); transform: rotate(var(--a)) translateX(var(--tr));
 }
 .wheel-dot { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
-.wheel-dot button {
+.wheel-dot .wheel-hit {
   position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; border: 0; padding: 0; background: none; cursor: pointer; display: grid; place-items: center;
 }
 .wheel-dot i {
@@ -29,14 +29,18 @@
 .wheel-dot.is-cover .is-current i { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35), 0 0 0 2.5px #fff; }
 .wheel-name {
   position: absolute; left: 0; right: 0; top: 34px; z-index: 2; text-align: center; color: #fff; pointer-events: none;
-  font: 800 1.15rem/1 var(--font-sans); letter-spacing: -0.01em;
+  font: 800 1.2rem/1 var(--font-sans); letter-spacing: -0.01em; text-shadow: 0 1px 0 rgba(0, 28, 77, 0.45);
 }
-.wheel-name small { display: block; margin-top: 4px; font: 500 0.7rem/1 var(--font-mono); letter-spacing: 0.08em; opacity: 0.85; }
+/* the page number sits on a darker chip so small white text keeps 4.5:1 on the brand blue */
+.wheel-name small { display: block; width: fit-content; margin: 5px auto 0; padding: 3px 7px; border-radius: 999px; background: rgba(0, 28, 77, 0.55); font: 500 0.7rem/1 var(--font-mono); letter-spacing: 0.08em; }
+
+.wheel-name small:empty { display: none; }
 
 @media (min-width: 900px), (orientation: landscape) and (min-width: 640px) {
   .wheel { left: -180px; bottom: auto; top: calc(50% - 26px); margin: -220px 0 0; width: 440px; height: 440px; }
   .wheel-pointer { left: auto; right: -14px; top: 50%; margin: -8px 0 0; width: 12px; height: 16px; clip-path: polygon(100% 0, 100% 100%, 0 50%); }
   .wheel-name { left: auto; right: 58px; top: 50%; margin-top: -18px; text-align: right; font-size: 1.3rem; }
+  .wheel-name small { margin-left: auto; margin-right: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) { .wheel-dot i { transition: none; } }

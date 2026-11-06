@@ -430,3 +430,11 @@ MODELS = {'puzzles': [{'name': 'My first puzzle box',
             'word': 'Open it',
             'links': [],
             'close': 'Close it'}]}
+
+# Say hi. The Resume row links the PDF in static/PDF. Set RESUME_URL to None to hide the row.
+RESUME_URL: str | None = "/static/PDF/David-Lybeck-Resume.pdf"
+CONTACTS = [
+    {"label": "GitHub", "text": "github.com/Dlybeck", "href": "https://github.com/Dlybeck"},
+    {"label": "LinkedIn", "text": "linkedin.com/in/davidlybeck", "href": "https://www.linkedin.com/in/davidlybeck"},
+    {"label": "Email", "text": "Dlybeck383@gmail.com", "href": "mailto:Dlybeck383@gmail.com"},
+]

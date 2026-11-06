@@ -24,11 +24,11 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
 
   root.insertAdjacentHTML(
     "beforeend",
-    `<div class="nb-book">
+    `<div class="nb-book" role="main" aria-label="David Lybeck's notebook">
        <div class="nb-back"></div>
        ${phone
-         ? `<div class="nb-page one"><div class="nb-in" tabindex="0"></div></div>`
-         : `<div class="nb-page l"><div class="nb-in" tabindex="0"></div></div><div class="nb-page r"><div class="nb-in" tabindex="0"></div></div><div class="nb-gutter"></div>`}
+         ? `<div class="nb-page one"><div class="nb-in" role="region" tabindex="0"></div></div>`
+         : `<div class="nb-page l"><div class="nb-in" role="region" tabindex="0"></div></div><div class="nb-page r"><div class="nb-in" role="region" tabindex="0"></div></div><div class="nb-gutter"></div>`}
        <div class="nb-leaf"><div class="face front"></div><div class="face back"></div></div>
        <div class="nb-band"></div>
        <span class="nb-pn lft"></span><span class="nb-pn rgt"></span>
@@ -118,6 +118,9 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
   function chrome(id) {
     const i = order.indexOf(id);
     root.dataset.page = id;
+    const title = data.pages[id].title;
+    inL.setAttribute("aria-label", phone ? title : `${title}, left page`);
+    inR?.setAttribute("aria-label", `${title}, right page`);
     root.classList.toggle("is-turned", i > 0);
     prev.disabled = i <= 0;
     next.disabled = i >= total - 1;

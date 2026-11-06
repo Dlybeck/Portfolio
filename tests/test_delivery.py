@@ -89,6 +89,23 @@ def test_every_route_has_its_own_title_description_and_canonical(client: TestCli
         assert '<meta name="theme-color"' in html
 
 
+def test_files_are_sent_with_the_right_type_even_without_a_system_mime_table(client: TestClient) -> None:
+    import mimetypes
+
+    expected = {
+        "/static/img/social/home-notebook.webp": "image/webp",
+        "/static/fonts/caveat-latin-700-normal.woff2": "font/woff2",
+        "/static/3Dmodels/FirstPuzzle/FirstPuzzle.glb": "model/gltf-binary",
+        "/static/img/planner/old.mp4": "video/mp4",
+        "/static/dlybeck/dl-note.svg": "image/svg+xml",
+        "/static/PDF/David-Lybeck-Resume.pdf": "application/pdf",
+    }
+    for path, kind in expected.items():
+        assert client.get(path).headers["content-type"].split(";")[0] == kind, path
+        # registered by the app itself, not borrowed from the machine it runs on
+        assert mimetypes.types_map[path[path.rindex("."):]] == kind or mimetypes.guess_type(path)[0] == kind
+
+
 def test_the_old_link_preview_picture_still_answers_at_its_old_address(client: TestClient) -> None:
     # pasted links from before the notebook may still point at it; the other old pictures are gone on purpose
     old = client.get("/static/images/social/home-board.webp")

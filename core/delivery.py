@@ -8,10 +8,27 @@ change, so browsers may keep them for a week; stylesheets, scripts and pages are
 
 from __future__ import annotations
 
+import mimetypes
+
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-ALREADY_COMPRESSED = (".webp", ".png", ".jpg", ".jpeg", ".woff2", ".mp4", ".pdf", ".zip", ".ico")
+# The slim Docker image has no system MIME table, so without these a picture, font or model is sent as text/plain
+# (link-preview crawlers refuse that). Registered here so every environment answers the same.
+for _suffix, _type in {
+    ".webp": "image/webp",
+    ".woff2": "font/woff2",
+    ".glb": "model/gltf-binary",
+    ".mp4": "video/mp4",
+    ".svg": "image/svg+xml",
+    ".pdf": "application/pdf",
+    ".js": "text/javascript",
+    ".css": "text/css",
+    ".json": "application/json",
+}.items():
+    mimetypes.add_type(_type, _suffix)
+
+ALREADY_COMPRESSED =(".webp", ".png", ".jpg", ".jpeg", ".woff2", ".mp4", ".pdf", ".zip", ".ico")
 LONG_LIVED_FOLDERS = ("/static/fonts/", "/static/img/", "/static/3Dmodels/", "/static/vendor/", "/static/PDF/", "/static/dlybeck/", "/static/programs/")
 # Code that changes with the site is never cached for long (the vendored viewer is the exception: it is pinned).
 ALWAYS_REVALIDATED = (".css", ".js", ".html")

@@ -17,19 +17,24 @@ export function createCover({ root, book, phone, onTap }) {
   let leaf = null;
   let timer = 0;
   let closed = false;
+  // While the cover is shut, what lies under it must not be reachable by keyboard or screen reader.
+  const covered = () => book.querySelectorAll(":scope > .nb-page, :scope > .nb-ear");
+  const setCovered = (on) => covered().forEach((n) => { n.inert = on; });
+
+  function backFace() {
+    const left = book.querySelector(".nb-page.l .nb-in");
+    const inside = el("div", "nb-in");
+    inside.append(...[...left.childNodes].map((n) => n.cloneNode(true)));
+    return inside;
+  }
 
   function build({ swingShut }) {
     leaf = el("div", "nb-leaf cover");
     const front = el("div", "face front cover-front");
     front.innerHTML = `<i class="cover-stitch"></i><i class="cover-band"></i><span class="cover-label">David Lybeck</span><button type="button" class="cover-open">open</button>`;
     const back = el("div", "face back");
-    if (!phone) {
-      // on desktop the cover's inside is the left page, so it lands on the left as the book opens
-      const left = book.querySelector(".nb-page.l .nb-in");
-      const inside = el("div", "nb-in");
-      inside.append(...[...left.childNodes].map((n) => n.cloneNode(true)));
-      back.append(inside);
-    }
+    // on desktop the cover's inside is the left page, so it lands on the left as the book opens
+    if (!phone) back.append(backFace());
     leaf.append(front, back);
     book.append(leaf);
 
@@ -62,6 +67,7 @@ export function createCover({ root, book, phone, onTap }) {
       book.querySelectorAll(":scope > .cover").forEach((n) => n.remove());
       closed = true;
       root.classList.add("is-closed");
+      setCovered(true);
       build({ swingShut: animate });
     },
     /** Swing the cover open to the left. */
@@ -69,9 +75,11 @@ export function createCover({ root, book, phone, onTap }) {
       closed = false;
       clearTimeout(timer);
       root.classList.remove("is-closed");
+      setCovered(false);
       const gone = leaf;
       leaf = null;
       if (!gone) return;
+      if (!phone) gone.querySelector(".back").replaceChildren(backFace()); // the page now showing, not the one it was built over
       if (reducedMotion()) { gone.remove(); return; }
       if (phone) tuck(gone, 0, -180, OPEN_MS, SWING);
       else {
@@ -82,6 +90,7 @@ export function createCover({ root, book, phone, onTap }) {
     },
     destroy() {
       clearTimeout(timer);
+      setCovered(false);
       book.querySelectorAll(":scope > .cover").forEach((n) => n.remove());
     },
   };

@@ -53,8 +53,8 @@ export function createBook({ root, data, sources, mode, onView }) {
   const sideSeq = { L: 0, R: 0 };
 
   // ---------- which page is on which side ----------
-  /** The index pages are not spreads on desktop: send them to their first story. */
-  const normalize = (id) => (phone || order.includes(id) ? id : (data.lists[id] || [id])[0]);
+  /** The index pages are not spreads on desktop: the contents folds into the first spread, a list into its first story. */
+  const normalize = (id) => (phone || order.includes(id) ? id : (data.lists[id] || ["me"])[0]);
 
   function wrap(nodes, { cur } = {}) {
     const page = el("div", "page");
@@ -115,7 +115,7 @@ export function createBook({ root, data, sources, mode, onView }) {
       const target = scroller?.querySelector(`[data-id="${anchor}"]`);
       if (!target) continue;
       const box = scroller.getBoundingClientRect();
-      scroller.scrollTo({ top: scroller.scrollTop + target.getBoundingClientRect().top - box.top - 14, behavior: "auto" });
+      scroller.scrollTo({ top: scroller.scrollTop + target.getBoundingClientRect().top - box.top - 14, behavior: "instant" });
     }
   }
 
@@ -139,7 +139,8 @@ export function createBook({ root, data, sources, mode, onView }) {
   function turn(to, { duration = TURN_MS, anchor, silent = false } = {}) {
     const id = normalize(to);
     if (id === current) {
-      scrollToAnchor(anchor);
+      if (anchor) scrollToAnchor(anchor);
+      else for (const scroller of [inL, inR]) scroller?.scrollTo({ top: 0, behavior: "instant" });
       return;
     }
     const forward = current === null || order.indexOf(id) > order.indexOf(current);

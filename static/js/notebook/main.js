@@ -82,6 +82,7 @@ function mount(initial) {
   if (initial) {
     book.show(initial.page, initial.anchor);
     wheel.set(book.current);
+    if (here() !== addressOf(book.current)) history.replaceState({ page: book.current }, "", addressOf(book.current));
   } else {
     book.show("me");
     cover.close();
@@ -91,6 +92,7 @@ function mount(initial) {
   return {
     go,
     home: (options) => closeCover(options),
+    focusPage() { book.book.querySelector(".nb-page.r .nb-in, .nb-page .nb-in")?.focus({ preventScroll: true }); },
     get isClosed() { return cover.closed; },
     get page() { return cover.closed ? null : book.current; },
     destroy() { cover.destroy(); wheel.destroy(); book.destroy(); },
@@ -104,7 +106,10 @@ root.addEventListener("click", (e) => {
   if (!link || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return; // keep "open in a new tab" working
   e.preventDefault();
   if (link.hasAttribute("data-home")) view.home();
-  else view.go(link.dataset.open);
+  else {
+    view.go(link.dataset.open);
+    view.focusPage(); // the clicked link is gone once the page is rewritten; keep keyboard users in the book
+  }
 });
 
 window.addEventListener("popstate", () => {

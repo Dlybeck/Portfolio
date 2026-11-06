@@ -96,7 +96,15 @@ def test_each_route_opens_its_page(browser_page, viewport: dict, route: str) -> 
     assert "is-closed" not in (root.get_attribute("class") or "")
     shown = " ".join(page.locator(".nb-in .page h2, .nb-in .page h3").all_inner_texts()).lower()
     names = (EXPECTED[route].lower(), document.page_title.lower())
-    assert any(name in shown for name in names) or document.anchor, shown
+    if document.anchor:
+        # the part of the page the route names is on screen, inside its scroller
+        target = page.locator(f'.nb-in [data-id="{document.anchor}"]')
+        assert target.count() == 1
+        scroller = target.locator("xpath=ancestor::*[contains(@class,'nb-in')][1]").bounding_box()
+        spot = target.bounding_box()
+        assert scroller["y"] - 24 <= spot["y"] < scroller["y"] + scroller["height"], (spot, scroller)
+    else:
+        assert any(name in shown for name in names), shown
     assert problems == []
 
 
@@ -137,6 +145,40 @@ def test_a_link_turns_the_page_and_back_returns(browser_page) -> None:
     page.go_back()
     page.wait_for_timeout(900)
     assert page.locator("#notebook").get_attribute("data-page") == "scribblescan"
+
+
+def test_contents_link_on_desktop_opens_the_first_spread(browser_page) -> None:
+    page, base = browser_page
+    page.set_viewport_size(DESKTOP)
+    problems = open_route(page, base, "/#contents")
+
+    assert page.locator("#notebook").get_attribute("data-page") == "me"
+    assert page.locator(".nb-pn.rgt").inner_text() == "p.1"
+    assert page.locator(".nb-page.r .toc").count() == 1
+    assert problems == []
+
+
+def test_going_back_to_a_route_without_a_part_resets_the_scroll(browser_page) -> None:
+    page, base = browser_page
+    page.set_viewport_size(DESKTOP)
+    open_route(page, base, "/education/early_education")
+    assert page.locator(".nb-page.r .nb-in").evaluate("n => n.scrollTop") > 0
+
+    page.evaluate("history.pushState({}, '', '/education/college'); dispatchEvent(new PopStateEvent('popstate'))")
+    page.wait_for_timeout(300)
+    assert page.locator(".nb-page.r .nb-in").evaluate("n => n.scrollTop") == 0
+
+
+def test_the_covered_pages_are_not_reachable_until_the_cover_opens(browser_page) -> None:
+    page, base = browser_page
+    page.set_viewport_size(PHONE)
+    open_route(page, base, "/")
+
+    assert page.locator(".nb-page").evaluate("n => n.inert") is True
+    page.locator(".cover-open").click()
+    page.wait_for_timeout(1100)
+    assert page.locator(".nb-page").evaluate("n => n.inert") is False
+    assert page.evaluate("location.hash") == "#about"
 
 
 def test_the_wheel_turns_pages_with_the_keyboard(browser_page) -> None:

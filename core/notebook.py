@@ -49,7 +49,7 @@ SECTIONS = (
     Section("say", "Say hi", "note"),
 )
 
-_CANONICAL = {"me": "/"}
+_CANONICAL = {}
 for _doc in DOCUMENTS:
     _CANONICAL.setdefault(_doc.page, _doc.route)
 
@@ -104,7 +104,7 @@ LIST_LEADS = {
 }
 
 # Routes that have no page of their own open the closed index pages by hash.
-HASHES = {"toc": "contents", "projects": "projects", "hobbies": "hobbies", "say": "say-hi"}
+HASHES = {"me": "about", "toc": "contents", "projects": "projects", "hobbies": "hobbies", "say": "say-hi"}
 
 
 def client_data() -> dict[str, object]:

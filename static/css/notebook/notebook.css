@@ -11,7 +11,6 @@
   --nb-turn: 720ms;
   --nb-turn-ease: cubic-bezier(0.45, 0.05, 0.25, 1);
   --nb-wheel-room: 138px; /* the part of the screen the wheel takes on a phone */
-  --nb-book-w: min(1040px, calc(100vw - 340px));
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -61,8 +60,12 @@ body {
 .js .nb { position: fixed; inset: 0; min-height: 0; overflow: clip; }
 .js .nb-top { position: absolute; inset: 0 0 auto 0; z-index: 20; height: 62px; padding-top: 14px; }
 
+/* The book is always a 5 by 8 notebook (one page on a phone, two side by side on desktop), as big as fits. */
 .nb-book {
-  position: absolute; left: 14px; right: 20px; top: 70px; bottom: calc(var(--nb-wheel-room) + env(safe-area-inset-bottom, 0px));
+  --avail-h: calc(100dvh - 70px - var(--nb-wheel-room) - env(safe-area-inset-bottom, 0px));
+  --bw: min(calc(100vw - 34px), calc(var(--avail-h) * 0.625));
+  position: absolute; width: var(--bw); height: calc(var(--bw) / 0.625); left: 50%; margin-left: calc(var(--bw) / -2 - 3px);
+  top: calc(70px + (var(--avail-h) - var(--bw) / 0.625) / 2);
   perspective: 1800px; z-index: 1; touch-action: pan-y;
 }
 /* a thin stack of pages already turned, behind the left edge of the phone book */
@@ -134,10 +137,12 @@ body {
 @media (min-width: 900px) {
   .nb-top { padding: 14px 28px; }
   .nb-book {
-    left: calc(300px + (100vw - 340px - var(--nb-book-w)) / 2); right: auto; width: var(--nb-book-w);
-    top: 84px; bottom: 40px; transition: transform 950ms var(--nb-turn-ease);
+    --avail-h: calc(100dvh - 124px);
+    --bw: min(calc(var(--avail-h) * 1.25), calc(100vw - 340px), 1280px);
+    left: calc(300px + (100vw - 340px - var(--bw)) / 2); margin-left: 0; width: var(--bw); height: calc(var(--bw) / 1.25);
+    top: calc(84px + (var(--avail-h) - var(--bw) / 1.25) / 2); transition: transform 950ms var(--nb-turn-ease);
   }
-  .nb--desktop.is-closed .nb-book { transform: translateX(calc(var(--nb-book-w) * -0.25)); }
+  .nb--desktop.is-closed .nb-book { transform: translateX(calc(var(--bw) * -0.25)); }
   .nb-back { inset: -10px -12px -12px -12px; border-radius: 10px; transition: left 950ms var(--nb-turn-ease); }
   .nb--desktop.is-closed .nb-back { left: calc(50% - 2px); }
   .nb--desktop .nb-page.l { right: 50%; border-radius: 3px 0 0 3px; border-right-color: rgba(20, 28, 43, 0.25); }

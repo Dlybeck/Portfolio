@@ -1,0 +1,20 @@
+{% from "notebook/_ui.html" import head %}
+{% macro job(j) %}
+<li class="job">
+  <span class="job-text"><span class="when">{{ j.when }}</span><b>{{ j.role }}</b><small>{{ j.org }}</small><span class="job-note">{{ j.text }}</span></span>
+</li>
+{% endmacro %}
+<article class="page" id="page-work" data-page="work" aria-label="Work">
+  <section>
+    {{ head("Work · 8 roles", "Work", "From coaching tennis to building AI tools.") }}
+    <ul class="rows">{% for j in content.JOBS[:2] %}{{ job(j) }}{% endfor %}</ul>
+  </section>
+  <section>
+    <h3>Before Denali</h3>
+    <ul class="rows">{% for j in content.JOBS[2:5] %}{{ job(j) }}{% endfor %}</ul>
+  </section>
+  <section>
+    <h3>Earlier</h3>
+    <ul class="rows">{% for j in content.JOBS[5:] %}{{ job(j) }}{% endfor %}</ul>
+  </section>
+</article>

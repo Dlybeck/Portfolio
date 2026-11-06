@@ -1,0 +1,265 @@
+// The book: puts the server-written pages onto one page (phone) or a two-page spread (desktop)
+// and turns them. Several leaves can be in the air at once, so a fast wheel riffles through the book.
+
+import { el, reducedMotion, tuck } from "./motion.js";
+
+const TURN_MS = 720;
+const EASE = "cubic-bezier(0.4, 0.1, 0.3, 1)";
+const MAX_IN_AIR = 8;
+
+/**
+ * @param {object} o
+ * @param {HTMLElement} o.root      the #notebook element
+ * @param {object} o.data           the table of contents (core/notebook.py client_data)
+ * @param {Map<string, HTMLElement>} o.sources  page id -> its <article> as written by the server
+ * @param {"phone"|"desktop"} o.mode
+ * @param {(id: string) => void} o.onView  called when a page is showing
+ */
+export function createBook({ root, data, sources, mode, onView }) {
+  const phone = mode === "phone";
+  const order = phone ? data.phone : data.desktop;
+  const total = order.length;
+
+  root.insertAdjacentHTML(
+    "beforeend",
+    `<div class="nb-book">
+       <div class="nb-back"></div>
+       ${phone
+         ? `<div class="nb-page one"><div class="nb-in" tabindex="0"></div></div>`
+         : `<div class="nb-page l"><div class="nb-in" tabindex="0"></div></div><div class="nb-page r"><div class="nb-in" tabindex="0"></div></div><div class="nb-gutter"></div>`}
+       <div class="nb-leaf"><div class="face front"></div><div class="face back"></div></div>
+       <div class="nb-band"></div>
+       <span class="nb-pn lft"></span><span class="nb-pn rgt"></span>
+       <button type="button" class="nb-ear prev" aria-label="Previous page"></button>
+       <button type="button" class="nb-ear next" aria-label="Next page"></button>
+       <span class="nb-hint-flip" aria-hidden="true">flip</span>
+     </div>
+     <p class="sr-only" role="status" aria-live="polite" id="nb-status"></p>`,
+  );
+  const book = root.querySelector(".nb-book");
+  const status = root.querySelector("#nb-status");
+  const inL = book.querySelector(".nb-page .nb-in");
+  const inR = phone ? null : book.querySelector(".nb-page.r .nb-in");
+  const pnL = book.querySelector(".nb-pn.lft");
+  const pnR = book.querySelector(".nb-pn.rgt");
+  const prev = book.querySelector(".prev");
+  const next = book.querySelector(".next");
+  const hint = book.querySelector(".nb-hint-flip");
+  book.querySelector(".nb-leaf").remove(); // leaves are made on demand
+
+  let current = null;
+  let seq = 0;
+  let inAir = 0;
+  const sideSeq = { L: 0, R: 0 };
+
+  // ---------- which page is on which side ----------
+  /** The index pages are not spreads on desktop: the contents folds into the first spread, a list into its first story. */
+  const normalize = (id) => (phone || order.includes(id) ? id : (data.lists[id] || ["me"])[0]);
+
+  function wrap(nodes, { cur } = {}) {
+    const page = el("div", "page");
+    for (const node of nodes) {
+      const copy = node.cloneNode(true);
+      for (const keep of [copy, ...copy.querySelectorAll("[id]")]) {
+        if (keep.id) {
+          keep.dataset.id = keep.id;
+          keep.removeAttribute("id");
+        }
+      }
+      page.append(copy);
+    }
+    if (cur) page.querySelector(`[data-page-link="${cur}"]`)?.classList.add("cur");
+    return page;
+  }
+  const sectionsOf = (id) => [...sources.get(id).children];
+
+  /** The element(s) a page is made of: one on a phone, a left and a right on desktop. */
+  function compose(id) {
+    if (phone) return [wrap(sectionsOf(id))];
+    const info = data.pages[id];
+    if (info.layout === "pair") return [wrap(sectionsOf(id)), wrap(sectionsOf(info.pair))];
+    if (info.layout === "split") {
+      const parts = sectionsOf(id);
+      return [wrap(parts.slice(0, 1)), wrap(parts.slice(1))];
+    }
+    // "list": the section's list of stories on the left, this story on the right
+    return [wrap(sectionsOf(info.section), { cur: id }), wrap(sectionsOf(id))];
+  }
+
+  const numberOf = (id) => order.indexOf(normalize(id)) + 1;
+  const sectionTab = (id) => data.sections.find((s) => s.id === data.pages[id].section).tab;
+
+  function fill(side, page) {
+    const target = side === "L" ? inL : inR;
+    target.replaceChildren(page);
+    target.scrollTop = 0;
+    for (const slot of target.querySelectorAll("[data-pg-for]")) slot.textContent = `p.${numberOf(slot.dataset.pgFor)}`;
+  }
+
+  function chrome(id) {
+    const i = order.indexOf(id);
+    root.dataset.page = id;
+    root.classList.toggle("is-turned", i > 0);
+    prev.disabled = i <= 0;
+    next.disabled = i >= total - 1;
+    if (phone) pnR.textContent = `p.${i + 1} of ${total}`;
+    else {
+      pnL.textContent = sectionTab(id);
+      pnR.textContent = `p.${i + 1}`;
+    }
+  }
+
+  function scrollToAnchor(anchor) {
+    if (!anchor) return;
+    for (const scroller of [inL, inR]) {
+      const target = scroller?.querySelector(`[data-id="${anchor}"]`);
+      if (!target) continue;
+      const box = scroller.getBoundingClientRect();
+      scroller.scrollTo({ top: scroller.scrollTop + target.getBoundingClientRect().top - box.top - 14, behavior: "instant" });
+    }
+  }
+
+  function announce(id) {
+    status.textContent = `${data.pages[id].title}, page ${order.indexOf(id) + 1} of ${total}`;
+  }
+
+  function paint(id, anchor) {
+    const [l, r] = compose(id);
+    fill("L", l);
+    if (r) fill("R", r);
+    chrome(id);
+    scrollToAnchor(anchor);
+  }
+
+  // ---------- turning ----------
+  /**
+   * Turn to a page. A normal turn takes TURN_MS; the wheel passes a shorter time while it spins,
+   * so each page it passes flips live.
+   */
+  function turn(to, { duration = TURN_MS, anchor, silent = false } = {}) {
+    const id = normalize(to);
+    if (id === current) {
+      if (anchor) scrollToAnchor(anchor);
+      else for (const scroller of [inL, inR]) scroller?.scrollTo({ top: 0, behavior: "instant" });
+      return;
+    }
+    const forward = current === null || order.indexOf(id) > order.indexOf(current);
+    const from = current;
+    current = id;
+    hint.style.opacity = 0;
+    if (!silent) onView(id);
+    announce(id);
+
+    if (from === null || reducedMotion() || duration <= 0 || inAir >= MAX_IN_AIR) {
+      seq += 1;
+      sideSeq.L = sideSeq.R = seq;
+      paint(id, anchor);
+      return;
+    }
+
+    const mine = ++seq;
+    const [nl, nr] = compose(id);
+    const face = (page) => {
+      const wrapper = el("div", "nb-in");
+      wrapper.append(page);
+      return wrapper;
+    };
+    const leaf = el("div", "nb-leaf is-flying is-riffle");
+    const front = el("div", "face front");
+    const back = el("div", "face back");
+    leaf.append(front, back);
+    let startSide = null;
+    let landSide = null;
+    let angleFrom = 0;
+    let angleTo = -180;
+    const oldL = inL.firstElementChild?.cloneNode(true);
+    const oldR = inR?.firstElementChild?.cloneNode(true);
+
+    if (phone) {
+      Object.assign(leaf.style, { left: 0, right: 0, transformOrigin: "left center" });
+      if (forward) {
+        front.append(face(oldL));
+        startSide = "L";
+      } else {
+        front.append(face(nl));
+        landSide = "L";
+        angleFrom = -180;
+        angleTo = 0;
+      }
+    } else if (forward) {
+      Object.assign(leaf.style, { left: "50%", right: 0, transformOrigin: "left center" });
+      front.classList.add("r-face");
+      front.append(face(oldR));
+      back.append(face(nl));
+      startSide = "R";
+      landSide = "L";
+    } else {
+      Object.assign(leaf.style, { left: 0, right: "50%", transformOrigin: "right center" });
+      front.append(face(oldL));
+      back.classList.add("r-face");
+      back.append(face(nr));
+      startSide = "L";
+      landSide = "R";
+      angleTo = 180;
+    }
+    leaf.style.zIndex = forward ? 60 - (mine % 50) : 10 + (mine % 50);
+
+    chrome(id);
+    if (startSide) {
+      sideSeq[startSide] = mine;
+      fill(startSide, startSide === "L" ? nl : nr);
+    }
+    book.append(leaf);
+    inAir += 1;
+    leaf.style.transform = `rotateY(${angleFrom}deg)`;
+    void leaf.offsetWidth;
+    if (phone) tuck(leaf, angleFrom, angleTo, duration, EASE);
+    else {
+      leaf.style.transition = `transform ${duration}ms ${EASE}`;
+      leaf.style.transform = `rotateY(${angleTo}deg)`;
+    }
+    setTimeout(() => {
+      if (landSide && mine > sideSeq[landSide]) {
+        sideSeq[landSide] = mine;
+        fill(landSide, landSide === "L" ? nl : nr);
+      }
+      leaf.remove();
+      inAir -= 1;
+      if (mine === seq) scrollToAnchor(anchor);
+    }, duration + 30);
+  }
+
+  const step = (d) => {
+    const target = order[order.indexOf(current) + d];
+    if (target) turn(target);
+  };
+  prev.addEventListener("click", () => step(-1));
+  next.addEventListener("click", () => step(1));
+
+  // swipe the page sideways to turn it (the corners and the wheel do the same)
+  let start = null;
+  book.addEventListener("pointerdown", (e) => { start = [e.clientX, e.clientY]; });
+  book.addEventListener("pointercancel", () => { start = null; });
+  book.addEventListener("pointerup", (e) => {
+    if (!start) return;
+    const dx = e.clientX - start[0];
+    const dy = e.clientY - start[1];
+    start = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) step(dx < 0 ? 1 : -1);
+  });
+
+  return {
+    mode,
+    order,
+    book,
+    turn,
+    normalize,
+    /** Show a page at once, with no turn. */
+    show(id, anchor) { turn(id, { duration: 0, anchor, silent: true }); },
+    get current() { return current; },
+    destroy() {
+      book.remove();
+      status.remove();
+    },
+  };
+}

@@ -1,0 +1,34 @@
+{% from "notebook/_ui.html" import head, links %}
+<article class="page" id="page-school" data-page="school" aria-label="School">
+  <section id="college">
+    {{ head("Class of 2025", "College", "CS degree, math minor, tennis team.") }}
+    <p>As of May 2025 I hold a Bachelor of Science in Computer Science with a minor in Mathematics from the University of Puget Sound.</p>
+  </section>
+  <section>
+    <h3>Classes taken</h3>
+    {% for group in content.COURSES %}
+    <div class="classes"><span class="when">{{ group.group }} · {{ group.classes | length }}</span>
+      <ul class="chips">{% for c in group.classes %}<li>{{ c }}</li>{% endfor %}</ul></div>
+    {% endfor %}
+  </section>
+  <section>
+    <h3>Clubs and activities</h3>
+    <div class="club"><p><b>Tennis</b> I played all 4 years on the UPS tennis team, 2021 to 2025.</p></div>
+    <div class="club"><p><b>Maroon Society</b> A university organization that connects students and alumni, mostly through events around campus. I was a part of it for about 2 years, 2021 to 2024.</p></div>
+    <div id="agile-report">
+      <h4>Agile management report</h4>
+      <p>A report from my 2024 management class on agile management strategies, why they work and why they might not.</p>
+      {{ links([("View the report", "/static/PDF/AgileManagement_Report_David.pdf")]) }}
+    </div>
+  </section>
+  <section id="early-education">
+    <p class="k">Portland</p>
+    <h3>Early education</h3>
+    <p class="lead">Where it all started.</p>
+    <ul class="schools">
+      <li><span class="when">High school</span>Grant High School</li>
+      <li><span class="when">Middle school</span>Beaumont Middle School</li>
+      <li><span class="when">Elementary</span>Alameda Elementary School</li>
+    </ul>
+  </section>
+</article>

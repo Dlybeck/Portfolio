@@ -1,0 +1,21 @@
+{% from "notebook/_ui.html" import head %}
+<article class="page" id="page-programs" data-page="programs" aria-label="Programs">
+  <section>
+    {{ head("2021 to 2024", "Programs", "Software projects, experiments, and selected coursework.") }}
+    <h4>Coursework archive · 2024</h4>
+    <div class="archive">
+      {% for group in content.ARCHIVE[:2] %}
+      <div><span class="when">{{ group.label }}</span><ul>{% for item in group["items"] %}<li>{{ item }}</li>{% endfor %}</ul></div>
+      {% endfor %}
+    </div>
+  </section>
+  <section>
+    <h3>Earlier coursework</h3>
+    <div class="archive">
+      {% for group in content.ARCHIVE[2:] %}
+      <div><span class="when">{{ group.label }}</span><ul>{% for item in group["items"] %}<li>{{ item }}</li>{% endfor %}</ul></div>
+      {% endfor %}
+    </div>
+    <p class="caption">Most have their code or a demo on the live site.</p>
+  </section>
+</article>

@@ -1,7 +1,11 @@
-{% from "notebook/_ui.html" import head, links %}
+{% from "notebook/_ui.html" import head, links, figure %}
 <article class="page" id="page-tennis" data-page="tennis" aria-label="Tennis">
   <section>
     {{ head("Since middle school", "Tennis", "I've played for as long as I remember. Let me know if you want to hit.") }}
+    <div class="pair">
+      {{ figure("tennis/spin.webp", "David putting spin on a tennis ball") }}
+      {{ figure("tennis/forehand.webp", "David hitting a forehand") }}
+    </div>
     <p>I've played competitively since middle school: four years on my high school's varsity team, four more on the University of Puget Sound team. Still hitting whenever I can.</p>
     <h4>Current rankings and profiles</h4>
     {{ links([

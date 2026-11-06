@@ -3,6 +3,7 @@
 
 import { createBook } from "./book.js";
 import { createCover } from "./cover.js";
+import { enhance, settled } from "./media.js";
 import { createWheel } from "./wheel.js";
 
 const root = document.getElementById("notebook");
@@ -43,7 +44,7 @@ function mount(initial) {
   };
   // The wheel and the address follow whatever page the book shows, however it was turned.
   book = createBook({
-    root, data, sources, mode: phone ? "phone" : "desktop",
+    root, data, sources, mode: phone ? "phone" : "desktop", onFill: enhance, onSettled: settled,
     onView: (id) => {
       if (!spinning) wheel?.sync(id);
       if (!cover.closed && here() !== addressOf(id)) history.replaceState({ page: id }, "", addressOf(id));

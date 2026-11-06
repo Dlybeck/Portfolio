@@ -97,12 +97,15 @@ def test_each_route_opens_its_page(browser_page, viewport: dict, route: str) -> 
     shown = " ".join(page.locator(".nb-in .page h2, .nb-in .page h3").all_inner_texts()).lower()
     names = (EXPECTED[route].lower(), document.page_title.lower())
     if document.anchor:
-        # the part of the page the route names is on screen, inside its scroller
-        target = page.locator(f'.nb-in [data-id="{document.anchor}"]')
-        assert target.count() == 1
-        scroller = target.locator("xpath=ancestor::*[contains(@class,'nb-in')][1]").bounding_box()
-        spot = target.bounding_box()
-        assert scroller["y"] - 24 <= spot["y"] < scroller["y"] + scroller["height"], (spot, scroller)
+        # the part of the page the route names ends up on screen, inside its scroller (fonts and pictures may nudge it first)
+        selector = f'.nb-in [data-id="{document.anchor}"]'
+        assert page.locator(selector).count() == 1
+        page.wait_for_function(
+            """sel => { const t = document.querySelector(sel); const s = t.closest('.nb-in');
+                const a = t.getBoundingClientRect(), b = s.getBoundingClientRect();
+                return a.top >= b.top - 24 && a.top < b.bottom; }""",
+            arg=selector, timeout=5000,
+        )
     else:
         assert any(name in shown for name in names), shown
     assert problems == []

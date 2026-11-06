@@ -14,8 +14,10 @@ const MAX_IN_AIR = 8;
  * @param {Map<string, HTMLElement>} o.sources  page id -> its <article> as written by the server
  * @param {"phone"|"desktop"} o.mode
  * @param {(id: string) => void} o.onView  called when a page is showing
+ * @param {(side: HTMLElement) => void} [o.onFill]  a page was written onto a side of the book
+ * @param {(sides: HTMLElement[]) => void} [o.onSettled]  the book has stopped turning
  */
-export function createBook({ root, data, sources, mode, onView }) {
+export function createBook({ root, data, sources, mode, onView, onFill, onSettled }) {
   const phone = mode === "phone";
   const order = phone ? data.phone : data.desktop;
   const total = order.length;
@@ -91,9 +93,26 @@ export function createBook({ root, data, sources, mode, onView }) {
 
   function fill(side, page) {
     const target = side === "L" ? inL : inR;
+    stopWatching(target);
     target.replaceChildren(page);
     target.scrollTop = 0;
     for (const slot of target.querySelectorAll("[data-pg-for]")) slot.textContent = `p.${numberOf(slot.dataset.pgFor)}`;
+    onFill?.(target);
+    settleSoon();
+  }
+
+  // Heavy things (3D models) wait until the book has been still for a moment.
+  let settleTimer = 0;
+  function settleSoon() {
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(() => { if (inAir === 0) onSettled?.([inL, inR]); }, 320);
+  }
+
+  /** A copy of a page for a turning leaf: pictures and text only, no live 3D models. */
+  function lookalike(page) {
+    const copy = page.cloneNode(true);
+    for (const live of copy.querySelectorAll("model-viewer")) live.replaceWith(el("div", "model-ph"));
+    return copy;
   }
 
   function chrome(id) {
@@ -109,13 +128,30 @@ export function createBook({ root, data, sources, mode, onView }) {
     }
   }
 
+  // Fonts and pictures arriving can move the part of the page we scrolled to. For a moment after
+  // arriving we keep it in place, unless the visitor has scrolled on their own.
+  const watching = new Map();
+  function stopWatching(scroller) {
+    watching.get(scroller)?.stop();
+    watching.delete(scroller);
+  }
   function scrollToAnchor(anchor) {
     if (!anchor) return;
     for (const scroller of [inL, inR]) {
       const target = scroller?.querySelector(`[data-id="${anchor}"]`);
       if (!target) continue;
-      const box = scroller.getBoundingClientRect();
-      scroller.scrollTo({ top: scroller.scrollTop + target.getBoundingClientRect().top - box.top - 14, behavior: "instant" });
+      stopWatching(scroller);
+      let placed = -1;
+      const place = () => {
+        const box = scroller.getBoundingClientRect();
+        scroller.scrollTo({ top: scroller.scrollTop + target.getBoundingClientRect().top - box.top - 14, behavior: "instant" });
+        placed = scroller.scrollTop;
+      };
+      place();
+      const observer = new ResizeObserver(() => (scroller.scrollTop === placed ? place() : stopWatching(scroller)));
+      observer.observe(scroller.firstElementChild);
+      const timer = setTimeout(() => stopWatching(scroller), 2500);
+      watching.set(scroller, { stop() { observer.disconnect(); clearTimeout(timer); } });
     }
   }
 
@@ -172,8 +208,8 @@ export function createBook({ root, data, sources, mode, onView }) {
     let landSide = null;
     let angleFrom = 0;
     let angleTo = -180;
-    const oldL = inL.firstElementChild?.cloneNode(true);
-    const oldR = inR?.firstElementChild?.cloneNode(true);
+    const oldL = lookalike(inL.firstElementChild);
+    const oldR = inR && lookalike(inR.firstElementChild);
 
     if (phone) {
       Object.assign(leaf.style, { left: 0, right: 0, transformOrigin: "left center" });
@@ -225,6 +261,7 @@ export function createBook({ root, data, sources, mode, onView }) {
       }
       leaf.remove();
       inAir -= 1;
+      settleSoon();
       if (mine === seq) scrollToAnchor(anchor);
     }, duration + 30);
   }
@@ -238,7 +275,9 @@ export function createBook({ root, data, sources, mode, onView }) {
 
   // swipe the page sideways to turn it (the corners and the wheel do the same)
   let start = null;
-  book.addEventListener("pointerdown", (e) => { start = [e.clientX, e.clientY]; });
+  // a swipe that starts on a swipe row, a model, a video or a field belongs to that thing, not the book
+  const OWN_GESTURE = "[data-slides], model-viewer, video, select, input, button.slides-prev, button.slides-next";
+  book.addEventListener("pointerdown", (e) => { start = e.target.closest(OWN_GESTURE) ? null : [e.clientX, e.clientY]; });
   book.addEventListener("pointercancel", () => { start = null; });
   book.addEventListener("pointerup", (e) => {
     if (!start) return;
@@ -258,6 +297,7 @@ export function createBook({ root, data, sources, mode, onView }) {
     show(id, anchor) { turn(id, { duration: 0, anchor, silent: true }); },
     get current() { return current; },
     destroy() {
+      clearTimeout(settleTimer);
       book.remove();
       status.remove();
     },

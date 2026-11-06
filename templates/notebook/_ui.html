@@ -8,11 +8,35 @@
 
 {# Real links, drawn as small dashed chips. items: (label, href) pairs. #}
 {% macro links(items) -%}
-  <p class="links">{% for label, href in items %}<a class="link-chip" href="{{ href }}" target="_blank" rel="noopener">{{ label }}</a>{% endfor %}</p>
+  <p class="links">{% for label, href in items %}<a class="link-chip" href="{{ href }}"{% if href.startswith("http") %} target="_blank" rel="noopener"{% endif %}>{{ label }}</a>{% endfor %}</p>
 {%- endmacro %}
 
 {% macro chips(items) -%}
   <ul class="chips">{% for item in items %}<li>{{ item }}</li>{% endfor %}</ul>
+{%- endmacro %}
+
+{# A picture from static/img, with its size so the page does not jump while it loads. #}
+{% macro picture(src, alt, cls="") -%}
+  {% set size = img_size(src) %}
+  <img{% if cls %} class="{{ cls }}"{% endif %} src="/static/img/{{ src }}" width="{{ size[0] }}" height="{{ size[1] }}" alt="{{ alt }}" loading="lazy" decoding="async">
+{%- endmacro %}
+
+{% macro figure(src, alt, caption="", cls="") -%}
+  <figure{% if cls %} class="{{ cls }}"{% endif %}>{{ picture(src, alt) }}{% if caption %}<figcaption>{{ caption }}</figcaption>{% endif %}</figure>
+{%- endmacro %}
+
+{# A 3D model you can turn. Models are loaded when the page has settled (see media.js). #}
+{% macro model(m) -%}
+  <li class="slide model">
+    <div class="model-view">
+      <model-viewer data-src="/static/3Dmodels/{{ m.folder }}/{{ m.file }}.glb"{% if m.open %} data-alt-src="/static/3Dmodels/{{ m.folder }}/{{ m.open }}.glb"{% endif %}
+        poster="/static/img/hobbies/model-icon.webp" alt="{{ m.name }}, 3D model" camera-controls auto-rotate auto-rotate-delay="0" rotation-per-second="18deg"
+        interaction-prompt="none" shadow-intensity="0.8" exposure="1.05" touch-action="pan-y"></model-viewer>
+      {% if m.open %}<button type="button" class="model-toggle" data-word="{{ m.word }}">{{ m.word }}</button>{% endif %}
+    </div>
+    <div class="model-text"><b>{{ m.name }}</b><span class="when">{{ m.downloads }}</span>
+      {% if m.links %}<span class="model-links">{% for label, href in m.links %}<a href="{{ href }}" target="_blank" rel="noopener">{{ label }}</a>{% endfor %}</span>{% endif %}</div>
+  </li>
 {%- endmacro %}
 
 {# A list of stories: the contents page, and the lists at the front of a section. #}

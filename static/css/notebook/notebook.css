@@ -203,3 +203,7 @@ body {
   .nb-book, .nb-back, .nb-band, .nb-page.l, .nb-gutter, .nb-tab { transition: none !important; }
   .nb-in { scroll-behavior: auto; }
 }
+
+/* Phone: the tab strip overlaps the paper's right edge, so the scroller stops 10px short of it. The page's own scroll bar
+   then sits on the paper, never over a tab; the padding keeps the text exactly where it was. */
+.nb--phone .nb-in { right: 10px; padding-right: 34px; }

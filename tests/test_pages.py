@@ -260,7 +260,7 @@ def test_say_hi_lists_contacts_and_no_resume_is_offered(client: TestClient) -> N
 def test_the_scribblescan_page_says_what_comes_next_in_one_plain_line(client: TestClient) -> None:
     html = client.get("/projects/websites/scribblescan").text
 
-    assert "I&#39;m still working on what comes next." in html
+    assert "<p>I'm still working on what comes next.</p>" in html
     assert "What I&#39;m exploring now" not in html
     assert "from capstone to hosted product." in html
 
@@ -269,7 +269,7 @@ def test_the_scribblescan_job_says_where_things_stand_now(client: TestClient) ->
     html = client.get("/jobs").text
 
     assert "February 2025 to now" in html
-    assert "The website is still up as a demo, the live service is switched off, and I&#39;m still working on what comes next." in html
+    assert "The hosted service is retired and the site remains as a demo, while I keep working on what comes next." in html
     assert "February 2025 to April 2026" not in html
     assert "have since closed" not in html
 
@@ -293,7 +293,7 @@ def test_the_website_page_leads_with_version_four_and_lists_its_snapshots(client
 
 
 def test_the_reviewed_wording_fixes_are_in(client: TestClient) -> None:
-    assert "about 3 years, 2021 to 2024" in client.get("/education/college").text
+    assert "about three years, 2021 to 2024" in client.get("/education/college").text
     assert "Here are some 3D models" in client.get("/hobbies/3d_printing/other_models").text
     assert "Most link to their code or a demo." in client.get("/projects/programs").text
 

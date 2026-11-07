@@ -22,9 +22,9 @@ JOBS = [{'logo': 'denali',
   'org': 'ScribbleScan LLC',
   'role': 'Founder and developer',
   'when': 'February 2025 to now',
-  'text': 'I solo-developed a handwriting-digitization service that preserved images and other '
-          'non-text elements in the resulting document. The website is still up as a demo, the '
-          "live service is switched off, and I'm still working on what comes next."},
+  'text': 'Designed and built a handwriting-digitization service on my own, preserving images and '
+          'other non-text elements in the resulting documents. The hosted service is retired and '
+          'the site remains as a demo, while I keep working on what comes next.'},
  {'logo': '2ndchair',
   'width': 240,
   'height': 99,
@@ -136,15 +136,15 @@ COURSES = [{'group': 'Computer science',
 TOP_PICKS = [{'name': 'Negamax Connect 4 bot',
   'meta': 'Python · 2024',
   'href': 'https://github.com/Dlybeck/AI/tree/main/HW_2',
-  'note': 'I wrote the bot to search the game tree a few moves ahead with negamax.'},
+  'note': 'A bot that searches the game tree a few moves ahead using negamax.'},
  {'name': 'A* sliding puzzle solver',
   'meta': 'Python · 2024',
   'href': 'https://github.com/Dlybeck/AI/tree/main/HW_1',
-  'note': 'I solve sliding puzzles with A* search, guided by the Manhattan distance of every tile.'},
+  'note': "Solves sliding puzzles with A* search, guided by each tile's Manhattan distance."},
  {'name': 'Mini shell',
   'meta': 'C · 2024',
   'href': 'https://github.com/Dlybeck/cs475-hwk4-os-dsh',
-  'note': 'I built a tiny shell that runs programs with fork and exec, like a small bash.'},
+  'note': 'A small Unix shell that runs programs with fork and exec.'},
  {'name': 'Parallel matrix multiplication',
   'meta': 'C · 2024',
   'href': 'https://github.com/Dlybeck/cs475-hwk5-mmm',
@@ -193,9 +193,8 @@ VERSIONS = [{'id': 'v1',
   'steps': [{'n': 1,
              'height': 444,
              'date': 'December 23rd 2022',
-             'text': 'This is what I considered to be the first base model of my website. None of '
-                     'the buttons worked. I was just trying to test out the rough idea and color '
-                     'scheme for how it should look.',
+             'text': 'The first base version of the site. None of the buttons worked yet; the goal was '
+                     'to test the overall idea and color scheme.',
              'alt': 'First static layout for DavidLybeck.com version 1'},
             {'n': 2,
              'height': 450,
@@ -207,15 +206,13 @@ VERSIONS = [{'id': 'v1',
             {'n': 3,
              'height': 450,
              'date': 'January 6th 2023',
-             'text': 'For this change I had simply settled on a new background image to use '
-                     'throughout the website.',
+             'text': 'A new background image, used across the whole site.',
              'alt': 'Version 1 with its updated background image'},
             {'n': 4,
              'height': 450,
              'date': 'January 10th 2023',
-             'text': 'I wanted my website to have something unique that stood out from other '
-                     'websites. So I decided to mess with the standard of menus and try this '
-                     '"radial" navigation menu that changes page to page.',
+             'text': 'I wanted the site to feel distinct, so I experimented with an unconventional '
+                     'radial navigation menu that changes from page to page.',
              'alt': 'Early radial navigation menu experiment'},
             {'n': 5,
              'height': 450,
@@ -232,10 +229,10 @@ VERSIONS = [{'id': 'v1',
             {'n': 7,
              'height': 451,
              'date': 'June 13th 2023',
-             'text': 'My first functional version of the map idea. Testing with friends and '
-                     'family, the new menu proved a bit confusing. With the rough map, people '
-                     'understood that the menu was "taking them somewhere", and the map subtly '
-                     'encouraged them to explore the entire website.',
+             'text': 'The first working version of the map. In testing with friends and family, the '
+                     'radial menu on its own proved confusing. With the map added, people '
+                     'understood that the menu was taking them somewhere, and it quietly '
+                     'encouraged them to explore the whole site.',
              'alt': 'First functional map interface for version 1'},
             {'n': 8,
              'height': 450,
@@ -251,16 +248,16 @@ VERSIONS = [{'id': 'v1',
   'steps': [{'n': 1,
              'height': 428,
              'date': 'January 4th 2025',
-             'text': 'Two big changes in mind. 1: Removing the previous map. It was big, slow, and '
-                     'broke the mobile experience. 2: Keep the feeling of exploring the website '
-                     'like it is a place. So instead of a large map taking up half the page, I '
-                     'made the map the website!',
+             'text': 'Version 2 had two goals: remove the old map, which was large, slow and broke the '
+                     'mobile experience, and keep the feeling of exploring the site as a place. '
+                     'Instead of a map taking up half the page, the map became the website '
+                     'itself.',
              'alt': 'First explorable tile map for DavidLybeck.com version 2'},
             {'n': 2,
              'height': 427,
              'date': 'January 5th 2025',
-             'text': 'The navbar size is drastically reduced, to make the blue less overwhelming '
-                     'and give tiles more space on mobile. The home button became a house shape.',
+             'text': 'A much smaller navigation bar, so the blue is less dominant and the tiles have '
+                     'more room on mobile. The Home button became a house shape.',
              'alt': 'Version 2 with a smaller navbar and house-shaped Home button'},
             {'n': 3,
              'height': 428,
@@ -278,9 +275,8 @@ VERSIONS = [{'id': 'v1',
             {'n': 5,
              'height': 428,
              'date': 'January 10th 2025',
-             'text': 'The mini windows got their full functionality, opening and closing '
-                     'seamlessly. They load a separate page and just change based on the tile '
-                     'clicked.',
+             'text': 'The mini windows became fully functional, opening and closing smoothly. Each '
+                     'one loads a separate page based on the tile selected.',
              'alt': 'Version 2 functional mini-window viewer'},
             {'n': 6,
              'height': 428,
@@ -325,8 +321,8 @@ VERSIONS = [{'id': 'v1',
   'steps': [{'n': 1,
              'height': 500,
              'date': 'November 2026',
-             'text': 'v4 is a notebook. The cover is covered in stickers you can tap, and you open '
-                     'it to get in.',
+             'text': 'Version 4 is a notebook. Its cover holds interactive stickers, and opening it '
+                     'leads into the site.',
              'alt': 'Version 4 notebook cover with tappable stickers'},
             {'n': 2,
              'height': 500,

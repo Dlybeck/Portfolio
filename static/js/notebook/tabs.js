@@ -1,6 +1,7 @@
-// Tabs on the right edge of the open two-page notebook that jump straight to a main section. They are plain
-// links (so they work with a keyboard and "open in a new tab"); main.js turns the page when one is chosen.
-// A phone has no tabs: the wheel and the swipe are its way around.
+// Tabs on the right edge of the notebook (full-width on the desktop spread, slim on a phone) that jump straight to a
+// main section. They are plain links (so they work with a keyboard and "open in a new tab"); main.js turns the page
+// when one is chosen. While the cover is shut they only peek out: a mouse or finger can use them, but they are hidden
+// from keyboards and screen readers.
 
 import { el } from "./motion.js";
 

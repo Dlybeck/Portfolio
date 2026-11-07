@@ -34,5 +34,3 @@
 .cover-open::after { content: " \2192"; }
 .cover-open:focus-visible { outline: 2px solid var(--ink-fixed); outline-offset: 2px; border-radius: 6px; }
 .nb-leaf.cover .face.back { background-color: var(--nb-paper); }
-
-@media (prefers-reduced-motion: reduce) { .nb-leaf.cover { transition: none !important; } }

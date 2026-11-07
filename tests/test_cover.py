@@ -172,7 +172,7 @@ def test_the_ball_can_be_thrown(browser_page) -> None:
     page.mouse.down()
     page.mouse.move(box["x"] - 120, box["y"] + 40, steps=5)
     page.mouse.up()
-    page.wait_for_timeout(600)
+    page.wait_for_timeout(120)  # right after the throw, before it can bounce back off the cover's left edge
 
     assert page.locator(".wd-ball").bounding_box()["x"] < box["x"] - 40
     assert still_closed(page)

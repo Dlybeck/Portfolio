@@ -1,0 +1,24 @@
+/* Section tabs down the right edge of the open two-page notebook (the desktop layout only; a phone has none).
+   They sit in the 40px that the layout already keeps free at the right of the book, so the book does not move. */
+
+.nb-tabs { position: absolute; z-index: 3; display: flex; margin: 0; padding: 0; }
+.nb.is-closed .nb-tabs { display: none; }
+.nb-tab {
+  display: grid; place-items: center; box-sizing: border-box; min-width: 0; white-space: nowrap; text-decoration: none; overflow: hidden;
+  background: var(--tab); color: var(--ink-fixed); border: var(--edge) solid var(--nb-edge);
+  font: 700 0.7rem / 1 var(--font-sans); letter-spacing: 0.01em;
+  transition: transform var(--duration-press) var(--ease-out), filter var(--duration-press) var(--ease-out);
+}
+.nb-tab:hover { filter: brightness(1.05); }
+.nb-tab[aria-current] { font-weight: 800; box-shadow: var(--lift-sm); }
+
+/* The column runs from just under the header down to the bottom of the window, whatever the book's height, and the
+   words shrink with the window, so all six stay on screen and readable even on a short landscape window. */
+.nb-tabs { left: calc(100% + 8px); top: calc(72px - var(--book-top)); height: min(calc(100vh - 82px), 600px); flex-direction: column; gap: 4px; }
+.nb-tab {
+  writing-mode: vertical-rl; width: 28px; flex: 1 1 0; min-height: 0; max-height: 96px; padding: 2px 0; border-left: 0; border-radius: 0 8px 8px 0;
+  transform: translateX(-4px); font-size: clamp(9px, calc(((100vh - 97px) / 6 - 4px) / 4.9), 12.8px); letter-spacing: 0;
+}
+.nb-tab[aria-current] { transform: translateX(4px); } /* the open section's tab slides out, ending 40px from the book, inside the 40px kept free */
+
+@media (prefers-reduced-motion: reduce) { .nb-tab { transition: none; } }

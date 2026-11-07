@@ -4,6 +4,7 @@
 import { createBook } from "./book.js";
 import { createCover } from "./cover.js";
 import { enhance, settled } from "./media.js";
+import { createTabs } from "./tabs.js";
 import { createWheel } from "./wheel.js";
 
 const root = document.getElementById("notebook");
@@ -30,7 +31,7 @@ function mount(initial) {
   root.classList.add(phone ? "nb--phone" : "nb--desktop");
   if (!initial) root.classList.add("is-closed"); // shut from the start, so the book does not slide into place on load
 
-  let book; let wheel; let cover;
+  let book; let wheel; let cover; let tabs = null;
   let spinning = false; // the wheel is turning the pages, so it must not be re-aimed
   const hooks = {
     page: (id, duration) => {
@@ -53,6 +54,7 @@ function mount(initial) {
   });
   wheel = createWheel({ root, data, order: book.order, phone, hooks });
   cover = createCover({ root, book: book.book, phone, onTap: () => openCover() });
+  if (!phone) tabs = createTabs({ root, book: book.book, data, addressOf }); // section tabs belong to the two-page spread
 
   function openCover({ fromWheel = false } = {}) {
     if (!cover.closed) return;
@@ -97,7 +99,7 @@ function mount(initial) {
     focusPage() { book.book.querySelector(".nb-page.r .nb-in, .nb-page .nb-in")?.focus({ preventScroll: true }); },
     get isClosed() { return cover.closed; },
     get page() { return cover.closed ? null : book.current; },
-    destroy() { cover.destroy(); wheel.destroy(); book.destroy(); },
+    destroy() { tabs?.destroy(); cover.destroy(); wheel.destroy(); book.destroy(); },
   };
 }
 

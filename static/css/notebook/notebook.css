@@ -144,8 +144,8 @@ body {
   .nb-top { padding: 14px 28px; }
   .nb-book {
     --avail-h: calc(100vh - 124px);
-    --bw: min(calc(var(--avail-h) * 1.25), calc(100vw - 376px), 1280px);
-    left: calc(300px + (100vw - 376px - var(--bw)) / 2); margin-left: 0; width: var(--bw); height: calc(var(--bw) / 1.25);
+    --bw: min(calc(var(--avail-h) * 1.25), calc(100vw - 340px), 1280px);
+    left: calc(300px + (100vw - 340px - var(--bw)) / 2); margin-left: 0; width: var(--bw); height: calc(var(--bw) / 1.25);
     top: calc(84px + (var(--avail-h) - var(--bw) / 1.25) / 2); transition: transform 950ms var(--nb-turn-ease);
   }
   .nb--desktop.is-closed .nb-book { transform: translateX(calc(var(--bw) * -0.25)); }

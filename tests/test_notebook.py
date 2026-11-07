@@ -202,6 +202,17 @@ def test_there_are_no_section_tabs_and_the_old_tabs_switch_does_nothing(browser_
     assert "tabs" not in page.evaluate("location.search")
 
 
+def test_the_desktop_book_is_centred_between_the_wheel_column_and_the_right_edge(browser_page) -> None:
+    page, base = browser_page
+    for width, height in ((1280, 800), (1920, 1080), (1000, 1000)):
+        page.set_viewport_size({"width": width, "height": height})
+        page.goto(base + "/jobs")
+        page.wait_for_selector("#notebook.nb--desktop")
+        box = page.locator(".nb-book").bounding_box()
+        room_left, room_right = box["x"] - 300, (width - 40) - (box["x"] + box["width"])
+        assert abs(room_left - room_right) <= 2, (width, room_left, room_right)
+
+
 def test_the_wheel_turns_pages_with_the_keyboard(browser_page) -> None:
     page, base = browser_page
     page.set_viewport_size(PHONE)

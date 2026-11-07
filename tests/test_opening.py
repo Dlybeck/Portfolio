@@ -19,6 +19,7 @@ WATCH = """() => {
       opening: root.classList.contains('is-opening'),
       closed: root.classList.contains('is-closed'),
       leaf: leaf ? { w: leaf.offsetWidth, h: leaf.offsetHeight, transform: getComputedStyle(leaf).transform, opacity: getComputedStyle(leaf).opacity } : null,
+      folio: (() => { const f = document.querySelector('.nb-pn.lft'); return f ? getComputedStyle(f).visibility : null; })(),
       leftVisible: left ? getComputedStyle(left).visibility : null,
       leftOpacity: left ? getComputedStyle(left).opacity : null,
       book: getComputedStyle(book).transform,
@@ -73,6 +74,7 @@ def test_desktop_opening_is_one_swing_on_the_spine_with_the_book_sliding_at_the_
     assert slides[0] < -50 and abs(slides[-1]) < 40 and slides[0] < slides[len(slides) // 2] < slides[-1]
     # the real left page waits until the cover has landed on it: no fade, no second flip
     assert all(x["leftVisible"] == "hidden" for x in moving)
+    assert all(x["folio"] == "hidden" for x in moving)  # the left page number does not float on the empty board
     done = [x for x in s if not x["leaf"] and not x["opening"]]
     assert done and all(x["leftVisible"] == "visible" and x["leftOpacity"] == "1" and abs(translate_x(x["book"])) < 0.5 for x in done)
     # nothing sits on top of the cover while it swings: the tabs wait, then fade in

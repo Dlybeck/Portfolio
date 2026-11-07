@@ -164,7 +164,8 @@ body {
   /* the left page does not exist while the book is shut or the cover is still swinging: the cover's back face IS the
      left page, and lands exactly where it is, so there is no second flip or fade at the end */
   .nb--desktop.is-closed .nb-page.l, .nb--desktop.is-closed .nb-gutter,
-  .nb--desktop.is-opening .nb-page.l, .nb--desktop.is-opening .nb-gutter { visibility: hidden; }
+  .nb--desktop.is-opening .nb-page.l, .nb--desktop.is-opening .nb-gutter,
+  .nb--desktop.is-opening .nb-pn.lft, .nb--desktop.is-opening .nb-ear.prev, .nb--desktop.is-opening .nb-hint-flip { visibility: hidden; }
   .nb--desktop .nb-leaf.cover .face.back { border-radius: 3px 0 0 3px; border-right-color: rgba(20, 28, 43, 0.25); }
   .nb--desktop .nb-tabs { transition: opacity 200ms ease; }
   .nb--desktop.is-opening .nb-tabs { opacity: 0; }

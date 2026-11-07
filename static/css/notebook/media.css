@@ -84,3 +84,9 @@ html.no-js .page .slides { display: grid; grid-auto-flow: row; grid-auto-columns
 }
 
 @media (prefers-reduced-motion: reduce) { .page .slides { scroll-behavior: auto; } }
+
+/* On the narrowest phones (the page is about 225px wide) the logo goes above the words instead of beside them, so words do not break */
+@media (max-width: 359px) {
+  .page .job { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .page .job-mark { width: 52px; height: 52px; }
+}

@@ -7,8 +7,6 @@
       <div><b>{{ c.label }}</b><a href="{{ c.href }}"{% if c.href.startswith("http") %} target="_blank" rel="noopener"{% endif %}>{{ c.text }}</a></div>
       {% endfor %}
     </div>
-  </section>
-  <section data-only="desktop">
     <p>Curious how this notebook was made? The story is on the {% set site = nb.PAGES_BY_ID["site"] %}<a href="{{ site.href }}" data-open="{{ site.id }}" data-page-link="{{ site.id }}">This website</a> page.</p>
   </section>
 </article>

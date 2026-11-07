@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import FileResponse, PlainTextResponse, Response
+from fastapi.responses import FileResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from core import notebook, notebook_content
@@ -67,3 +67,18 @@ for _document in DOCUMENTS:
         methods=["GET"],
         name=f"destination_{_document.route.strip('/').replace('/', '_')}",
     )
+
+
+# Pages taken out of the notebook keep a permanent address that leads somewhere useful.
+RETIRED = {"/projects/websites/digital_planner": "/#projects"}
+
+
+def retired_endpoint(target: str):
+    async def retired():
+        return RedirectResponse(target, status_code=301)
+
+    return retired
+
+
+for _route, _target in RETIRED.items():
+    portfolio_router.add_api_route(_route, retired_endpoint(_target), methods=["GET"], include_in_schema=False)

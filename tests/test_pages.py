@@ -163,18 +163,6 @@ def test_the_seven_themes_are_a_swipe_row(browser_page) -> None:
     assert page.locator('.nb-in .slides[aria-label="The seven themes"] .slide').count() == 7
 
 
-def test_both_planner_videos_have_posters_and_load_nothing_until_played(browser_page) -> None:
-    page, base, requests, _ = open_page(browser_page, "/projects/websites/digital_planner", PHONE)
-    page.wait_for_timeout(400)
-
-    videos = page.locator(".nb-in video")
-    assert videos.count() == 2
-    assert not any(url.endswith(".mp4") for url in requests)
-    for i in range(2):
-        assert videos.nth(i).get_attribute("poster").startswith("/static/img/planner/")
-        assert videos.nth(i).get_attribute("preload") == "none"
-
-
 def test_models_turn_open_and_come_from_this_site(browser_page) -> None:
     page, base, requests, problems = open_page(browser_page, "/hobbies/3d_printing/puzzles", DESKTOP)
 
@@ -308,19 +296,18 @@ def test_the_reviewed_wording_fixes_are_in(client: TestClient) -> None:
     assert "about 3 years, 2021 to 2024" in client.get("/education/college").text
     assert "Here are some 3D models" in client.get("/hobbies/3d_printing/other_models").text
     assert "Most link to their code or a demo." in client.get("/projects/programs").text
-    assert "five-person class team" in client.get("/projects/websites/digital_planner").text
 
 
 def test_programs_show_five_picks_and_keep_every_other_item_behind_show_all(client: TestClient) -> None:
     html = client.get("/projects/programs").text
     picks, rest = html.split('<details class="all">')
 
-    for name in ("Negamax Connect 4 bot", "Mini shell", "Parallel matrix multiplication", "CNN cat vs dog detector", "Evil Hangman"):
+    for name in ("Negamax Connect 4 bot", "A* sliding puzzle solver", "Mini shell", "Parallel matrix multiplication", "CNN cat vs dog detector", "Evil Hangman"):
         assert name in picks and name not in rest, name
-    assert picks.index("Negamax") < picks.index("Mini shell") < picks.index("Parallel") < picks.index("CNN") < picks.index("Evil Hangman")
+    assert picks.index("Negamax") < picks.index("A* sliding") < picks.index("Mini shell") < picks.index("Parallel") < picks.index("CNN") < picks.index("Evil Hangman")
     assert "alpha-beta" not in html  # the bot is plain negamax
     assert "<summary>Show all" in rest
-    for kept in ("A* sliding puzzle solver", "Red-black tree", "Mass Covid test process", "Bubble sort", "Hash map"):
+    for kept in ("K-Means", "Red-black tree", "Mass Covid test process", "Bubble sort", "Hash map"):
         assert kept in rest, kept
 
 
@@ -329,3 +316,13 @@ def test_say_hi_points_to_the_website_page_instead_of_explaining_it(client: Test
 
     assert "How it's made" not in html and "About this notebook" not in html
     assert re.search(r'The story is on the <a href="/projects/websites/this_website"[^>]*data-open="site"', html)
+
+
+def test_the_digital_planner_is_out_of_the_notebook_but_its_old_address_still_leads_somewhere(client: TestClient) -> None:
+    response = client.get("/projects/websites/digital_planner", follow_redirects=False)
+
+    assert response.status_code == 301 and response.headers["location"] == "/#projects"
+    assert "/projects/websites/digital_planner" not in client.get("/sitemap.xml").text
+    home = client.get("/").text
+    assert 'id="page-planner"' not in home and "Digital Planner" not in home
+    assert "4 entries" in home and "5 entries" not in home

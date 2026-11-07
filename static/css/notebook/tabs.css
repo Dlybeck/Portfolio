@@ -31,13 +31,13 @@
 .nb--desktop.is-closed .nb-tab, .nb--desktop.is-closed .nb-tab[aria-current] { transform: translateX(-30px); }
 
 /* ---------- phone (prototype) ----------
-   The room comes from the 20px margin to the right of the book (the page's text width is not touched). Each tab is a
-   24px-wide touch target: 10px of it is invisible and lies over the page's empty right padding, and the 14px that
-   shows is the coloured tab beside the book. Words show only while the book is open, small and turned sideways. */
-.nb--phone .nb-tabs { left: calc(100% - 6px); top: 12px; bottom: 12px; flex-direction: column; gap: 5px; }
+   The room comes from the 20px margin to the right of the book (the page's text width is not touched). The coloured part
+   is 16px wide at 360px, growing to 18px at 430px, and always ends 2px short of the screen edge. Each tab is a touch
+   target 10px wider than that (at least 26px): the extra lies invisible over the page's empty right padding. Words show only while the book is open, small and turned sideways. */
+.nb--phone .nb-tabs { --tab-v: clamp(16px, calc(16px + (100vw - 360px) * 0.0286), 18px); left: calc(100% + 8px - var(--tab-v)); top: 12px; bottom: 12px; flex-direction: column; gap: 5px; }
 .nb--phone .nb-tab {
-  position: relative; isolation: isolate; writing-mode: vertical-rl; width: 24px; flex: 1 1 0; min-height: 0; max-height: 84px;
-  padding: 2px 0 2px 10px; border: 0; background: none; box-shadow: none; font-size: 9.5px; letter-spacing: 0;
+  position: relative; isolation: isolate; writing-mode: vertical-rl; width: calc(var(--tab-v) + 10px); flex: 1 1 0; min-height: 0; max-height: 84px;
+  padding: 2px 0 2px 10px; border: 0; background: none; box-shadow: none; font-size: clamp(10px, calc(10px + (100vw - 360px) * 0.00714), 10.5px); letter-spacing: 0;
 }
 .nb--phone .nb-tab::before {
   content: ""; position: absolute; z-index: -1; inset: 0 0 0 10px; background: var(--tab); border: var(--edge) solid var(--nb-edge); border-left: 0; border-radius: 0 6px 6px 0;

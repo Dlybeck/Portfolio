@@ -24,8 +24,9 @@ def test_phone_tabs_are_tappable_inside_the_screen_and_do_not_narrow_the_page(br
     boxes = [page.locator(".nb-tab").nth(i).bounding_box() for i in range(6)]
     assert len(boxes) == 6
     for box in boxes:
-        assert box["width"] >= 24 and box["height"] >= 24, box  # WCAG 2.5.8 minimum target
-        assert box["x"] + box["width"] <= viewport["width"]
+        assert box["width"] >= 26 and box["height"] >= 24, box  # WCAG 2.5.8 minimum target
+        assert box["x"] + box["width"] <= viewport["width"] - 2  # at least 2px clear of the screen edge
+        assert box["width"] - 10 >= 16  # the coloured part is at least 16px wide (the other 10px is invisible touch area)
     # the page keeps the width it had without tabs: the room came from the margin
     # (the layout rule is unchanged: a width of the screen less 34px, or less if the height cannot hold it)
     expected = min(viewport["width"] - 34, (viewport["height"] - 70 - 138) * 0.625)

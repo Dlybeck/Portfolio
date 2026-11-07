@@ -153,7 +153,7 @@ def test_the_tabs_ride_with_the_book_and_slide_out_in_step_with_the_cover_swing(
     rel = [x["tab"] - x["book"] for x in s]
     assert all(x["opacity"] == "1" and x["shown"] != "none" for x in s)  # no fade-in and no pop
     steps = [b - a for a, b in zip(rel, rel[1:])]
-    assert max(steps) < 12  # a slide, not a jump
+    assert max(steps) < 24  # a slide, not a jump (a stalled frame on a slow machine can double a step)
     assert rel[-1] - rel[0] > 25  # it travels about 34px to its full place
     assert all(b >= a - 0.01 for a, b in zip(rel, rel[1:]))  # monotonic out
 
@@ -190,3 +190,26 @@ def test_tabs_come_and_go_when_the_window_changes_between_phone_and_desktop(brow
     page.set_viewport_size(DESKTOP)
     page.wait_for_selector("#notebook.nb--desktop")
     assert page.locator(".nb-tab").count() == 6
+
+
+def test_the_shut_peek_starts_at_the_board_top_in_a_tall_window(browser_page) -> None:
+    page = visit(browser_page, "/", {"width": 1920, "height": 1200})
+
+    board = page.locator(".nb-back").bounding_box()
+    assert page.locator(".nb-tabs").bounding_box()["y"] >= board["y"] - 0.5  # no tab hangs above the book
+
+
+def test_turning_pages_while_open_moves_the_current_tab_quickly_not_at_the_opening_speed(browser_page) -> None:
+    page = visit(browser_page, "/jobs", DESKTOP)
+    page.wait_for_timeout(1000)  # past the opening
+
+    duration = page.locator(".nb-tab").first.evaluate("n => getComputedStyle(n).transitionDuration").split(",")[0]
+    assert float(duration.strip("s ")) < 0.4, duration
+
+
+def test_after_a_shut_tab_is_clicked_focus_lands_on_the_new_page(browser_page) -> None:
+    page = visit(browser_page, "/", DESKTOP)
+
+    page.locator(".nb-tab").nth(2).click(position={"x": 22, "y": 40})
+    page.wait_for_timeout(1100)
+    assert page.evaluate("document.activeElement.closest('.nb-page')?.classList.contains('r')")

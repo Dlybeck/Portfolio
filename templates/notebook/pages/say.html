@@ -6,7 +6,6 @@
       {% for c in content.CONTACTS %}
       <div><b>{{ c.label }}</b><a href="{{ c.href }}"{% if c.href.startswith("http") %} target="_blank" rel="noopener"{% endif %}>{{ c.text }}</a></div>
       {% endfor %}
-      {% if content.RESUME_URL %}<div><b>Resume</b><a href="{{ content.RESUME_URL }}" target="_blank" rel="noopener">Resume (PDF)</a></div>{% endif %}
     </div>
   </section>
   <section data-only="desktop">

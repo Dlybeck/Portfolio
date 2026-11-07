@@ -167,8 +167,6 @@ body {
   .nb--desktop.is-opening .nb-page.l, .nb--desktop.is-opening .nb-gutter,
   .nb--desktop.is-opening .nb-pn.lft, .nb--desktop.is-opening .nb-ear.prev, .nb--desktop.is-opening .nb-hint-flip { visibility: hidden; }
   .nb--desktop .nb-leaf.cover .face.back { border-radius: 3px 0 0 3px; border-right-color: rgba(20, 28, 43, 0.25); }
-  .nb--desktop .nb-tabs { transition: opacity 200ms ease; }
-  .nb--desktop.is-opening .nb-tabs { opacity: 0; }
   .nb--desktop .nb-page, .nb--desktop .nb-leaf .face {
     background-image:
       linear-gradient(90deg, transparent 28px, rgba(200, 64, 52, 0.42) 28px, rgba(200, 64, 52, 0.42) 29.5px, transparent 29.5px),
@@ -191,6 +189,6 @@ body {
 .nb.is-closed .nb-ear, .nb.is-closed .nb-pn, .nb.is-closed .nb-hint-flip { visibility: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
-  .nb-book, .nb-back, .nb-band, .nb-page.l, .nb-gutter, .nb-tabs { transition: none !important; }
+  .nb-book, .nb-back, .nb-band, .nb-page.l, .nb-gutter, .nb-tab { transition: none !important; }
   .nb-in { scroll-behavior: auto; }
 }

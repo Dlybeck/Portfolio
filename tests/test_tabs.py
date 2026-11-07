@@ -99,13 +99,86 @@ def test_tabs_work_from_the_keyboard_and_open_in_a_new_tab(browser_page) -> None
     assert page.locator("#notebook").get_attribute("data-page") == "work"
 
 
-def test_tabs_are_hidden_while_the_cover_is_shut_and_appear_when_it_opens(browser_page) -> None:
+PEEK = """() => [...document.querySelectorAll('.nb-tab')].map(t => { const r = t.getBoundingClientRect(); return [r.left, r.right]; })"""
+
+
+def cover_edge(page) -> float:
+    box = page.locator(".nb-leaf.cover").bounding_box()
+    return box["x"] + box["width"]
+
+
+@pytest.mark.parametrize("viewport", [{"width": 1024, "height": 700}, DESKTOP, {"width": 1920, "height": 1080}, {"width": 640, "height": 360}])
+def test_while_the_cover_is_shut_the_tabs_peek_out_about_6px_and_show_no_words(browser_page, viewport) -> None:
+    page = visit(browser_page, "/", viewport)
+
+    edge = cover_edge(page)
+    spans = page.evaluate(PEEK)
+    assert len(spans) == 6 and page.locator(".nb-tabs").is_visible()
+    for left, right in spans:
+        assert abs((right - edge) - 6) < 1.5, (right - edge)  # an edge of colour, about 6px past the cover
+        assert right <= viewport["width"]  # and it is not clipped by the window
+    # the words sit under the cover, so none can be read
+    assert all(t["x"] + t["width"] / 2 < edge - 4 for t in [page.locator(".nb-tab").nth(i).bounding_box() for i in range(6)])
+
+
+def test_the_shut_tabs_are_hidden_from_keyboards_and_screen_readers_but_a_mouse_can_use_them(browser_page) -> None:
     page = visit(browser_page, "/", DESKTOP)
 
-    assert not page.locator(".nb-tabs").is_visible()
-    page.locator(".cover-open").click()
+    assert page.locator(".nb-tabs").get_attribute("aria-hidden") == "true"
+    assert page.locator(".nb-tab").evaluate_all("els => els.every(e => e.tabIndex === -1)")
+    page.locator(".nb-tab").nth(2).click(position={"x": 22, "y": 40})  # the 6px edge
     page.wait_for_timeout(1100)
-    assert page.locator(".nb-tabs").is_visible()
+    assert page.locator("#notebook").get_attribute("data-page") == "work"
+    assert page.locator(".nb-tabs").get_attribute("aria-hidden") is None
+    assert page.locator(".nb-tab").evaluate_all("els => els.every(e => e.tabIndex === 0)")
+
+
+def test_the_tabs_ride_with_the_book_and_slide_out_in_step_with_the_cover_swing(browser_page) -> None:
+    page = visit(browser_page, "/", DESKTOP)
+    page.evaluate("""() => {
+      window.__s = [];
+      const t0 = performance.now();
+      const tick = () => {
+        const tab = document.querySelector('.nb-tab'), book = document.querySelector('.nb-book');
+        window.__s.push({ t: performance.now() - t0, tab: tab.getBoundingClientRect().left, book: book.getBoundingClientRect().left,
+                          opacity: getComputedStyle(document.querySelector('.nb-tabs')).opacity, shown: getComputedStyle(document.querySelector('.nb-tabs')).display });
+        if (performance.now() - t0 < 1400) requestAnimationFrame(tick);
+      };
+      tick();
+    }""")
+    page.locator(".cover-open").click(no_wait_after=True)
+    page.wait_for_timeout(1500)
+    s = page.evaluate("window.__s")
+
+    rel = [x["tab"] - x["book"] for x in s]
+    assert all(x["opacity"] == "1" and x["shown"] != "none" for x in s)  # no fade-in and no pop
+    steps = [b - a for a, b in zip(rel, rel[1:])]
+    assert max(steps) < 24  # a slide, not a jump (a stalled frame on a slow machine can double a step)
+    assert rel[-1] - rel[0] > 25  # it travels about 34px to its full place
+    assert all(b >= a - 0.01 for a, b in zip(rel, rel[1:]))  # monotonic out
+
+
+def test_closing_tucks_the_tabs_back_to_the_peek(browser_page) -> None:
+    page = visit(browser_page, "/jobs", DESKTOP)
+    page.evaluate("document.querySelector('[data-home]').click()")
+    page.wait_for_timeout(1100)
+
+    spans = page.evaluate(PEEK)
+    assert all(abs(right - cover_edge(page) - 6) < 1.5 for _, right in spans)
+    assert page.locator(".nb-tabs").get_attribute("aria-hidden") == "true"
+
+
+def test_with_reduced_motion_the_tabs_do_not_slide(browser_page) -> None:
+    page, base = browser_page
+    page.emulate_media(reduced_motion="reduce")
+    page.set_viewport_size(DESKTOP)
+    page.goto(base + "/")
+    page.wait_for_selector("#notebook.nb--desktop")
+    page.wait_for_timeout(300)
+    assert page.locator(".nb-tab").first.evaluate("n => getComputedStyle(n).transitionDuration") in ("0s", "0.0s")
+    page.locator(".cover-open").click()
+    page.wait_for_timeout(500)
+    assert page.locator(".nb-tabs").get_attribute("aria-hidden") is None
 
 
 def test_tabs_come_and_go_when_the_window_changes_between_phone_and_desktop(browser_page) -> None:
@@ -117,3 +190,26 @@ def test_tabs_come_and_go_when_the_window_changes_between_phone_and_desktop(brow
     page.set_viewport_size(DESKTOP)
     page.wait_for_selector("#notebook.nb--desktop")
     assert page.locator(".nb-tab").count() == 6
+
+
+def test_the_shut_peek_starts_at_the_board_top_in_a_tall_window(browser_page) -> None:
+    page = visit(browser_page, "/", {"width": 1920, "height": 1200})
+
+    board = page.locator(".nb-back").bounding_box()
+    assert page.locator(".nb-tabs").bounding_box()["y"] >= board["y"] - 0.5  # no tab hangs above the book
+
+
+def test_turning_pages_while_open_moves_the_current_tab_quickly_not_at_the_opening_speed(browser_page) -> None:
+    page = visit(browser_page, "/jobs", DESKTOP)
+    page.wait_for_timeout(1000)  # past the opening
+
+    duration = page.locator(".nb-tab").first.evaluate("n => getComputedStyle(n).transitionDuration").split(",")[0]
+    assert float(duration.strip("s ")) < 0.4, duration
+
+
+def test_after_a_shut_tab_is_clicked_focus_lands_on_the_new_page(browser_page) -> None:
+    page = visit(browser_page, "/", DESKTOP)
+
+    page.locator(".nb-tab").nth(2).click(position={"x": 22, "y": 40})
+    page.wait_for_timeout(1100)
+    assert page.evaluate("document.activeElement.closest('.nb-page')?.classList.contains('r')")

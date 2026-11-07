@@ -77,8 +77,8 @@ def test_desktop_opening_is_one_swing_on_the_spine_with_the_book_sliding_at_the_
     assert all(x["folio"] == "hidden" for x in moving)  # the left page number does not float on the empty board
     done = [x for x in s if not x["leaf"] and not x["opening"]]
     assert done and all(x["leftVisible"] == "visible" and x["leftOpacity"] == "1" and abs(translate_x(x["book"])) < 0.5 for x in done)
-    # nothing sits on top of the cover while it swings: the tabs wait, then fade in
-    assert all(x["tabs"] == "0" for x in moving if x["tabs"] is not None)
+    # the tabs are always there: they ride with the book and slide out with the cover (no fade, no pop; see test_tabs.py)
+    assert all(x["tabs"] == "1" for x in moving)
     assert page.locator(".nb-tabs").is_visible()
 
 

@@ -96,7 +96,7 @@ function mount(initial) {
   return {
     go,
     home: (options) => closeCover(options),
-    focusPage() { book.book.querySelector(".nb-page.r .nb-in, .nb-page .nb-in")?.focus({ preventScroll: true }); },
+    focusPage() { (book.book.querySelector(".nb-page.r .nb-in") ?? book.book.querySelector(".nb-page .nb-in"))?.focus({ preventScroll: true }); },
     get isClosed() { return cover.closed; },
     get page() { return cover.closed ? null : book.current; },
     destroy() { tabs?.destroy(); cover.destroy(); wheel.destroy(); book.destroy(); },

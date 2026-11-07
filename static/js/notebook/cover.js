@@ -82,7 +82,7 @@ export function createCover({ root, book, phone, onTap }) {
     }
   }
 
-  /** The book is mid-move: the real left page waits, and the tabs hide, until it settles. */
+  /** The book is mid-move: the real left page waits until it settles while the tabs slide with the book. */
   function inMotion(ms) {
     root.classList.add("is-opening");
     clearTimeout(moving);

@@ -72,7 +72,7 @@ ScribbleScan's historical performance claims remain on its pages. Numerical and 
 - Add canonical, page-specific description, Open Graph, social-card, and appropriate `Person` structured metadata.
 - Use a stable wide capture of the canonical Home Board as the social-preview image, incorporating the existing Personal Mark for now.
 
-The resume linked from Say hi is the owner-supplied PDF in static/PDF and is changed only when the owner sends a new file.
+No resume PDF is served for now, and Say hi lists contacts only. The owner-supplied file is in git history if it is wanted back.
 
 ## Workstream 3: Theme laboratory
 

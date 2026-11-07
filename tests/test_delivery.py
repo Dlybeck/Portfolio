@@ -21,7 +21,7 @@ def test_pages_and_code_are_compressed_and_always_revalidated(client: TestClient
 
 
 def test_pictures_fonts_and_video_are_sent_as_they_are_and_kept_for_a_week(client: TestClient) -> None:
-    for path in ("/static/img/scribblescan/jul1.webp", "/static/fonts/caveat-latin-700-normal.woff2", "/static/PDF/David-Lybeck-Resume.pdf"):
+    for path in ("/static/img/scribblescan/jul1.webp", "/static/fonts/caveat-latin-700-normal.woff2", "/static/PDF/ScribbleScan_Proposal.pdf"):
         response = client.get(path, headers={"accept-encoding": "gzip"})
         assert "content-encoding" not in response.headers, path
         assert response.headers["cache-control"] == "public, max-age=604800", path
@@ -98,7 +98,7 @@ def test_files_are_sent_with_the_right_type_even_without_a_system_mime_table(cli
         "/static/3Dmodels/FirstPuzzle/FirstPuzzle.glb": "model/gltf-binary",
         "/static/img/planner/old.mp4": "video/mp4",
         "/static/dlybeck/dl-note.svg": "image/svg+xml",
-        "/static/PDF/David-Lybeck-Resume.pdf": "application/pdf",
+        "/static/PDF/ScribbleScan_Proposal.pdf": "application/pdf",
     }
     for path, kind in expected.items():
         assert client.get(path).headers["content-type"].split(";")[0] == kind, path

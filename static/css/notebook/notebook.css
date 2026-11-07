@@ -10,8 +10,6 @@
   --nb-kraft: #b58b55;
   --nb-turn: 720ms;
   --nb-turn-ease: cubic-bezier(0.45, 0.05, 0.25, 1);
-  --nb-top: 70px; /* where the book may start, below the header (tabs on top of the book push it down) */
-  --nb-gutter: 0px; /* room kept at the right for tabs */
   --nb-wheel-room: 138px; /* the part of the screen the wheel takes on a phone */
 }
 
@@ -64,10 +62,10 @@ body {
 
 /* The book is always a 5 by 8 notebook (one page on a phone, two side by side on desktop), as big as fits. */
 .nb-book {
-  --avail-h: calc(100vh - var(--nb-top) - var(--nb-wheel-room) - env(safe-area-inset-bottom, 0px));
-  --bw: min(calc(100vw - 34px - var(--nb-gutter)), calc(var(--avail-h) * 0.625));
-  position: absolute; width: var(--bw); height: calc(var(--bw) / 0.625); left: 50%; margin-left: calc(var(--bw) / -2 - 3px - var(--nb-gutter) / 2);
-  top: calc(var(--nb-top) + (var(--avail-h) - var(--bw) / 0.625) / 2);
+  --avail-h: calc(100vh - 70px - var(--nb-wheel-room) - env(safe-area-inset-bottom, 0px));
+  --bw: min(calc(100vw - 34px), calc(var(--avail-h) * 0.625));
+  position: absolute; width: var(--bw); height: calc(var(--bw) / 0.625); left: 50%; margin-left: calc(var(--bw) / -2 - 3px);
+  top: calc(70px + (var(--avail-h) - var(--bw) / 0.625) / 2);
   perspective: 1800px; z-index: 1; touch-action: pan-y;
 }
 /* a thin stack of pages already turned, behind the left edge of the phone book */
@@ -138,7 +136,7 @@ body {
 
 /* browsers that know the dynamic viewport height use it, so the phone's toolbar does not cover the wheel */
 @supports (height: 100dvh) {
-  .nb-book { --avail-h: calc(100dvh - var(--nb-top) - var(--nb-wheel-room) - env(safe-area-inset-bottom, 0px)); }
+  .nb-book { --avail-h: calc(100dvh - 70px - var(--nb-wheel-room) - env(safe-area-inset-bottom, 0px)); }
 }
 
 /* ---------- desktop: an open book, two pages ---------- */
@@ -146,10 +144,9 @@ body {
   .nb-top { padding: 14px 28px; }
   .nb-book {
     --avail-h: calc(100vh - 124px);
-    --bw: min(calc(var(--avail-h) * 1.25), calc(100vw - 376px), 1280px);
-    left: calc(300px + (100vw - 376px - var(--bw)) / 2); margin-left: 0; width: var(--bw); height: calc(var(--bw) / 1.25);
-    --book-top: calc(84px + (var(--avail-h) - var(--bw) / 1.25) / 2); /* tabs measure from it */
-    top: var(--book-top); transition: transform 950ms var(--nb-turn-ease);
+    --bw: min(calc(var(--avail-h) * 1.25), calc(100vw - 340px), 1280px);
+    left: calc(300px + (100vw - 340px - var(--bw)) / 2); margin-left: 0; width: var(--bw); height: calc(var(--bw) / 1.25);
+    top: calc(84px + (var(--avail-h) - var(--bw) / 1.25) / 2); transition: transform 950ms var(--nb-turn-ease);
   }
   .nb--desktop.is-closed .nb-book { transform: translateX(calc(var(--bw) * -0.25)); }
   .nb-back { inset: -10px -12px -12px -12px; border-radius: 10px; transition: left 950ms var(--nb-turn-ease); }

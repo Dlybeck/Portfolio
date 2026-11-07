@@ -21,10 +21,10 @@ JOBS = [{'logo': 'denali',
   'height': 45,
   'org': 'ScribbleScan LLC',
   'role': 'Founder and developer',
-  'when': 'February 2025 to April 2026',
+  'when': 'February 2025 to now',
   'text': 'I solo-developed a handwriting-digitization service that preserved images and other '
-          'non-text elements in the resulting document. The company and original service have '
-          'since closed, and a preserved demo remains.'},
+          'non-text elements in the resulting document. The website is still up as a demo, the '
+          "live service is switched off, and I'm still working on what comes next."},
  {'logo': '2ndchair',
   'width': 240,
   'height': 99,

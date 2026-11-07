@@ -4,7 +4,6 @@
 import { createBook } from "./book.js";
 import { createCover } from "./cover.js";
 import { enhance, settled } from "./media.js";
-import { createTabs } from "./tabs.js";
 import { createWheel } from "./wheel.js";
 
 const root = document.getElementById("notebook");
@@ -21,16 +20,9 @@ function targetFor({ pathname, hash }) {
   return found ? { page: found[0], anchor: null } : null;
 }
 
-// ?tabs=a or ?tabs=b picks where the section tabs sit (a trial for two placements); it is kept while browsing.
-const search = location.search;
-const tabsVariant = new URLSearchParams(search).get("tabs") === "b" ? "b" : "a";
-
 /** The address a page lives at. Pages without a route of their own use a hash on "/". */
-const addressOf = (id) => {
-  const page = data.pages[id];
-  return page.path ? page.path + search : `/${search}#${page.hash}`;
-};
-const here = () => location.pathname + location.search + location.hash;
+const addressOf = (id) => data.pages[id].path || `/#${data.pages[id].hash}`;
+const here = () => location.pathname + location.hash;
 
 function mount(initial) {
   const phone = !wide.matches;
@@ -38,7 +30,7 @@ function mount(initial) {
   root.classList.add(phone ? "nb--phone" : "nb--desktop");
   if (!initial) root.classList.add("is-closed"); // shut from the start, so the book does not slide into place on load
 
-  let book; let wheel; let cover; let tabs;
+  let book; let wheel; let cover;
   let spinning = false; // the wheel is turning the pages, so it must not be re-aimed
   const hooks = {
     page: (id, duration) => {
@@ -61,7 +53,6 @@ function mount(initial) {
   });
   wheel = createWheel({ root, data, order: book.order, phone, hooks });
   cover = createCover({ root, book: book.book, phone, onTap: () => openCover() });
-  tabs = createTabs({ root, book: book.book, data, variant: tabsVariant, addressOf });
 
   function openCover({ fromWheel = false } = {}) {
     if (!cover.closed) return;
@@ -74,7 +65,7 @@ function mount(initial) {
     book.show("me");
     cover.close({ animate: true });
     if (!fromWheel) wheel.sync("cover");
-    if (push) history.pushState({ page: null }, "", `/${search}`);
+    if (push) history.pushState({ page: null }, "", "/");
   }
 
   /** Show a page (a link, the contents, back and forward): turn to it, opening the cover first if it is shut. */
@@ -106,7 +97,7 @@ function mount(initial) {
     focusPage() { book.book.querySelector(".nb-page.r .nb-in, .nb-page .nb-in")?.focus({ preventScroll: true }); },
     get isClosed() { return cover.closed; },
     get page() { return cover.closed ? null : book.current; },
-    destroy() { tabs.destroy(); cover.destroy(); wheel.destroy(); book.destroy(); },
+    destroy() { cover.destroy(); wheel.destroy(); book.destroy(); },
   };
 }
 

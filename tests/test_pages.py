@@ -277,3 +277,12 @@ def test_the_scribblescan_page_says_what_comes_next_in_one_plain_line(client: Te
     assert "I'm now exploring what comes next for it, with privacy as the main goal. It's early work, not a finished product." in html
     assert "from a hosted product to a privacy-first experiment." in html
     assert "an offline" not in html
+
+
+def test_the_scribblescan_job_says_where_things_stand_now(client: TestClient) -> None:
+    html = client.get("/jobs").text
+
+    assert "February 2025 to now" in html
+    assert "The website is still up as a demo, the live service is switched off, and I&#39;m still working on what comes next." in html
+    assert "February 2025 to April 2026" not in html
+    assert "have since closed" not in html

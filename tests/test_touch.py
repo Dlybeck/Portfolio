@@ -95,7 +95,7 @@ def test_a_swipe_on_the_cover_still_opens_it(mobile_browser_page) -> None:
 def test_a_tap_does_not_flash_a_highlight_and_the_keyboard_ring_remains(mobile_browser_page) -> None:
     page, _ = open_with_touch(mobile_browser_page, "/jobs")
 
-    for selector in ("body", ".nb-in", ".nb-ear.next", ".nb-tab", ".wheel-dial"):
+    for selector in ("body", ".nb-in", ".nb-ear.next", ".wheel-dial"):
         color = page.locator(selector).first.evaluate("n => getComputedStyle(n).webkitTapHighlightColor")
         assert color in ("rgba(0, 0, 0, 0)", "transparent"), (selector, color)
     page.locator(".nb-ear.next").focus()

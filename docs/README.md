@@ -22,8 +22,11 @@ docker run -p 8080:8080 portfolio
 ```
 pip install -r requirements-dev.txt
 playwright install chromium
-pytest
+pytest                       # everything, 6 parallel workers (about 1.5 minutes)
+pytest -m "not browser" -n0  # quick: no browser, a few seconds
 ```
+
+Browser tests share one Chromium per worker and get a fresh context each.
 
 ## Where things are
 

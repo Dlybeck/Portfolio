@@ -1,3 +1,5 @@
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+addopts = "-n 6"
+markers = ["browser: drives a real Chromium page (deselect with -m \"not browser\")"]

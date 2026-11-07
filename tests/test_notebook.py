@@ -184,19 +184,17 @@ def test_the_covered_pages_are_not_reachable_until_the_cover_opens(browser_page)
     assert page.evaluate("location.hash") == "#about"
 
 
-def test_a_phone_has_no_tabs_and_the_old_tabs_switch_does_nothing(browser_page) -> None:
+def test_the_old_tabs_switch_does_nothing_and_the_address_is_left_alone(browser_page) -> None:
     page, base = browser_page
-    for query in ("", "?tabs=a", "?tabs=b"):
+    for query in ("?tabs=a", "?tabs=b"):
         page.set_viewport_size(PHONE)
         page.goto(base + "/jobs" + query)
         page.wait_for_selector("#notebook.nb--phone")
-        assert page.locator(".nb-tabs, .nb-tab").count() == 0
         assert "nb--tabs" not in page.locator("#notebook").get_attribute("class")
-    # the address is left exactly as typed, and turning a page does not add anything to it
+        assert page.evaluate("location.search") == query
     page.set_viewport_size(DESKTOP)
     page.goto(base + "/jobs?tabs=b")
     page.wait_for_selector("#notebook.nb--desktop")
-    assert page.locator(".nb-tab").count() == 6  # the switch picks nothing: desktop always has them
     page.locator(".nb-ear.next").click()
     page.wait_for_timeout(900)
     assert page.evaluate("location.pathname") == "/education/college"

@@ -4,8 +4,11 @@
 import { el, reducedMotion, tuck } from "./motion.js";
 import { stickersHtml, wireStickers } from "./stickers/index.js";
 
-const OPEN_MS = 950;
-const SWING = "cubic-bezier(0.45, 0.05, 0.25, 1)";
+// One timing for the whole opening: the cover swinging on its spine and the book sliding to its open spot.
+// The same two values are set on the page as --nb-open-ms and --nb-open-ease, which the book's slide uses.
+const OPEN_MS = 800;
+const SWING = "cubic-bezier(0.22, 0.7, 0.25, 1)";
+const FADE_MS = 260; // with reduced motion the cover fades instead of swinging
 
 /**
  * @param {object} o
@@ -17,7 +20,10 @@ const SWING = "cubic-bezier(0.45, 0.05, 0.25, 1)";
 export function createCover({ root, book, phone, onTap }) {
   let leaf = null;
   let timer = 0;
+  let moving = 0;
   let closed = false;
+  root.style.setProperty("--nb-open-ms", `${OPEN_MS}ms`);
+  root.style.setProperty("--nb-open-ease", SWING);
   // While the cover is shut, what lies under it must not be reachable by keyboard or screen reader.
   const covered = () => book.querySelectorAll(":scope > .nb-page, :scope > .nb-ear");
   const setCovered = (on) => covered().forEach((n) => { n.inert = on; });
@@ -56,15 +62,31 @@ export function createCover({ root, book, phone, onTap }) {
       if (!onSticker) onTap(); // a press that began on a sticker and ended elsewhere is not a tap on the cover
     });
 
-    if (swingShut && !reducedMotion()) {
-      if (phone) tuck(leaf, -180, 0, OPEN_MS - 50, SWING).onfinish = (e) => e.target.cancel();
-      else {
-        leaf.style.transform = "rotateY(-180deg)";
-        void leaf.offsetWidth;
-        leaf.style.transition = `transform ${OPEN_MS - 50}ms ${SWING}`;
-        leaf.style.transform = "";
-      }
+    if (!swingShut) return;
+    if (reducedMotion()) {
+      // a simple cross-fade: the cover appears over the book in place, with no swing and no slide
+      leaf.style.opacity = "0";
+      void leaf.offsetWidth;
+      leaf.style.transition = `opacity ${FADE_MS}ms ease`;
+      leaf.style.opacity = "1";
+      return;
     }
+    // closing is the opening played backwards: the leaf starts lying open on the left and swings shut on its spine
+    inMotion(OPEN_MS);
+    if (phone) tuck(leaf, -180, 0, OPEN_MS, SWING).onfinish = (e) => e.target.cancel();
+    else {
+      leaf.style.transform = "rotateY(-180deg)";
+      void leaf.offsetWidth;
+      leaf.style.transition = `transform ${OPEN_MS}ms ${SWING}`;
+      leaf.style.transform = "";
+    }
+  }
+
+  /** The book is mid-move: the real left page waits, and the tabs hide, until it settles. */
+  function inMotion(ms) {
+    root.classList.add("is-opening");
+    clearTimeout(moving);
+    moving = setTimeout(() => root.classList.remove("is-opening"), ms + 30);
   }
 
   return {
@@ -88,7 +110,13 @@ export function createCover({ root, book, phone, onTap }) {
       leaf = null;
       if (!gone) return;
       if (!phone) gone.querySelector(".back").replaceChildren(backFace()); // the page now showing, not the one it was built over
-      if (reducedMotion()) { gone.remove(); return; }
+      if (reducedMotion()) {
+        gone.style.transition = `opacity ${FADE_MS}ms ease`;
+        gone.style.opacity = "0";
+        timer = setTimeout(() => gone.remove(), FADE_MS + 30);
+        return;
+      }
+      inMotion(OPEN_MS);
       if (phone) tuck(gone, 0, -180, OPEN_MS, SWING);
       else {
         gone.style.transition = `transform ${OPEN_MS}ms ${SWING}`;
@@ -98,6 +126,8 @@ export function createCover({ root, book, phone, onTap }) {
     },
     destroy() {
       clearTimeout(timer);
+      clearTimeout(moving);
+      root.classList.remove("is-opening");
       setCovered(false);
       book.querySelectorAll(":scope > .cover").forEach((n) => n.remove());
     },

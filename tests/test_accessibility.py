@@ -99,8 +99,10 @@ def test_with_reduced_motion_the_cover_opens_without_a_swing(browser_page) -> No
     page = open_notebook(browser_page, "/", PHONE, reduced=True)
 
     page.locator(".cover-open").click()
+    assert "is-closed" not in page.locator("#notebook").get_attribute("class")  # open at once
+    assert "rotate" not in (page.locator(".nb-leaf.cover").evaluate("n => n.style.transform") or "")  # it fades, it does not swing
+    page.wait_for_timeout(500)
     assert page.locator(".nb-leaf.cover").count() == 0
-    assert "is-closed" not in page.locator("#notebook").get_attribute("class")
 
 
 def test_text_on_the_wheel_keeps_enough_contrast(browser_page) -> None:

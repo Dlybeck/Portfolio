@@ -120,6 +120,7 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
   function chrome(id) {
     const i = order.indexOf(id);
     root.dataset.page = id;
+    root.dispatchEvent(new CustomEvent("nb:view", { detail: id }));
     const title = data.pages[id].title;
     inL.setAttribute("aria-label", phone ? title : `${title}, left page`);
     inR?.setAttribute("aria-label", `${title}, right page`);

@@ -184,6 +184,42 @@ def test_the_covered_pages_are_not_reachable_until_the_cover_opens(browser_page)
     assert page.evaluate("location.hash") == "#about"
 
 
+@pytest.mark.parametrize("viewport", [PHONE, DESKTOP, {"width": 844, "height": 390}], ids=lambda v: f"{v['width']}x{v['height']}")
+def test_there_is_no_say_hi_button_and_the_header_holds_only_the_logo(browser_page, viewport) -> None:
+    page, base = browser_page
+    page.set_viewport_size(viewport)
+    page.goto(base + "/jobs")
+    page.wait_for_selector("#notebook.nb--phone, #notebook.nb--desktop")
+    page.wait_for_timeout(500)
+
+    assert page.locator(".nb-top a").count() == 1  # just the logo
+    assert page.locator(".nb-top a").first.get_attribute("data-home") is not None
+    assert page.locator(".nb-hi").count() == 0
+    box = page.locator(".nb-top").bounding_box()
+    assert not page.evaluate("document.documentElement.scrollWidth > innerWidth")
+    # nothing in the header to the right of the logo: no dead space where a button was
+    assert page.evaluate("() => [...document.querySelectorAll('.nb-top > *')].filter((e) => e.getBoundingClientRect().width > 2 && !e.classList.contains('sr-only')).length") == 1
+    assert box["height"] <= 70
+
+
+def test_nothing_outside_the_book_jumps_to_the_contact_page(browser_page) -> None:
+    page, base = browser_page
+    page.set_viewport_size(DESKTOP)
+    page.goto(base + "/")
+    page.wait_for_selector("#notebook.nb--desktop")
+    page.wait_for_timeout(500)
+
+    # the only ways to it are the book's own: the last tab, the wheel and the contents page
+    outside = page.evaluate("""() => [...document.querySelectorAll('a[data-open="say"], [data-open="say"]')]
+      .filter((e) => !e.closest('.nb-book, .nb-sources, .wheel')).length""")
+    assert outside == 0
+    page.locator(".cover-open").click()
+    page.wait_for_timeout(1100)
+    page.locator(".nb-tab", has_text="Say hi").click()
+    page.wait_for_timeout(1500)
+    assert page.locator("#notebook").get_attribute("data-page") == "say"
+
+
 def test_the_old_tabs_switch_does_nothing_and_the_address_is_left_alone(browser_page) -> None:
     page, base = browser_page
     for query in ("?tabs=a", "?tabs=b"):

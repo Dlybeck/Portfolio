@@ -245,8 +245,7 @@ def test_the_sticker_maker_can_be_used_from_the_keyboard(browser_page) -> None:
 def test_the_name_tag_shows_a_focus_ring(browser_page) -> None:
     page, *_ = cover(browser_page, DESKTOP)
     page.keyboard.press("Tab")
-    page.keyboard.press("Tab")
-    page.keyboard.press("Tab")  # brand, say hi, then the first sticker on the cover
+    page.keyboard.press("Tab")  # the logo, then the first sticker on the cover
     tag = page.locator(".wd-name")
     assert tag.evaluate("n => n === document.activeElement")
     assert tag.evaluate("n => getComputedStyle(n).outlineStyle") == "solid"

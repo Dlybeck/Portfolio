@@ -10,6 +10,7 @@ import { printer } from "./printer.js";
 import { puzzle } from "./puzzle.js";
 import { raccoon } from "./raccoon.js";
 import { scan } from "./scan.js";
+import { startHints } from "./hints.js";
 
 const SET = [name, now, hike, scan, puzzle, printer, raccoon, blankSticker, ball];
 
@@ -25,4 +26,5 @@ export function wireStickers(cover) {
     el.insertAdjacentHTML("beforeend", `<i class="wd-sh" aria-hidden="true"></i>${el.classList.contains("wd-name") ? '<i class="wd-curl" aria-hidden="true"></i>' : ""}`);
     SET[i].wire(el, { alive, cover });
   });
+  startHints(cover, alive); // a quiet nudge that they are tappable, until the first touch
 }

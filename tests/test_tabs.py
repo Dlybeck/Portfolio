@@ -40,13 +40,15 @@ def test_tabs_stay_inside_the_window_beside_the_book_and_the_book_does_not_move(
     book, tabs = page.locator(".nb-book").bounding_box(), page.locator(".nb-tabs").bounding_box()
     assert tabs["x"] >= book["x"] + book["width"] - 1
     assert tabs["x"] + tabs["width"] <= viewport["width"]
-    assert tabs["y"] >= 60 and tabs["y"] + tabs["height"] <= viewport["height"]
+    top_bar = 0 if viewport["height"] <= 520 else 60  # on a phone on its side the bar is only the small logo at the left
+    assert tabs["y"] >= top_bar and tabs["y"] + tabs["height"] <= viewport["height"]
     # the open section's tab slides out: it must still be on screen
     current = page.locator('.nb-tab[aria-current="page"]').bounding_box()
     assert current["x"] + current["width"] <= viewport["width"]
     assert label_clipping(page) == []
-    # the book sits where it always did: centred between the wheel column (300px) and 40px from the right edge
-    left, right = book["x"] - 300, (viewport["width"] - 40) - (book["x"] + book["width"])
+    # the book sits where it always did: centred between the wheel column (300px, or 150px on a phone on its side) and 40px from the right edge
+    column = 150 if viewport["height"] <= 520 else 300
+    left, right = book["x"] - column, (viewport["width"] - 40) - (book["x"] + book["width"])
     assert abs(left - right) <= 2, (left, right)
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
 

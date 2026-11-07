@@ -52,3 +52,32 @@ def test_figure_captions_have_enough_contrast(browser_page) -> None:
       return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
     }""")
     assert ratio >= 4.5, ratio
+
+
+LANDSCAPE_PHONES = [{"width": 844, "height": 390}, {"width": 932, "height": 430}, {"width": 740, "height": 360}]
+LAND_IDS = lambda v: f"{v['width']}x{v['height']}"  # noqa: E731
+
+
+@pytest.mark.parametrize("route", ROUTES)
+@pytest.mark.parametrize("size", LANDSCAPE_PHONES, ids=LAND_IDS)
+def test_no_page_is_cut_off_at_the_edge_on_a_phone_on_its_side(browser_page, route, size) -> None:
+    page = open_page(browser_page, route, size)
+
+    assert overflow(page) == []
+
+
+@pytest.mark.parametrize("size", LANDSCAPE_PHONES, ids=LAND_IDS)
+def test_on_a_phone_on_its_side_the_wheel_clears_the_logo_and_the_book_fills_the_height(browser_page, size) -> None:
+    page = open_page(browser_page, "/jobs", size)
+    boxes = page.evaluate(
+        """() => {
+          const r = (s) => document.querySelector(s).getBoundingClientRect();
+          const [d, b, k] = [r('.wheel-dial'), r('.nb-book'), r('.nb-brand')];
+          return {wheelRight: d.right, bookLeft: b.left, bookTop: b.top, bookBottom: b.bottom, logoRight: k.right, logoBottom: k.bottom, wheelTop: d.top};
+        }"""
+    )
+
+    assert boxes["wheelRight"] <= boxes["bookLeft"] - 8
+    assert boxes["logoBottom"] <= boxes["wheelTop"] + 1
+    assert boxes["bookTop"] >= 0 and boxes["bookBottom"] <= size["height"]
+    assert boxes["bookBottom"] - boxes["bookTop"] >= size["height"] - 60

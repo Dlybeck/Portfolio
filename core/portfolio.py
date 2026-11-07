@@ -53,7 +53,7 @@ DOCUMENTS = (
     ),
     PortfolioDocument(
         "/projects/programs", "programs", "Programs",
-        "Explore current software projects, earlier experiments, and selected coursework built by David Lybeck.",
+        "Explore software experiments and selected coursework built by David Lybeck.",
     ),
     PortfolioDocument(
         "/projects/nba_predictions", "nba", "NBA Predictions",
@@ -85,5 +85,10 @@ DOCUMENTS = (
         "/projects/websites/this_website/v3", "site", "This Website v3",
         "See the third generation of DavidLybeck.com evolve from handwritten notes on a tabletop into seven visual themes.",
         anchor="v3",
+    ),
+    PortfolioDocument(
+        "/projects/websites/this_website/v4", "site", "This Website v4",
+        "See the fourth generation of DavidLybeck.com become a notebook with a cover, a side wheel and a page for every story.",
+        anchor="v4",
     ),
 )

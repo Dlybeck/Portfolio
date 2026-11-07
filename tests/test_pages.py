@@ -272,8 +272,9 @@ def test_say_hi_lists_contacts_and_no_resume_is_offered(client: TestClient) -> N
 def test_the_scribblescan_page_says_what_comes_next_in_one_plain_line(client: TestClient) -> None:
     html = client.get("/projects/websites/scribblescan").text
 
-    assert "I'm now exploring what comes next for it, with privacy as the main goal. It's early work, not a finished product." in html
-    assert "from a hosted product to a privacy-first experiment." in html
+    assert "I&#39;m still working on what comes next." in html
+    assert "What I&#39;m exploring now" not in html
+    assert "from capstone to hosted product." in html
 
 
 def test_the_scribblescan_job_says_where_things_stand_now(client: TestClient) -> None:
@@ -283,3 +284,28 @@ def test_the_scribblescan_job_says_where_things_stand_now(client: TestClient) ->
     assert "The website is still up as a demo, the live service is switched off, and I&#39;m still working on what comes next." in html
     assert "February 2025 to April 2026" not in html
     assert "have since closed" not in html
+
+
+def test_the_three_tennis_jobs_are_one_work_entry(client: TestClient) -> None:
+    html = client.get("/jobs").text
+
+    assert html.count("Tennis coach") == 1
+    assert "June 2022 to August 2023" in html
+    for place in ("Tacoma Country and Golf Club", "Galbraith Tennis Center", "Portland Tennis Center"):
+        assert place in html
+    assert "Work · 6 entries" in html and "8 roles" not in html
+
+
+def test_the_website_page_leads_with_version_four_and_lists_its_snapshots(client: TestClient) -> None:
+    html = client.get("/projects/websites/this_website/v4").text
+
+    assert "Version 4, November 2026" in html
+    assert 'id="v4"' in html and "/static/img/site/v4-1.webp" in html and "/static/img/site/v4-3.webp" in html
+    assert "Version 3, April 2026" not in html
+
+
+def test_the_reviewed_wording_fixes_are_in(client: TestClient) -> None:
+    assert "about 3 years, 2021 to 2024" in client.get("/education/college").text
+    assert "Here are some 3D models" in client.get("/hobbies/3d_printing/other_models").text
+    assert "Most link to their code or a demo." in client.get("/projects/programs").text
+    assert "five-person class team" in client.get("/projects/websites/digital_planner").text

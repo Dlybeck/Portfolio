@@ -90,3 +90,8 @@ html.no-js .page .slides { display: grid; grid-auto-flow: row; grid-auto-columns
   .page .job { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .page .job-mark { width: 52px; height: 52px; }
 }
+
+/* One entry holding several jobs (the tennis coaching): the places sit under its title, each with its own logo */
+.page .job.job-group { display: block; }
+.page .job-group .places { margin-top: 4px; }
+.page .job-group .places .job { padding: 10px 0 0; border-top: 0; }

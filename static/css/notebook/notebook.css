@@ -90,7 +90,9 @@ body {
   transition: right 0.5s, width 0.5s, opacity 0.5s, top 0.5s, bottom 0.5s;
 }
 .nb.is-closed .nb-band { opacity: 0; }
-.nb:not(.is-closed) .nb-band { right: -5px; width: 5px; top: 14%; bottom: 14%; opacity: 0.4; border-width: 1px; border-radius: 2px; }
+.nb:not(.is-closed) .nb-band { right: -5px; width: 5px; top: 14%; bottom: 14%; opacity: 0.4; z-index: 2; border-width: 1px; border-radius: 2px; }
+/* Open, the band is only a faint strap on the back board's edge. It rides under the section tabs (z-index 3), never over them: at 70 it was
+   painted across their inner edges (pointer-events: none hid it from hit tests, but not from the eye). */
 
 .nb-in {
   overflow-anchor: none; /* the engine keeps a named part in place itself */

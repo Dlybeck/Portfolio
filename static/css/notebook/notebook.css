@@ -1,0 +1,209 @@
+/* The notebook: the frame, the book, its pages and the page turn.
+   Colors come from the dlybeck design tokens (tokens.css). Light theme only for now. */
+
+:root {
+  --nb-edge: rgba(20, 28, 43, 0.55);
+  --nb-paper: color-mix(in srgb, var(--paper-note) 45%, #f7eed6);
+  --nb-ink: var(--ink-fixed);
+  --nb-pen: #0b4f9c; /* the blue that reads on paper */
+  --nb-spine: #2b2f38;
+  --nb-kraft: #b58b55;
+  --nb-turn: 720ms;
+  --nb-turn-ease: cubic-bezier(0.45, 0.05, 0.25, 1);
+  --nb-wheel-room: 138px;
+  --nb-open-ms: 800ms; /* the book opening and closing: cover.js sets the same values */
+  --nb-open-ease: cubic-bezier(0.22, 0.7, 0.25, 1); /* the part of the screen the wheel takes on a phone */
+}
+
+*, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; } /* no blue flash on a tap; keyboard focus keeps its ring below */
+html, body { margin: 0; }
+body {
+  background: var(--ground);
+  background-image: linear-gradient(var(--ground), color-mix(in srgb, var(--ground) 80%, #dfe6f1));
+  color: var(--ink);
+  font: 400 1rem/1.55 var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+}
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+:focus-visible { outline: 2.5px solid var(--action); outline-offset: 3px; }
+
+/* ---------- the frame ---------- */
+.nb { position: relative; min-height: 100vh; }
+.nb-top {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 16px;
+}
+.nb-brand {
+  display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none;
+  font: 800 1.15rem/1 var(--font-sans); letter-spacing: -0.01em;
+}
+.nb-brand img { display: block; }
+
+/* ---------- the plain page (no scripts) ---------- */
+.nb-sources { max-width: 46rem; margin: 0 auto; padding: 8px 16px 64px; display: grid; gap: 28px; }
+.nb-sources .page { background: var(--nb-paper); color: var(--nb-ink); border: var(--edge) solid var(--nb-edge); border-radius: var(--radius-paper); padding: 22px 22px 26px; }
+.js .nb-sources { display: none; }
+.js-only { display: none; }
+.js .js-only { display: block; }
+
+/* ---------- with scripts: the book fills the screen ---------- */
+.js .nb { position: fixed; inset: 0; min-height: 0; overflow: clip; }
+.js .nb-top { position: absolute; inset: 0 0 auto 0; z-index: 20; height: 62px; padding-top: 14px; }
+
+/* The book is always a 5 by 8 notebook (one page on a phone, two side by side on desktop), as big as fits. */
+.nb-book {
+  --avail-h: calc(100vh - 70px - var(--nb-wheel-room) - env(safe-area-inset-bottom, 0px));
+  --bw: min(calc(100vw - 34px), calc(var(--avail-h) * 0.625));
+  position: absolute; width: var(--bw); height: calc(var(--bw) / 0.625); left: 50%; margin-left: calc(var(--bw) / -2 - 3px);
+  top: calc(70px + (var(--avail-h) - var(--bw) / 0.625) / 2);
+  perspective: 2400px; z-index: 1; touch-action: pan-y;
+}
+/* a thin stack of pages already turned, behind the left edge of the phone book */
+.nb--phone .nb-book::before {
+  content: ""; position: absolute; right: 100%; top: 5px; bottom: 5px; width: 0; margin-right: 1px;
+  border-radius: 3px 0 0 3px; z-index: 0;
+  background: repeating-linear-gradient(90deg, var(--paper-note) 0 2px, #cfc6b0 2px 3px);
+  box-shadow: -1px 1px 0 rgba(20, 28, 43, 0.25); transition: width 0.35s ease;
+}
+.nb--phone.is-turned:not(.is-closed) .nb-book::before { width: 11px; }
+
+.nb-back { /* the back board, a hair larger than the pages */
+  position: absolute; inset: 0 -6px -6px 0; border-radius: 6px; background: var(--nb-kraft);
+  border: var(--edge) solid var(--line); box-shadow: var(--lift);
+}
+.nb-page, .nb-leaf .face {
+  background-color: var(--nb-paper); color: var(--nb-ink); border: var(--edge) solid var(--nb-edge);
+  background-image:
+    linear-gradient(90deg, transparent 11px, rgba(200, 64, 52, 0.42) 11px, rgba(200, 64, 52, 0.42) 12.5px, transparent 12.5px),
+    repeating-linear-gradient(transparent 0 25px, rgba(60, 104, 170, 0.2) 25px 26px);
+  background-size: 100% 100%, 100% 26px; background-position: 0 0, 0 14px;
+  overflow: hidden;
+}
+.nb-page { position: absolute; inset: 0; border-radius: 3px; }
+.nb-gutter { display: none; }
+.nb-band { /* the elastic band round the spine side */
+  position: absolute; top: -6px; bottom: -6px; right: 22px; width: 11px; z-index: 70; pointer-events: none;
+  background: var(--nb-spine); border: var(--edge) solid var(--ink-fixed); border-radius: 3px;
+  transition: right 0.5s, width 0.5s, opacity 0.5s, top 0.5s, bottom 0.5s;
+}
+.nb.is-closed .nb-band { opacity: 0; }
+.nb:not(.is-closed) .nb-band { right: -5px; width: 5px; top: 14%; bottom: 14%; opacity: 0.4; border-width: 1px; border-radius: 2px; }
+
+.nb-in {
+  overflow-anchor: none; /* the engine keeps a named part in place itself */
+  position: absolute; inset: 0; padding: 22px 44px 50px 26px; overflow: auto; overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch; scroll-behavior: smooth;
+  touch-action: pan-y; /* up and down scroll the page; sideways strokes reach the book, which turns the page */
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 52px), transparent calc(100% - 26px));
+  mask-image: linear-gradient(#000 calc(100% - 52px), transparent calc(100% - 26px));
+}
+.nb-in:focus-visible { outline-offset: -4px; }
+
+/* page turn */
+.nb-leaf { position: absolute; top: 0; bottom: 0; display: none; z-index: 8; transform-style: preserve-3d; }
+.nb-leaf.is-flying { display: block; }
+.nb-leaf .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.nb-leaf .back { transform: rotateY(180deg); }
+.nb--phone .nb-leaf .back { background-image: linear-gradient(90deg, #d6cdb6, #fbf7ec 45%, #e4dccb); }
+.nb-leaf.is-riffle .face { box-shadow: 0 0 0 1px rgba(20, 28, 43, 0.06); }
+
+.nb-pn { position: absolute; bottom: 14px; font: 500 0.72rem/1 var(--font-mono); letter-spacing: 0.08em; color: rgba(20, 28, 43, 0.65); z-index: 7; pointer-events: none; }
+.nb-pn.rgt { right: 48px; }
+.nb-pn.lft { left: 26px; }
+.nb--phone .nb-pn.lft { display: none; }
+
+.nb-ear { /* a folded page corner you can tap to turn */
+  position: absolute; bottom: 0; width: 48px; height: 48px; border: 0; padding: 0; cursor: pointer; z-index: 7; background: none;
+}
+.nb-ear::before {
+  content: ""; position: absolute; inset: 0; clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  background: linear-gradient(135deg, transparent 50%, var(--nb-edge) 50%, var(--nb-edge) calc(50% + 1.5px), color-mix(in srgb, var(--paper-note) 86%, #141c2b) calc(50% + 1.5px));
+}
+.nb-ear.next { right: 0; }
+.nb-ear.prev { left: 0; transform: scaleX(-1); }
+.nb-ear[disabled] { display: none; }
+.nb-hint-flip { position: absolute; right: 52px; bottom: 40px; rotate: -6deg; color: var(--nb-pen); pointer-events: none; z-index: 7; font: 700 1.25rem/1 var(--font-hand); transition: opacity 0.4s; }
+
+/* browsers that know the dynamic viewport height use it, so the phone's toolbar does not cover the wheel */
+@supports (height: 100dvh) {
+  .nb-book { --avail-h: calc(100dvh - 70px - var(--nb-wheel-room) - env(safe-area-inset-bottom, 0px)); }
+  @media (orientation: landscape) and (max-height: 520px) and (min-width: 640px) { .nb-book { --avail-h: calc(100dvh - 32px); } }
+}
+
+/* ---------- desktop: an open book, two pages ---------- */
+@media (min-width: 900px), (orientation: landscape) and (min-width: 640px) {
+  .nb-top { padding: 14px 28px; }
+  .nb-book {
+    --avail-h: calc(100vh - 124px);
+    --bw: min(calc(var(--avail-h) * 1.25), calc(100vw - 340px), 1280px);
+    left: calc(300px + (100vw - 340px - var(--bw)) / 2); margin-left: 0; width: var(--bw); height: calc(var(--bw) / 1.25);
+    --book-top: calc(84px + (var(--avail-h) - var(--bw) / 1.25) / 2); /* the tab column measures from it */
+    top: var(--book-top); transition: transform var(--nb-open-ms) var(--nb-open-ease);
+  }
+  /* Opening is one move: the book slides from its shut, centred spot to its open spot while the cover swings on
+     the spine. Nothing is scaled. The back board is always full size; the shut book just shows its right half. */
+  .nb--desktop.is-closed .nb-book { transform: translateX(calc(var(--bw) * -0.25)); }
+  .nb-back {
+    inset: -10px -12px -12px -12px; border-radius: 10px;
+    clip-path: inset(-10px -12px -12px -12px); transition: clip-path var(--nb-open-ms) var(--nb-open-ease);
+  }
+  .nb--desktop.is-closed .nb-back { clip-path: inset(-10px -12px -12px calc((100% - 24px) / 2 + 10px)); }
+  .nb--desktop .nb-page.l { right: 50%; border-radius: 3px 0 0 3px; border-right-color: rgba(20, 28, 43, 0.25); }
+  .nb--desktop .nb-page.r { left: 50%; border-radius: 0 3px 3px 0; border-left: 0; }
+  /* the left page does not exist while the book is shut or the cover is still swinging: the cover's back face IS the
+     left page, and lands exactly where it is, so there is no second flip or fade at the end */
+  .nb--desktop.is-closed .nb-page.l, .nb--desktop.is-closed .nb-gutter,
+  .nb--desktop.is-opening .nb-page.l, .nb--desktop.is-opening .nb-gutter,
+  .nb--desktop.is-opening .nb-pn.lft, .nb--desktop.is-opening .nb-ear.prev, .nb--desktop.is-opening .nb-hint-flip { visibility: hidden; }
+  .nb--desktop .nb-leaf.cover .face.back { border-radius: 3px 0 0 3px; border-right-color: rgba(20, 28, 43, 0.25); }
+  .nb--desktop .nb-page, .nb--desktop .nb-leaf .face {
+    background-image:
+      linear-gradient(90deg, transparent 28px, rgba(200, 64, 52, 0.42) 28px, rgba(200, 64, 52, 0.42) 29.5px, transparent 29.5px),
+      repeating-linear-gradient(transparent 0 25px, rgba(60, 104, 170, 0.2) 25px 26px);
+  }
+  .nb--desktop .nb-page.r, .nb--desktop .nb-leaf .r-face { background-image: repeating-linear-gradient(transparent 0 25px, rgba(60, 104, 170, 0.2) 25px 26px); background-size: 100% 26px; background-position: 0 14px; }
+  .nb--desktop .nb-gutter {
+    display: block; position: absolute; left: 50%; top: 0; bottom: 0; width: 36px; margin-left: -18px; pointer-events: none; z-index: 4;
+    background: linear-gradient(90deg, transparent, rgba(20, 28, 43, 0.07) 45%, rgba(20, 28, 43, 0.12) 50%, rgba(20, 28, 43, 0.07) 55%, transparent);
+  }
+  .nb--desktop .nb-band { right: 56px; }
+  .nb--desktop:not(.is-closed) .nb-band { right: -9px; }
+  .nb--desktop .nb-in { padding: 34px 40px 52px 44px; }
+  .nb--desktop .nb-page.r .nb-in, .nb--desktop .nb-leaf .r-face .nb-in { padding: 34px 88px 52px 42px; }
+  .nb--desktop .nb-pn.lft { left: 46px; }
+  .nb--desktop .nb-pn.rgt { right: 90px; }
+  .nb--desktop .nb-hint-flip { right: 98px; }
+}
+
+/* ---------- a short landscape window (a phone on its side) ----------
+   The spread keeps its two 5 by 8 pages, but the book takes the whole height, the logo shrinks to its mark so the book
+   and the (smaller) wheel have the room, and the pages use tighter padding and smaller type so words fit. */
+@media (orientation: landscape) and (max-height: 520px) and (min-width: 640px) {
+  .nb-top { padding: 10px 14px; height: auto; }
+  .nb-brand { font-size: 0; gap: 0; } /* the mark stays; the name stays for screen readers through the link's logo alt */
+  .nb-brand img { width: 34px; height: 34px; }
+  .nb-book {
+    --avail-h: calc(100vh - 32px);
+    --bw: min(calc(var(--avail-h) * 1.25), calc(100vw - 190px), 1280px);
+    left: calc(150px + (100vw - 190px - var(--bw)) / 2);
+    --book-top: calc(16px + (var(--avail-h) - var(--bw) / 1.25) / 2);
+  }
+  .nb--desktop .nb-in { padding: 18px 22px 40px 28px; }
+  .nb--desktop .nb-page.r .nb-in, .nb--desktop .nb-leaf .r-face .nb-in { padding: 18px 40px 40px 24px; }
+  .nb--desktop .nb-pn.rgt { right: 44px; }
+  .nb--desktop .nb-hint-flip { right: 52px; bottom: 30px; font-size: 1rem; }
+}
+
+.nb.is-closed .nb-ear, .nb.is-closed .nb-pn, .nb.is-closed .nb-hint-flip { visibility: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nb-book, .nb-back, .nb-band, .nb-page.l, .nb-gutter, .nb-tab { transition: none !important; }
+  .nb-in { scroll-behavior: auto; }
+}
+
+/* Phone: the tab strip overlaps the paper's right edge, so the scroller stops 10px short of it. The page's own scroll bar
+   then sits on the paper, never over a tab; the padding keeps the text exactly where it was. */
+.nb--phone .nb-in { right: 10px; padding-right: 34px; }

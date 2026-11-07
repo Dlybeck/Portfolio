@@ -1,0 +1,44 @@
+# Private beta copy of the site, built from dev and deployed as its own Cloud Run service.
+# Point a manual Cloud Build trigger at this file. Production's cloudbuild.yaml is separate and untouched.
+#
+# The service is publicly reachable but gated by a shared passcode (core/beta_gate.py), which Cloud Run reads from
+# the Secret Manager secret PORTFOLIO_BETA_PASSCODE. The passcode itself never appears in the repo.
+# Prerequisites: the Artifact Registry repo cloud-run-source-deploy exists in us-west1; the Cloud Run runtime service
+# account can read the secret (roles/secretmanager.secretAccessor); Cloud Build can deploy (run.admin, serviceAccountUser).
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/portfolio-beta:$BUILD_ID', '.']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/portfolio-beta:$BUILD_ID']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'portfolio-beta'
+      - '--image'
+      - 'us-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/portfolio-beta:$BUILD_ID'
+      - '--region'
+      - 'us-west1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '2'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--set-secrets'
+      - 'BETA_PASSCODE=PORTFOLIO_BETA_PASSCODE:latest'
+
+images:
+  - 'us-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/portfolio-beta:$BUILD_ID'
+
+options:
+  # lets the build run under any service account (a user-specified one cannot use the default log bucket)
+  logging: CLOUD_LOGGING_ONLY

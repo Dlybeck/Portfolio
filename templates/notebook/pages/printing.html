@@ -1,0 +1,14 @@
+{% from "notebook/_ui.html" import head, model %}
+<article class="page" id="page-printing" data-page="printing" aria-label="3D printing">
+  <section id="puzzles">
+    {{ head("Puzzles and models", "3D printing", "Here's some 3D models I've designed and printed for fun.") }}
+    <p>I always wanted more puzzle boxes to have around. So I started making them. I bet you can't solve them. Drag any model to turn it.</p>
+    <h3 class="label">Puzzles · {{ content.MODELS.puzzles | length }}</h3>
+    <ul class="slides models" data-slides aria-label="Puzzle models">{% for m in content.MODELS.puzzles %}{{ model(m) }}{% endfor %}</ul>
+  </section>
+  <section id="other-models">
+    <h3>Other models</h3>
+    <p>Cases and organizers I needed, and a jewelry box. Drag any model to turn it.</p>
+    <ul class="slides models" data-slides aria-label="Other models">{% for m in content.MODELS.other %}{{ model(m) }}{% endfor %}</ul>
+  </section>
+</article>

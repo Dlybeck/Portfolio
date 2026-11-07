@@ -1,0 +1,34 @@
+{% from "notebook/_ui.html" import head, figure %}
+<article class="page" id="page-site" data-page="site" aria-label="This website">
+  <section>
+    {{ head("2022 to now", "This website", "You're looking at it! Four versions so far, and how each was made.") }}
+    {{ figure("site/v3-1.webp", "Version 3: handwritten notes pinned to a tabletop", "Version 3, April 2026") }}
+    <ul class="steps">
+      <li><time>Dec 2022 · v1</time><p>A hand-coded static layout that grew into an exploratory map.</p></li>
+      <li><time>Jan 2025 · v2</time><p>The map became the website, so you explore pages without opening them.</p></li>
+      <li><time>Apr 2026 · v3</time><p>Handwritten notes pinned to a tabletop, then seven visual themes.</p></li>
+      <li><time>Nov 2026 · v4</time><p>This one, rebuilt on my own design system.</p></li>
+    </ul>
+  </section>
+  {% for version in content.VERSIONS %}
+  <section id="{{ version.id }}">
+    <h3>{{ version.name }}</h3>
+    <p class="when">{{ version.when }} · {{ version.steps | selectattr("n") | list | length }} snapshots</p>
+    <ul class="slides" data-slides aria-label="{{ version.name }} snapshots">
+      {% for step in version.steps if step.n %}
+      <li class="slide">{{ figure("site/" ~ version.id ~ "-" ~ step.n ~ ".webp", step.alt) }}
+        <time>{{ step.date }}</time><p>{{ step.text }}</p></li>
+      {% endfor %}
+    </ul>
+    {% for step in version.steps if not step.n %}
+    <h3 class="gap">Seven themes</h3>
+    <p><span class="when">{{ step.date }}</span>{{ step.text }}</p>
+    <ul class="slides themes" data-slides aria-label="The seven themes">
+      {% for theme in content.THEMES %}
+      <li class="slide">{{ figure("site/theme-" ~ theme.id ~ ".webp", "The " ~ theme.name ~ " theme", theme.name) }}</li>
+      {% endfor %}
+    </ul>
+    {% endfor %}
+  </section>
+  {% endfor %}
+</article>

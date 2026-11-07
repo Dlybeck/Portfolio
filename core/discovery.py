@@ -14,7 +14,7 @@ PRIMARY_DESCRIPTION = (
     "AI, handwriting recognition, 3D design, tennis, and personal projects "
     "through an interactive portfolio."
 )
-SOCIAL_IMAGE_URL = f"{SITE_URL}/static/images/social/home-board.webp"
+SOCIAL_IMAGE_URL = f"{SITE_URL}/static/img/social/home-notebook.webp"
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,7 +23,7 @@ class DiscoveryMetadata:
     description: str
     canonical_url: str
     social_image_url: str = SOCIAL_IMAGE_URL
-    social_image_alt: str = "David Lybeck's interactive portfolio Board"
+    social_image_alt: str = "David Lybeck, Innovation AI Developer, and a notebook cover covered in stickers"
 
 
 PERSON_SCHEMA = {

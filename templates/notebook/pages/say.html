@@ -1,0 +1,16 @@
+{% from "notebook/_ui.html" import head %}
+<article class="page" id="page-say" data-page="say" aria-label="Say hi">
+  <section>
+    {{ head("Say hi", "Say hi") }}
+    <div class="contact">
+      {% for c in content.CONTACTS %}
+      <div><b>{{ c.label }}</b><a href="{{ c.href }}"{% if c.href.startswith("http") %} target="_blank" rel="noopener"{% endif %}>{{ c.text }}</a></div>
+      {% endfor %}
+    </div>
+  </section>
+  <section data-only="desktop">
+    <p class="k">About this notebook</p>
+    <h2>How it's made</h2>
+    <p>Drawn with dlybeck design, my own design system. The pages that turn are the whole interface.</p>
+  </section>
+</article>

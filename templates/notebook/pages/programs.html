@@ -1,0 +1,16 @@
+{% from "notebook/_ui.html" import head %}
+{% macro group(g) %}
+<div><span class="when">{{ g.label }}</span><ul>{% for item in g["items"] %}<li>{% if item.href %}<a href="{{ item.href }}"{% if item.href.startswith("http") or item.href.endswith(".html") %} target="_blank" rel="noopener"{% endif %}>{{ item.name }}</a>{% else %}{{ item.name }}{% endif %}</li>{% endfor %}</ul></div>
+{% endmacro %}
+<article class="page" id="page-programs" data-page="programs" aria-label="Programs">
+  <section>
+    {{ head("2021 to 2024", "Programs", "Software projects, experiments, and selected coursework.") }}
+    <h4>Coursework archive · 2024</h4>
+    <div class="archive">{% for g in content.ARCHIVE[:2] %}{{ group(g) }}{% endfor %}</div>
+  </section>
+  <section>
+    <h3>Earlier coursework</h3>
+    <div class="archive">{% for g in content.ARCHIVE[2:] %}{{ group(g) }}{% endfor %}</div>
+    <p class="caption">Most have their code or a demo on the live site.</p>
+  </section>
+</article>

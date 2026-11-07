@@ -1,0 +1,24 @@
+.git
+.claude
+.specify
+.opencode
+.venv
+venv
+__pycache__
+*.pyc
+.env
+tests
+docs
+scripts
+# the full-size originals; the site serves the phone-sized copies in static/img
+static/images
+!static/images/social/home-board.webp
+
+pr-assets
+
+# never bake secrets or scratch work into the image
+.scratch
+.reports
+*.key
+*.pem
+.env.*

@@ -1,0 +1,254 @@
+/* The nine vinyl stickers on the cover. Sizes and places are in cqw/cqh, percentages of the cover itself,
+   so the whole arrangement scales with it. The cover is always a 5 by 8 notebook. */
+
+.cover-front {
+  --sticker-lemon: #fff5b8; --sticker-sky: #dcecff; --sticker-note: var(--paper-note);
+  --navy: #24364f; --teal: #3f7f7a; --maroon: #8a2433;
+}
+
+/* ---------- every sticker: a die-cut vinyl with a white edge and a sheen ---------- */
+.cover-front .wd {
+  position: absolute; color: var(--ink-fixed); cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: none;
+  -webkit-tap-highlight-color: transparent; transition: scale var(--duration-press) var(--ease-out);
+  filter: drop-shadow(1.6px 0 0 #fff) drop-shadow(-1.6px 0 0 #fff) drop-shadow(0 1.6px 0 #fff) drop-shadow(0 -1.6px 0 #fff) drop-shadow(0 5px 5px rgba(0, 0, 0, 0.45));
+}
+.cover-front .wd:active { scale: 0.97; }
+.cover-front .wd:focus-visible { outline: 3px solid var(--ink-fixed); outline-offset: 4px; }
+.wd-sh {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 6; mix-blend-mode: screen;
+  background: linear-gradient(118deg, transparent 34%, rgba(255, 255, 255, 0.42) 46%, rgba(255, 255, 255, 0.12) 53%, transparent 61%);
+}
+.wd-hike .wd-sh { inset: 6px; }
+.wd-ball .wd-sh { background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.6) 0 9%, transparent 30%); }
+.wd-blank:not(.has):not(.styled) { filter: none; }
+.wd-blank:not(.has) .wd-sh, .wd-pal .wd-sh { display: none; }
+.wd:hover .wd-sh { animation: gloss 0.9s ease-out; }
+@keyframes gloss { from { background-position: -120px 0; } to { background-position: 0 0; } }
+.wd-curl { /* the name tag's lifted corner */
+  position: absolute; right: 0; bottom: 0; width: 20px; height: 20px; pointer-events: none; z-index: 7; border-top-left-radius: 6px;
+  background: linear-gradient(to top left, transparent 50%, rgba(0, 0, 0, 0.28) 50%, #c9ccd3 56%, #f4f5f7 80%, #fff);
+}
+
+/* ---------- name tag ---------- */
+.wd-name { left: 12cqw; top: 3cqh; width: 44cqw; rotate: -4deg; z-index: 2; }
+/* the cut corner is a mask on the inner face, so the focus ring on the sticker itself is not clipped */
+.wd-name .tag { display: block; overflow: hidden; text-align: center; padding-bottom: 1.6cqh; background: #fff; border: 2px solid #fff; border-radius: 10px 10px 2px 10px;
+  -webkit-mask: linear-gradient(to top left, transparent 14px, #000 14.5px); mask: linear-gradient(to top left, transparent 14px, #000 14.5px); }
+.wd-name b { display: block; padding: 1.4cqh 0 0; background: var(--brand); color: #fff; font: 800 clamp(1rem, 7.6cqw, 1.6rem) / 1.1 var(--font-sans); letter-spacing: 0.06em; }
+.wd-name small { display: block; padding: 2px 0 1.4cqh; background: var(--brand); color: #fff; font: 600 clamp(0.56rem, 3.2cqw, 0.72rem) / 1 var(--font-sans); letter-spacing: 0.04em; }
+.wd-name .nm {
+  display: flex; align-items: center; justify-content: center; padding-top: 0.8cqh; white-space: nowrap; font: 700 clamp(1.6rem, 11cqw, 2.5rem) / 1.15 var(--font-hand);
+  font-size: calc(clamp(1.6rem, 11cqw, 2.5rem) * var(--hand-scale, 1)); height: calc(clamp(1.6rem, 11cqw, 2.5rem) * 1.15);
+}
+.nm-w { position: relative; display: inline-block; }
+.nm-pen {
+  position: absolute; left: 0; bottom: 22%; width: 0.26em; height: 1.05em; border-radius: 3px 3px 2px 2px; opacity: 0; pointer-events: none; rotate: 28deg; transform-origin: 50% 100%;
+  font-size: clamp(1.6rem, 11cqw, 2.5rem); background: linear-gradient(#1b2436 0 70%, #3b4252 70%);
+}
+.nm-pen::after { content: ""; position: absolute; left: 50%; bottom: -4px; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 0 0 3px 3px; background: #1b2436; }
+.wd-name.out .nm-i { display: inline-block; animation: wipe 0.26s ease-in both; }
+.wd-name.go .nm-i { display: inline-block; animation: write 0.9s cubic-bezier(0.45, 0.05, 0.55, 0.95) both; }
+.wd-name.go .nm-pen { animation: pen 0.9s cubic-bezier(0.45, 0.05, 0.55, 0.95) both; }
+@keyframes wipe { from { clip-path: inset(-30% -4% -30% 0); } to { clip-path: inset(-30% -4% -30% 100%); } }
+@keyframes write { from { clip-path: inset(-30% 100% -30% 0); } to { clip-path: inset(-30% -4% -30% 0); } }
+@keyframes pen { 0% { left: 0; opacity: 1; translate: 0 0; } 25% { translate: 0 -3px; } 50% { translate: 0 2px; } 75% { translate: 0 -2px; } 92% { left: 100%; opacity: 1; translate: 0 0; } 100% { left: 100%; opacity: 0; } }
+
+/* ---------- the "now" pill ---------- */
+.wd-now {
+  left: 13cqw; top: 26cqh; rotate: -2deg; z-index: 3; display: flex; align-items: center; gap: 1.6cqw; white-space: nowrap;
+  padding: 1.6cqw 3cqw; background: var(--sticker-sky); border: 2px solid #fff; border-radius: 999px; outline: 2px solid var(--ink-fixed); outline-offset: -5px;
+  font: 700 clamp(0.5rem, 3.3cqw, 0.82rem) / 1 var(--font-sans);
+}
+.wd-now b { font: 500 0.66rem / 1 var(--font-mono); letter-spacing: 0.04em; text-transform: uppercase; }
+.wd-now .dot { width: 8px; height: 8px; border-radius: 50%; background: #8b93a1; flex: none; }
+.wd-now.live .dot { background: #1fbf5a; box-shadow: 0 0 0 0 rgba(31, 191, 90, 0.6); animation: pulse 1.6s infinite; }
+.wd-now.flip { animation: flip 0.36s var(--ease-out); }
+@keyframes pulse { 70% { box-shadow: 0 0 0 7px rgba(31, 191, 90, 0); } 100% { box-shadow: 0 0 0 0 rgba(31, 191, 90, 0); } }
+@keyframes flip { from { transform: rotateX(80deg); } }
+
+/* ---------- the trail stamp ---------- */
+.wd-hike { right: 10cqw; top: 7cqh; width: 36cqw; rotate: 5deg; z-index: 1; padding: 6px; border-radius: 0; background: radial-gradient(circle, transparent 2.3px, #fff 2.6px) -3.5px -3.5px / 7px 7px; }
+.wd-hike svg { display: block; width: 100%; height: auto; aspect-ratio: 120 / 72; }
+.m-sky { fill: #f4d27a; transition: fill 0.9s; }
+.m-sun { fill: #fff6d8; transform-box: fill-box; transition: transform 0.9s cubic-bezier(0.45, 0.05, 0.25, 1), fill 0.9s; }
+.m-far { fill: var(--teal); transition: fill 0.9s; }
+.m-snow { fill: #fff; }
+.m-tree { fill: var(--navy); transition: fill 0.9s; }
+.m-band { fill: #f2a65a; opacity: 0.7; transition: opacity 0.9s; }
+.m-mead { fill: #c6b26a; transition: fill 0.9s; }
+.m-trail { stroke: #f6efe1; stroke-width: 1.6; stroke-dasharray: 2.5 2; }
+.m-hiker { fill: var(--maroon); }
+.m-hiker .pack { fill: var(--navy); }
+.wd-hike.dusk .m-sky { fill: #e9785a; }
+.wd-hike.dusk .m-sun { transform: translateY(38px); fill: #ffd36b; }
+.wd-hike.dusk .m-far { fill: #5b4a6b; }
+.wd-hike.dusk .m-tree { fill: #1d1f33; }
+.wd-hike.dusk .m-band { opacity: 0; }
+.wd-hike.dusk .m-mead { fill: #6b5a63; }
+
+/* ---------- the ScribbleScan pad ---------- */
+.wd-scan { left: 11cqw; top: 38.5cqh; width: 58cqw; rotate: -2deg; z-index: 2; background: #fff; border: 2px solid #fff; border-radius: 12px; overflow: hidden; cursor: crosshair; }
+.sc-pad { position: relative; height: 13cqh; overflow: hidden; background-color: #fffdf6; background-image: linear-gradient(transparent calc(100% - 1px), rgba(11, 79, 156, 0.18) 0); background-size: 100% 25%; }
+.sc-pad svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sc-w { font: 700 46px var(--font-hand); fill: transparent; stroke: #0b4f9c; stroke-width: 1.4; stroke-dasharray: 420; stroke-dashoffset: 0; }
+.sc-w.wr { animation: ink 1.4s ease-out both; }
+@keyframes ink { 0% { stroke-dashoffset: 420; fill: transparent; } 70% { stroke-dashoffset: 0; fill: transparent; } 100% { stroke-dashoffset: 0; fill: #0b4f9c; } }
+.sc-pad canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+.sc-bar { position: absolute; top: 0; bottom: 0; left: 0; width: 30%; pointer-events: none; translate: -100% 0; background: linear-gradient(90deg, transparent, rgba(0, 122, 255, 0.28) 70%, rgba(0, 122, 255, 0.75) 98%, transparent); }
+.sc-bar.go { animation: scan 0.6s ease-in-out; }
+@keyframes scan { from { translate: -100% 0; } to { translate: 340% 0; } }
+.sc-out { display: flex; align-items: center; gap: 7px; min-height: 1.6em; padding: 1cqh 10px 1.2cqh; background: #fff; border-top: 1.5px dashed rgba(20, 28, 43, 0.25); }
+.sc-k { flex: none; font: 700 clamp(0.4rem, 2.1cqw, 0.56rem) / 1 var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; color: #5b6474; }
+.sc-k::after { content: " \2192"; letter-spacing: 0; }
+.sc-t { overflow: hidden; white-space: nowrap; font: 700 clamp(0.66rem, 3.6cqw, 0.92rem) / 1.1 var(--font-mono); color: #0b4f9c; }
+.sc-t:empty::after { content: "\2026"; opacity: 0.4; }
+.wd-scan.typing .sc-t::after { content: ""; display: inline-block; width: 0.5em; height: 1em; margin-left: 1px; vertical-align: -2px; background: currentColor; animation: caret 0.45s steps(1) infinite; }
+@keyframes caret { 50% { opacity: 0; } }
+
+/* ---------- the sliding puzzle ---------- */
+.wd-puzzle { right: 10cqw; top: 60cqh; rotate: 6deg; z-index: 3; padding: 5px; background: #fff; border: 2px solid #fff; border-radius: 10px; cursor: default; }
+.pz { position: relative; width: 23cqw; aspect-ratio: 1; overflow: hidden; border-radius: 6px; background: #1b2436; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5); }
+.pz-t {
+  position: absolute; left: 0; top: 0; width: 33.34%; height: 33.34%; padding: 0; cursor: pointer; border: 1.5px solid #1b2436; border-radius: 5px;
+  background-color: var(--sticker-lemon); background-size: 300% 300%; background-origin: border-box; transition: translate 160ms var(--ease-out);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65), inset 0 -2px 0 rgba(0, 0, 0, 0.18);
+}
+.pz-k { display: block; padding-top: 5px; text-align: center; font: 700 clamp(0.42rem, 2.5cqw, 0.62rem) / 1 var(--font-sans); letter-spacing: 0.06em; text-transform: uppercase; }
+.wd-puzzle.solved .pz { background-image: var(--logo-img); background-size: 100% 100%; outline: 2px solid var(--hi); outline-offset: -2px; }
+.wd-puzzle.solved .pz-k { color: #1a7f37; }
+
+/* ---------- the 3D printer ---------- */
+.wd-p12 { left: 12cqw; top: 62cqh; width: 23cqw; rotate: -5deg; padding: 1.4cqw; background: #fff; border-radius: 12px; }
+.p12-m { position: relative; aspect-ratio: 1 / 1.08; container-type: inline-size; }
+.p12-top { position: absolute; left: 12%; right: 12%; top: 20%; height: 3.5%; background: #2b313d; border-radius: 2px; }
+.p12-rl, .p12-rr { position: absolute; top: 20%; bottom: 16%; width: 3.5%; background: #2b313d; border-radius: 2px; }
+.p12-rl { left: 12%; }
+.p12-rr { right: 12%; }
+.p12-sp { position: absolute; right: 10%; top: 0; width: 30%; aspect-ratio: 1; border-radius: 50%; z-index: 1; box-sizing: border-box; border: 2px solid #2b313d; background: radial-gradient(circle, #2b313d 0 16%, #f2b705 17% 60%, #c48f00 61% 66%, #f2b705 67%); }
+.p12-fil { position: absolute; left: 47%; top: 8%; width: 22%; height: 28%; border: 2px solid #c48f00; border-right: 0; border-bottom: 0; border-radius: 12px 0 0 0; }
+.p12-bed { position: absolute; left: 4%; right: 4%; bottom: 6%; height: 11%; background: linear-gradient(#59627a 0 40%, #2b313d 40%); border-radius: 2px; clip-path: polygon(10% 0, 90% 0, 100% 40%, 100% 100%, 0 100%, 0 40%); }
+.p12-g { position: absolute; left: 10%; right: 10%; top: 31%; height: 4%; box-sizing: border-box; background: #59627a; border: 1.5px solid #2b313d; border-radius: 2px; }
+.p12-n { position: absolute; left: 42%; top: -90%; width: 16%; height: 300%; box-sizing: border-box; background: #f2b705; border: 2px solid #2b313d; border-radius: 2px 2px 7px 7px; }
+.p12-o { position: absolute; left: 27%; right: 27%; bottom: 17%; top: 40%; background: var(--logo) bottom center / contain no-repeat; filter: drop-shadow(1px -1px 0 #b98d00) drop-shadow(1px 0 0 #8a6a00); }
+.p12-o::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(transparent 0 1.5px, rgba(43, 49, 61, 0.22) 1.5px 2.5px); -webkit-mask: var(--logo) bottom center / contain no-repeat; mask: var(--logo) bottom center / contain no-repeat; }
+.p12a.go .p12-o { animation: print 3.2s steps(16, end) both; }
+.p12a.go .p12-g { animation: gantry 3.2s steps(16, end) both; }
+.p12a.go .p12-n { animation: nozzle 0.35s ease-in-out infinite alternate; }
+@keyframes print { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes gantry { from { top: 79%; } to { top: 31%; } }
+@keyframes nozzle { from { translate: -160% 0; } to { translate: 160% 0; } }
+
+/* ---------- the raccoon ---------- */
+.wd-pal {
+  left: 69cqw; top: 27cqh; width: 19cqw; rotate: 7deg; z-index: 3; display: flex; align-items: center; justify-content: center; box-sizing: border-box; aspect-ratio: 1 / 0.9;
+  padding: 1.6cqw 1.2cqw 0.8cqw; background: #f4f8ff; border-radius: 52% 48% 54% 46% / 50% 56% 44% 50%;
+}
+.pty { display: block; width: 100%; flex: none; }
+.pty svg { display: block; width: 100%; height: auto; overflow: visible; }
+.pty .ty-a, .pty .ty-b, .pty .ty-eye, .pty .ty-hd { transform-box: fill-box; }
+.pty .ty-eye { transform-origin: center; animation: blink 5s infinite; }
+.wd-pal.typing .ty-a { animation: tap 0.2s ease-in-out infinite alternate; }
+.wd-pal.typing .ty-b { animation: tap 0.2s ease-in-out 0.1s infinite alternate; }
+.wd-pal.typing .ty-hd { animation: bob 0.4s ease-in-out infinite alternate; }
+.ty-kb { fill: #2b2f38; }
+.ty-ks { stroke: rgba(255, 255, 255, 0.35); stroke-width: 0.8; stroke-dasharray: 2.2 1.2; fill: none; }
+.ty-raccoon .ty-c1 { fill: #8e8f97; }
+.ty-raccoon .ty-c2 { fill: #f3f1ec; }
+.ty-raccoon .ty-c3 { fill: #2e2f35; }
+.pal-say {
+  position: absolute; left: 58%; top: -18%; min-width: 2.4em; padding: 4px 7px; border-radius: 9px 9px 9px 2px; background: #fff; color: #1b2436; white-space: nowrap; pointer-events: none;
+  font: 700 0.7rem / 1 var(--font-mono); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); opacity: 0; scale: 0.6; transform-origin: 0 100%; transition: opacity 0.15s, scale 0.15s;
+}
+.wd-pal.saying .pal-say:not(:empty) { opacity: 1; scale: 1; }
+@keyframes blink { 0%, 93%, 100% { scale: 1 1; } 96% { scale: 1 0.12; } }
+@keyframes tap { from { translate: 0 -2.4px; } to { translate: 0 0.5px; } }
+@keyframes bob { from { translate: 0 0; } to { translate: 0 0.9px; } }
+
+/* ---------- "your sticker here" ---------- */
+.wd-round { display: grid; place-items: center; width: 19cqw; aspect-ratio: 1; border-radius: 50%; border: 3px solid #fff; }
+.wd-blank { left: 41cqw; top: 70cqh; background: transparent; border: 2.5px dashed rgba(40, 28, 10, 0.55); color: var(--ink-fixed); text-align: center; overflow: hidden; font: 700 clamp(0.6rem, 3.4cqw, 0.82rem) / 1 var(--font-hand); }
+.wd-mine .mn-shape { position: absolute; inset: 0; display: grid; place-items: center; }
+.wd-mine .mn-img { position: absolute; inset: 0; display: none; border-radius: 50%; background: center / cover no-repeat; }
+.wd-mine.has { border: 3px solid #fff; background: #fff; }
+.wd-mine.has .mn-img { display: block; }
+.wd-mine.has .mn-t { visibility: hidden; }
+/* once a shape or colour is picked the sticker is that shape (the white edge comes from the sticker's own outline) */
+.wd-mine.styled, .wd-mine.styled.has { border: 0; border-radius: 0; background: transparent; overflow: visible; }
+.wd-mine.styled .mn-shape { background: var(--sticker-bg, #fff); -webkit-mask: var(--shape-mask) center / 100% 100% no-repeat; mask: var(--shape-mask) center / 100% 100% no-repeat; }
+.wd-mine.styled .mn-img { border-radius: 0; }
+.wd-mine.styled .mn-t { color: var(--ink-fixed); } /* dark ink on every paper colour: 8:1 or better */
+/* the shapes a custom sticker can take, as masks (a sticker, the maker's preview and the picker's little icons all share them) */
+[data-shape="circle"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50'/%3E%3C/svg%3E"); }
+[data-shape="rounded"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='26'/%3E%3C/svg%3E"); }
+[data-shape="star"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,1 62,35 98,36 69,57 80,92 50,71 20,92 31,57 2,36 38,35'/%3E%3C/svg%3E"); }
+[data-shape="heart"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 94C20 70 3 52 3 31 3 16 14 6 28 6 38 6 46 12 50 21 54 12 62 6 72 6 86 6 97 16 97 31 97 52 80 70 50 94Z'/%3E%3C/svg%3E"); }
+
+
+/* ---------- the tennis ball ---------- */
+.wd-ball {
+  left: 74cqw; top: 47cqh; width: 14cqw; z-index: 5; aspect-ratio: 1; overflow: hidden; border-radius: 50%; cursor: grab; touch-action: none;
+  background: #d7ea4f radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.55), transparent 34%); border: 3px solid #fff;
+}
+.wd-ball::before, .wd-ball::after { content: ""; position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2.5px solid #fff; top: -10%; }
+.wd-ball::before { left: -66%; }
+.wd-ball::after { left: 56%; }
+.wd-ball.held { cursor: grabbing; scale: 1.06; }
+.wd-ball.hop { animation: hop 0.5s var(--ease-out); }
+@keyframes hop { 40% { transform: translateY(-14px); } }
+
+/* ---------- the sticker maker (a dialog) ---------- */
+.maker { width: min(92vw, 380px); padding: 0; color: var(--ink); background: var(--surface); border: var(--edge) solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--lift); }
+.maker::backdrop { background: var(--scrim); }
+.maker-in { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+.maker h2 { margin: 0; font: 800 1.15rem / 1.2 var(--font-sans); }
+.maker-note { margin: 0; color: var(--ink-2); font-size: 0.9rem; line-height: 1.4; }
+.maker-stage { display: grid; place-items: center; padding: 6px 0; border-radius: 12px; background: repeating-linear-gradient(45deg, var(--ground) 0 6px, transparent 6px 12px); }
+.maker-shape-wrap { filter: drop-shadow(2.5px 0 0 #fff) drop-shadow(-2.5px 0 0 #fff) drop-shadow(0 2.5px 0 #fff) drop-shadow(0 -2.5px 0 #fff) drop-shadow(0 6px 8px rgba(0, 0, 0, 0.2)); }
+.maker-stage canvas { display: block; width: min(70vw, 250px); aspect-ratio: 1; background: var(--sticker-bg, #fff); -webkit-mask: var(--shape-mask) center / 100% 100% no-repeat; mask: var(--shape-mask) center / 100% 100% no-repeat; cursor: crosshair; touch-action: none; }
+.maker-tools, .maker-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.maker-pens { display: flex; gap: 6px; margin-right: auto; }
+.maker-pens button { width: 28px; height: 28px; padding: 0; border-radius: 50%; cursor: pointer; background: var(--c); border: 2px solid var(--surface); box-shadow: 0 0 0 1.5px var(--line-control); }
+.maker-pens button[aria-pressed="true"] { box-shadow: 0 0 0 2.5px var(--ink); }
+.maker-look { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 16px; }
+.maker-opts { display: flex; gap: 6px; }
+.maker-opts button { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; cursor: pointer; background: var(--surface); color: var(--ink); border: 2px solid var(--line-control); border-radius: 10px; }
+.maker-opts .maker-swatch { background: var(--c); border-color: var(--surface); border-radius: 50%; box-shadow: 0 0 0 1.5px var(--line-control); }
+.maker-shape::before { content: ""; display: block; width: 20px; height: 20px; background: currentColor; -webkit-mask: var(--shape-mask) center / 100% 100% no-repeat; mask: var(--shape-mask) center / 100% 100% no-repeat; }
+.maker-opts [aria-pressed="true"] { box-shadow: 0 0 0 2.5px var(--ink); }
+.maker-btn { padding: 10px 13px; cursor: pointer; font: 700 0.88rem / 1 var(--font-sans); color: var(--ink); background: var(--surface); border: var(--edge) solid var(--line-control); border-radius: var(--radius-md); }
+.maker-btn.primary { color: var(--on-action); background: var(--action); border-color: var(--line); }
+.maker-btn.quiet { padding-inline: 4px; border-color: transparent; text-decoration: underline; }
+.maker-btn[hidden] { display: none; }
+.maker-gap { flex: 1; }
+.maker button:focus-visible, .maker label:focus-within { outline: 2.5px solid var(--action); outline-offset: 2px; }
+
+/* browsers without container queries get the plain kraft cover and its open button */
+@supports not (container-type: size) { .cover-front .wd { display: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cover-front .wd, .pz-t { transition: none !important; }
+  .cover-front .wd *, .cover-front .wd, .wd-sh { animation: none !important; }
+}
+
+/* ---------- the hint: a quiet preview of each sticker's own tap animation, smaller and shorter (hints.js adds .hint) ---------- */
+/* transform and opacity only (scale, translate, rotate, transform), so nothing reflows and it stays cheap */
+.wd.hint { animation: hint-nudge 0.8s ease-in-out; }
+@keyframes hint-nudge { 40% { scale: 1.035; } }
+.wd-name.hint .nm-pen { animation: hint-pen 1.1s ease-in-out both; }
+@keyframes hint-pen { 0% { opacity: 0; translate: 0 0; } 15% { opacity: 0.85; } 85% { opacity: 0.85; translate: 2.1em -1px; } 100% { opacity: 0; translate: 2.2em 0; } }
+.wd-ball.hint { animation: hint-hop 0.7s var(--ease-out); }
+@keyframes hint-hop { 40% { transform: translateY(-5px); } }
+.wd-now.hint { animation: hint-flip 0.5s var(--ease-out); }
+@keyframes hint-flip { 45% { transform: rotateX(32deg); } }
+.wd-p12.hint .p12-n { animation: hint-nozzle 0.3s ease-in-out 4 alternate; }
+@keyframes hint-nozzle { from { translate: -70% 0; } to { translate: 70% 0; } }
+.wd-hike.hint .m-sun { animation: hint-sun 1.3s ease-in-out; }
+@keyframes hint-sun { 50% { translate: 0 4px; } }
+.wd-pal-raccoon.hint .ty-a { animation: hint-tap 0.2s ease-in-out 4 alternate; }
+.wd-pal-raccoon.hint .ty-b { animation: hint-tap 0.2s ease-in-out 0.1s 4 alternate; }
+@keyframes hint-tap { from { translate: 0 -1.2px; } to { translate: 0 0.3px; } }
+.wd-puzzle.hint .pz-t { animation: hint-tile 0.5s ease-in-out; }
+.wd-puzzle.hint .pz-t:nth-child(even) { animation-delay: 0.14s; }
+@keyframes hint-tile { 50% { scale: 0.93; } }
+.wd-mine.hint { animation: hint-wobble 0.8s ease-in-out; }
+@keyframes hint-wobble { 25% { rotate: -4deg; } 75% { rotate: 4deg; } }

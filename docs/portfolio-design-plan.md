@@ -1,3 +1,5 @@
+> **Superseded.** This plan was written for the tile Board, which the notebook replaced (see `adr/0001-the-notebook-replaces-the-board.md`). Terms such as Board, Neighborhood and Board Theme no longer apply. Kept only as the record of the earlier thinking; `AGENTS.md` and `CONTEXT.md` are current.
+
 # Portfolio Design Plan
 
 This plan preserves the portfolio as a living, explorable self-portrait while repairing accidental barriers and creating safe seams for future visual experimentation. It records the shared understanding reached during the September 2026 design grill; it does not authorize source changes or deployment.
@@ -72,7 +74,7 @@ ScribbleScan's historical performance claims remain on its pages. Numerical and 
 - Add canonical, page-specific description, Open Graph, social-card, and appropriate `Person` structured metadata.
 - Use a stable wide capture of the canonical Home Board as the social-preview image, incorporating the existing Personal Mark for now.
 
-The bundled resume is stale and predates the Denali role. Do not publish a replacement: tailored resumes are shared privately with applications, while the public Portfolio presents current professional evidence without signaling a job search.
+No resume PDF is served for now, and Say hi lists contacts only. The owner-supplied file is in git history if it is wanted back.
 
 ## Workstream 3: Theme laboratory
 

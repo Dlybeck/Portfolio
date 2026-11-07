@@ -118,3 +118,16 @@
   .nb--desktop .page .job-mark { width: 52px; height: 52px; }
   .nb--desktop .page .job b { font-size: 0.95rem; }
 }
+
+/* Programs: five picks up front, the rest folded into one "Show all" that opens in place */
+.page .picks { list-style: none; margin: 6px 0 0; padding: 0; display: grid; }
+.page .picks li { display: block; padding: 8px 0; border-top: 1px solid var(--rule); }
+.page .picks li:first-child { border-top: 0; }
+.page .picks b { font-size: 1rem; letter-spacing: -0.01em; line-height: 1.25; }
+.page .picks .when { display: inline; margin-left: 4px; white-space: nowrap; }
+.page .pick-also { font-size: 0.84rem; color: var(--soft); }
+.page .pick-note { display: block; margin-top: 2px; font-size: 0.9rem; line-height: 1.48; }
+.page details.all { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--rule); }
+.page details.all > summary { cursor: pointer; font: 600 0.95rem/1.4 var(--font-sans); color: var(--pen); padding: 2px 0; }
+.page details.all[open] > summary { margin-bottom: 8px; }
+.page details.all > summary:hover { text-decoration: underline; text-underline-offset: 3px; }

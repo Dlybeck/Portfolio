@@ -284,7 +284,7 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
   // swipe the page sideways to turn it (the corners and the wheel do the same)
   let start = null;
   // a swipe that starts on a swipe row, a model, a video or a field belongs to that thing, not the book
-  const OWN_GESTURE = "[data-slides], model-viewer, video, select, input, button.slides-prev, button.slides-next";
+  const OWN_GESTURE = "[data-slides], model-viewer, video, select, input, button.slides-prev, button.slides-next, .nb-tab";
   // Only a single finger can swipe: a second finger (a pinch or a two-finger drag) is a non-primary pointer and cancels it.
   book.addEventListener("pointerdown", (e) => {
     if (!e.isPrimary) { start = null; return; }

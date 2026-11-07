@@ -33,14 +33,6 @@ def test_every_main_section_has_a_tab_on_the_spread(browser_page) -> None:
     assert page.locator('.nb-tab[aria-current="page"]').inner_text() == "Work"
 
 
-@pytest.mark.parametrize("viewport", [PHONE, {"width": 320, "height": 568}, {"width": 768, "height": 1024}], ids=lambda v: str(v["width"]))
-def test_a_phone_or_narrow_window_has_no_tabs(browser_page, viewport) -> None:
-    page = visit(browser_page, "/jobs", viewport)
-
-    assert "nb--phone" in page.locator("#notebook").get_attribute("class")
-    assert page.locator(".nb-tabs, .nb-tab").count() == 0
-
-
 @pytest.mark.parametrize("viewport", SIZES, ids=lambda v: f"{v['width']}x{v['height']}")
 def test_tabs_stay_inside_the_window_beside_the_book_and_the_book_does_not_move(browser_page, viewport) -> None:
     page = visit(browser_page, "/jobs", viewport)
@@ -186,7 +178,7 @@ def test_tabs_come_and_go_when_the_window_changes_between_phone_and_desktop(brow
     assert page.locator(".nb-tab").count() == 6
     page.set_viewport_size(PHONE)
     page.wait_for_selector("#notebook.nb--phone")
-    assert page.locator(".nb-tab").count() == 0
+    assert page.locator(".nb-tab").count() == 6  # a phone has slim tabs too
     page.set_viewport_size(DESKTOP)
     page.wait_for_selector("#notebook.nb--desktop")
     assert page.locator(".nb-tab").count() == 6

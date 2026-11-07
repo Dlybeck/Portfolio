@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock-up B: sticky flags</title>
+<style>
+:root{--ground:#f4f6fa;--ink:#141c2b;--paper:#fbf4de;--rule:rgba(60,104,170,.22);--pen:#0b4f9c;--kraft:#b58b55;--brand:#007bff;--hand:"Segoe Print","Bradley Hand","Comic Sans MS",cursive;
+ --c1:#ffe94d;--c2:#ff8fcf;--c3:#6cf0b0;--c4:#ffb238}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--ground);color:var(--ink);font:400 16px/1.5 system-ui,sans-serif;display:grid;place-items:center}
+.phone{position:relative;width:min(100vw,390px);height:min(100dvh,800px);overflow:hidden}
+.bar{position:absolute;inset:0 0 auto;height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-weight:800}
+.bar small{font:500 12px var(--hand);color:#5a6578}
+.book{position:absolute;left:16px;right:30px;top:54px;bottom:112px;background:var(--kraft);border:2px solid var(--ink);border-radius:6px;box-shadow:4px 4px 0 var(--ink);padding:0 6px 6px 0}
+.sheet{position:absolute;inset:0 6px 6px 0;background:var(--paper);border:2px solid rgba(20,28,43,.55);border-radius:3px;overflow:hidden;
+ background-image:linear-gradient(90deg,transparent 30px,rgba(200,64,52,.42) 30px 31.5px,transparent 31.5px),repeating-linear-gradient(transparent 0 25px,var(--rule) 25px 26px);background-position:0 0,0 14px}
+.page{position:absolute;inset:0;padding:20px 22px 60px 40px;overflow:auto;display:none}
+.page.on{display:block}
+.k{display:inline-block;font:700 11px/1.4 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;background:#f4ecd8;padding:3px 8px;rotate:-1.2deg;box-shadow:0 1px 0 rgba(0,0,0,.2)}
+h2{margin:10px 0 6px;font:800 22px/1.2 system-ui;background:linear-gradient(transparent 85%,var(--pen) 85% 92%,transparent 92%)}
+/* every story line is flaggable: tap it, a highlighter sweeps across and a sticky flag sticks out of the page edge */
+.ln{display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;font-size:15px;line-height:26px;padding:0;margin:0 0 10px;cursor:pointer;
+ background-image:linear-gradient(100deg,transparent 1%,var(--hl,#ffe94d) 3% 97%,transparent 99%);background-repeat:no-repeat;background-size:0% 100%;transition:background-size .35s ease-out;-webkit-box-decoration-break:clone}
+.ln.on{background-size:100% 100%}
+.ln:focus-visible{outline:2.5px solid #0062cc;outline-offset:2px}
+.ln small{font:700 12px var(--hand);color:var(--pen);margin-left:4px;opacity:.8}
+.ln.on small{display:none}
+.ph{font-family:var(--hand);color:#6b5b45;font-size:14px}
+/* flags: they ride the right edge of the book like tabs, at the height of the line they mark. Tap one to go back to it. */
+.flags{position:absolute;right:-24px;top:0;bottom:0;width:30px;pointer-events:none}
+.flag{position:absolute;right:0;width:26px;height:34px;border:2px solid var(--ink);border-left:0;border-radius:0 7px 7px 0;pointer-events:auto;cursor:pointer;padding:0;
+ background:var(--c);box-shadow:2px 2px 0 var(--ink);animation:stick .25s ease-out;font:800 11px system-ui;color:var(--ink)}
+.flag:focus-visible{outline:2.5px solid #0062cc;outline-offset:2px}
+@keyframes stick{from{translate:-24px 0;opacity:0}to{translate:0 0;opacity:1}}
+.pn{position:absolute;left:40px;right:22px;bottom:12px;font:500 11px ui-monospace,monospace;letter-spacing:.08em;color:rgba(20,28,43,.65);display:flex;justify-content:space-between;align-items:center}
+.pn button{font:700 12px var(--hand);border:1.5px dashed var(--pen);background:#fff7a8;color:var(--pen);border-radius:4px;padding:3px 8px;cursor:pointer}
+/* the keepsake: a postcard of what the viewer flagged, the one place the flags gather */
+.card{position:absolute;left:14px;right:14px;top:60px;background:#fffdf6;border:2px solid var(--ink);box-shadow:5px 5px 0 var(--ink);padding:16px 16px 14px;z-index:20;rotate:-1.5deg;display:none}
+.card.on{display:block;animation:stick .25s ease-out}
+.card h3{margin:0 0 6px;font:800 18px system-ui}
+.card ol{margin:6px 0 10px;padding-left:20px;font-size:14px}
+.card li{margin:4px 0}
+.card .row{display:flex;gap:8px}
+.card button{font:700 13px system-ui;border:2px solid var(--ink);background:var(--hi,#ffe94d);padding:6px 10px;border-radius:6px;cursor:pointer;box-shadow:2px 2px 0 var(--ink)}
+.card .post{border:2px solid var(--ink);width:38px;height:46px;position:absolute;right:14px;top:14px;background:var(--brand);color:#fff;font:800 9px system-ui;display:grid;place-items:center;text-align:center}
+.wheel{position:absolute;left:50%;bottom:-130px;width:240px;height:240px;margin-left:-120px;border-radius:50%;background:var(--brand);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink)}
+.wheel b{position:absolute;left:0;right:0;top:20px;text-align:center;color:#fff;font:800 18px system-ui}
+.wheel .row{position:absolute;left:0;right:0;top:56px;display:flex;justify-content:center;gap:10px}
+.wheel button{width:44px;height:44px;border-radius:50%;border:2px solid var(--ink);background:#fff;font:800 18px system-ui;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="bar"><span>David Lybeck</span><small>mock-up B · sticky flags</small></div>
+  <div class="book"><div class="sheet" id="sheet"></div><div class="flags" id="flags" aria-label="Your flags"></div></div>
+  <div class="card" id="card" role="dialog" aria-label="Your postcard"><div class="post">POST<br>CARD</div><h3>Things you flagged</h3><ol id="list"></ol><div class="row"><button id="copy">Copy as text</button><button id="close">Close</button></div></div>
+  <div class="wheel"><b id="wname">Work</b><div class="row"><button id="prev" aria-label="Previous page">&larr;</button><button id="next" aria-label="Next page">&rarr;</button></div></div>
+</div>
+<script>
+/* Sample words only. Flags are the viewer's own, kept on this device (localStorage), never sent anywhere. */
+const PAGES=[
+ {id:'work',name:'Work',kicker:'8 roles',lines:['From coaching tennis to building AI tools.','A line about the current job, as written on the page.','A line about the first job, as written on the page.']},
+ {id:'scribble',name:'ScribbleScan',kicker:'2025 to now',lines:['Handwriting digitization, from a hosted product to a privacy-first experiment.','What changed when it went private-first.']},
+ {id:'tennis',name:'Tennis',kicker:'since middle school',lines:['I’ve played for as long as I remember.','Let me know if you want to hit.']},
+ {id:'printing',name:'3D printing',kicker:'puzzles and models',lines:['Puzzle boxes I designed.','I bet you can’t solve them.']},
+];
+const COLORS=['var(--c1)','var(--c2)','var(--c3)','var(--c4)'];
+const KEY='mockB-flags';let flags=[];try{flags=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){}
+const sheet=document.getElementById('sheet'),fl=document.getElementById('flags');let cur=0;
+const has=(p,l)=>flags.findIndex(f=>f.p===p&&f.l===l);
+function save(){try{localStorage.setItem(KEY,JSON.stringify(flags))}catch(e){}}
+function render(){
+  sheet.innerHTML=PAGES.map((p,i)=>'<section class="page'+(i===cur?' on':'')+'" aria-label="'+p.name+'"><span class="k">'+p.name+' &middot; '+p.kicker+'</span><h2>'+p.name+'</h2>'+
+   p.lines.map((l,j)=>{const x=has(i,j);return '<button class="ln'+(x>=0?' on':'')+'" data-p="'+i+'" data-l="'+j+'" aria-pressed="'+(x>=0)+'" style="--hl:'+(x>=0?COLORS[flags[x].c%4]:'#ffe94d')+'">'+l+' <small>&#9873; flag</small></button>'}).join('')+
+   '<p class="ph">[sample words; the real page goes here]</p><div class="pn"><span>p.'+(i+7)+'</span><button class="open">Postcard ('+flags.length+')</button></div></section>').join('');
+  document.getElementById('wname').textContent=PAGES[cur].name;drawFlags();
+
+}
+function drawFlags(){
+  fl.innerHTML=flags.map((f,n)=>'<button class="flag" style="--c:'+COLORS[f.c%4]+';top:'+(40+n*40)+'px" data-n="'+n+'" aria-label="Flag '+(n+1)+': '+PAGES[f.p].name+', go back to it">'+(f.p+1)+'</button>').join('');
+}
+sheet.addEventListener('click',e=>{
+  const b=e.target.closest('.ln');if(b){const p=+b.dataset.p,l=+b.dataset.l,x=has(p,l);
+    if(x>=0)flags.splice(x,1);else flags.push({p,l,c:flags.length%4});save();render();return}
+  if(e.target.closest('.open'))openCard();
+});
+fl.addEventListener('click',e=>{const b=e.target.closest('.flag');if(!b)return;const f=flags[+b.dataset.n];cur=f.p;render();sheet.querySelector('.page.on [data-l="'+f.l+'"]').focus()});
+function openCard(){document.getElementById('list').innerHTML=flags.length?flags.map(f=>'<li><b>'+PAGES[f.p].name+':</b> '+PAGES[f.p].lines[f.l]+'</li>').join(''):'<li>Nothing yet. Tap a line.</li>';document.getElementById('card').classList.add('on')}
+document.getElementById('close').onclick=()=>document.getElementById('card').classList.remove('on');
+document.getElementById('copy').onclick=async()=>{const t='Things I flagged on David’s notebook:\n'+flags.map(f=>'- '+PAGES[f.p].name+': '+PAGES[f.p].lines[f.l]).join('\n');try{await navigator.clipboard.writeText(t);document.getElementById('copy').textContent='Copied'}catch(e){document.getElementById('copy').textContent='Select and copy the list'}};
+function go(d){cur=(cur+d+PAGES.length)%PAGES.length;render()}
+document.getElementById('prev').onclick=()=>go(-1);document.getElementById('next').onclick=()=>go(1);
+render();
+</script>
+</body>
+</html>

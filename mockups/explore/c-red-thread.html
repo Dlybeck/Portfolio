@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock-up C: red thread</title>
+<style>
+:root{--ground:#f4f6fa;--ink:#141c2b;--paper:#fbf4de;--rule:rgba(60,104,170,.22);--pen:#0b4f9c;--kraft:#b58b55;--brand:#007bff;--hand:"Segoe Print","Bradley Hand","Comic Sans MS",cursive;--red:#c84034}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--ground);color:var(--ink);font:400 16px/1.5 system-ui,sans-serif;display:grid;place-items:center}
+.phone{position:relative;width:min(100vw,390px);height:min(100dvh,800px);overflow:hidden}
+.bar{position:absolute;inset:0 0 auto;height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-weight:800}
+.bar small{font:500 12px var(--hand);color:#5a6578}
+.book{position:absolute;left:16px;right:30px;top:54px;bottom:112px;background:var(--kraft);border:2px solid var(--ink);border-radius:6px;box-shadow:4px 4px 0 var(--ink);padding:0 6px 6px 0}
+.sheet{position:absolute;inset:0 6px 6px 0;background:var(--paper);border:2px solid rgba(20,28,43,.55);border-radius:3px;overflow:hidden;
+ background-image:linear-gradient(90deg,transparent 30px,rgba(200,64,52,.42) 30px 31.5px,transparent 31.5px),repeating-linear-gradient(transparent 0 25px,var(--rule) 25px 26px);background-position:0 0,0 14px}
+.page{position:absolute;inset:0;padding:20px 22px 60px 40px;overflow:auto;display:none}
+.page.on{display:block}
+.k{display:inline-block;font:700 11px/1.4 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;background:#f4ecd8;padding:3px 8px;rotate:-1.2deg;box-shadow:0 1px 0 rgba(0,0,0,.2)}
+h2{margin:10px 0 6px;font:800 22px/1.2 system-ui;background:linear-gradient(transparent 85%,var(--pen) 85% 92%,transparent 92%)}
+.page p{margin:0 0 10px;font-size:15px;line-height:26px}
+.ph{font-family:var(--hand);color:#6b5b45}
+/* a thread word: a pen-red dotted underline with a tiny pin. Tap it and a red thread draws across to its twin on another page. */
+.tw{border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;border-bottom:2px dotted var(--red);position:relative}
+.tw::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-left:3px;vertical-align:2px}
+.tw.done{border-bottom-style:solid;color:var(--red)}
+.tw:focus-visible{outline:2.5px solid #0062cc;outline-offset:2px;border-radius:3px}
+.tw.arrived{animation:glow 1.6s ease-out}
+@keyframes glow{0%,40%{background:#ffe94d}100%{background:transparent}}
+.peek{position:absolute;left:40px;right:22px;bottom:56px;padding:10px 12px;background:#fffdf6;border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink);rotate:-1deg;z-index:10;font:14px/1.35 var(--hand);animation:up .22s ease-out}
+.peek button{margin-top:6px;font:700 13px system-ui;border:2px solid var(--ink);background:#ffe94d;border-radius:6px;padding:5px 10px;cursor:pointer;box-shadow:2px 2px 0 var(--ink)}
+@keyframes up{from{translate:0 14px;opacity:0}to{translate:0 0;opacity:1}}
+/* the thread itself: a red line on the sheet while the page turns, so the viewer sees the link they followed */
+svg.yarn{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:9}
+svg.yarn path{fill:none;stroke:var(--red);stroke-width:2.5;stroke-linecap:round;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw .6s ease-out forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.pn{position:absolute;left:40px;right:22px;bottom:12px;font:500 11px ui-monospace,monospace;letter-spacing:.08em;color:rgba(20,28,43,.65);display:flex;justify-content:space-between;align-items:center}
+/* the pin map: a tiny constellation of the five pages. Pins light as their threads are followed. It is a progress mark, not a menu. */
+.map{display:flex;align-items:center;gap:6px}
+.map svg{width:64px;height:24px;overflow:visible}
+.map line{stroke:rgba(200,64,52,.25);stroke-width:1.5}
+.map line.on{stroke:var(--red);stroke-width:2}
+.map circle{fill:#fff;stroke:var(--ink);stroke-width:1.5}
+.map circle.on{fill:var(--red)}
+.wheel{position:absolute;left:50%;bottom:-130px;width:240px;height:240px;margin-left:-120px;border-radius:50%;background:var(--brand);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink)}
+.wheel b{position:absolute;left:0;right:0;top:20px;text-align:center;color:#fff;font:800 18px system-ui}
+.wheel .row{position:absolute;left:0;right:0;top:56px;display:flex;justify-content:center;gap:10px}
+.wheel button{width:44px;height:44px;border-radius:50%;border:2px solid var(--ink);background:#fff;font:800 18px system-ui;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <div class="bar"><span>David Lybeck</span><small>mock-up C · red thread</small></div>
+  <div class="book"><div class="sheet" id="sheet"></div></div>
+  <div class="wheel"><b id="wname">Work</b><div class="row"><button id="prev" aria-label="Previous page">&larr;</button><button id="next" aria-label="Next page">&rarr;</button></div></div>
+</div>
+<script>
+/* Sample words only. Each thread is a pair: a word on one page, its twin on another, with a one-line "why" between them. */
+const PAGES=[
+ {id:'work',name:'Work',kicker:'8 roles',html:'<p>From <button class="tw" data-t="t1">coaching tennis</button> to building AI tools.</p><p>A line about the current job, where <button class="tw" data-t="t2">handwriting</button> comes up.</p>'},
+ {id:'scribble',name:'ScribbleScan',kicker:'2025 to now',html:'<p>Handwriting digitization, a <button class="tw" data-t="t2">first idea</button> that became a product.</p><p>Built the way I like to <button class="tw" data-t="t3">solve puzzles</button>.</p>'},
+ {id:'tennis',name:'Tennis',kicker:'since middle school',html:'<p>I’ve played for as long as I remember. It <button class="tw" data-t="t1">turned into a job</button>.</p>'},
+ {id:'printing',name:'3D printing',kicker:'puzzles and models',html:'<p>Puzzle boxes I designed. The <button class="tw" data-t="t3">same itch</button> as debugging.</p>'},
+];
+const THREADS={t1:{a:0,b:2,why:'tennis is where the coaching job started'},t2:{a:0,b:1,why:'the idea and the job it grew out of'},t3:{a:1,b:3,why:'puzzles, on screen and on the printer'}};
+const KEY='mockC-threads';let done={};try{done=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+const sheet=document.getElementById('sheet');let cur=0;
+const other=(t,p)=>THREADS[t].a===p?THREADS[t].b:THREADS[t].a;
+const nDone=()=>Object.keys(done).length,nAll=Object.keys(THREADS).length;
+function mapSvg(){const xs=[6,22,38,54];const lines=Object.entries(THREADS).map(([k,t])=>'<line class="'+(done[k]?'on':'')+'" x1="'+xs[t.a]+'" y1="12" x2="'+xs[t.b]+'" y2="12"/>').join('');
+  const dots=PAGES.map((p,i)=>'<circle class="'+(Object.entries(THREADS).some(([k,t])=>done[k]&&(t.a===i||t.b===i))?'on':'')+'" cx="'+xs[i]+'" cy="12" r="5"/>').join('');
+  return '<span class="map" aria-label="'+nDone()+' of '+nAll+' threads followed"><svg viewBox="0 0 64 24">'+lines+dots+'</svg>'+nDone()+'/'+nAll+'</span>'}
+function render(arrive){
+  sheet.innerHTML=PAGES.map((p,i)=>'<section class="page'+(i===cur?' on':'')+'" aria-label="'+p.name+'"><span class="k">'+p.name+' &middot; '+p.kicker+'</span><h2>'+p.name+'</h2>'+p.html+'<p class="ph">[sample words; the real page goes here]</p><div class="pn"><span>p.'+(i+7)+'</span>'+mapSvg()+'</div></section>').join('');
+  sheet.querySelectorAll('.tw').forEach(b=>{if(done[b.dataset.t])b.classList.add('done')});
+  document.getElementById('wname').textContent=PAGES[cur].name;
+  if(arrive){const w=sheet.querySelector('.page.on .tw[data-t="'+arrive+'"]');if(w){w.classList.add('arrived');w.focus()}}
+}
+sheet.addEventListener('click',e=>{
+  const w=e.target.closest('.tw');sheet.querySelectorAll('.peek').forEach(n=>n.remove());if(!w)return;
+  const t=w.dataset.t,dest=other(t,cur);
+  const peek=document.createElement('div');peek.className='peek';peek.setAttribute('role','status');
+  peek.innerHTML=THREADS[t].why+'<br><button>Follow the thread to '+PAGES[dest].name+' &rarr;</button>';
+  peek.querySelector('button').onclick=()=>follow(t,w,dest);
+  sheet.querySelector('.page.on').append(peek);
+});
+function follow(t,from,dest){
+  const box=sheet.getBoundingClientRect(),r=from.getBoundingClientRect();
+  const x=r.left-box.left+r.width/2,y=r.top-box.top+r.height/2;
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','yarn');
+  const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+  const d='M'+x+' '+y+' C '+(x+140)+' '+(y-60)+', '+(box.width+20)+' '+(y+120)+', '+(box.width-12)+' '+(box.height-40);p.setAttribute('d',d);p.style.setProperty('--len','600');svg.append(p);sheet.append(svg);
+  done[t]=1;try{localStorage.setItem(KEY,JSON.stringify(done))}catch(e){}
+  setTimeout(()=>{cur=dest;render(t);const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('class','yarn');
+    const q=document.createElementNS('http://www.w3.org/2000/svg','path');q.setAttribute('d','M'+(box.width-12)+' 20 C '+(box.width-12)+' 90, 20 60, 34 '+(y));q.style.setProperty('--len','600');s.append(q);sheet.append(s);setTimeout(()=>s.remove(),1600)},620);
+}
+function go(d){cur=(cur+d+PAGES.length)%PAGES.length;render()}
+document.getElementById('prev').onclick=()=>go(-1);document.getElementById('next').onclick=()=>go(1);
+render();
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 /* Section tabs down the right edge of the notebook. They ride on the book: shut, they peek 6px past the cover; open, they
    sit in the margin the layout keeps free at the right, so the book does not move. Desktop gets full-width tabs; a phone
-   gets slim ones (the PROTOTYPE of "option B"). */
+   gets slim ones. */
 
 .nb-tabs { position: absolute; z-index: 3; display: flex; margin: 0; padding: 0; }
 .nb-tab {
@@ -30,7 +30,7 @@
    be clicked with a mouse; for a keyboard or screen reader they are hidden (tabs.js), since the cover has its own button. */
 .nb--desktop.is-closed .nb-tab, .nb--desktop.is-closed .nb-tab[aria-current] { transform: translateX(-30px); }
 
-/* ---------- phone (prototype) ----------
+/* ---------- phone ----------
    The room comes from the 20px margin to the right of the book (the page's text width is not touched). The coloured part
    is 16px wide at 360px, growing to 18px at 430px, and always ends 2px short of the screen edge. Each tab is a touch
    target 10px wider than that (at least 26px): the extra lies invisible over the page's empty right padding. Words show only while the book is open, small and turned sideways. */

@@ -54,7 +54,7 @@ function mount(initial) {
   });
   wheel = createWheel({ root, data, order: book.order, phone, hooks });
   cover = createCover({ root, book: book.book, phone, onTap: () => openCover() });
-  tabs = createTabs({ root, book: book.book, data, addressOf }); // PROTOTYPE: slim tabs on a phone too
+  tabs = createTabs({ root, book: book.book, data, addressOf }); // a phone gets slim tabs too
 
   function openCover({ fromWheel = false } = {}) {
     if (!cover.closed) return;

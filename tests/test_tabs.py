@@ -178,7 +178,7 @@ def test_tabs_come_and_go_when_the_window_changes_between_phone_and_desktop(brow
     assert page.locator(".nb-tab").count() == 6
     page.set_viewport_size(PHONE)
     page.wait_for_selector("#notebook.nb--phone")
-    assert page.locator(".nb-tab").count() == 6  # PROTOTYPE: a phone has slim tabs too
+    assert page.locator(".nb-tab").count() == 6  # a phone has slim tabs too
     page.set_viewport_size(DESKTOP)
     page.wait_for_selector("#notebook.nb--desktop")
     assert page.locator(".nb-tab").count() == 6

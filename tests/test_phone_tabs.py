@@ -1,4 +1,4 @@
-"""PROTOTYPE (option B): slim section tabs on a phone."""
+"""Slim section tabs on a phone."""
 
 from __future__ import annotations
 

@@ -184,6 +184,24 @@ def test_the_covered_pages_are_not_reachable_until_the_cover_opens(browser_page)
     assert page.evaluate("location.hash") == "#about"
 
 
+def test_there_are_no_section_tabs_and_the_old_tabs_switch_does_nothing(browser_page) -> None:
+    page, base = browser_page
+    for viewport in (PHONE, DESKTOP):
+        page.set_viewport_size(viewport)
+        for query in ("", "?tabs=a", "?tabs=b"):
+            page.goto(base + "/jobs" + query)
+            page.wait_for_selector("#notebook.nb--phone, #notebook.nb--desktop")
+            assert page.locator(".nb-tabs, .nb-tab").count() == 0
+            assert "nb--tabs" not in page.locator("#notebook").get_attribute("class")
+    # the address is left exactly as typed, and turning a page does not add anything to it
+    page.goto(base + "/jobs?tabs=b")
+    page.wait_for_selector("#notebook.nb--desktop")
+    page.locator(".nb-ear.next").click()
+    page.wait_for_timeout(900)
+    assert page.evaluate("location.pathname") == "/education/college"
+    assert "tabs" not in page.evaluate("location.search")
+
+
 def test_the_wheel_turns_pages_with_the_keyboard(browser_page) -> None:
     page, base = browser_page
     page.set_viewport_size(PHONE)

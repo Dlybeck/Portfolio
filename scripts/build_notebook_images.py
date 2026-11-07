@@ -33,8 +33,9 @@ PICTURES += [(f"Work/{n}.webp", f"work/{o}.webp", 240) for n, o in [
 PICTURES += [(f"projects/ScribbleScan/{n}.webp", f"scribblescan/{o}.webp", 900) for n, o in [
     ("Feb7", "feb7"), ("Feb8", "feb8"), ("Mar12", "mar12"), ("Apr28", "apr28"),
     ("Jun25", "jun25"), ("Jul1", "jul1")]]
-for version, count in (("v1", 8), ("v2", 6), ("v3", 3)):
+for version, count in (("v1", 8), ("v2", 6), ("v3", 3), ("v4", 3)):
     PICTURES += [(f"projects/this_website/{version}/{i}.webp", f"site/{version}-{i}.webp", 800) for i in range(1, count + 1)]
+PICTURES += [("projects/this_website/v4/lead.webp", "site/v4-lead.webp", 800)]
 PICTURES += [(f"projects/this_website/v3/themes/{n}.webp", f"site/theme-{n}.webp", 420) for n in (
     "original", "clouds", "islands", "lily-pads", "planets", "postcards", "vinyl")]
 PICTURES += [(f"hobbies/gaming/{n}.webp", f"games/{n.lower()}.webp", 260) for n in (

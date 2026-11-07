@@ -110,6 +110,31 @@ def test_tampered_malformed_and_expired_cookies_are_refused(make_client, monkeyp
     assert not gate.cookie_is_valid(gate.make_cookie(now=1_000), now=1_000 + 30 * 24 * 3600 + 1)
 
 
+def test_oversized_cookie_is_refused_not_a_server_error(make_client) -> None:
+    client = make_client()
+    client.cookies.set(COOKIE_NAME, "9" * 5000 + ".ab")
+    response = client.get("/")
+    assert response.status_code == 401 and response.headers["x-robots-tag"] == "noindex, nofollow"
+
+
+def test_whitespace_around_the_configured_passcode_is_ignored(make_client) -> None:
+    client = make_client(PASSCODE + "\n")  # as left behind by `echo` when saving a secret
+    assert unlock(client).status_code == 303
+
+
+def test_ipv6_addresses_in_one_prefix_share_a_limit(make_client) -> None:
+    client = make_client()
+    for attempt in range(MAX_FAILURES):
+        unlock(client, "nope", forwarded_for=f"2001:db8:1:2::{attempt + 1}")
+    assert unlock(client, forwarded_for="2001:db8:1:2:ffff::9").status_code == 429
+
+
+def test_head_and_options_are_gated_too(make_client) -> None:
+    client = make_client()
+    assert client.head("/").status_code == 401
+    assert client.options("/").status_code == 401
+
+
 def test_every_response_is_marked_noindex_and_robots_disallows_everything(make_client) -> None:
     client = make_client()
     assert client.get("/").headers["x-robots-tag"] == "noindex, nofollow"  # gated page

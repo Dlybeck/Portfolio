@@ -31,7 +31,8 @@ def start_application():
     app.add_middleware(SelectiveGZip)
 
     # Private beta copies only: production never sets BETA_PASSCODE, so for it nothing changes.
-    passcode = os.environ.get("BETA_PASSCODE")
+    # Stripped, because a secret saved with `echo` carries a trailing newline nobody can type.
+    passcode = (os.environ.get("BETA_PASSCODE") or "").strip()
     if passcode:
         app.add_middleware(BetaGate, passcode=passcode)  # added last, so it wraps everything
 

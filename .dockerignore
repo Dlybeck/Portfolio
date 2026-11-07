@@ -19,7 +19,6 @@ pr-assets
 # never bake secrets or scratch work into the image
 .scratch
 .reports
-.specify
 *.key
 *.pem
 .env.*

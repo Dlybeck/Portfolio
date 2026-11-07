@@ -12,6 +12,7 @@ import hmac
 import time
 from collections import defaultdict, deque
 from html import escape
+from ipaddress import ip_address, ip_network
 from urllib.parse import parse_qs, quote
 
 from starlette.datastructures import MutableHeaders
@@ -90,10 +91,12 @@ class BetaGate:
         if not value or "." not in value:
             return False
         expires_text, _, signature = value.partition(".")
-        if not expires_text.isascii() or not expires_text.isdigit():
+        # a real expiry is ten digits; the length cap also keeps int() clear of Python's huge-number limit
+        if not expires_text.isascii() or not expires_text.isdigit() or len(expires_text) > 12:
             return False
-        signature_ok = hmac.compare_digest(signature.encode(), self._sign(int(expires_text)).encode())
-        return signature_ok and int(expires_text) > (time.time() if now is None else now)
+        expires = int(expires_text)
+        signature_ok = hmac.compare_digest(signature.encode(), self._sign(expires).encode())
+        return signature_ok and expires > (time.time() if now is None else now)
 
     # -- slowdown -------------------------------------------------------------------------------------------------
     @staticmethod
@@ -101,9 +104,13 @@ class BetaGate:
         # Behind Cloud Run the rightmost X-Forwarded-For entry is the one Google's front end recorded; earlier ones
         # are client-supplied and could be forged to dodge the limit.
         forwarded = request.headers.get("x-forwarded-for", "")
-        if forwarded.strip():
-            return forwarded.split(",")[-1].strip()
-        return request.client.host if request.client else "unknown"
+        address = forwarded.split(",")[-1].strip() if forwarded.strip() else (request.client.host if request.client else "unknown")
+        try:
+            parsed = ip_address(address)
+        except ValueError:
+            return address
+        # one household or host holds a whole /64 of IPv6 addresses, so count them together
+        return str(ip_network(f"{parsed}/64", strict=False)) if parsed.version == 6 else address
 
     def _recent_failures(self, address: str) -> deque[float]:
         attempts = self.failures.get(address)

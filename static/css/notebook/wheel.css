@@ -3,9 +3,14 @@
 .wheel {
   position: absolute; left: 50%; bottom: -148px; width: 240px; height: 240px; margin-left: -120px; z-index: 12;
 }
+/* The drop shadow is drawn here, on the wrapper, not on the dial: the dial rotates, and a shadow on it would swing around with it.
+   This circle stays put, sits under the dial (it comes first), and so the shadow stays down and to the right at every angle. */
+.wheel::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; box-shadow: var(--lift); pointer-events: none;
+}
 .wheel-dial {
   position: absolute; inset: 0; border-radius: 50%; background: var(--brand); border: var(--edge) solid var(--ink-fixed);
-  box-shadow: var(--lift); touch-action: none; cursor: grab; will-change: rotate;
+  touch-action: none; cursor: grab; will-change: rotate;
 }
 .wheel-dial.is-dragging { cursor: grabbing; }
 /* On a phone only the top 92px of the dial shows, so it was hard to grab. An invisible larger circle on the same centre

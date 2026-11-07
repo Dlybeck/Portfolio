@@ -87,9 +87,3 @@ DOCUMENTS = (
         anchor="v3",
     ),
 )
-
-DOCUMENTS_BY_ROUTE = {document.route: document for document in DOCUMENTS}
-
-
-def document_for_route(route: str) -> PortfolioDocument | None:
-    return DOCUMENTS_BY_ROUTE.get("/" + route.strip("/"))

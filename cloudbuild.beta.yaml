@@ -1,0 +1,41 @@
+# Private beta copy of the site, built from dev and deployed as its own Cloud Run service.
+# Point a manual Cloud Build trigger at this file. Production's cloudbuild.yaml is separate and untouched.
+#
+# The service is publicly reachable but gated by a shared passcode (core/beta_gate.py), which Cloud Run reads from
+# the Secret Manager secret PORTFOLIO_BETA_PASSCODE. The passcode itself never appears in the repo.
+substitutions:
+  _IMAGE: us-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/portfolio-beta
+
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', '${_IMAGE}:$SHORT_SHA', '.']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '${_IMAGE}:$SHORT_SHA']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'portfolio-beta'
+      - '--image'
+      - '${_IMAGE}:$SHORT_SHA'
+      - '--region'
+      - 'us-west1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '2'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--set-secrets'
+      - 'BETA_PASSCODE=PORTFOLIO_BETA_PASSCODE:latest'
+
+images:
+  - '${_IMAGE}:$SHORT_SHA'

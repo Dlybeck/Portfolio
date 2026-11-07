@@ -33,8 +33,20 @@ export function createTabs({ root, book, data, addressOf }) {
   root.addEventListener("nb:view", onView);
   if (root.dataset.page) mark(root.dataset.page);
 
+  // While the cover is shut the tabs only peek out: a mouse can still use them, but a keyboard or screen reader skips them
+  const hideWhenShut = () => {
+    const shut = root.classList.contains("is-closed");
+    if (shut) nav.setAttribute("aria-hidden", "true");
+    else nav.removeAttribute("aria-hidden");
+    for (const tab of nav.children) tab.tabIndex = shut ? -1 : 0;
+  };
+  const watch = new MutationObserver(hideWhenShut);
+  watch.observe(root, { attributes: true, attributeFilter: ["class"] });
+  hideWhenShut();
+
   return {
     destroy() {
+      watch.disconnect();
       root.removeEventListener("nb:view", onView);
       nav.remove();
     },

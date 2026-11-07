@@ -96,7 +96,7 @@ def build_videos(sizes: dict[str, list[int]]) -> None:
         ], check=True)
         sizes[output] = video_size(ffmpeg, target)
     # the first video's poster is a screenshot of another shape: crop it to the video's frame
-    width_v, height_v = sizes["planner/old.mp4"]
+    _, height_v = sizes["planner/old.mp4"]
     with Image.open(OUT / "planner/old-poster.webp") as poster:
         top = max(0, (poster.height - height_v) // 2)
         poster.crop((0, top, poster.width, top + min(height_v, poster.height))).save(OUT / "planner/old-poster.webp", "WEBP", quality=80)

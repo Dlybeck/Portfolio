@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import re
 
-import pytest
-
 DESKTOP = {"width": 1280, "height": 800}
 PHONE = {"width": 390, "height": 844}
 

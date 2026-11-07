@@ -1,3 +1,5 @@
+> **Superseded.** This plan was written for the tile Board, which the notebook replaced (see `adr/0001-the-notebook-replaces-the-board.md`). Terms such as Board, Neighborhood and Board Theme no longer apply. Kept only as the record of the earlier thinking; `AGENTS.md` and `CONTEXT.md` are current.
+
 # Portfolio Design Plan
 
 This plan preserves the portfolio as a living, explorable self-portrait while repairing accidental barriers and creating safe seams for future visual experimentation. It records the shared understanding reached during the September 2026 design grill; it does not authorize source changes or deployment.

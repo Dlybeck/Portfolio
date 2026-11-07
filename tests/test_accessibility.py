@@ -82,9 +82,9 @@ def test_the_whole_book_can_be_driven_by_tab_and_enter(browser_page) -> None:
     page.locator(".nb-ear.next").focus()
     page.keyboard.press("Enter")
     page.wait_for_timeout(900)
-    assert page.locator("#notebook").get_attribute("data-page") == "planner"
+    assert page.locator("#notebook").get_attribute("data-page") == "programs"
     # the page that turned is announced to screen readers
-    assert "Digital Planner" in page.locator("#nb-status").inner_text()
+    assert "Programs" in page.locator("#nb-status").inner_text()
 
 
 def test_with_reduced_motion_a_page_turn_has_no_flying_leaf(browser_page) -> None:

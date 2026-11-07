@@ -72,8 +72,8 @@ def test_on_a_phone_on_its_side_the_wheel_clears_the_logo_and_the_book_fills_the
     boxes = page.evaluate(
         """() => {
           const r = (s) => document.querySelector(s).getBoundingClientRect();
-          const [d, b, k] = [r('.wheel-dial'), r('.nb-book'), r('.nb-brand')];
-          return {wheelRight: d.right, bookLeft: b.left, bookTop: b.top, bookBottom: b.bottom, logoRight: k.right, logoBottom: k.bottom, wheelTop: d.top};
+          const [d, b, k, w] = [r('.wheel-dial'), r('.nb-book'), r('.nb-brand'), r('.wheel')];  // the dial turns with the page, so its box grows and shrinks; the wheel's own box does not
+          return {wheelRight: d.right, bookLeft: b.left, bookTop: b.top, bookBottom: b.bottom, logoRight: k.right, logoBottom: k.bottom, wheelTop: w.top};
         }"""
     )
 

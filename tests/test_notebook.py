@@ -44,8 +44,8 @@ def test_pages_are_server_rendered_with_their_words(client: TestClient) -> None:
 def test_the_page_order_matches_the_notebook(client: TestClient) -> None:
     data = nb_data(client.get("/").text)
 
-    assert len(data["phone"]) == 15
-    assert len(data["desktop"]) == 12
+    assert len(data["phone"]) == 14
+    assert len(data["desktop"]) == 11
     assert set(data["desktop"]) <= set(data["phone"])
     for route in data["routes"].values():
         assert route["page"] in data["phone"]

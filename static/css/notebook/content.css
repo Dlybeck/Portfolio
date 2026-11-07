@@ -131,3 +131,4 @@
 .page details.all > summary { cursor: pointer; font: 600 0.95rem/1.4 var(--font-sans); color: var(--pen); padding: 2px 0; }
 .page details.all[open] > summary { margin-bottom: 8px; }
 .page details.all > summary:hover { text-decoration: underline; text-underline-offset: 3px; }
+.page .contact + p { margin-top: 16px; }

@@ -61,15 +61,13 @@ def _page(id: str, section: str, title: str, kicker: str, summary: str, **kw) ->
 PAGES = (
     _page("me", "me", "David Lybeck", "Hi, I'm David", "", layout="pair", pair="toc"),
     _page("toc", "me", "Contents", "", "", phone_only=True),
-    _page("projects", "projects", "Projects", "5 entries", "", phone_only=True),
+    _page("projects", "projects", "Projects", "4 entries", "", phone_only=True),
     _page("scribblescan", "projects", "ScribbleScan", "2025 to now",
           "Handwriting digitization, from capstone to hosted product."),
     _page("site", "projects", "This website", "2022 to now",
           "You're looking at it! Four versions so far, and how each was made."),
     _page("nba", "projects", "NBA Prediction AI", "2024 · partner project",
           "A neural network that called the 2024 playoffs with only 2 mistakes."),
-    _page("planner", "projects", "Digital Planner", "2022 · class team",
-          "A calendar and to-do list built with a five-person class team."),
     _page("programs", "projects", "Programs", "2021 to 2024",
           "Software experiments and selected coursework, from sorts to a Connect 4 bot."),
     _page("work", "work", "Work", "Work · 6 entries", "From coaching tennis to building AI tools.",
@@ -83,19 +81,19 @@ PAGES = (
           "Some of my favorites. I'll race you in Mario Kart Wii."),
     _page("tennis", "hobbies", "Tennis", "Since middle school",
           "I've played for as long as I remember. Let me know if you want to hit."),
-    _page("say", "say", "Say hi", "", "", layout="split"),
+    _page("say", "say", "Say hi", "", "", layout="pair", pair="toc"),
 )
 
 PAGES_BY_ID = {page.id: page for page in PAGES}
 
-# Phone: one page at a time, all fifteen. Desktop: spreads, so the index pages drop out.
+# Phone: one page at a time, all fourteen. Desktop: spreads, so the index pages drop out.
 PHONE_ORDER = tuple(page.id for page in PAGES)
 DESKTOP_ORDER = tuple(page.id for page in PAGES if not page.phone_only)
 
 # What the contents and the section lists show, in order.
 CONTENTS = ("projects", "work", "school", "hobbies", "say")
 LISTS = {
-    "projects": ("scribblescan", "site", "nba", "planner", "programs"),
+    "projects": ("scribblescan", "site", "nba", "programs"),
     "hobbies": ("printing", "gaming", "tennis"),
 }
 LIST_LEADS = {

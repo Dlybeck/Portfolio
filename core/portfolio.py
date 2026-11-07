@@ -60,10 +60,6 @@ DOCUMENTS = (
         "Try an NBA game prediction demo built from a custom basketball statistics dataset and a neural network model.",
     ),
     PortfolioDocument(
-        "/projects/websites/digital_planner", "planner", "Digital Planner",
-        "Explore a collaborative digital planner project combining calendars and task management in one interface.",
-    ),
-    PortfolioDocument(
         "/projects/websites/scribblescan", "scribblescan", "ScribbleScan",
         "Explore the preserved ScribbleScan demo and development history of David Lybeck's handwriting digitization project.",
     ),

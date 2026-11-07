@@ -130,6 +130,7 @@ body {
 /* browsers that know the dynamic viewport height use it, so the phone's toolbar does not cover the wheel */
 @supports (height: 100dvh) {
   .nb-book { --avail-h: calc(100dvh - 70px - var(--nb-wheel-room) - env(safe-area-inset-bottom, 0px)); }
+  @media (orientation: landscape) and (max-height: 520px) and (min-width: 640px) { .nb-book { --avail-h: calc(100dvh - 32px); } }
 }
 
 /* ---------- desktop: an open book, two pages ---------- */
@@ -175,6 +176,25 @@ body {
   .nb--desktop .nb-pn.lft { left: 46px; }
   .nb--desktop .nb-pn.rgt { right: 90px; }
   .nb--desktop .nb-hint-flip { right: 98px; }
+}
+
+/* ---------- a short landscape window (a phone on its side) ----------
+   The spread keeps its two 5 by 8 pages, but the book takes the whole height, the logo shrinks to its mark so the book
+   and the (smaller) wheel have the room, and the pages use tighter padding and smaller type so words fit. */
+@media (orientation: landscape) and (max-height: 520px) and (min-width: 640px) {
+  .nb-top { padding: 10px 14px; height: auto; }
+  .nb-brand { font-size: 0; gap: 0; } /* the mark stays; the name stays for screen readers through the link's logo alt */
+  .nb-brand img { width: 34px; height: 34px; }
+  .nb-book {
+    --avail-h: calc(100vh - 32px);
+    --bw: min(calc(var(--avail-h) * 1.25), calc(100vw - 190px), 1280px);
+    left: calc(150px + (100vw - 190px - var(--bw)) / 2);
+    --book-top: calc(16px + (var(--avail-h) - var(--bw) / 1.25) / 2);
+  }
+  .nb--desktop .nb-in { padding: 18px 22px 40px 28px; }
+  .nb--desktop .nb-page.r .nb-in, .nb--desktop .nb-leaf .r-face .nb-in { padding: 18px 40px 40px 24px; }
+  .nb--desktop .nb-pn.rgt { right: 44px; }
+  .nb--desktop .nb-hint-flip { right: 52px; bottom: 30px; font-size: 1rem; }
 }
 
 .nb.is-closed .nb-ear, .nb.is-closed .nb-pn, .nb.is-closed .nb-hint-flip { visibility: hidden; }

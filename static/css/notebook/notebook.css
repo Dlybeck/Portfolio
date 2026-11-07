@@ -41,15 +41,6 @@ body {
   font: 800 1.15rem/1 var(--font-sans); letter-spacing: -0.01em;
 }
 .nb-brand img { display: block; }
-.nb-hi {
-  display: inline-flex; align-items: center; min-height: 36px; padding: 6px 14px;
-  font: 700 0.9rem/1.2 var(--font-sans); color: var(--ink); text-decoration: none;
-  background: var(--surface); border: var(--edge) solid var(--line); border-radius: var(--radius-md);
-  box-shadow: var(--lift-sm);
-  transition: transform var(--duration-press) var(--ease-out), box-shadow var(--duration-press) var(--ease-out);
-}
-.nb-hi:hover { transform: translate(-1px, -1px); box-shadow: var(--lift); }
-.nb-hi:active { transform: translate(2px, 2px); box-shadow: none; }
 
 /* ---------- the plain page (no scripts) ---------- */
 .nb-sources { max-width: 46rem; margin: 0 auto; padding: 8px 16px 64px; display: grid; gap: 28px; }

@@ -20,7 +20,7 @@
 }
 .wd-hike .wd-sh { inset: 6px; }
 .wd-ball .wd-sh { background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.6) 0 9%, transparent 30%); }
-.wd-blank:not(.has) { filter: none; }
+.wd-blank:not(.has):not(.styled) { filter: none; }
 .wd-blank:not(.has) .wd-sh, .wd-pal .wd-sh { display: none; }
 .wd:hover .wd-sh { animation: gloss 0.9s ease-out; }
 @keyframes gloss { from { background-position: -120px 0; } to { background-position: 0 0; } }
@@ -167,10 +167,22 @@
 /* ---------- "your sticker here" ---------- */
 .wd-round { display: grid; place-items: center; width: 19cqw; aspect-ratio: 1; border-radius: 50%; border: 3px solid #fff; }
 .wd-blank { left: 41cqw; top: 70cqh; background: transparent; border: 2.5px dashed rgba(40, 28, 10, 0.55); color: var(--ink-fixed); text-align: center; overflow: hidden; font: 700 clamp(0.6rem, 3.4cqw, 0.82rem) / 1 var(--font-hand); }
+.wd-mine .mn-shape { position: absolute; inset: 0; display: grid; place-items: center; }
 .wd-mine .mn-img { position: absolute; inset: 0; display: none; border-radius: 50%; background: center / cover no-repeat; }
 .wd-mine.has { border: 3px solid #fff; background: #fff; }
 .wd-mine.has .mn-img { display: block; }
 .wd-mine.has .mn-t { visibility: hidden; }
+/* once a shape or colour is picked the sticker is that shape (the white edge comes from the sticker's own outline) */
+.wd-mine.styled, .wd-mine.styled.has { border: 0; border-radius: 0; background: transparent; overflow: visible; }
+.wd-mine.styled .mn-shape { background: var(--sticker-bg, #fff); -webkit-mask: var(--shape-mask) center / 100% 100% no-repeat; mask: var(--shape-mask) center / 100% 100% no-repeat; }
+.wd-mine.styled .mn-img { border-radius: 0; }
+.wd-mine.styled .mn-t { color: var(--ink-fixed); } /* dark ink on every paper colour: 8:1 or better */
+/* the shapes a custom sticker can take, as masks (a sticker, the maker's preview and the picker's little icons all share them) */
+[data-shape="circle"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50'/%3E%3C/svg%3E"); }
+[data-shape="rounded"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='26'/%3E%3C/svg%3E"); }
+[data-shape="star"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,1 62,35 98,36 69,57 80,92 50,71 20,92 31,57 2,36 38,35'/%3E%3C/svg%3E"); }
+[data-shape="heart"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 94C20 70 3 52 3 31 3 16 14 6 28 6 38 6 46 12 50 21 54 12 62 6 72 6 86 6 97 16 97 31 97 52 80 70 50 94Z'/%3E%3C/svg%3E"); }
+
 
 /* ---------- the tennis ball ---------- */
 .wd-ball {
@@ -191,11 +203,18 @@
 .maker h2 { margin: 0; font: 800 1.15rem / 1.2 var(--font-sans); }
 .maker-note { margin: 0; color: var(--ink-2); font-size: 0.9rem; line-height: 1.4; }
 .maker-stage { display: grid; place-items: center; padding: 6px 0; border-radius: 12px; background: repeating-linear-gradient(45deg, var(--ground) 0 6px, transparent 6px 12px); }
-.maker-stage canvas { width: min(70vw, 250px); aspect-ratio: 1; border-radius: 50%; background: #fff; cursor: crosshair; touch-action: none; box-shadow: 0 0 0 4px #fff, 0 0 0 5.5px rgba(20, 28, 43, 0.25), 0 6px 10px rgba(0, 0, 0, 0.18); }
+.maker-shape-wrap { filter: drop-shadow(2.5px 0 0 #fff) drop-shadow(-2.5px 0 0 #fff) drop-shadow(0 2.5px 0 #fff) drop-shadow(0 -2.5px 0 #fff) drop-shadow(0 6px 8px rgba(0, 0, 0, 0.2)); }
+.maker-stage canvas { display: block; width: min(70vw, 250px); aspect-ratio: 1; background: var(--sticker-bg, #fff); -webkit-mask: var(--shape-mask) center / 100% 100% no-repeat; mask: var(--shape-mask) center / 100% 100% no-repeat; cursor: crosshair; touch-action: none; }
 .maker-tools, .maker-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .maker-pens { display: flex; gap: 6px; margin-right: auto; }
 .maker-pens button { width: 28px; height: 28px; padding: 0; border-radius: 50%; cursor: pointer; background: var(--c); border: 2px solid var(--surface); box-shadow: 0 0 0 1.5px var(--line-control); }
 .maker-pens button[aria-pressed="true"] { box-shadow: 0 0 0 2.5px var(--ink); }
+.maker-look { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 16px; }
+.maker-opts { display: flex; gap: 6px; }
+.maker-opts button { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; cursor: pointer; background: var(--surface); color: var(--ink); border: 2px solid var(--line-control); border-radius: 10px; }
+.maker-opts .maker-swatch { background: var(--c); border-color: var(--surface); border-radius: 50%; box-shadow: 0 0 0 1.5px var(--line-control); }
+.maker-shape::before { content: ""; display: block; width: 20px; height: 20px; background: currentColor; -webkit-mask: var(--shape-mask) center / 100% 100% no-repeat; mask: var(--shape-mask) center / 100% 100% no-repeat; }
+.maker-opts [aria-pressed="true"] { box-shadow: 0 0 0 2.5px var(--ink); }
 .maker-btn { padding: 10px 13px; cursor: pointer; font: 700 0.88rem / 1 var(--font-sans); color: var(--ink); background: var(--surface); border: var(--edge) solid var(--line-control); border-radius: var(--radius-md); }
 .maker-btn.primary { color: var(--on-action); background: var(--action); border-color: var(--line); }
 .maker-btn.quiet { padding-inline: 4px; border-color: transparent; text-decoration: underline; }
@@ -210,3 +229,26 @@
   .cover-front .wd, .pz-t { transition: none !important; }
   .cover-front .wd *, .cover-front .wd, .wd-sh { animation: none !important; }
 }
+
+/* ---------- the hint: a quiet preview of each sticker's own tap animation, smaller and shorter (hints.js adds .hint) ---------- */
+/* transform and opacity only (scale, translate, rotate, transform), so nothing reflows and it stays cheap */
+.wd.hint { animation: hint-nudge 0.8s ease-in-out; }
+@keyframes hint-nudge { 40% { scale: 1.035; } }
+.wd-name.hint .nm-pen { animation: hint-pen 1.1s ease-in-out both; }
+@keyframes hint-pen { 0% { opacity: 0; translate: 0 0; } 15% { opacity: 0.85; } 85% { opacity: 0.85; translate: 2.1em -1px; } 100% { opacity: 0; translate: 2.2em 0; } }
+.wd-ball.hint { animation: hint-hop 0.7s var(--ease-out); }
+@keyframes hint-hop { 40% { transform: translateY(-5px); } }
+.wd-now.hint { animation: hint-flip 0.5s var(--ease-out); }
+@keyframes hint-flip { 45% { transform: rotateX(32deg); } }
+.wd-p12.hint .p12-n { animation: hint-nozzle 0.3s ease-in-out 4 alternate; }
+@keyframes hint-nozzle { from { translate: -70% 0; } to { translate: 70% 0; } }
+.wd-hike.hint .m-sun { animation: hint-sun 1.3s ease-in-out; }
+@keyframes hint-sun { 50% { translate: 0 4px; } }
+.wd-pal-raccoon.hint .ty-a { animation: hint-tap 0.2s ease-in-out 4 alternate; }
+.wd-pal-raccoon.hint .ty-b { animation: hint-tap 0.2s ease-in-out 0.1s 4 alternate; }
+@keyframes hint-tap { from { translate: 0 -1.2px; } to { translate: 0 0.3px; } }
+.wd-puzzle.hint .pz-t { animation: hint-tile 0.5s ease-in-out; }
+.wd-puzzle.hint .pz-t:nth-child(even) { animation-delay: 0.14s; }
+@keyframes hint-tile { 50% { scale: 0.93; } }
+.wd-mine.hint { animation: hint-wobble 0.8s ease-in-out; }
+@keyframes hint-wobble { 25% { rotate: -4deg; } 75% { rotate: 4deg; } }

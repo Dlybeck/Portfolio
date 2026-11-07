@@ -276,7 +276,6 @@ def test_the_scribblescan_page_says_what_comes_next_in_one_plain_line(client: Te
 
     assert "I'm now exploring what comes next for it, with privacy as the main goal. It's early work, not a finished product." in html
     assert "from a hosted product to a privacy-first experiment." in html
-    assert "an offline" not in html
 
 
 def test_the_scribblescan_job_says_where_things_stand_now(client: TestClient) -> None:

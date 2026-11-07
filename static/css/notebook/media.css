@@ -6,7 +6,7 @@
 .page figure::before, .page figure::after { content: ""; position: absolute; width: 18px; height: 18px; background: var(--nb-spine); z-index: 1; }
 .page figure::before { left: -3px; top: -3px; clip-path: polygon(0 0, 100% 0, 0 100%); }
 .page figure::after { right: -3px; bottom: -3px; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
-.page figcaption { padding: 6px 2px 0; font-size: 0.8rem; color: var(--soft); }
+.page figcaption { padding: 6px 2px 0; font-size: 0.8rem; color: color-mix(in srgb, currentColor 86%, transparent); } /* darker than --soft: the lighter grey fell under 4.5:1 on white */
 .page figure.sq img { width: 96px; height: 96px; object-fit: cover; }
 .page figure.vid { padding: 0; background: #141c2b; }
 .page figure.vid video { display: block; width: 100%; height: auto; }

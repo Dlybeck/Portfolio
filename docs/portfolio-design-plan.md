@@ -72,7 +72,7 @@ ScribbleScan's historical performance claims remain on its pages. Numerical and 
 - Add canonical, page-specific description, Open Graph, social-card, and appropriate `Person` structured metadata.
 - Use a stable wide capture of the canonical Home Board as the social-preview image, incorporating the existing Personal Mark for now.
 
-The bundled resume is stale and predates the Denali role. Do not publish a replacement: tailored resumes are shared privately with applications, while the public Portfolio presents current professional evidence without signaling a job search.
+The resume linked from Say hi is the owner-supplied PDF in static/PDF and is changed only when the owner sends a new file.
 
 ## Workstream 3: Theme laboratory
 

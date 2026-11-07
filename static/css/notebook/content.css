@@ -83,7 +83,7 @@
 
 .page .contact { display: grid; gap: 8px; margin-top: 16px; max-width: 420px; }
 .page .contact div { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 12px; border: var(--edge) solid var(--rule); border-radius: var(--radius-md); }
-.page .contact span, .page .contact a { font: 500 0.8rem var(--font-mono); }
+.page .contact span, .page .contact a { font: 500 0.8rem var(--font-mono); min-width: 0; overflow-wrap: anywhere; }
 
 /* the contents and the lists of stories */
 .page .toc { list-style: none; margin: 6px 0 0; padding: 0; display: grid; }
@@ -100,4 +100,10 @@
   .page h2 { font-size: 1.55rem; }
   .page h2.name { font-size: 1.9rem; }
   .page .archive { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* On a narrow portrait phone nothing may run past the page edge: let any box shrink and any long word break rather than be cut off.
+   (Not for a landscape phone: there the two pages are only 165px wide, and breaking words in them reads worse than the clipping.) */
+@media (max-width: 639px) {
+  .page :where(div, li, a, span, b, small, p, h1, h2, h3, h4, figcaption, dd, dt) { min-width: 0; overflow-wrap: anywhere; }
 }

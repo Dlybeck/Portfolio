@@ -63,7 +63,7 @@ def _page(id: str, section: str, title: str, kicker: str, summary: str, **kw) ->
 
 
 PAGES = (
-    _page("me", "me", "David Lybeck", "Hi, I'm David", "", layout="front", pair="toc"),
+    _page("me", "me", "David Lybeck", "Welcome", "", layout="front", pair="toc"),
     _page("toc", "me", "Contents", "", "", phone_only=True),
     _page("projects", "projects", "Projects", "4 entries", "", phone_only=True),
     _page("scribblescan", "projects", "ScribbleScan", "2025 to now",

@@ -36,7 +36,7 @@ def test_every_route_returns_the_whole_notebook(client: TestClient, route: str) 
 def test_pages_are_server_rendered_with_their_words(client: TestClient) -> None:
     html = client.get("/jobs").text
 
-    assert "Innovation AI Developer" in html
+    assert "This notebook is my portfolio: things I've built, where I've worked and studied, and what I do for fun." in html
     assert "From coaching tennis to building AI tools." in html
     assert "ScribbleScan LLC" in html
 

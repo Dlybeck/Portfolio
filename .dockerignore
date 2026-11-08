@@ -1,7 +1,5 @@
 .git
 .claude
-.specify
-.opencode
 .venv
 venv
 __pycache__

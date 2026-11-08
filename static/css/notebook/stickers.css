@@ -1,4 +1,4 @@
-/* The nine vinyl stickers on the cover. Sizes and places are in cqw/cqh, percentages of the cover itself,
+/* The eight vinyl stickers on the cover. Sizes and places are in cqw/cqh, percentages of the cover itself,
    so the whole arrangement scales with it. The cover is always a 5 by 8 notebook. */
 
 .cover-front, .cover-inside {
@@ -21,7 +21,7 @@
 .wd-hike .wd-sh { inset: 6px; }
 .wd-ball .wd-sh { background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.6) 0 9%, transparent 30%); }
 .wd-blank:not(.has):not(.styled) { filter: none; }
-.wd-blank:not(.has) .wd-sh, .wd-pal .wd-sh { display: none; }
+.wd-blank:not(.has) .wd-sh { display: none; }
 .wd:hover .wd-sh { animation: gloss 0.9s ease-out; }
 @keyframes gloss { from { background-position: -120px 0; } to { background-position: 0 0; } }
 .wd-curl { /* the name tag's lifted corner */
@@ -138,32 +138,6 @@
 @keyframes gantry { from { top: 79%; } to { top: 31%; } }
 @keyframes nozzle { from { translate: -160% 0; } to { translate: 160% 0; } }
 
-/* ---------- the raccoon ---------- */
-.wd-pal {
-  left: 69cqw; top: 27cqh; width: 19cqw; rotate: 7deg; z-index: 3; display: flex; align-items: center; justify-content: center; box-sizing: border-box; aspect-ratio: 1 / 0.9;
-  padding: 1.6cqw 1.2cqw 0.8cqw; background: #f4f8ff; border-radius: 52% 48% 54% 46% / 50% 56% 44% 50%;
-}
-.pty { display: block; width: 100%; flex: none; }
-.pty svg { display: block; width: 100%; height: auto; overflow: visible; }
-.pty .ty-a, .pty .ty-b, .pty .ty-eye, .pty .ty-hd { transform-box: fill-box; }
-.pty .ty-eye { transform-origin: center; animation: blink 5s infinite; }
-.wd-pal.typing .ty-a { animation: tap 0.2s ease-in-out infinite alternate; }
-.wd-pal.typing .ty-b { animation: tap 0.2s ease-in-out 0.1s infinite alternate; }
-.wd-pal.typing .ty-hd { animation: bob 0.4s ease-in-out infinite alternate; }
-.ty-kb { fill: #2b2f38; }
-.ty-ks { stroke: rgba(255, 255, 255, 0.35); stroke-width: 0.8; stroke-dasharray: 2.2 1.2; fill: none; }
-.ty-raccoon .ty-c1 { fill: #8e8f97; }
-.ty-raccoon .ty-c2 { fill: #f3f1ec; }
-.ty-raccoon .ty-c3 { fill: #2e2f35; }
-.pal-say {
-  position: absolute; left: 58%; top: -18%; min-width: 2.4em; padding: 4px 7px; border-radius: 9px 9px 9px 2px; background: #fff; color: #1b2436; white-space: nowrap; pointer-events: none;
-  font: 700 0.7rem / 1 var(--font-mono); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); opacity: 0; scale: 0.6; transform-origin: 0 100%; transition: opacity 0.15s, scale 0.15s;
-}
-.wd-pal.saying .pal-say:not(:empty) { opacity: 1; scale: 1; }
-@keyframes blink { 0%, 93%, 100% { scale: 1 1; } 96% { scale: 1 0.12; } }
-@keyframes tap { from { translate: 0 -2.4px; } to { translate: 0 0.5px; } }
-@keyframes bob { from { translate: 0 0; } to { translate: 0 0.9px; } }
-
 /* ---------- "your sticker here" ---------- */
 .wd-round { display: grid; place-items: center; width: 19cqw; aspect-ratio: 1; border-radius: 50%; border: 3px solid #fff; }
 .wd-blank { left: 41cqw; top: 70cqh; background: transparent; border: 2.5px dashed rgba(40, 28, 10, 0.55); color: var(--ink-fixed); text-align: center; overflow: hidden; font: 700 clamp(0.6rem, 3.4cqw, 0.82rem) / 1 var(--font-hand); }
@@ -244,9 +218,6 @@
 @keyframes hint-nozzle { from { translate: -70% 0; } to { translate: 70% 0; } }
 .wd-hike.hint .m-sun { animation: hint-sun 1.3s ease-in-out; }
 @keyframes hint-sun { 50% { translate: 0 4px; } }
-.wd-pal-raccoon.hint .ty-a { animation: hint-tap 0.2s ease-in-out 4 alternate; }
-.wd-pal-raccoon.hint .ty-b { animation: hint-tap 0.2s ease-in-out 0.1s 4 alternate; }
-@keyframes hint-tap { from { translate: 0 -1.2px; } to { translate: 0 0.3px; } }
 .wd-puzzle.hint .pz-t { animation: hint-tile 0.5s ease-in-out; }
 .wd-puzzle.hint .pz-t:nth-child(even) { animation-delay: 0.14s; }
 @keyframes hint-tile { 50% { scale: 0.93; } }

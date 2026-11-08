@@ -79,7 +79,7 @@ def test_the_hint_animations_use_only_transform_and_opacity_properties(browser_p
       return out;
     }""")
     allowed = {"opacity", "translate", "scale", "rotate", "transform"}
-    assert len(props) >= 9, props
+    assert len(props) >= 8, props
     for name, used in props.items():
         assert set(used) <= allowed, (name, used)
 
@@ -155,6 +155,6 @@ def test_every_hinted_sticker_has_its_own_animation_defined() -> None:
     css = (Path(__file__).resolve().parent.parent / "static/css/notebook/stickers.css").read_text()
     js = (Path(__file__).resolve().parent.parent / "static/js/notebook/stickers/hints.js").read_text()
     classes = re.findall(r'\["(\.wd-[\w-]+)", \d+\]', js)
-    assert len(classes) == 8
+    assert len(classes) == 7
     for cls in classes:
         assert f"{cls}.hint" in css, cls

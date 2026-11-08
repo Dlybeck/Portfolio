@@ -39,7 +39,7 @@
    The inside front cover is the left page of the first spread, and the inside back cover is the right page of the
    last. Each is `.cover-inside` with `--front` or `--back`: it fills its page, and `container-type: size` makes
    what sits on it placeable in cqw and cqh. The page, and the cover's own back face as it swings, turn kraft
-   with the same grain as the outside, with a shadow where the board meets the spine. The contents rests on the front as a paper card. */
+   with the same grain as the outside, with a shadow where the board meets the spine. */
 .nb--desktop .nb-page:has(.cover-inside), .nb--desktop .nb-leaf .face:has(.cover-inside) { background: var(--nb-kraft); }
 .cover-inside {
   position: absolute; inset: 0; container-type: size; overflow: hidden; pointer-events: none;
@@ -49,15 +49,5 @@
 }
 .cover-inside--front { box-shadow: inset -22px 0 18px -14px rgba(0, 0, 0, 0.38), inset 0 0 40px rgba(60, 40, 10, 0.18); }
 .cover-inside--back { box-shadow: inset 22px 0 18px -14px rgba(0, 0, 0, 0.38), inset 0 0 40px rgba(60, 40, 10, 0.18); }
-.cover-inside .wd { cursor: default; pointer-events: none; }
 .nb-in:has(> .page > .cover-inside) { -webkit-mask-image: none; mask-image: none; overflow: hidden; } /* no fade at the foot of a cover */
-/* the contents is a loose paper card resting on the inside front cover, so it is reachable from the very first spread */
-.cover-inside__card {
-  position: absolute; left: 9cqw; right: 13cqw; top: 7cqh; z-index: 2; pointer-events: auto; rotate: -1deg; padding: 6px 20px 14px;
-  background-color: var(--nb-paper); color: var(--nb-ink); border: var(--edge) solid var(--nb-edge); border-radius: 3px; box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
-}
-.cover-inside--front .wd-hike { z-index: 3; }
-/* the two stickers on the inside: the trail stamp inside the front, the raccoon inside the back */
-.cover-inside--front .wd-hike { left: 12cqw; right: auto; top: auto; bottom: 9cqh; width: 38cqw; rotate: -5deg; }
-.cover-inside--back .wd-pal { left: auto; right: 14cqw; top: 8cqh; rotate: -6deg; }
 .nb.is-first-spread .nb-pn.lft, .nb.is-last-spread .nb-pn.rgt { visibility: hidden; } /* nothing to number on a cover */

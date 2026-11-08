@@ -28,12 +28,9 @@ class Page:
     # How a desktop spread is laid out:
     #   "list":  left = the section's list of stories, right = this story
     #   "split": left = the first `split` <section>s of the page (one by default), right = the rest
-    #   "pair":  left = this page, right = the page named by `pair`
-    #   "front": left = the inside front cover, with the page named by `pair` resting on it as a card;
-    #            right = this page, alone
+    #   "front": left = the inside front cover (left bare for stickers), right = this page, alone
     #   "back":  left = this page, right = the inside back cover
     layout: str = "list"
-    pair: str | None = None
     split: int = 1  # for layout "split": how many sections fill the left page
     phone_only: bool = False  # index pages that a desktop spread replaces
     path: str | None = None  # canonical route; None for pages without one
@@ -45,7 +42,7 @@ class Page:
 
 
 SECTIONS = (
-    Section("me", "About", "lemon"),
+    Section("toc", "Contents", "lemon"),
     Section("projects", "Projects", "sky"),
     Section("work", "Work", "mint"),
     Section("school", "School", "pink"),
@@ -63,8 +60,7 @@ def _page(id: str, section: str, title: str, kicker: str, summary: str, **kw) ->
 
 
 PAGES = (
-    _page("me", "me", "David Lybeck", "Welcome", "", layout="front", pair="toc"),
-    _page("toc", "me", "Contents", "", "", phone_only=True),
+    _page("toc", "toc", "Contents", "", "", layout="front"),
     _page("projects", "projects", "Projects", "4 entries", "", phone_only=True),
     _page("scribblescan", "projects", "ScribbleScan", "2025 to now",
           "Handwriting digitization, from capstone to hosted product."),
@@ -90,7 +86,7 @@ PAGES = (
 
 PAGES_BY_ID = {page.id: page for page in PAGES}
 
-# Phone: one page at a time, all fourteen. Desktop: spreads, so the index pages drop out.
+# Phone: one page at a time, all thirteen. Desktop: spreads, so the index pages drop out.
 PHONE_ORDER = tuple(page.id for page in PAGES)
 DESKTOP_ORDER = tuple(page.id for page in PAGES if not page.phone_only)
 
@@ -106,7 +102,9 @@ LIST_LEADS = {
 }
 
 # Routes that have no page of their own open the closed index pages by hash.
-HASHES = {"me": "about", "toc": "contents", "projects": "projects", "hobbies": "hobbies", "say": "say-hi"}
+HASHES = {"toc": "contents", "projects": "projects", "hobbies": "hobbies", "say": "say-hi"}
+# Old addresses that still work: the intro page is gone, so its hash opens the contents.
+HASH_ALIASES = {"about": "toc"}
 
 
 def client_data() -> dict[str, object]:
@@ -120,13 +118,13 @@ def client_data() -> dict[str, object]:
                 "section": page.section,
                 "title": page.title,
                 "layout": page.layout,
-                "pair": page.pair,
                 "split": page.split,
                 "path": page.path,
                 "hash": HASHES.get(page.id),
             }
             for page in PAGES
         },
+        "hashAliases": dict(HASH_ALIASES),
         "lists": {name: list(ids) for name, ids in LISTS.items()},
         "routes": {doc.route: {"page": doc.page, "anchor": doc.anchor} for doc in DOCUMENTS},
     }

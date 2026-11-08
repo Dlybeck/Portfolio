@@ -12,17 +12,24 @@ ROOT = Path(__file__).resolve().parent.parent
 DESKTOP = {"width": 1280, "height": 800}
 
 
+def test_contents_is_the_first_page_on_both_layouts_and_the_intro_page_is_gone() -> None:
+    assert "me" not in notebook.PAGES_BY_ID
+    assert notebook.PHONE_ORDER[:2] == ("toc", "projects")
+    assert notebook.DESKTOP_ORDER[0] == "toc"
+    assert len(notebook.PHONE_ORDER) == 13 and len(notebook.DESKTOP_ORDER) == 11
+    assert notebook.SECTIONS[0].id == "toc" and notebook.SECTIONS[0].tab == "Contents"
+    assert not (ROOT / "templates/notebook/pages/me.html").exists()
+
+
 def test_the_first_page_sits_right_of_the_inside_front_cover_and_the_last_left_of_the_back() -> None:
-    first, last = notebook.PAGES_BY_ID[notebook.DESKTOP_ORDER[0]], notebook.PAGES_BY_ID[notebook.DESKTOP_ORDER[-1]]
+    assert notebook.PAGES_BY_ID[notebook.DESKTOP_ORDER[0]].layout == "front"
+    assert notebook.PAGES_BY_ID[notebook.DESKTOP_ORDER[-1]].layout == "back"
+    assert notebook.PAGES_BY_ID["say"].id == notebook.PHONE_ORDER[-1]
 
-    assert (first.id, first.layout, first.pair) == ("me", "front", "toc")
-    assert (last.id, last.layout, last.pair) == ("say", "back", None)
 
-
-def test_the_contents_is_not_a_desktop_page_of_its_own_and_the_phone_order_is_unchanged() -> None:
-    assert "toc" not in notebook.DESKTOP_ORDER
-    assert notebook.PHONE_ORDER[:3] == ("me", "toc", "projects")
-    assert notebook.PHONE_ORDER[-1] == "say"
+def test_the_old_about_address_opens_the_contents() -> None:
+    assert notebook.client_data()["hashAliases"] == {"about": "toc"}
+    assert notebook.HASHES["toc"] == "contents"
 
 
 def test_school_gives_each_side_of_its_spread_real_content() -> None:
@@ -50,17 +57,22 @@ def test_opening_and_closing_share_one_ease_in_out_curve_and_duration() -> None:
 
 
 @pytest.mark.browser
-def test_the_first_and_last_spreads_have_an_inside_cover(browser_page) -> None:
+@pytest.mark.parametrize("address", ["/#contents", "/#about"])
+def test_the_first_and_last_spreads_have_bare_inside_covers(browser_page, address) -> None:
     page, base = browser_page
     page.set_viewport_size(DESKTOP)
-    page.goto(base + "/#about")
+    page.goto(base + address)
     page.wait_for_selector(".nb-page.l .cover-inside--front")
 
-    assert page.locator(".nb-page.l .cover-inside--front .toc").count() == 1
-    assert page.locator(".nb-page.r .toc").count() == 0
+    assert page.locator("#notebook").get_attribute("data-page") == "toc"
+    assert page.locator(".nb-page.r .toc").count() == 1
+    assert page.locator(".nb-page.l .toc").count() == 0
+    assert page.locator(".cover-inside--front > *").count() == 0  # bare, ready for stickers
     assert page.locator(".cover-inside--front").evaluate("n => getComputedStyle(n).containerType") == "size"
+    assert page.evaluate("location.hash") == "#contents"
 
     page.goto(base + "/#say-hi")
     page.wait_for_selector(".nb-page.r .cover-inside--back")
     page.wait_for_selector(".nb-page.l .contact")  # lands when the turning page does
+    assert page.locator(".cover-inside--back > *").count() == 0
     assert page.locator(".nb-page.r .toc").count() == 0

@@ -393,7 +393,6 @@ FREEZE = "setTimeout(() => { const t = performance.now(); while (performance.now
 WEAK = {
     "2 GB of memory": device(2, 8),
     "4 cores": device(8, 4),
-    "1 GB and 2 cores": device(1, 2),
 }
 
 
@@ -594,6 +593,65 @@ def test_the_clear_button_works_with_a_finger_and_does_not_turn_the_page(mobile_
     page.wait_for_timeout(300)
     assert page.evaluate(PAD_BLANK) == {"clean": True, "text": "", "state": "idle", "word": ""}
     assert untouched(page)
+
+
+def test_a_device_with_a_gigabyte_of_memory_never_loads_the_reader(browser_page) -> None:
+    page, base = browser_page
+    calls = serve(page, READER)
+    open_cover(page, base, DESKTOP, connection=link(effectiveType="4g", saveData=False, type="wifi") + "; " + device(1, 8))
+    write(page, pad_geometry(page))
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'off'", timeout=5000)
+    assert page.locator(".wd-scan .sc-t").inner_text() == "Reading is off on this device"
+    page.wait_for_timeout(4000)
+    assert calls == []  # not even a first stroke started a download
+    assert page.evaluate("sessionStorage.getItem('pad-reader-off')") is None  # (and it is not remembered: the memory figure does not change)
+
+
+def test_the_preload_asks_again_just_before_it_starts(browser_page) -> None:
+    page, base = browser_page
+    calls = serve(page, READER)
+    # a good link at first; Save-Data is switched on while the preload is still waiting its turn
+    open_cover(page, base, DESKTOP, connection=link(saveData=False, effectiveType="4g", type="wifi") + "; " + STRONG + "; window.__link = navigator.connection; setTimeout(() => { window.__link.saveData = true; }, 500)")
+    page.wait_for_timeout(5000)
+    assert calls == []
+
+
+def test_a_stroke_that_runs_far_off_the_pad_still_reads(browser_page) -> None:
+    page, base = browser_page
+    serve(page, READER)
+    open_cover(page, base, DESKTOP)
+    geo = pad_geometry(page)
+    stroke_mouse(page, [screen(geo, 0.1, 0.3), screen(geo, 0.5, 0.35), (1270, 790)])  # released at the far corner of the page
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)
+    assert untouched(page)
+
+
+def test_the_scan_button_is_a_good_size_and_focus_stays_on_the_sticker_when_a_button_goes(browser_page) -> None:
+    page, base = browser_page
+    serve(page, READER)
+    open_cover(page, base, DESKTOP)
+    geo = pad_geometry(page)
+    write(page, geo)
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)
+    write(page, geo)  # more writing: the reader is up, so the scan button shows while the pad waits
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'ink'", timeout=3000)
+    assert page.locator(".wd-scan .sc-go").bounding_box()["height"] >= 32
+    clear_button(page).focus()
+    page.keyboard.press("Enter")  # the button goes away with the ink
+    assert page.evaluate("document.activeElement.closest('.wd-scan') !== null")  # but the keyboard's place stays on the sticker
+
+
+def test_the_scan_button_is_finger_sized_on_a_phone(mobile_browser_page) -> None:
+    page, base = mobile_browser_page
+    serve(page, READER)
+    open_cover(page, base)
+    cdp = page.context.new_cdp_session(page)
+    geo = pad_geometry(page)
+    stroke_touch(cdp, [screen(geo, 0.1, 0.3), screen(geo, 0.6, 0.35)])
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)
+    stroke_touch(cdp, [screen(geo, 0.1, 0.6), screen(geo, 0.5, 0.62)])
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'ink'", timeout=3000)
+    assert page.locator(".wd-scan .sc-go").bounding_box()["height"] >= 44
 
 
 # ---- the geometry that turns strokes into lines, without a browser pad or a model

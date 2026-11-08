@@ -1,8 +1,9 @@
 // The scan pad. It writes a word, scans it and types it out; write on it yourself and it reads what you wrote.
 //
 // Reading is real: the strokes are kept, split by the pad's ruled rows, and each row goes to a small handwriting model
-// that runs in a worker (ocr.js). The model (about 65 MB) is fetched only when someone first writes on the pad or presses
-// "scan", and the browser keeps it after that. Until then the pad just plays its little word demo.
+// that runs in a worker (ocr.js). The model (about 70 MB) is fetched in the background once the page is idle (unless the
+// visitor's device or link says not to), or when someone first writes on the pad or presses "scan"; the browser keeps it
+// after that. Until it is needed the pad just plays its little word demo.
 
 import { reducedMotion } from "./common.js";
 import { ocr, preload } from "./ocr.js";
@@ -14,7 +15,7 @@ const LINGER_MS = 12000; // a result stays this long (plus a little per letter),
 const GUARD_MS = 400; // the click that ends a stroke is not a tap, for this long
 
 export const scan = {
-  html: () => `<div class="wd wd-scan"><div class="sc-pad"><svg viewBox="0 0 220 64" aria-hidden="true"><text x="12" y="46" class="sc-w"></text></svg><canvas aria-label="Write here and the pad reads it"></canvas><i class="sc-bar"></i><button type="button" class="sc-clear" aria-label="Clear the pad" title="Clear" hidden><i aria-hidden="true"></i></button></div>
+  html: () => `<div class="wd wd-scan"><div class="sc-pad" tabindex="-1"><svg viewBox="0 0 220 64" aria-hidden="true"><text x="12" y="46" class="sc-w"></text></svg><canvas aria-label="Write here and the pad reads it"></canvas><i class="sc-bar"></i><button type="button" class="sc-clear" aria-label="Clear the pad" title="Clear" hidden><i aria-hidden="true"></i></button></div>
     <div class="sc-out"><i class="sc-pg"></i><span class="sc-k">It reads</span><code class="sc-t" aria-hidden="true"></code><button type="button" class="sc-go" hidden>scan</button></div><span class="sr-only" role="status"></span></div>`,
 
   wire(card, { alive }) {
@@ -24,6 +25,7 @@ export const scan = {
     const progress = card.querySelector(".sc-pg");
     const go = card.querySelector(".sc-go");
     const clearButton = card.querySelector(".sc-clear");
+    const pad = card.querySelector(".sc-pad");
     const announce = card.querySelector(".sr-only");
     const canvas = card.querySelector("canvas");
     const ink = canvas.getContext("2d");
@@ -38,10 +40,12 @@ export const scan = {
 
     /** idle: the demo plays · ink: writing waits to be read · load / read: working · done: a result · error: something failed · off: reading is switched off here */
     const setState = (state) => {
+      const focused = document.activeElement;
       card.dataset.state = state;
       go.hidden = state !== "ink" && state !== "error";
       clearButton.hidden = !strokes.length; // there is something to clear once there is ink
       go.textContent = state === "error" ? "retry" : "scan";
+      if ((focused === go && go.hidden) || (focused === clearButton && clearButton.hidden)) pad.focus({ preventScroll: true }); // a button that goes away must not drop a keyboard user's place
       bar.classList.toggle("loop", state === "read");
       progress.classList.toggle("busy", state === "read" || (state === "load" && !progress.style.getPropertyValue("--p")));
     };
@@ -108,7 +112,11 @@ export const scan = {
     let readTimer = 0;
     let clearTimer = 0;
 
+    let fitW = 1; // the pad's size when the ink began: strokes are kept in these pixels, whatever the pad is later resized to
+    let fitH = 1;
     const fit = () => {
+      fitW = canvas.clientWidth;
+      fitH = canvas.clientHeight;
       const s = 2;
       canvas.width = canvas.clientWidth * s;
       canvas.height = canvas.clientHeight * s;
@@ -118,7 +126,11 @@ export const scan = {
       ink.strokeStyle = ink.fillStyle = "#0b4f9c";
     };
     // offsetX and offsetY are in the canvas's own (untilted, unscaled) pixels: the sticker sits turned on the cover
-    const at = (e) => [e.offsetX, e.offsetY];
+    // (kept inside the pad: a drag that goes far outside must not make a row too wide to draw)
+    const at = (e) => [
+      Math.min(fitW, Math.max(0, (e.offsetX * fitW) / (canvas.clientWidth || fitW))),
+      Math.min(fitH, Math.max(0, (e.offsetY * fitH) / (canvas.clientHeight || fitH))),
+    ];
 
     // ---- the reader (ocr.ready says whether the worker is up with the model; it goes false again if the worker dies)
     let active = 0; // reads asked for and not yet finished
@@ -158,7 +170,7 @@ export const scan = {
       const seen = version;
       if (ocr.off) { showOff(); return; }
       let rows;
-      try { rows = splitRows(strokes, canvas.clientHeight); } catch { rows = []; }
+      try { rows = splitRows(strokes, fitH); } catch { rows = []; }
       if (!rows.length) {
         message("Nothing to read yet");
         setState("done");
@@ -179,7 +191,7 @@ export const scan = {
         setState("read");
         message("Reading…");
         say("Reading");
-        const pitch = canvas.clientHeight / ROWS;
+        const pitch = fitH / ROWS;
         const todo = rows.filter((r) => results.get(r.row)?.key !== rowKey(r)); // rows already read and unchanged are kept
         const keys = todo.map(rowKey);
         const lines = todo.length ? await ocr.read(todo.map((r) => rasterRow(r.strokes, pitch))) : [];

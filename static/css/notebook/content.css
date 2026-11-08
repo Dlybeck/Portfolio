@@ -34,7 +34,7 @@
 
 .page .me-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0 0 10px; }
 .page .me-row img { width: 52px; height: 52px; flex: none; }
-.page .me-row .k { margin-bottom: 6px; }
+.page .me-row .k { margin: 0; } /* the tag is the row's only text: centred beside the icon */
 .page .facts { list-style: none; margin: 10px 0 0; padding: 0; display: grid; }
 .page .facts li { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 10px; padding: 7px 0; border-top: 1px solid var(--rule); font-size: 0.95rem; }
 .page .facts span { font: 500 0.7rem/1.9 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--soft); }

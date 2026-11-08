@@ -2,7 +2,7 @@
 // when you spin the wheel past page 1.
 
 import { el, reducedMotion, tuck } from "./motion.js";
-import { createSwing, easeFrom } from "./swing.js";
+import { createSwing, easeFrom } from "./swing.js?v=2";
 import { stickersHtml, wireStickers } from "./stickers/index.js";
 
 // One timing for the whole opening: the cover swinging on its spine and the book sliding to its open spot.
@@ -30,11 +30,14 @@ export function createCover({ root, book, phone, onTap }) {
   const covered = () => book.querySelectorAll(":scope > .nb-page, :scope > .nb-ear");
   const setCovered = (on) => covered().forEach((n) => { n.inert = on; });
 
+  /** The cover's inside: the board's kraft with the left page set into it, exactly where the real page lands (see .cover-page). */
   function backFace() {
     const left = book.querySelector(".nb-page.l .nb-in");
     const inside = el("div", "nb-in");
     inside.append(...[...left.childNodes].map((n) => n.cloneNode(true)));
-    return inside;
+    const page = el("div", "cover-page");
+    page.append(inside);
+    return page;
   }
 
   function build({ swingShut }) {

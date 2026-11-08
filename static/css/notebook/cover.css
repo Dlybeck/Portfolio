@@ -36,6 +36,13 @@
 .cover-open::after { content: " \2192"; }
 .cover-open:focus-visible { outline: 2px solid var(--ink-fixed); outline-offset: 2px; border-radius: 6px; }
 .nb-leaf.cover .face.back { background-color: var(--nb-paper); }
+/* WebKit can paint a face's back through its front even with backface-visibility: hidden (the shut cover then shows its kraft inside,
+   or plain paper, over the front). While the cover lies shut and still, its back face is never seen, so take it out of painting
+   outright instead of relying on culling. Opening and closing set .is-opening, so the swing keeps its backface behaviour.
+   Scoped to WebKit (it alone knows -webkit-hyphens), so other engines render exactly as before. */
+@supports (-webkit-hyphens: none) {
+  .nb.is-closed:not(.is-opening) .nb-leaf.cover .face.back { visibility: hidden; }
+}
 
 /* ---------- the inside of the covers (desktop: the first and last spread) ----------
    The inside front cover is the left page of the first spread, and the inside back cover is the right page of the

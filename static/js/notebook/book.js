@@ -122,7 +122,26 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
     return copy;
   }
 
-  function chrome(id) {
+  /**
+   * What belongs to one side of the book: the left side's folio and whether it is the inside front cover, the right side's page
+   * number and whether it is the inside back cover. They follow the page that is actually on that side, so while a leaf is in the
+   * air they change when that side's page does (the leaf's start side at once, its landing side when it lands), never early.
+   * (A folio or a corner fold that shows up over a bare inside cover before the page has landed was this.)
+   */
+  function sideChrome(side, id) {
+    if (phone) return;
+    const layout = data.pages[id].layout;
+    if (side === "L") {
+      root.classList.toggle("is-first-spread", layout === "front");
+      pnL.textContent = sectionTab(id);
+    } else {
+      root.classList.toggle("is-last-spread", layout === "back");
+      pnR.textContent = `p.${order.indexOf(id) + 1}`;
+    }
+  }
+
+  /** The book-wide state of a view; pass { sides: false } when a turn will update each side as its page changes. */
+  function chrome(id, { sides = true } = {}) {
     const i = order.indexOf(id);
     root.dataset.page = id;
     root.dispatchEvent(new CustomEvent("nb:view", { detail: id }));
@@ -130,15 +149,13 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
     const layout = data.pages[id].layout;
     inL.setAttribute("aria-label", phone ? title : layout === "front" ? "Inside front cover" : `${title}, left page`);
     inR?.setAttribute("aria-label", layout === "back" ? "Inside back cover" : `${title}, right page`);
-    root.classList.toggle("is-first-spread", !phone && layout === "front");
-    root.classList.toggle("is-last-spread", !phone && layout === "back");
     root.classList.toggle("is-turned", i > 0);
     prev.disabled = i <= 0;
     next.disabled = i >= total - 1;
     if (phone) pnR.textContent = `p.${i + 1} of ${total}`;
-    else {
-      pnL.textContent = sectionTab(id);
-      pnR.textContent = `p.${i + 1}`;
+    else if (sides) {
+      sideChrome("L", id);
+      sideChrome("R", id);
     }
   }
 
@@ -256,10 +273,11 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
     }
     leaf.style.zIndex = forward ? 60 - (mine % 50) : 10 + (mine % 50);
 
-    chrome(id);
+    chrome(id, { sides: false });
     if (startSide) {
       sideSeq[startSide] = mine;
       fill(startSide, startSide === "L" ? nl : nr);
+      sideChrome(startSide, id);
     }
     book.append(leaf);
     inAir += 1;
@@ -274,6 +292,7 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
       if (landSide && mine > sideSeq[landSide]) {
         sideSeq[landSide] = mine;
         fill(landSide, landSide === "L" ? nl : nr);
+        sideChrome(landSide, id);
       }
       leaf.remove();
       inAir -= 1;

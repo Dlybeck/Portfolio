@@ -70,10 +70,9 @@ export function createSwing({ book, back, ease, ms }) {
     open = p;
     leaf.style.transform = p >= 1 ? "rotateY(-180deg)" : p <= 0 ? "" : `rotateY(${-180 * p}deg)`;
     book.style.transform = `translateX(${(-0.25 * geo.bw * (1 - p)).toFixed(3)}px)`;
-    // the board is full size; clipping its left side keeps its edge where the cover's is. The clip opens up to the board's own
-    // rim as the cover lands, so the board's hard shadow is not cut off at the edge once it is the whole book again.
-    const slack = RIM * Math.min(1, Math.max(0, -edgeOffset(geo.cover, p, geo.perspective) / geo.cover));
-    back.style.clipPath = `inset(${-RIM}px ${-RIM}px ${-RIM}px ${(edge + RIM - slack).toFixed(3)}px)`;
+    // the board is full size; clipping its left side keeps its edge exactly where the cover's is (the board's shadow falls right and
+    // down, so nothing is lost on the left; an earlier version opened the clip up to 12px early and the board ran ahead of the cover)
+    back.style.clipPath = `inset(${-RIM}px ${-RIM}px ${-RIM}px ${(edge + RIM).toFixed(3)}px)`;
   }
 
   function stop() {

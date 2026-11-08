@@ -1,7 +1,7 @@
 // The eight stickers on the cover, in the order they are stuck on (later ones sit on top).
 
 import { keepEventsHere } from "./common.js";
-import { ball } from "./ball.js";
+import { ball } from "./ball.js?v=2";
 import { blankSticker } from "./blank.js";
 import { hike } from "./hike.js";
 import { name } from "./name.js";
@@ -22,7 +22,7 @@ export function wireStickers(cover) {
   const elements = [...cover.querySelectorAll(":scope > .wd")];
   elements.forEach((el, i) => {
     keepEventsHere(el);
-    el.insertAdjacentHTML("beforeend", `<i class="wd-sh" aria-hidden="true"></i>${el.classList.contains("wd-name") ? '<i class="wd-curl" aria-hidden="true"></i>' : ""}`);
+    el.insertAdjacentHTML("beforeend", `<i class="wd-sh" aria-hidden="true"></i><i class="wd-mt" aria-hidden="true"></i>${el.classList.contains("wd-name") ? '<i class="wd-curl" aria-hidden="true"></i>' : ""}`);
     SET[i].wire(el, { alive, cover });
   });
   startHints(cover, alive); // a quiet nudge that they are tappable, until the first touch

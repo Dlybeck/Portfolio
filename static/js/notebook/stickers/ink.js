@@ -15,12 +15,17 @@ const MARGIN = 0.3; // of the ink's height, on every side
 const MIN_ASPECT = 1.2; // a lone tall mark is padded out, so the model does not see it stretched
 const MIN_INK = 10; // less than this much pen travel (pad px) in a row is a stray touch, not writing
 
-const pointsOf = (strokes) => strokes.flatMap((s) => s);
+/** Smallest and largest x and y over every point (loops, not Math.min(...), so a huge scribble cannot overflow the call). */
+function bounds(strokes) {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const s of strokes) for (const [x, y] of s) { if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+  return { minX, minY, maxX, maxY };
+}
 
 /** Which ruled row a stroke belongs to: the row its middle falls in. */
 export function rowOf(stroke, height) {
-  const ys = stroke.map((p) => p[1]);
-  const mid = (Math.min(...ys) + Math.max(...ys)) / 2;
+  const { minY, maxY } = bounds([stroke]);
+  const mid = (minY + maxY) / 2;
   return Math.min(ROWS - 1, Math.max(0, Math.floor((mid / height) * ROWS)));
 }
 
@@ -50,18 +55,14 @@ export function splitRows(strokes, height) {
  */
 export function rasterRow(strokes, pitch) {
   const k = ROW_PX / pitch;
-  const all = pointsOf(strokes);
-  const xs = all.map((p) => p[0]);
-  const ys = all.map((p) => p[1]);
-  const minX = Math.min(...xs);
-  const minY = Math.min(...ys);
-  const inkW = (Math.max(...xs) - minX) * k;
-  const inkH = Math.max((Math.max(...ys) - minY) * k, ROW_PX * 0.5);
+  const { minX, minY, maxX, maxY } = bounds(strokes);
+  const inkW = (maxX - minX) * k;
+  const inkH = Math.max((maxY - minY) * k, ROW_PX * 0.5);
   const m = Math.round(inkH * MARGIN);
   const h = Math.ceil(inkH) + 2 * m;
   const w = Math.max(Math.ceil(inkW) + 2 * m, Math.ceil(h * MIN_ASPECT));
   const offX = (w - inkW) / 2;
-  const offY = m + (inkH - (Math.max(...ys) - minY) * k) / 2;
+  const offY = m + (inkH - (maxY - minY) * k) / 2;
 
   const canvas = document.createElement("canvas");
   canvas.width = w;

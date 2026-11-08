@@ -186,7 +186,7 @@ def test_the_pad_shows_progress_then_reads_each_written_row(browser_page) -> Non
     states = [s[0] for s in seen]
     fractions = [float(s[1]) for s in seen if s[0] == "load" and s[1]]
     assert "load" in states and "read" in states and "done" in states, states
-    assert len(set(fractions)) >= 3 and fractions == sorted(fractions)  # the bar moved, and only forwards
+    assert len(set(fractions)) >= 2 and fractions == sorted(fractions)  # the bar filled, and only forwards (before the first byte it is the moving bar, not an empty one)
     assert any(s[0] == "load" and s[2].startswith("Loading reader") for s in seen)
     assert any(s[0] == "read" and s[2] == "Reading\u2026" for s in seen)  # and something says it is reading while it reads
     assert untouched(page)

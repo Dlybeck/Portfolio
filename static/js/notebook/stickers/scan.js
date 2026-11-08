@@ -126,7 +126,9 @@ export const scan = {
       return ocr.load((pct) => {
         if (ocr.ready || !alive() || (card.dataset.state !== "ink" && card.dataset.state !== "load")) return;
         const starting = pct >= 99; // every byte is here; the model is being set up
-        message(starting ? "Starting reader\u2026" : `Loading reader ${pct}%`, starting ? undefined : pct);
+        if (starting) message("Starting reader\u2026");
+        else if (pct < 1) message("Loading reader\u2026"); // nothing has arrived yet: the bar keeps moving instead of sitting empty
+        else message(`Loading reader ${pct}%`, pct);
         setState("load");
       }).then(() => {
         if (!active && alive() && card.dataset.state === "load") { blank(); setState("ink"); } // it was loading in the background while they wrote
@@ -137,6 +139,7 @@ export const scan = {
       warm().catch((error) => {
         if (active || !alive() || card.dataset.state !== "load") return; // a read in flight reports its own failure
         console.warn("ScribbleScan pad:", error);
+        clearTimeout(readTimer); // the error stays until they press retry
         const text = navigator.onLine === false ? "Offline. Check your connection" : "Couldn\u2019t load the reader";
         setState("error");
         message(text);
@@ -151,7 +154,8 @@ export const scan = {
       clearTimeout(clearTimer);
       const mine = epoch;
       const seen = version;
-      const rows = splitRows(strokes, canvas.clientHeight);
+      let rows;
+      try { rows = splitRows(strokes, canvas.clientHeight); } catch { rows = []; }
       if (!rows.length) {
         message("Nothing to read yet");
         setState("done");
@@ -163,7 +167,7 @@ export const scan = {
       try {
         if (!ocr.ready) {
           setState("load");
-          message("Loading reader 0%", 0);
+          message("Loading reader\u2026");
           say("Loading the reader");
           await warm();
           if (mine !== epoch || !alive()) return;
@@ -255,7 +259,7 @@ export const scan = {
       version++;
       word.classList.remove("wr");
       word.textContent = "";
-      if (!strokes.length) blank();
+      if (!strokes.length || (out.classList.contains("msg") && card.dataset.state !== "load")) blank(); // an old note (nothing to read, couldn't read) goes when writing resumes
       pen = [at(e)];
       penId = e.pointerId;
       strokes.push(pen);

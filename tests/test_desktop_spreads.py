@@ -46,14 +46,14 @@ def test_opening_and_closing_share_one_ease_in_out_curve_and_duration() -> None:
 
     assert "--nb-open-ease: cubic-bezier(0.65, 0, 0.35, 1);" in css
     assert "--nb-open-ms: 800ms;" in css
-    # the book, the back board and the band all use the shared values; none keeps a timing of its own
-    assert "transition: transform var(--nb-open-ms) var(--nb-open-ease)" in css
-    assert "transition: clip-path var(--nb-open-ms) var(--nb-open-ease)" in css
+    # the book's slide and the back board's clip are not CSS transitions: one frame loop (swing.js) sets them with the cover
+    assert "transition: transform var(--nb-open-ms)" not in css and "transition: clip-path" not in css
     band = css.split(".nb-band {")[1].split("}")[0]
     assert "0.5s" not in band and "var(--nb-open-ease)" in band
     assert "var(--nb-open-ease" in tabs
     # the cover reads the same values from the page instead of repeating them
     assert "--nb-open-ease" in js and "cubic-bezier(0.22" not in js
+    assert "createSwing" in js
 
 
 @pytest.mark.browser

@@ -2,7 +2,7 @@
 // and keeps the address bar in step with the page that is showing.
 
 import { createBook } from "./book.js";
-import { createCover } from "./cover.js";
+import { createCover } from "./cover.js?v=2";
 import { enhance, settled } from "./media.js";
 import { createTabs } from "./tabs.js";
 import { createWheel } from "./wheel.js";

@@ -2,10 +2,12 @@
 // when you spin the wheel past page 1.
 
 import { el, reducedMotion, tuck } from "./motion.js";
+import { createSwing, easeFrom } from "./swing.js";
 import { stickersHtml, wireStickers } from "./stickers/index.js";
 
 // One timing for the whole opening: the cover swinging on its spine and the book sliding to its open spot.
 // It is defined once, in notebook.css, as --nb-open-ms and --nb-open-ease; the cover reads the same values.
+// On desktop one frame loop (swing.js) drives the cover, the book's slide and the brown back board together.
 const FADE_MS = 260; // with reduced motion the cover fades instead of swinging
 
 /**
@@ -23,6 +25,7 @@ export function createCover({ root, book, phone, onTap }) {
   const css = getComputedStyle(root);
   const OPEN_MS = parseFloat(css.getPropertyValue("--nb-open-ms")) || 800;
   const SWING = css.getPropertyValue("--nb-open-ease").trim() || "cubic-bezier(0.65, 0, 0.35, 1)";
+  const swing = phone ? null : createSwing({ book, back: book.querySelector(".nb-back"), ease: easeFrom(SWING), ms: OPEN_MS });
   // While the cover is shut, what lies under it must not be reachable by keyboard or screen reader.
   const covered = () => book.querySelectorAll(":scope > .nb-page, :scope > .nb-ear");
   const setCovered = (on) => covered().forEach((n) => { n.inert = on; });
@@ -73,12 +76,7 @@ export function createCover({ root, book, phone, onTap }) {
     // closing is the opening played backwards: the leaf starts lying open on the left and swings shut on its spine
     inMotion(OPEN_MS);
     if (phone) tuck(leaf, -180, 0, OPEN_MS, SWING).onfinish = (e) => e.target.cancel();
-    else {
-      leaf.style.transform = "rotateY(-180deg)";
-      void leaf.offsetWidth;
-      leaf.style.transition = `transform ${OPEN_MS}ms ${SWING}`;
-      leaf.style.transform = "";
-    }
+    else swing.run(leaf, 1, 0);
   }
 
   /** The book is mid-move: the real left page waits until it settles while the tabs slide with the book. */
@@ -116,16 +114,15 @@ export function createCover({ root, book, phone, onTap }) {
         return;
       }
       inMotion(OPEN_MS);
-      if (phone) tuck(gone, 0, -180, OPEN_MS, SWING);
-      else {
-        gone.style.transition = `transform ${OPEN_MS}ms ${SWING}`;
-        gone.style.transform = "rotateY(-180deg)";
-      }
-      timer = setTimeout(() => gone.remove(), OPEN_MS + 30);
+      if (phone) {
+        tuck(gone, 0, -180, OPEN_MS, SWING);
+        timer = setTimeout(() => gone.remove(), OPEN_MS + 30);
+      } else swing.run(gone, 0, 1, () => gone.remove());
     },
     destroy() {
       clearTimeout(timer);
       clearTimeout(moving);
+      swing?.cancel();
       root.classList.remove("is-opening");
       setCovered(false);
       book.querySelectorAll(":scope > .cover").forEach((n) => n.remove());

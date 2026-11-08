@@ -146,14 +146,17 @@ body {
     --bw: min(calc(var(--avail-h) * 1.25), calc(100vw - 340px), 1280px);
     left: calc(300px + (100vw - 340px - var(--bw)) / 2); margin-left: 0; width: var(--bw); height: calc(var(--bw) / 1.25);
     --book-top: calc(84px + (var(--avail-h) - var(--bw) / 1.25) / 2); /* the tab column measures from it */
-    top: var(--book-top); transition: transform var(--nb-open-ms) var(--nb-open-ease);
+    top: var(--book-top);
   }
   /* Opening is one move: the book slides from its shut, centred spot to its open spot while the cover swings on
-     the spine. Nothing is scaled. The back board is always full size; the shut book just shows its right half. */
+     the spine. Nothing is scaled. The back board is always full size; the shut book just shows its right half.
+     The slide, the cover's swing and the board's clip are not transitions: swing.js sets all three every frame from the
+     cover's one angle, so the board's edge stays under the cover's free edge (which moves with cos and perspective, not
+     with the easing). The two rules below are the resting states it hands back to. */
   .nb--desktop.is-closed .nb-book { transform: translateX(calc(var(--bw) * -0.25)); }
   .nb-back {
     inset: -10px -12px -12px -12px; border-radius: 10px;
-    clip-path: inset(-10px -12px -12px -12px); transition: clip-path var(--nb-open-ms) var(--nb-open-ease);
+    clip-path: inset(-10px -12px -12px -12px);
   }
   .nb--desktop.is-closed .nb-back { clip-path: inset(-10px -12px -12px calc((100% - 24px) / 2 + 10px)); }
   .nb--desktop .nb-page.l { right: 50%; border-radius: 3px 0 0 3px; border-right-color: rgba(20, 28, 43, 0.25); }

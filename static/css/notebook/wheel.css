@@ -49,6 +49,9 @@
 
 /* a very short window has no room for it: the book and the tabs come down close to the wheel, so keep the drawn size there */
 @media (max-height: 480px) { .wheel-dial::before { content: none; } }
+/* While the cover is shut, the enlarged grab circle would reach up over the cover's "open" button and take the tap that
+   belongs to it (a finger lands on the button's centre but the touch goes to the dial). The drawn wheel is still grabbable. */
+.nb--phone.is-closed .wheel-dial::before { content: none; }
 
 @media (min-width: 900px), (orientation: landscape) and (min-width: 640px) {
   .wheel-dial::before { content: none; } /* the desktop wheel is big and fully drawn */

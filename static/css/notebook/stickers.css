@@ -98,7 +98,7 @@
 .wd-hike.dusk .m-band { opacity: 0; }
 .wd-hike.dusk .m-mead { fill: #6b5a63; }
 
-/* ---------- the ScribbleScan pad ---------- */
+/* ---------- the scan pad ---------- */
 .wd-scan { width: 58cqw; background: #fff; border: 2px solid #fff; border-radius: 12px; overflow: hidden; cursor: crosshair; overscroll-behavior: none; }
 .sc-pad { position: relative; height: 13cqh; overflow: hidden; background-color: #fffdf6; background-image: linear-gradient(transparent calc(100% - 1px), rgba(11, 79, 156, 0.18) 0); background-size: 100% 25%; }
 .sc-pad svg { position: absolute; inset: 0; width: 100%; height: 100%; }

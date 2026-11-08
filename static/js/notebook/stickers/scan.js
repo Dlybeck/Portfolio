@@ -1,11 +1,11 @@
-// The ScribbleScan pad. It writes a word, scans it and types it out; write on it yourself and it reads what you wrote.
+// The scan pad. It writes a word, scans it and types it out; write on it yourself and it reads what you wrote.
 //
 // Reading is real: the strokes are kept, split by the pad's ruled rows, and each row goes to a small handwriting model
 // that runs in a worker (ocr.js). The model (about 65 MB) is fetched only when someone first writes on the pad or presses
 // "scan", and the browser keeps it after that. Until then the pad just plays its little word demo.
 
 import { reducedMotion } from "./common.js";
-import { ocr } from "./ocr.js";
+import { ocr, preload } from "./ocr.js";
 import { ROWS, rasterRow, splitRows } from "./ink.js";
 
 const WORDS = ["hello", "notes", "ideas", "hi there"];
@@ -15,7 +15,7 @@ const GUARD_MS = 400; // the click that ends a stroke is not a tap, for this lon
 
 export const scan = {
   html: () => `<div class="wd wd-scan"><div class="sc-pad"><svg viewBox="0 0 220 64" aria-hidden="true"><text x="12" y="46" class="sc-w"></text></svg><canvas aria-label="Write here and the pad reads it"></canvas><i class="sc-bar"></i></div>
-    <div class="sc-out"><i class="sc-pg"></i><span class="sc-k">ScribbleScan</span><code class="sc-t" aria-hidden="true"></code><button type="button" class="sc-go" hidden>scan</button></div><span class="sr-only" role="status"></span></div>`,
+    <div class="sc-out"><i class="sc-pg"></i><span class="sc-k">It reads</span><code class="sc-t" aria-hidden="true"></code><button type="button" class="sc-go" hidden>scan</button></div><span class="sr-only" role="status"></span></div>`,
 
   wire(card, { alive }) {
     const word = card.querySelector(".sc-w");
@@ -35,7 +35,7 @@ export const scan = {
     const clear = () => { timers.forEach(clearTimeout); timers = []; };
     const say = (text) => { announce.textContent = text; };
 
-    /** idle: the demo plays · ink: writing waits to be read · load / read: working · done: a result · error: something failed */
+    /** idle: the demo plays · ink: writing waits to be read · load / read: working · done: a result · error: something failed · off: reading is switched off here */
     const setState = (state) => {
       card.dataset.state = state;
       go.hidden = state !== "ink" && state !== "error";
@@ -62,7 +62,7 @@ export const scan = {
       shown = text;
       out.classList.remove("msg");
       out.textContent = "";
-      const spoken = `ScribbleScan read: ${text.replace(/\n/g, ", ")}`;
+      const spoken = `The pad read: ${text.replace(/\n/g, ", ")}`;
       if (reducedMotion()) { out.textContent = text; say(spoken); then?.(); return; }
       const step = Math.max(10, Math.min(55, 1400 / text.length));
       let k = 0;
@@ -137,8 +137,8 @@ export const scan = {
     /** The background load a first stroke starts. If it fails while nothing is waiting on it, say so now (with retry) rather than sit on a stale percentage. */
     function warmInBackground() {
       warm().catch((error) => {
-        if (active || !alive() || card.dataset.state !== "load") return; // a read in flight reports its own failure
-        console.warn("ScribbleScan pad:", error);
+        if (active || !alive() || ocr.off || card.dataset.state !== "load") return; // a read in flight reports its own failure
+        console.warn("scan pad:", error);
         clearTimeout(readTimer); // the error stays until they press retry
         const text = navigator.onLine === false ? "Offline. Check your connection" : "Couldn\u2019t load the reader";
         setState("error");
@@ -154,6 +154,7 @@ export const scan = {
       clearTimeout(clearTimer);
       const mine = epoch;
       const seen = version;
+      if (ocr.off) { showOff(); return; }
       let rows;
       try { rows = splitRows(strokes, canvas.clientHeight); } catch { rows = []; }
       if (!rows.length) {
@@ -189,8 +190,8 @@ export const scan = {
         else { message("Couldn’t read that"); say("Couldn’t read that"); }
         clearTimer = setTimeout(() => alive() && mine === epoch && wipe(), LINGER_MS + text.length * 60);
       } catch (error) {
-        if (mine !== epoch || !alive()) return;
-        console.warn("ScribbleScan pad:", error);
+        if (mine !== epoch || !alive() || ocr.off) return; // (switching off shows its own note)
+        console.warn("scan pad:", error);
         setState("error");
         const text = stage === "read" ? "Couldn’t read that" : navigator.onLine === false ? "Offline. Check your connection" : "Couldn’t load the reader";
         message(text);
@@ -199,6 +200,20 @@ export const scan = {
         active--;
       }
     }
+
+    // ---- reading switched off (the page struggled while the reader worked): the pad stays a drawing pad, with a calm note
+    const OFF_NOTE = "Reading is off on this device";
+    function showOff() {
+      clearTimeout(readTimer);
+      clearTimeout(clearTimer);
+      setState("off");
+      message(OFF_NOTE);
+      say(OFF_NOTE);
+      if (!pen) clearTimer = setTimeout(() => alive() && !pen && wipe(), LINGER_MS); // like a result, the drawing stays a while, then the pad clears
+    }
+    ocr.onOff(() => {
+      if (alive() && (strokes.length || card.dataset.state !== "idle")) showOff(); // if nobody has touched the pad, the note waits for the first stroke
+    }, alive);
 
     function wipe() {
       clearTimeout(readTimer);
@@ -267,9 +282,10 @@ export const scan = {
       ink.arc(...pen[0], 1.3, 0, Math.PI * 2);
       ink.fill();
       const state = card.dataset.state;
-      if (state === "read") { blank(); setState("ink"); } // the answer being worked out is for writing that is about to change
+      if (ocr.off) showOff();
+      else if (state === "read") { blank(); setState("ink"); } // the answer being worked out is for writing that is about to change
       else if (state !== "load") setState("ink");
-      if (!ocr.ready) warmInBackground(); // the first stroke starts the download
+      if (!ocr.off && !ocr.ready) warmInBackground(); // the first stroke starts the download
       try { canvas.setPointerCapture(e.pointerId); } catch { /* not capturable */ }
     });
     canvas.addEventListener("pointermove", (e) => {
@@ -288,5 +304,6 @@ export const scan = {
 
     setState("idle");
     demo();
+    if (card.closest(".nb")?.classList.contains("is-closed")) preload(); // the pad is in view (the cover is shut): get the reader ready quietly
   },
 };

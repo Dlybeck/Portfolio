@@ -28,12 +28,31 @@ great deal: the same strokes at on-screen size and thickness read as nonsense.
 
 ## Loading
 
-Nothing is downloaded until a visitor writes on the pad or presses "scan". Weights come from
-Hugging Face at a pinned revision, the library and its runtime from jsDelivr at exact versions
-(the runtime is 27 MB uncompressed, too heavy for the repository). The browser's Cache API
-keeps the weights, so the second visit downloads nothing. The page has no CSP, and both hosts
-send CORS headers. WebGPU is used only on a real graphics adapter, with WebAssembly as the
-fallback if it is missing or fails.
+The reader is fetched quietly once the page has loaded and gone idle (1.5 s after the load
+event, then at the browser's first idle moment), so most visitors find it ready. It never
+shows anything until the pad is touched; then the pad joins the load from where it has got to.
+The preload is skipped, and the model loads only when someone writes on the pad, when:
+
+- the browser reports Save-Data, a cellular link, or an effective type of 3g or slower;
+- the device looks weak: `deviceMemory` of 2 GB or less, or 4 or fewer logical cores;
+- the browser does not report its link at all (Safari) and the pointer is coarse (a phone or
+  tablet that might be on cellular);
+- the cover is not shut when the page loads (a deep link to a page; the pad is not in view).
+
+Weights come from Hugging Face at a pinned revision, the library and its runtime from jsDelivr
+at exact versions (the runtime is 27 MB uncompressed, too heavy for the repository). The
+browser's Cache API keeps the weights, so the second visit downloads nothing. The page has no
+CSP, and both hosts send CORS headers. WebGPU is used only on a real graphics adapter, with
+WebAssembly as the fallback if it is missing or fails.
+
+## Switching itself off
+
+The site must never lag because of the pad. While the reader loads or reads, the page is
+watched, and the reader stops (the worker is terminated and the model unloaded) if, within any
+4 seconds, any of these happens: five frames arrive 100 ms or more late; one frame is 800 ms
+late; or long tasks (50 ms or more each) add up to 1.2 s. The pad then stays a drawing pad and
+says "Reading is off on this device" (not an error, no retry). The switch-off is remembered in
+`sessionStorage` for the visit, so no later page tries again. Hidden tabs are ignored.
 
 ## Why this is an exception to "no CDN"
 

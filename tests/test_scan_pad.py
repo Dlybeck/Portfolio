@@ -1,4 +1,4 @@
-"""The ScribbleScan pad on the cover: its strokes belong to it, it reads them lazily, and it always says what it is doing.
+"""The scan pad on the cover: its strokes belong to it, it reads them lazily, and it always says what it is doing.
 
 The reader (a worker that fetches a 65 MB model) is replaced by a stub here, so none of this downloads anything.
 """
@@ -6,6 +6,8 @@ The reader (a worker that fetches a 65 MB model) is replaced by a stub here, so 
 from __future__ import annotations
 
 import math
+
+import pytest
 
 DESKTOP = {"width": 1280, "height": 800}
 WORKER = "**/stickers/ocr.worker.js"
@@ -45,7 +47,19 @@ def serve(page, *bodies):
     return calls
 
 
-def open_cover(page, base, viewport=None):
+def link(**properties):
+    """An init script that makes the browser report this kind of connection (navigator.connection)."""
+    value = str(properties).replace("True", "true").replace("False", "false")
+    return f"Object.defineProperty(navigator, 'connection', {{ value: {value}, configurable: true }})"
+
+
+NO_CONNECTION_API = "Object.defineProperty(navigator, 'connection', { value: undefined, configurable: true })"  # as in Safari
+SAVE_DATA = link(saveData=True)
+
+
+def open_cover(page, base, viewport=None, connection=SAVE_DATA):
+    """Most tests want the reader to start only when the pad is used, so they report Save-Data (which skips the preload)."""
+    page.add_init_script(connection)
     if viewport:
         page.set_viewport_size(viewport)
     page.goto(base + "/")
@@ -150,13 +164,13 @@ def test_the_ink_lands_under_the_pen_on_the_tilted_pad(browser_page) -> None:
     assert inked
 
 
-def test_nothing_is_fetched_until_the_pad_is_used(browser_page) -> None:
+def test_on_save_data_nothing_is_fetched_until_the_pad_is_used(browser_page) -> None:
     page, base = browser_page
     requested = []
     page.on("request", lambda r: requested.append(r.url))
     calls = serve(page, READER)
     open_cover(page, base, DESKTOP)
-    page.wait_for_timeout(1500)
+    page.wait_for_timeout(5000)  # well past when a preload would have started
     assert calls == []  # the reader's worker is not even started
     assert not [u for u in requested if not u.startswith(base)]  # and no other site is contacted
     geo = pad_geometry(page)
@@ -223,6 +237,201 @@ def test_the_scan_button_reads_without_waiting(browser_page) -> None:
     assert page.evaluate("window.__pressed") == 1  # the press was not swallowed
     page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'read'", timeout=1000)  # and it read at once, well before the 1.5 s wait
     assert untouched(page)
+
+
+# ---- the quiet preload: the reader is fetched once the page is idle, unless the visitor's connection says not to
+
+def device(memory, cores):
+    """An init script for a device with this much memory (GB) and this many cores."""
+    return f"Object.defineProperty(navigator, 'deviceMemory', {{ value: {memory}, configurable: true }}); Object.defineProperty(navigator, 'hardwareConcurrency', {{ value: {cores}, configurable: true }})"
+
+
+STRONG = device(8, 8)
+WIFI = link(effectiveType="4g", saveData=False, type="wifi") + "; " + STRONG  # a good link on a capable device
+
+
+def write(page, geo):
+    stroke_mouse(page, [screen(geo, 0.1, 0.3), screen(geo, 0.6, 0.35)])
+
+
+def wait_for_worker(page, calls, seconds=6):
+    for _ in range(seconds * 10):
+        if calls:
+            return
+        page.wait_for_timeout(100)
+
+
+def test_the_reader_is_fetched_quietly_once_the_page_is_idle_and_reused_when_someone_writes(browser_page) -> None:
+    page, base = browser_page
+    calls = serve(page, READER)
+    open_cover(page, base, DESKTOP, connection=WIFI)
+    page.evaluate(WATCH)
+    wait_for_worker(page, calls)
+    assert len(calls) == 1, "the reader did not start by itself"
+    page.wait_for_timeout(2500)  # it finishes loading with nobody there
+    seen = page.evaluate("window.__seen")
+    assert {s[0] for s in seen} == {"idle"}  # no progress, no loading note: the pad just plays its demo
+    assert not [s for s in seen if "reader" in s[2].lower()]
+    page.evaluate("window.__seen.length = 0")
+    write(page, pad_geometry(page))
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)
+    assert "load" not in {s[0] for s in page.evaluate("window.__seen")}  # it was ready: straight to reading
+    assert len(calls) == 1  # one download, reused
+    assert untouched(page)
+
+
+def test_touching_the_pad_while_the_preload_is_under_way_shows_where_it_has_got_to(browser_page) -> None:
+    page, base = browser_page
+    calls = serve(page, READER)
+    open_cover(page, base, DESKTOP, connection=WIFI)
+    page.evaluate(WATCH)
+    wait_for_worker(page, calls)
+    assert len(calls) == 1
+    page.wait_for_timeout(600)  # the stub has reported a third or two thirds by now
+    write(page, pad_geometry(page))
+    page.wait_for_function("window.__seen.some((s) => s[0] === 'load')", timeout=3000)
+    first = next(s for s in page.evaluate("window.__seen") if s[0] == "load")
+    assert first[2].startswith("Starting") or (first[1] != "" and float(first[1]) >= 0.33), first  # joined part way, not restarted
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)
+    assert len(calls) == 1  # still the one download
+    assert untouched(page)
+
+
+SLOW_OR_METERED = {
+    "save-data": link(saveData=True),
+    "3g": link(effectiveType="3g", saveData=False),
+    "slow-2g": link(effectiveType="slow-2g", saveData=False),
+    "cellular": link(type="cellular", effectiveType="4g", saveData=False),
+}
+
+
+@pytest.mark.parametrize("kind", list(SLOW_OR_METERED))
+def test_a_slow_or_metered_connection_skips_the_preload_but_still_loads_on_the_first_stroke(browser_page, kind) -> None:
+    page, base = browser_page
+    calls = serve(page, READER)
+    open_cover(page, base, DESKTOP, connection=SLOW_OR_METERED[kind])
+    page.wait_for_timeout(5000)
+    assert calls == []
+    write(page, pad_geometry(page))
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)
+    assert len(calls) == 1
+    assert untouched(page)
+
+
+def test_a_phone_that_cannot_say_what_link_it_is_on_does_not_preload(mobile_browser_page) -> None:
+    page, base = mobile_browser_page
+    calls = serve(page, READER)
+    open_cover(page, base, connection=NO_CONNECTION_API)
+    page.wait_for_timeout(5000)
+    assert calls == []
+    cdp = page.context.new_cdp_session(page)
+    geo = pad_geometry(page)
+    stroke_touch(cdp, [screen(geo, 0.1, 0.3), screen(geo, 0.6, 0.35)])  # a finger still starts it
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)
+    assert len(calls) == 1
+
+
+def test_the_pad_never_calls_itself_by_the_old_name(browser_page) -> None:
+    page, base = browser_page
+    serve(page, READER)
+    open_cover(page, base, DESKTOP)
+    write(page, pad_geometry(page))
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)
+    page.wait_for_timeout(600)
+    everything = page.evaluate(
+        "() => { const pad = document.querySelector('.wd-scan'); const labels = [...pad.querySelectorAll('[aria-label], [title], [alt]')].map((n) => (n.getAttribute('aria-label') || '') + (n.title || '') + (n.getAttribute('alt') || '')); return [pad.innerText, pad.textContent, ...labels].join(' | '); }"
+    )
+    assert "scribblescan" not in everything.lower()
+    assert page.locator(".wd-scan .sc-k").inner_text().lower() == "it reads"
+
+
+# ---- weak devices, and the reader switching itself off when the page struggles
+
+HANGS = 'addEventListener("message", ({ data }) => { if (data.type === "load") postMessage({ type: "progress", pct: 10 }); });'  # loads for ever
+
+# a main thread that keeps getting blocked, as a struggling device's would be
+JANK = "setInterval(() => { const t = performance.now(); while (performance.now() - t < 170); }, 220)"
+
+FREEZE = "setTimeout(() => { const t = performance.now(); while (performance.now() - t < 900); }, 300)"  # one frozen moment, too short to count as long tasks alone
+
+WEAK = {
+    "2 GB of memory": device(2, 8),
+    "4 cores": device(8, 4),
+    "1 GB and 2 cores": device(1, 2),
+}
+
+
+@pytest.mark.parametrize("kind", list(WEAK))
+def test_a_weak_device_does_not_preload_but_still_reads_what_is_written(browser_page, kind) -> None:
+    page, base = browser_page
+    calls = serve(page, READER)
+    open_cover(page, base, DESKTOP, connection=link(effectiveType="4g", saveData=False, type="wifi") + "; " + WEAK[kind])
+    page.wait_for_timeout(5000)
+    assert calls == []
+    write(page, pad_geometry(page))
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)
+    assert len(calls) == 1
+    assert untouched(page)
+
+
+def test_the_reader_switches_itself_off_when_the_page_struggles_and_stays_off_for_the_visit(browser_page) -> None:
+    page, base = browser_page
+    calls = serve(page, HANGS)
+    open_cover(page, base, DESKTOP, connection=WIFI)
+    geo = pad_geometry(page)
+    write(page, geo)  # the reader starts loading (and never finishes: it is only here to be working while the page struggles)
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'load'", timeout=5000)
+    page.evaluate(JANK)
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'off'", timeout=8000)
+    pad = page.locator(".wd-scan")
+    assert pad.locator(".sc-t").inner_text() == "Reading is off on this device"
+    assert not pad.locator(".sc-go").is_visible()  # no retry: this is not an error
+    assert page.evaluate("sessionStorage.getItem('pad-reader-off')") == "1"
+    assert len(calls) == 1
+    page.reload()  # a new page in the same visit
+    page.wait_for_selector(".wd-scan canvas")
+    page.wait_for_timeout(4500)  # past when a preload would start
+    assert len(calls) == 1  # no second try
+    geo = pad_geometry(page)
+    write(page, geo)
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'off'", timeout=3000)
+    assert page.locator(".wd-scan .sc-t").inner_text() == "Reading is off on this device"
+    inked = page.evaluate(
+        "() => { const c = document.querySelector('.wd-scan canvas'); return c.getContext('2d').getImageData(0, 0, c.width, c.height).data.some((v, i) => i % 4 === 3 && v > 0); }"
+    )
+    assert inked  # it is still a drawing pad
+    assert len(calls) == 1
+    assert untouched(page)
+
+
+def test_a_single_freeze_switches_the_reader_off_by_the_frame_rule_alone(browser_page) -> None:
+    page, base = browser_page
+    serve(page, HANGS)
+    open_cover(page, base, DESKTOP, connection=WIFI)
+    write(page, pad_geometry(page))
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'load'", timeout=5000)
+    page.evaluate(FREEZE)  # 900 ms: past the freeze rule (800 ms), under the long-task rule (1.2 s)
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'off'", timeout=5000)
+
+
+def test_once_off_nothing_keeps_watching_and_even_a_tiny_mark_gets_the_note(browser_page) -> None:
+    page, base = browser_page
+    serve(page, HANGS)
+    open_cover(page, base, DESKTOP, connection=WIFI)
+    geo = pad_geometry(page)
+    write(page, geo)
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'load'", timeout=5000)
+    page.evaluate(JANK)
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'off'", timeout=8000)
+    page.evaluate("for (let i = 1; i < 10000; i++) clearInterval(i)")  # the page is quiet again
+    page.wait_for_timeout(300)
+    page.evaluate("(() => { window.__raf = 0; const raf = window.requestAnimationFrame.bind(window); window.requestAnimationFrame = (f) => { window.__raf++; return raf(f); }; })()")
+    page.wait_for_timeout(1500)
+    assert page.evaluate("window.__raf") < 10  # the watch's own frame loop is gone (it asked for a frame every 16 ms)
+    x, y = screen(geo, 0.5, 0.9)
+    stroke_mouse(page, [(x, y), (x + 1, y)])  # a dot, which would otherwise read as "nothing to read"
+    page.wait_for_timeout(2200)
+    assert page.locator(".wd-scan .sc-t").inner_text() == "Reading is off on this device"
 
 
 # ---- the geometry that turns strokes into lines, without a browser pad or a model

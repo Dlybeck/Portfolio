@@ -285,7 +285,7 @@ def test_the_name_tag_shows_a_focus_ring(browser_page) -> None:
 def test_the_pad_announces_the_result_once(browser_page) -> None:
     page, *_ = cover(browser_page)
     assert page.locator(".sc-t").get_attribute("aria-hidden") == "true"
-    page.wait_for_function("document.querySelector('.wd-scan .sr-only').textContent.startsWith('ScribbleScan read: ')", timeout=7000)
+    page.wait_for_function("document.querySelector('.wd-scan .sr-only').textContent.startsWith('The pad read: ')", timeout=7000)
 
 
 def test_the_pad_rests_after_showing_each_word(browser_page) -> None:

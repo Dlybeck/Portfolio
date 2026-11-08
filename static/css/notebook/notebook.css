@@ -8,6 +8,11 @@
   --nb-pen: #0b4f9c; /* the blue that reads on paper */
   --nb-spine: #2b2f38;
   --nb-kraft: #b58b55;
+  /* One cover board. The front cover, the back board and the inside of the front cover are all this one board, the same size
+     (the pages sit inside it, smaller by the rim), with one corner radius and one border. Desktop's rim is 12px all round; a
+     phone's book fills the screen on the left, so its rim is the 6px on the right and bottom. */
+  --nb-rim: 6px;
+  --nb-board-r: 6px;
   --nb-turn: 720ms;
   --nb-turn-ease: cubic-bezier(0.45, 0.05, 0.25, 1);
   --nb-wheel-room: 138px; /* the part of the screen the wheel takes on a phone */
@@ -72,11 +77,11 @@ body {
 }
 .nb--phone.is-turned:not(.is-closed) .nb-book::before { width: 11px; }
 
-.nb-back { /* the back board, a hair larger than the pages */
-  position: absolute; inset: 0 -6px -6px 0; border-radius: 6px; background: var(--nb-kraft);
-  border: var(--edge) solid var(--line); box-shadow: var(--lift);
+.nb-back { /* the back board: the cover board seen from behind, the same size as the front cover, a rim larger than the pages */
+  position: absolute; inset: 0 calc(var(--nb-rim) * -1) calc(var(--nb-rim) * -1) 0; border-radius: var(--nb-board-r); background: var(--nb-kraft);
+  border: var(--edge) solid var(--ink-fixed); box-shadow: var(--lift);
 }
-.nb-page, .nb-leaf .face {
+.nb-page, .nb-leaf .face, .cover-page {
   background-color: var(--nb-paper); color: var(--nb-ink); border: var(--edge) solid var(--nb-edge);
   background-image:
     linear-gradient(90deg, transparent 11px, rgba(200, 64, 52, 0.42) 11px, rgba(200, 64, 52, 0.42) 12.5px, transparent 12.5px),
@@ -145,6 +150,7 @@ body {
     --avail-h: calc(100vh - 124px);
     --bw: min(calc(var(--avail-h) * 1.25), calc(100vw - 340px), 1280px);
     left: calc(300px + (100vw - 340px - var(--bw)) / 2); margin-left: 0; width: var(--bw); height: calc(var(--bw) / 1.25);
+    --nb-rim: 12px; --nb-board-r: 10px;
     --book-top: calc(84px + (var(--avail-h) - var(--bw) / 1.25) / 2); /* the tab column measures from it */
     top: var(--book-top);
   }
@@ -154,11 +160,8 @@ body {
      cover's one angle, so the board's edge stays under the cover's free edge (which moves with cos and perspective, not
      with the easing). The two rules below are the resting states it hands back to. */
   .nb--desktop.is-closed .nb-book { transform: translateX(calc(var(--bw) * -0.25)); }
-  .nb-back {
-    inset: -10px -12px -12px -12px; border-radius: 10px;
-    clip-path: inset(-10px -12px -12px -12px);
-  }
-  .nb--desktop.is-closed .nb-back { clip-path: inset(-10px -12px -12px calc((100% - 24px) / 2 + 10px)); }
+  .nb-back { inset: calc(var(--nb-rim) * -1); clip-path: inset(calc(var(--nb-rim) * -1)); }
+  .nb--desktop.is-closed .nb-back { clip-path: inset(calc(var(--nb-rim) * -1) calc(var(--nb-rim) * -1) calc(var(--nb-rim) * -1) 50%); } /* shut: only the cover's half, flush at the spine */
   .nb--desktop .nb-page.l { right: 50%; border-radius: 3px 0 0 3px; border-right-color: rgba(20, 28, 43, 0.25); }
   .nb--desktop .nb-page.r { left: 50%; border-radius: 0 3px 3px 0; border-left: 0; }
   /* the left page does not exist while the book is shut or the cover is still swinging: the cover's back face IS the
@@ -166,8 +169,13 @@ body {
   .nb--desktop.is-closed .nb-page.l, .nb--desktop.is-closed .nb-gutter,
   .nb--desktop.is-opening .nb-page.l, .nb--desktop.is-opening .nb-gutter,
   .nb--desktop.is-opening .nb-pn.lft, .nb--desktop.is-opening .nb-ear.prev, .nb--desktop.is-opening .nb-hint-flip { visibility: hidden; }
-  .nb--desktop .nb-leaf.cover .face.back { border-radius: 3px 0 0 3px; border-right-color: rgba(20, 28, 43, 0.25); }
-  .nb--desktop .nb-page, .nb--desktop .nb-leaf .face {
+  /* The cover's back face is the inside of the same board: kraft, board-sized, with the left page set into it exactly where the real
+     page lands (a rim in from the outer edge, flush at the spine), so there is no jump when the swung cover is swapped for the page. */
+  .nb--desktop .nb-leaf.cover .face.back {
+    background: var(--nb-kraft); border: var(--edge) solid var(--ink-fixed); border-right-width: 0; border-radius: var(--nb-board-r) 0 0 var(--nb-board-r);
+  }
+  .nb--desktop .cover-page { position: absolute; right: 0; top: var(--nb-rim); bottom: var(--nb-rim); left: var(--nb-rim); border-radius: 3px 0 0 3px; border-right-color: rgba(20, 28, 43, 0.25); }
+  .nb--desktop .nb-page, .nb--desktop .nb-leaf .face, .nb--desktop .cover-page {
     background-image:
       linear-gradient(90deg, transparent 28px, rgba(200, 64, 52, 0.42) 28px, rgba(200, 64, 52, 0.42) 29.5px, transparent 29.5px),
       repeating-linear-gradient(transparent 0 25px, rgba(60, 104, 170, 0.2) 25px 26px);
@@ -180,7 +188,8 @@ body {
   .nb--desktop .nb-band { right: 56px; }
   .nb--desktop:not(.is-closed) .nb-band { right: -9px; }
   .nb--desktop .nb-in { padding: 34px 40px 52px 44px; }
-  .nb--desktop .nb-page.r .nb-in, .nb--desktop .nb-leaf .r-face .nb-in { padding: 34px 88px 52px 42px; }
+  /* the right page keeps room for its folio and corner fold, but gives words the width back as the book shrinks (88px at full size, ~50px at 1024 wide) */
+  .nb--desktop .nb-page.r .nb-in, .nb--desktop .nb-leaf .r-face .nb-in { padding: 34px max(48px, min(88px, calc(var(--bw) * 0.13 - 38px))) 52px 42px; }
   .nb--desktop .nb-pn.lft { left: 46px; }
   .nb--desktop .nb-pn.rgt { right: 90px; }
   .nb--desktop .nb-hint-flip { right: 98px; }

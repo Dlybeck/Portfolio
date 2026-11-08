@@ -148,7 +148,7 @@ def test_the_tabs_ride_with_the_book_and_slide_out_in_step_with_the_cover_swing(
     assert all(x["opacity"] == "1" and x["shown"] != "none" for x in s)  # no fade-in and no pop
     steps = [b - a for a, b in zip(rel, rel[1:])]
     assert max(steps) < 24  # a slide, not a jump (a stalled frame on a slow machine can double a step)
-    assert rel[-1] - rel[0] > 25  # it travels about 34px to its full place
+    assert rel[-1] - rel[0] > 18  # it travels about 22px to its full place
     assert all(b >= a - 0.01 for a, b in zip(rel, rel[1:]))  # monotonic out
 
 

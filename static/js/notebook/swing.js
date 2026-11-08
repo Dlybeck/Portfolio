@@ -31,14 +31,12 @@ export function easeFrom(text) {
   return n && n.length === 4 && n.every(Number.isFinite) ? bezier(...n) : bezier(0.65, 0, 0.35, 1);
 }
 
-// The back board is a hair bigger than the pages (see .nb-back); these are its margins in px.
-const BOARD = { top: 10, right: 12, bottom: 12, left: 12 };
-const RIM_SHUT = 2; // how far the board shows left of the spine while the book is shut
-const RIM_OPEN = BOARD.left; // and how far past the left page once it is open
+// The cover and the back board are one board, the same size, a rim bigger than the pages on every side (--nb-rim, 12px on desktop).
+const RIM = 12;
 
 /**
  * The cover's visible free edge, as a distance from the spine in px (positive to the right, negative to the left).
- * `half` is the cover's width, `open` its progress 0 (shut) to 1 (flat on the left), `perspective` the book's.
+ * `half` is the cover's width (spine to its free edge), `open` its progress 0 (shut) to 1 (flat on the left), `perspective` the book's.
  * A point at the free edge sits at x = half·cos(a) and, nearer the viewer, z = half·sin(a); the projection scales x by P / (P - z).
  */
 export function edgeOffset(half, open, perspective) {
@@ -47,13 +45,11 @@ export function edgeOffset(half, open, perspective) {
 }
 
 /**
- * The left edge of the brown board's visible part, from the spine: it pokes a little past the cover's edge so it reads
- * as the board under it, with that rim growing from 2px when shut to 12px (the board's own margin) when open.
+ * The left edge of the back board's visible part, from the spine. It is the same board as the cover, so its edge is the cover's
+ * edge exactly once the cover is over the left half; while the cover is over the right half the board stays flush at the spine.
  */
 export function boardEdge(half, open, perspective) {
-  const e = edgeOffset(half, open, perspective);
-  if (e >= 0) return -RIM_SHUT;
-  return e - RIM_SHUT - (RIM_OPEN - RIM_SHUT) * Math.min(1, -e / half);
+  return Math.min(0, edgeOffset(half, open, perspective));
 }
 
 /**
@@ -70,13 +66,14 @@ export function createSwing({ book, back, ease, ms }) {
   const perspective = () => parseFloat(getComputedStyle(book).perspective) || 2400;
 
   function paint(leaf, p, geo) {
-    const edge = geo.half + boardEdge(geo.half, p, geo.perspective); // from the book's left edge
+    const edge = geo.bw / 2 + boardEdge(geo.cover, p, geo.perspective); // from the book's left edge
     open = p;
     leaf.style.transform = p >= 1 ? "rotateY(-180deg)" : p <= 0 ? "" : `rotateY(${-180 * p}deg)`;
     book.style.transform = `translateX(${(-0.25 * geo.bw * (1 - p)).toFixed(3)}px)`;
-    // the board is full size; clipping its left side keeps its edge where the cover's is
-    const shadow = RIM_OPEN * Math.min(1, Math.max(0, -edgeOffset(geo.half, p, geo.perspective) / geo.half));
-    back.style.clipPath = `inset(${-BOARD.top}px ${-BOARD.right}px ${-BOARD.bottom}px ${(edge + BOARD.left - shadow).toFixed(3)}px)`;
+    // the board is full size; clipping its left side keeps its edge where the cover's is. The clip opens up to the board's own
+    // rim as the cover lands, so the board's hard shadow is not cut off at the edge once it is the whole book again.
+    const slack = RIM * Math.min(1, Math.max(0, -edgeOffset(geo.cover, p, geo.perspective) / geo.cover));
+    back.style.clipPath = `inset(${-RIM}px ${-RIM}px ${-RIM}px ${(edge + RIM - slack).toFixed(3)}px)`;
   }
 
   function stop() {
@@ -101,7 +98,7 @@ export function createSwing({ book, back, ease, ms }) {
     run(leaf, from, to, onDone) {
       const start = frame !== 0 ? open : from;
       stop();
-      const geo = { bw: book.offsetWidth, half: book.offsetWidth / 2, perspective: perspective() };
+      const geo = { bw: book.offsetWidth, cover: leaf.offsetWidth, perspective: perspective() };
       const span = Math.abs(to - start) || 1; // a move cut short takes the same pace, not the whole time
       const duration = ms * span;
       let t0 = null;

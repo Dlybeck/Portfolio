@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 
-DESKTOP = {"width": 1440, "height": 900}
+SIZES = [(1440, 900), (1024, 768), (1920, 1080)]  # the board has to track the cover at every desktop size
 OPEN_MS = 800
 FRAME_MS = 16
 
@@ -23,21 +23,22 @@ MEASURE = """() => {
   const spine = b.left + b.width / 2;
   const clip = getComputedStyle(back).clipPath;
   // computed insets are written in CSS shorthand (equal left and right collapse), so expand to find the left value
-  const v = clip.startsWith('inset(') ? clip.slice(6, -1).split(' ').map(parseFloat) : [0];
-  const inset = v.length === 4 ? v[3] : v.length === 1 ? v[0] : v[1];
+  const parts = clip.startsWith('inset(') ? clip.slice(6, -1).split(' ') : ['0'];
+  const px = (t) => (t.endsWith('%') ? (parseFloat(t) * r.width) / 100 : parseFloat(t));
+  const inset = parts.length === 4 ? px(parts[3]) : parts.length === 1 ? px(parts[0]) : px(parts[1]);
   const m = leaf ? getComputedStyle(leaf).transform : 'none';
   const cos = m.startsWith('matrix3d') ? parseFloat(m.slice(9).split(',')[0]) : 1;
   return {
-    spine, half: b.width / 2, open: Math.acos(Math.max(-1, Math.min(1, cos))) / Math.PI,
+    spine, half: leaf ? leaf.offsetWidth : b.width / 2, open: Math.acos(Math.max(-1, Math.min(1, cos))) / Math.PI,
     coverEdge: cover ? (cos >= 0 ? cover.right : cover.left) : null,
     boardEdge: r.left + inset,
   };
 }"""
 
 
-def settle(page, route):
+def settle(page, route, size):
     page.clock.install(time=0)
-    page.set_viewport_size(DESKTOP)
+    page.set_viewport_size({"width": size[0], "height": size[1]})
     page.goto(page.base + route)
     page.wait_for_selector("#notebook.nb--desktop")
     page.clock.run_for(1500)
@@ -58,20 +59,18 @@ def frames(page, fractions=(0, 0.25, 0.5, 0.75, 1.0)):
 
 
 def check(shots):
+    """The back board and the cover are one board: once the cover is over the left half the board's edge IS the cover's edge."""
     for s in shots:
         if s["coverEdge"] is None:  # the leaf is gone at the end of an opening: the board is the whole book
             continue
         under = s["coverEdge"] - s["spine"]
-        # the clip also opens up to 12px more as the cover lands, so the board's soft shadow is not cut off at its edge
+        # the clip also opens up to the board's 12px rim as the cover lands, so the board's hard shadow is not cut off at its edge
         slack = 12 * min(1, max(0, -under / s["half"]))
-        rim = s["coverEdge"] - (s["boardEdge"] + slack)
-        # the board shows 2px past the cover's edge when shut and its full 12px margin when flat open; between, it pokes
-        # past the edge by that rim and never falls short of it
-        want = 2 if under >= 0 else 2 + 10 * min(1, -under / s["half"])
+        edge = s["boardEdge"] + slack
         if under >= 0:
-            assert s["boardEdge"] <= s["coverEdge"] + 0.5, s
+            assert abs(edge - s["spine"]) <= 1.0, s  # shut side: flush at the spine, under the cover
         else:
-            assert abs(rim - want) <= 1.0, (rim, want, s)
+            assert abs(edge - s["coverEdge"]) <= 1.5, (edge, s)
 
 
 @pytest.fixture
@@ -81,8 +80,9 @@ def page(browser_page):
     return page
 
 
-def test_the_back_board_edge_follows_the_cover_edge_through_the_whole_opening(page) -> None:
-    settle(page, "/")
+@pytest.mark.parametrize("size", SIZES)
+def test_the_back_board_edge_follows_the_cover_edge_through_the_whole_opening(page, size) -> None:
+    settle(page, "/", size)
     page.locator(".cover-open").click(no_wait_after=True)
     shots = frames(page)
 
@@ -90,13 +90,14 @@ def test_the_back_board_edge_follows_the_cover_edge_through_the_whole_opening(pa
     opens = [s["open"] for s in shots if s["coverEdge"] is not None]
     assert opens == sorted(opens) and 0.4 < shots[2]["open"] < 0.6  # ease-in-out: half way at half the time
     # at 75% the cover has crossed 90 degrees and lies over the left half: the board has to be out there with it
-    assert shots[3]["coverEdge"] < shots[3]["spine"] - 100 and shots[3]["boardEdge"] < shots[3]["coverEdge"]
+    assert shots[3]["coverEdge"] < shots[3]["spine"] - 100 and shots[3]["boardEdge"] < shots[3]["spine"] - 100
     page.clock.run_for(100)
-    assert page.evaluate("getComputedStyle(document.querySelector('.nb-back')).clipPath") == "inset(-10px -12px -12px)"
+    assert page.evaluate("getComputedStyle(document.querySelector('.nb-back')).clipPath") == "inset(-12px)"
 
 
-def test_the_back_board_edge_follows_the_cover_edge_through_the_whole_closing(page) -> None:
-    settle(page, "/jobs")
+@pytest.mark.parametrize("size", SIZES)
+def test_the_back_board_edge_follows_the_cover_edge_through_the_whole_closing(page, size) -> None:
+    settle(page, "/jobs", size)
     page.evaluate("document.querySelector('[data-home]').click()")
     shots = frames(page)
 
@@ -106,4 +107,4 @@ def test_the_back_board_edge_follows_the_cover_edge_through_the_whole_closing(pa
     assert shots[1]["coverEdge"] < shots[1]["spine"]  # at 25% the cover is still lying over the left half
     page.clock.run_for(100)
     shut = page.evaluate("getComputedStyle(document.querySelector('.nb-back')).clipPath")
-    assert "calc(50%" in shut  # the stylesheet's shut state again (the driver let go): only the right half shows
+    assert "50%" in shut  # the stylesheet's shut state again (the driver let go): only the cover's half shows, flush at the spine

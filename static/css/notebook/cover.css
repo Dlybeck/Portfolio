@@ -1,11 +1,13 @@
 /* The cover: a kraft worn notebook with a cloth spine, an elastic band and a label.
    The vinyl stickers come in step 3; the cover is a leaf like any other, so it swings open on its spine. */
 
-.nb-leaf.cover { z-index: 65; left: 0; right: 0; transform-origin: left center; cursor: pointer; display: block; }
-@media (min-width: 900px), (orientation: landscape) and (min-width: 640px) { .nb--desktop .nb-leaf.cover { left: 50%; } }
+/* The front cover is the same board as .nb-back, the same size and offset (the pages sit a rim inside it), so there is one cover and no
+   second brown layer behind it. It hinges on its left edge, which is the spine on desktop. */
+.nb-leaf.cover { z-index: 65; left: 0; right: calc(var(--nb-rim) * -1); bottom: calc(var(--nb-rim) * -1); transform-origin: left center; cursor: pointer; display: block; }
+@media (min-width: 900px), (orientation: landscape) and (min-width: 640px) { .nb--desktop .nb-leaf.cover { left: 50%; top: calc(var(--nb-rim) * -1); } }
 .nb-leaf.cover .face { background-image: none; }
 .nb-leaf.cover .cover-front {
-  container-type: size; border: var(--edge) solid var(--ink-fixed); border-radius: 3px 9px 9px 3px; overflow: hidden; color: var(--ink-fixed);
+  container-type: size; border: var(--edge) solid var(--ink-fixed); border-radius: 3px var(--nb-board-r) var(--nb-board-r) 3px; overflow: hidden; color: var(--ink-fixed);
   background-color: var(--nb-kraft);
   background-image: radial-gradient(rgba(60, 40, 10, 0.14) 1px, transparent 1.3px), radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1.3px);
   background-size: 6px 6px, 9px 9px; background-position: 0 0, 3px 4px;
@@ -40,7 +42,7 @@
    last. Each is `.cover-inside` with `--front` or `--back`: it fills its page, and `container-type: size` makes
    what sits on it placeable in cqw and cqh. The page, and the cover's own back face as it swings, turn kraft
    with the same grain as the outside, with a shadow where the board meets the spine. */
-.nb--desktop .nb-page:has(.cover-inside), .nb--desktop .nb-leaf .face:has(.cover-inside) { background: var(--nb-kraft); }
+.nb--desktop .nb-page:has(.cover-inside), .nb--desktop .cover-page:has(.cover-inside) { background: var(--nb-kraft); }
 .cover-inside {
   position: absolute; inset: 0; container-type: size; overflow: hidden; pointer-events: none;
   background-color: var(--nb-kraft);

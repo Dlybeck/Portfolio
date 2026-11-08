@@ -72,16 +72,16 @@ def test_nothing_changes_until_someone_picks_something(browser_page) -> None:
     assert page.evaluate("[localStorage.getItem('nb-your-sticker-style'), localStorage.getItem('nb-your-sticker')]") == [None, None]
 
 
-def test_the_maker_offers_four_shapes_and_six_colours_with_names(browser_page) -> None:
+def test_the_maker_offers_seven_shapes_and_six_colours_with_names(browser_page) -> None:
     page = visit(browser_page)
     maker = open_maker(page)
 
-    assert maker.locator("[data-shape-pick]").evaluate_all("els => els.map(e => e.getAttribute('aria-label'))") == ["Circle", "Rounded square", "Star", "Heart"]
+    assert maker.locator("[data-shape-pick]").evaluate_all("els => els.map(e => e.getAttribute('aria-label'))") == ["Circle", "Rounded square", "Square", "Pentagon", "Hexagon", "Triangle", "Diamond"]
     assert maker.locator("[data-bg-pick]").evaluate_all("els => els.map(e => e.getAttribute('aria-label'))") == [f"{n} background" for n in ("White", "Lemon", "Pink", "Tangerine", "Mint", "Sky")]
     assert maker.locator('[role="group"][aria-label="Shape"]').count() == 1 and maker.locator('[role="group"][aria-label="Background color"]').count() == 1
 
 
-@pytest.mark.parametrize("shape", ["rounded", "star", "heart"])
+@pytest.mark.parametrize("shape", ["rounded", "hexagon", "diamond"])
 def test_a_drawing_keeps_the_chosen_shape_and_colour_and_they_survive_a_reload(browser_page, shape) -> None:
     page = visit(browser_page)
     maker = open_maker(page)
@@ -110,7 +110,7 @@ def test_a_drawing_keeps_the_chosen_shape_and_colour_and_they_survive_a_reload(b
 def test_a_shape_and_colour_alone_make_the_blank_sticker_and_its_words_stay_readable(browser_page) -> None:
     page = visit(browser_page)
     maker = open_maker(page)
-    maker.locator('[data-shape-pick="heart"]').click()
+    maker.locator('[data-shape-pick="triangle"]').click()
     maker.locator('[data-bg-pick="pink"]').click()
     page.locator('[data-action="done"]').click()
 
@@ -144,14 +144,23 @@ def test_damaged_saved_styles_fall_back_to_the_original_look(browser_page, junk)
 
 
 def test_a_half_damaged_style_keeps_what_is_valid(browser_page) -> None:
-    page = visit(browser_page, storage={KEY: OLD_JPEG, STYLE_KEY: '{"shape": "star", "bg": "plaid"}'})
+    page = visit(browser_page, storage={KEY: OLD_JPEG, STYLE_KEY: '{"shape": "hexagon", "bg": "plaid"}'})
 
-    assert page.locator(".wd-mine").get_attribute("data-shape") == "star"
+    assert page.locator(".wd-mine").get_attribute("data-shape") == "hexagon"
     assert page.locator(".wd-mine").evaluate("n => n.style.getPropertyValue('--sticker-bg')") == "#ffffff"
 
 
+@pytest.mark.parametrize("retired", ["star", "heart"])
+def test_the_retired_shapes_become_a_circle_and_keep_their_colour(browser_page, retired) -> None:
+    page = visit(browser_page, storage={KEY: OLD_JPEG, STYLE_KEY: json.dumps({"shape": retired, "bg": "sky"})})
+
+    assert page.locator(".wd-mine").get_attribute("data-shape") == "circle"
+    assert page.locator(".wd-mine").evaluate("n => n.style.getPropertyValue('--sticker-bg')") == "#a5d0fd"
+    assert page.locator(".wd-mine .mn-shape").evaluate("n => getComputedStyle(n).maskImage").startswith("url(")  # still a shape, not a blank box
+
+
 def test_taking_it_off_clears_the_picture_and_the_style(browser_page) -> None:
-    page = visit(browser_page, storage={KEY: OLD_JPEG, STYLE_KEY: json.dumps({"shape": "star", "bg": "sky"})})
+    page = visit(browser_page, storage={KEY: OLD_JPEG, STYLE_KEY: json.dumps({"shape": "hexagon", "bg": "sky"})})
     open_maker(page)
     page.locator('[data-action="off"]').click()
 
@@ -164,11 +173,11 @@ def test_the_pickers_work_from_the_keyboard(browser_page) -> None:
     page.locator(".wd-mine").focus()
     page.keyboard.press("Enter")
     page.wait_for_selector("dialog.maker[open]")
-    star = page.locator('[data-shape-pick="star"]')
-    star.focus()
+    hexagon = page.locator('[data-shape-pick="hexagon"]')
+    hexagon.focus()
     page.keyboard.press("Space")
-    assert star.get_attribute("aria-pressed") == "true"
-    assert star.evaluate("n => getComputedStyle(n).outlineStyle") != "none"  # the focus ring shows
+    assert hexagon.get_attribute("aria-pressed") == "true"
+    assert hexagon.evaluate("n => getComputedStyle(n).outlineStyle") != "none"  # the focus ring shows
     sky = page.locator('[data-bg-pick="sky"]')
     sky.focus()
     page.keyboard.press("Enter")
@@ -180,7 +189,7 @@ def test_the_pickers_are_big_enough_for_a_thumb_and_fit_a_small_phone(browser_pa
     maker = open_maker(page)
 
     sizes = maker.locator(".maker-opts button").evaluate_all("els => els.map(e => { const r = e.getBoundingClientRect(); return [r.width, r.height, r.right]; })")
-    assert len(sizes) == 10
+    assert len(sizes) == 13
     box = maker.bounding_box()
     for w, h, right in sizes:
         assert w >= 32 and h >= 32  # comfortably over the 24px minimum

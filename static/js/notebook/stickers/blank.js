@@ -8,7 +8,9 @@ const STYLE_KEY = "nb-your-sticker-style"; // {"shape": ..., "bg": ...}; older s
 const SIZE = 400; // the drawing is square, then shown in the chosen shape
 const PENS = [["#1b2436", "Ink"], ["#0062cc", "Blue"], ["#c8372d", "Red"], ["#2e8b57", "Green"], ["#f2b705", "Yellow"]];
 /** The shapes (their outlines are in stickers.css). The first is the original look. */
-export const SHAPES = [["circle", "Circle"], ["rounded", "Rounded square"], ["star", "Star"], ["heart", "Heart"]];
+export const SHAPES = [["circle", "Circle"], ["rounded", "Rounded square"], ["square", "Square"], ["pentagon", "Pentagon"], ["hexagon", "Hexagon"], ["triangle", "Triangle"], ["diamond", "Diamond"]];
+/** Shapes that were offered before and are gone now; a saved one becomes the circle. */
+const RETIRED = ["star", "heart"];
 /** Backgrounds, from the site's paper colours (stickers.css has the dark ink on each, all well over 4.5:1). The first is the original look. */
 export const SWATCHES = [["white", "White", "#ffffff"], ["lemon", "Lemon", "#ffe94d"], ["pink", "Pink", "#ff8fcf"], ["tangerine", "Tangerine", "#ffb238"], ["mint", "Mint", "#6cf0b0"], ["sky", "Sky", "#a5d0fd"]];
 const DEFAULT_STYLE = { shape: SHAPES[0][0], bg: SWATCHES[0][0] };

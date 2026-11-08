@@ -38,7 +38,7 @@ SMALLEST_TEXT = """() => {
   const walker = document.createTreeWalker(document.getElementById('notebook'), NodeFilter.SHOW_TEXT);
   while (walker.nextNode()) {
     const node = walker.currentNode, el = node.parentElement;
-    if (!node.textContent.trim() || el.closest('.cover-front, .sr-only, [hidden], script, style')) continue;
+    if (!node.textContent.trim() || el.closest('.cover-front, .cover-inside, .sr-only, [hidden], script, style')) continue;
     const box = el.getBoundingClientRect();
     if (!box.width || !box.height || getComputedStyle(el).visibility === 'hidden') continue;
     const size = parseFloat(getComputedStyle(el).fontSize);
@@ -57,7 +57,7 @@ def test_no_text_on_a_page_is_smaller_than_12px(browser_page, width, height) -> 
         page.wait_for_selector("#notebook.nb--phone, #notebook.nb--desktop")
         page.wait_for_timeout(250)
         smallest, who = page.evaluate(SMALLEST_TEXT)
-        assert smallest >= 12, (route, smallest, who)  # the stickers on the cover are art, not text, and are left out
+        assert smallest >= 12, (route, smallest, who)  # the stickers on the cover and inside it are art, not text, and are left out
 
 
 def test_a_portrait_tablet_reads_at_18px_while_phones_and_desktops_keep_16px(browser_page) -> None:

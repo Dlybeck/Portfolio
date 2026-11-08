@@ -26,7 +26,7 @@ const LONG_TASK_MS = 1200; // long tasks (50 ms or more each) adding up to this 
 
 let off = false;
 try { off = sessionStorage.getItem(OFF_KEY) === "1"; } catch { /* storage blocked: it just will not be remembered */ }
-const offWatchers = new Set();
+const offWatchers = new Map(); // callback -> is it still wanted?
 let watching = null;
 
 const isOff = () => Object.assign(new Error("The reader is off on this device"), { name: "ReaderOff" });
@@ -37,7 +37,7 @@ function switchOff(why) {
   off = true;
   try { sessionStorage.setItem(OFF_KEY, "1"); } catch { /* not remembered */ }
   fail(isOff());
-  offWatchers.forEach((cb) => cb(why));
+  for (const cb of offWatchers.keys()) cb(why);
 }
 
 /** Is the reader doing something that could slow the page: loading, or reading? */
@@ -55,6 +55,7 @@ function watch() {
   let last = performance.now();
   let skip = false;
   let raf = 0;
+  let stopped = false;
   let observer = null;
   const slow = []; // [when, how late] for each late frame
   const long = []; // [when, how long] for each long task
@@ -69,8 +70,8 @@ function watch() {
     const gap = now - last;
     last = now;
     if (skip) skip = false; // the first frame after the tab was hidden is late for a good reason
-    else if (gap >= SLOW_FRAME_MS) { slow.push([now, gap]); check(); }
-    raf = requestAnimationFrame(frame);
+    else if (gap >= SLOW_FRAME_MS) { slow.push([now, gap]); check(); } // (this can switch the reader off, which stops the watch)
+    if (!stopped) raf = requestAnimationFrame(frame);
   };
   const resume = () => { skip = true; last = performance.now(); };
   try {
@@ -82,7 +83,7 @@ function watch() {
   } catch { /* no long-task timing here (Safari): the frame times still do the job */ }
   document.addEventListener("visibilitychange", resume);
   raf = requestAnimationFrame(frame);
-  watching = { stop() { cancelAnimationFrame(raf); observer?.disconnect(); document.removeEventListener("visibilitychange", resume); } };
+  watching = { stop() { stopped = true; cancelAnimationFrame(raf); observer?.disconnect(); document.removeEventListener("visibilitychange", resume); } };
 }
 
 function fail(error) {
@@ -179,8 +180,12 @@ export function preload() {
   if (!worthPreloading()) return;
   const go = () => setTimeout(() => {
     const start = () => ocr.load().catch(() => {});
-    if ("requestIdleCallback" in window) requestIdleCallback(start, { timeout: IDLE_MS });
-    else setTimeout(start, 500); // Safari has no idle callback
+    const idle = () => {
+      if ("requestIdleCallback" in window) requestIdleCallback(start, { timeout: IDLE_MS });
+      else setTimeout(start, 500); // Safari has no idle callback
+    };
+    if (document.hidden) document.addEventListener("visibilitychange", idle, { once: true }); // a tab nobody is looking at waits until it is shown
+    else idle();
   }, SETTLE_MS);
   if (document.readyState === "complete") go();
   else addEventListener("load", go, { once: true });
@@ -193,9 +198,10 @@ export const ocr = {
   /** The reader was switched off because the page was struggling. It stays off until the visit ends. */
   get off() { return off; },
 
-  /** Be told when the reader switches itself off. Returns the way to stop being told. */
-  onOff(callback) {
-    offWatchers.add(callback);
+  /** Be told when the reader switches itself off, for as long as `stillWanted()` is true. Returns the way to stop being told. */
+  onOff(callback, stillWanted = () => true) {
+    for (const [cb, wanted] of offWatchers) if (!wanted()) offWatchers.delete(cb); // a pad that has left the page is not told
+    offWatchers.set(callback, stillWanted);
     return () => offWatchers.delete(callback);
   },
 

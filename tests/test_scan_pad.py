@@ -352,6 +352,8 @@ HANGS = 'addEventListener("message", ({ data }) => { if (data.type === "load") p
 # a main thread that keeps getting blocked, as a struggling device's would be
 JANK = "setInterval(() => { const t = performance.now(); while (performance.now() - t < 170); }, 220)"
 
+FREEZE = "setTimeout(() => { const t = performance.now(); while (performance.now() - t < 900); }, 300)"  # one frozen moment, too short to count as long tasks alone
+
 WEAK = {
     "2 GB of memory": device(2, 8),
     "4 cores": device(8, 4),
@@ -400,6 +402,36 @@ def test_the_reader_switches_itself_off_when_the_page_struggles_and_stays_off_fo
     assert inked  # it is still a drawing pad
     assert len(calls) == 1
     assert untouched(page)
+
+
+def test_a_single_freeze_switches_the_reader_off_by_the_frame_rule_alone(browser_page) -> None:
+    page, base = browser_page
+    serve(page, HANGS)
+    open_cover(page, base, DESKTOP, connection=WIFI)
+    write(page, pad_geometry(page))
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'load'", timeout=5000)
+    page.evaluate(FREEZE)  # 900 ms: past the freeze rule (800 ms), under the long-task rule (1.2 s)
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'off'", timeout=5000)
+
+
+def test_once_off_nothing_keeps_watching_and_even_a_tiny_mark_gets_the_note(browser_page) -> None:
+    page, base = browser_page
+    serve(page, HANGS)
+    open_cover(page, base, DESKTOP, connection=WIFI)
+    geo = pad_geometry(page)
+    write(page, geo)
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'load'", timeout=5000)
+    page.evaluate(JANK)
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'off'", timeout=8000)
+    page.evaluate("for (let i = 1; i < 10000; i++) clearInterval(i)")  # the page is quiet again
+    page.wait_for_timeout(300)
+    page.evaluate("(() => { window.__raf = 0; const raf = window.requestAnimationFrame.bind(window); window.requestAnimationFrame = (f) => { window.__raf++; return raf(f); }; })()")
+    page.wait_for_timeout(1500)
+    assert page.evaluate("window.__raf") < 10  # the watch's own frame loop is gone (it asked for a frame every 16 ms)
+    x, y = screen(geo, 0.5, 0.9)
+    stroke_mouse(page, [(x, y), (x + 1, y)])  # a dot, which would otherwise read as "nothing to read"
+    page.wait_for_timeout(2200)
+    assert page.locator(".wd-scan .sc-t").inner_text() == "Reading is off on this device"
 
 
 # ---- the geometry that turns strokes into lines, without a browser pad or a model

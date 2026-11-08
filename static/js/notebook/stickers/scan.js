@@ -154,6 +154,7 @@ export const scan = {
       clearTimeout(clearTimer);
       const mine = epoch;
       const seen = version;
+      if (ocr.off) { showOff(); return; }
       let rows;
       try { rows = splitRows(strokes, canvas.clientHeight); } catch { rows = []; }
       if (!rows.length) {
@@ -162,7 +163,6 @@ export const scan = {
         clearTimer = setTimeout(() => alive() && mine === epoch && wipe(), 3000);
         return;
       }
-      if (ocr.off) { showOff(); return; }
       active++;
       let stage = "load";
       try {
@@ -211,10 +211,9 @@ export const scan = {
       say(OFF_NOTE);
       if (!pen) clearTimer = setTimeout(() => alive() && !pen && wipe(), LINGER_MS); // like a result, the drawing stays a while, then the pad clears
     }
-    const stopListening = ocr.onOff(() => {
-      if (!alive()) { stopListening(); return; }
-      if (strokes.length || card.dataset.state !== "idle") showOff(); // if nobody has touched the pad, the note waits for the first stroke
-    });
+    ocr.onOff(() => {
+      if (alive() && (strokes.length || card.dataset.state !== "idle")) showOff(); // if nobody has touched the pad, the note waits for the first stroke
+    }, alive);
 
     function wipe() {
       clearTimeout(readTimer);

@@ -26,7 +26,7 @@
 .cover-label {
   position: absolute; left: 14cqw; bottom: 4.5cqh; padding: 7px 12px 6px; background: #f3ead6; color: #3a3226; z-index: 2;
   border: 1px solid rgba(58, 50, 38, 0.35); border-radius: 3px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
-  font: 600 clamp(0.56rem, 2.8cqw, 0.72rem) / 1 var(--font-mono); letter-spacing: 0.18em; text-transform: uppercase;
+  font: 600 0.75rem / 1 var(--font-mono); letter-spacing: 0.18em; text-transform: uppercase;
 }
 .cover-label::after { content: "notes"; display: block; margin-top: 4px; font: 700 clamp(0.9rem, 4.6cqw, 1.15rem) / 1 var(--font-hand); letter-spacing: 0; text-transform: none; color: #6b5b45; }
 .cover-open {

@@ -43,7 +43,7 @@
   font: 800 1.2rem/1 var(--font-sans); letter-spacing: -0.01em; text-shadow: 0 1px 0 rgba(0, 28, 77, 0.45);
 }
 /* the page number sits on a darker chip so small white text keeps 4.5:1 on the brand blue */
-.wheel-name small { display: block; width: fit-content; margin: 5px auto 0; padding: 3px 7px; border-radius: 999px; background: rgba(0, 28, 77, 0.55); font: 500 0.7rem/1 var(--font-mono); letter-spacing: 0.08em; }
+.wheel-name small { display: block; width: fit-content; margin: 5px auto 0; padding: 3px 7px; border-radius: 999px; background: rgba(0, 28, 77, 0.55); font: 500 0.75rem/1 var(--font-mono); letter-spacing: 0.08em; }
 
 .wheel-name small:empty { display: none; }
 

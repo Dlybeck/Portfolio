@@ -6,7 +6,7 @@
 .nb-tab {
   display: grid; place-items: center; box-sizing: border-box; min-width: 0; white-space: nowrap; text-decoration: none; overflow: hidden;
   background: var(--tab); color: var(--ink-fixed); border: var(--edge) solid var(--nb-edge);
-  font: 700 0.7rem / 1 var(--font-sans); letter-spacing: 0.01em;
+  font: 700 0.75rem / 1 var(--font-sans); letter-spacing: 0.01em;
   transition: transform var(--duration-press) var(--ease-out), filter var(--duration-press) var(--ease-out);
 }
 .nb.is-opening .nb-tab { transition: transform var(--nb-open-ms, 800ms) var(--nb-open-ease, ease-out), filter var(--duration-press) var(--ease-out); } /* the long slide only while the book opens or shuts */
@@ -20,7 +20,7 @@
 .nb--desktop .nb-tabs { --tabs-h: min(calc(100vh - 82px), 600px, calc(100vh - var(--book-top) - 8px)); left: 100%; top: calc(var(--nb-rim) * -1); height: var(--tabs-h); flex-direction: column; gap: 4px; } /* never hangs below the window, even when the book sits low */
 .nb--desktop .nb-tab {
   writing-mode: vertical-rl; width: 28px; flex: 1 1 0; min-height: 0; max-height: 96px; padding: 2px 0; border-left: 0; border-radius: 0 8px 8px 0;
-  transform: translateX(0); font-size: clamp(9px, calc(((var(--tabs-h) - 15px) / 6 - 4px) / 4.9), 12.8px); letter-spacing: 0;
+  transform: translateX(0); font-size: clamp(12px, calc(((var(--tabs-h) - 15px) / 6 - 4px) / 4.9), 12.8px); letter-spacing: 0;
 }
 .nb--desktop .nb-tab[aria-current] { transform: translateX(12px); } /* the open section's tab slides out, ending 40px from the book, inside the 40px kept free */
 
@@ -37,7 +37,7 @@
 .nb--phone .nb-tabs { --tab-v: clamp(16px, calc(16px + (100vw - 360px) * 0.0286), 18px); left: calc(100% + 8px - var(--tab-v)); top: 12px; bottom: 12px; flex-direction: column; gap: 5px; }
 .nb--phone .nb-tab {
   position: relative; isolation: isolate; writing-mode: vertical-rl; width: calc(var(--tab-v) + 10px); flex: 1 1 0; min-height: 0; max-height: 84px;
-  padding: 2px 0 2px 10px; border: 0; background: none; box-shadow: none; font-size: clamp(10px, calc(10px + (100vw - 360px) * 0.00714), 10.5px); letter-spacing: 0;
+  padding: 2px 0 2px 10px; border: 0; background: none; box-shadow: none; font-size: clamp(10px, calc(((var(--bw) / 0.625 - 49px) / 6 - 4px) / 4.9), 12px); letter-spacing: 0; /* 12px, shrinking only where a tab (a sixth of a very short book) cannot hold its word */
 }
 .nb--phone .nb-tab::before {
   content: ""; position: absolute; z-index: -1; inset: 0 0 0 10px; background: var(--tab); border: var(--edge) solid var(--nb-edge); border-left: 0; border-radius: 0 6px 6px 0;
@@ -48,3 +48,8 @@
 .nb--phone.is-closed .nb-tab, .nb--phone.is-closed .nb-tab[aria-current] { transform: translateX(-6px); color: transparent; } /* a 6px edge past the cover board, no words */
 
 @media (prefers-reduced-motion: reduce) { .nb-tab { transition: none; } }
+
+/* A short landscape window (a phone on its side) has no room for 12px words in the tab column: there they scale down with it. */
+@media (orientation: landscape) and (max-height: 520px) and (min-width: 640px) {
+  .nb--desktop .nb-tab { font-size: clamp(9px, calc(((var(--tabs-h) - 15px) / 6 - 4px) / 4.9), 12.8px); }
+}

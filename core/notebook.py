@@ -76,7 +76,7 @@ PAGES = (
           layout="split"),
     _page("hobbies", "hobbies", "Hobbies", "3 entries", "", phone_only=True),
     _page("printing", "hobbies", "3D printing", "Puzzles and models",
-          "Puzzle boxes I designed, one with 55,000+ downloads. I bet you can't solve them."),
+          "Puzzle boxes I designed, with 65,000+ downloads across all my models. I bet you can't solve them."),
     _page("gaming", "hobbies", "Gaming", "Shorter games",
           "Some of my favorites. I'll race you in Mario Kart Wii."),
     _page("tennis", "hobbies", "Tennis", "Since middle school",

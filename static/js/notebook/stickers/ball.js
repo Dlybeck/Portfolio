@@ -18,7 +18,7 @@ export const ball = {
     const put = () => {
       el.style.translate = `${x}px ${y}px`;
       el.style.rotate = `${rot}deg`;
-      const sheen = el.querySelector(":scope > .wd-sh");
+      const sheen = el.querySelector(":scope > .wd-mt");
       if (sheen) sheen.style.rotate = `${-rot}deg`; // the highlight stays put while the ball turns
     };
     // from CSS position to a free ball that moves by translate

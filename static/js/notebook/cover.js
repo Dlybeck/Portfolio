@@ -3,7 +3,7 @@
 
 import { el, reducedMotion, tuck } from "./motion.js";
 import { createSwing, easeFrom } from "./swing.js?v=3";
-import { stickersHtml, wireStickers } from "./stickers/index.js";
+import { stickersHtml, wireStickers } from "./stickers/index.js?v=2";
 
 // One timing for the whole opening: the cover swinging on its spine and the book sliding to its open spot.
 // It is defined once, in notebook.css, as --nb-open-ms and --nb-open-ease; the cover reads the same values.

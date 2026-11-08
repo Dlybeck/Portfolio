@@ -12,6 +12,7 @@ let lastPct = 0;
 let watchdog = 0;
 let nextId = 0;
 let queue = Promise.resolve();
+let generation = 0; // bumped by cancel(): reads asked for before it are not worth doing
 const watchers = new Set();
 const jobs = new Map(); // id -> { lines, onLine, resolve, reject }
 
@@ -198,6 +199,20 @@ export const ocr = {
   /** The worker is up and the model is loaded. False again if the worker has been thrown away. */
   get ready() { return Boolean(session?.done); },
 
+  /**
+   * Call off every read that has been asked for: queued ones never start, the one being worked on stops after the line
+   * it is on, and its promise settles at once with whatever lines were done. The loaded model stays loaded.
+   */
+  cancel() {
+    generation++;
+    for (const [id, job] of jobs) {
+      worker?.postMessage({ type: "cancel", id });
+      jobs.delete(id);
+      job.resolve(job.lines);
+    }
+    alive();
+  },
+
   /** The reader was switched off because the page was struggling. It stays off until the visit ends. */
   get off() { return off; },
 
@@ -226,8 +241,11 @@ export const ocr = {
    * @returns {Promise<string[]>}
    */
   read(rows, onLine) {
+    const asked = generation;
     const run = queue.catch(() => {}).then(async () => { // one at a time: the model reads a line, then the next
+      if (asked !== generation) return []; // called off while it waited its turn
       await ocr.load();
+      if (asked !== generation) return [];
       const id = nextId++;
       const done = new Promise((resolve, reject) => jobs.set(id, { lines: [], onLine, resolve, reject }));
       worker.postMessage({ type: "read", id, rows }, rows.map((r) => r.data.buffer));

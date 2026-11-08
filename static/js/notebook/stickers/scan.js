@@ -14,7 +14,7 @@ const LINGER_MS = 12000; // a result stays this long (plus a little per letter),
 const GUARD_MS = 400; // the click that ends a stroke is not a tap, for this long
 
 export const scan = {
-  html: () => `<div class="wd wd-scan"><div class="sc-pad"><svg viewBox="0 0 220 64" aria-hidden="true"><text x="12" y="46" class="sc-w"></text></svg><canvas aria-label="Write here and the pad reads it"></canvas><i class="sc-bar"></i></div>
+  html: () => `<div class="wd wd-scan"><div class="sc-pad"><svg viewBox="0 0 220 64" aria-hidden="true"><text x="12" y="46" class="sc-w"></text></svg><canvas aria-label="Write here and the pad reads it"></canvas><i class="sc-bar"></i><button type="button" class="sc-clear" aria-label="Clear the pad" title="Clear" hidden><i aria-hidden="true"></i></button></div>
     <div class="sc-out"><i class="sc-pg"></i><span class="sc-k">It reads</span><code class="sc-t" aria-hidden="true"></code><button type="button" class="sc-go" hidden>scan</button></div><span class="sr-only" role="status"></span></div>`,
 
   wire(card, { alive }) {
@@ -23,6 +23,7 @@ export const scan = {
     const out = card.querySelector(".sc-t");
     const progress = card.querySelector(".sc-pg");
     const go = card.querySelector(".sc-go");
+    const clearButton = card.querySelector(".sc-clear");
     const announce = card.querySelector(".sr-only");
     const canvas = card.querySelector("canvas");
     const ink = canvas.getContext("2d");
@@ -39,6 +40,7 @@ export const scan = {
     const setState = (state) => {
       card.dataset.state = state;
       go.hidden = state !== "ink" && state !== "error";
+      clearButton.hidden = !strokes.length; // there is something to clear once there is ink
       go.textContent = state === "error" ? "retry" : "scan";
       bar.classList.toggle("loop", state === "read");
       progress.classList.toggle("busy", state === "read" || (state === "load" && !progress.style.getPropertyValue("--p")));
@@ -197,7 +199,7 @@ export const scan = {
         message(text);
         say(text);
       } finally {
-        active--;
+        if (mine === epoch) active--; // (a clear has already zeroed the count)
       }
     }
 
@@ -215,18 +217,37 @@ export const scan = {
       if (alive() && (strokes.length || card.dataset.state !== "idle")) showOff(); // if nobody has touched the pad, the note waits for the first stroke
     }, alive);
 
-    function wipe() {
+    /** Back to a blank pad. Anything being read for the old writing is called off; a loaded model stays loaded. */
+    function reset() {
       clearTimeout(readTimer);
       clearTimeout(clearTimer);
-      epoch++;
+      clear(); // the demo's and the typing's timers
+      epoch++; // an answer still on its way for the old writing is dropped when it lands
+      active = 0; // and the reads asked for are forgotten (their own bookkeeping, below, no longer counts)
+      ocr.cancel(); // and the reader stops spending time on it
       strokes = [];
       pen = null;
       results.clear();
       ink.clearRect(0, 0, canvas.width, canvas.height);
+      card.classList.remove("typing");
+      word.classList.remove("wr");
+      word.textContent = "";
       blank();
       setState("idle");
+    }
+
+    /** The pad clears itself a while after a result, and the little word demo starts again. */
+    function wipe() {
+      reset();
       cycles = 0;
       demo();
+    }
+
+    /** The clear button: blank, and quiet (no demo restarting over the empty pad). */
+    function clearPad() {
+      reset();
+      cycles = WORDS.length;
+      say("Pad cleared");
     }
 
     // ---- strokes. Every one of them belongs to the pad: none may turn the page or open the cover.
@@ -301,6 +322,7 @@ export const scan = {
     });
 
     go.addEventListener("click", () => read());
+    clearButton.addEventListener("click", clearPad);
 
     setState("idle");
     demo();

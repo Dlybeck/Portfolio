@@ -32,6 +32,27 @@ addEventListener("message", ({ data }) => {
   }
 });
 """
+# reads one row every half second, and reports what it does on a BroadcastChannel the page listens to
+CANCELLABLE_READER = """
+const log = new BroadcastChannel("stub");
+const cancelled = new Set();
+addEventListener("message", ({ data }) => {
+  if (data.type === "load") { setTimeout(() => postMessage({ type: "ready", device: "wasm" }), 100); }
+  else if (data.type === "cancel") { cancelled.add(data.id); log.postMessage("cancel:" + data.id); }
+  else if (data.type === "read") {
+    log.postMessage("read:" + data.id + ":" + data.rows.length);
+    let index = 0;
+    const next = () => {
+      if (cancelled.has(data.id)) return log.postMessage("stopped:" + data.id + ":after " + index);
+      if (index === data.rows.length) return postMessage({ type: "done", id: data.id });
+      postMessage({ type: "line", id: data.id, index, text: `line ${index + 1}` });
+      index++;
+      setTimeout(next, 500);
+    };
+    setTimeout(next, 500);
+  }
+});
+"""
 BROKEN_READER = 'addEventListener("message", () => postMessage({ type: "error", message: "network down" }));'
 
 
@@ -447,6 +468,132 @@ def test_once_off_nothing_keeps_watching_and_even_a_tiny_mark_gets_the_note(brow
     stroke_mouse(page, [(x, y), (x + 1, y)])  # a dot, which would otherwise read as "nothing to read"
     page.wait_for_timeout(2200)
     assert page.locator(".wd-scan .sc-t").inner_text() == "Reading is off on this device"
+
+
+# ---- the clear button
+
+PAD_BLANK = """() => {
+  const c = document.querySelector('.wd-scan canvas');
+  const clean = !c.width || !c.getContext('2d').getImageData(0, 0, c.width, c.height).data.some((v, i) => i % 4 === 3 && v > 0);
+  const pad = document.querySelector('.wd-scan');
+  return { clean, text: pad.querySelector('.sc-t').textContent, state: pad.dataset.state, word: pad.querySelector('.sc-w').textContent };
+}"""
+
+
+def clear_button(page):
+    return page.locator(".wd-scan .sc-clear")
+
+
+def test_the_clear_button_wipes_the_ink_and_the_text_and_leaves_the_reader_loaded(browser_page) -> None:
+    page, base = browser_page
+    calls = serve(page, READER)
+    open_cover(page, base, DESKTOP)
+    assert clear_button(page).is_hidden()  # nothing to clear yet
+    geo = pad_geometry(page)
+    write(page, geo)
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)
+    button = clear_button(page)
+    assert button.is_visible()
+    assert button.get_attribute("aria-label") == "Clear the pad"
+    box = button.bounding_box()
+    assert box["width"] >= 36 and box["height"] >= 36  # a comfortable target (44 where the pointer is a finger)
+    button.click()
+    assert page.evaluate(PAD_BLANK) == {"clean": True, "text": "", "state": "idle", "word": ""}  # no stroke was started by the press either
+    assert button.is_hidden()
+    page.wait_for_timeout(4000)  # the little word demo does not start over an empty pad
+    assert page.evaluate(PAD_BLANK) == {"clean": True, "text": "", "state": "idle", "word": ""}
+    page.evaluate(WATCH)
+    write(page, geo)  # and it writes and reads again
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)
+    assert "load" not in {s[0] for s in page.evaluate("window.__seen")}  # the model had stayed loaded
+    assert len(calls) == 1
+    assert untouched(page)
+
+
+def test_clearing_in_the_middle_of_a_read_stops_it_from_landing_afterwards(browser_page) -> None:
+    page, base = browser_page
+    serve(page, READER)
+    open_cover(page, base, DESKTOP)
+    geo = pad_geometry(page)
+    write(page, geo)
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'read'", timeout=10000)
+    clear_button(page).click()
+    page.wait_for_timeout(1800)  # long past when the stub's answer arrives
+    assert page.evaluate(PAD_BLANK) == {"clean": True, "text": "", "state": "idle", "word": ""}
+    write(page, geo)
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)  # the next writing is read as normal
+    assert untouched(page)
+
+
+def test_the_pad_can_be_cleared_after_the_reader_switched_off(browser_page) -> None:
+    page, base = browser_page
+    serve(page, HANGS)
+    open_cover(page, base, DESKTOP, connection=WIFI)
+    geo = pad_geometry(page)
+    write(page, geo)
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'load'", timeout=5000)
+    page.evaluate(JANK)
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'off'", timeout=8000)
+    page.evaluate("for (let i = 1; i < 10000; i++) clearInterval(i)")
+    clear_button(page).click()
+    assert page.evaluate(PAD_BLANK) == {"clean": True, "text": "", "state": "idle", "word": ""}
+    write(page, geo)  # still a drawing pad, still honest about reading
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'off'", timeout=3000)
+    assert page.locator(".wd-scan .sc-t").inner_text() == "Reading is off on this device"
+    assert untouched(page)
+
+
+def test_the_clear_button_works_from_the_keyboard_and_claims_a_sideways_scroll(browser_page) -> None:
+    page, base = browser_page
+    serve(page, READER)
+    open_cover(page, base, DESKTOP)
+    write(page, pad_geometry(page))
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)
+    assert page.evaluate("!document.querySelector('.wd-scan .sc-clear').dispatchEvent(new WheelEvent('wheel', { deltaX: 200, bubbles: true, cancelable: true }))")
+    clear_button(page).focus()
+    page.keyboard.press("Enter")
+    assert page.evaluate(PAD_BLANK)["clean"] and page.evaluate(PAD_BLANK)["text"] == ""
+    assert untouched(page)
+
+
+def test_clearing_calls_off_the_read_in_the_worker_too(browser_page) -> None:
+    page, base = browser_page
+    serve(page, CANCELLABLE_READER)
+    page.add_init_script("window.__stub = []; new BroadcastChannel('stub').onmessage = (e) => window.__stub.push(e.data)")
+    open_cover(page, base, DESKTOP)
+    geo = pad_geometry(page)
+    stroke_mouse(page, [screen(geo, 0.1, 0.12), screen(geo, 0.6, 0.15)])  # two rows, so the read takes a second
+    stroke_mouse(page, [screen(geo, 0.1, 0.62), screen(geo, 0.6, 0.65)])
+    page.wait_for_function("window.__stub.some((m) => m.startsWith('read:'))", timeout=10000)
+    clear_button(page).click()
+    page.wait_for_function("window.__stub.some((m) => m.startsWith('cancel:'))", timeout=3000)  # the worker was told
+    page.wait_for_function("window.__stub.some((m) => m.startsWith('stopped:'))", timeout=3000)  # and stopped before the second line
+    assert not any(m.endswith("after 2") for m in page.evaluate("window.__stub"))
+    assert page.evaluate(PAD_BLANK) == {"clean": True, "text": "", "state": "idle", "word": ""}
+    write(page, geo)  # the same worker reads the next writing
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)
+
+
+def test_the_clear_button_works_with_a_finger_and_does_not_turn_the_page(mobile_browser_page) -> None:
+    page, base = mobile_browser_page
+    serve(page, READER)
+    open_cover(page, base)
+    cdp = page.context.new_cdp_session(page)
+    geo = pad_geometry(page)
+    stroke_touch(cdp, [screen(geo, 0.1, 0.3), screen(geo, 0.6, 0.35)])
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)
+    box = clear_button(page).bounding_box()
+    assert box["width"] >= 44 and box["height"] >= 44  # a full finger-sized target on a phone
+    cx, cy = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+    before = page.evaluate(PAD_BLANK)
+    stroke_touch(cdp, [(cx, cy), (cx - 40, cy + 2)])  # a swipe that starts on the visible button: not a page turn, not a stroke
+    page.wait_for_timeout(300)
+    assert untouched(page)
+    assert page.evaluate(PAD_BLANK)["text"] == before["text"] and not page.evaluate(PAD_BLANK)["clean"]  # the ink is as it was: nothing was drawn or cleared by a swipe
+    stroke_touch(cdp, [(cx, cy)])  # a tap clears
+    page.wait_for_timeout(300)
+    assert page.evaluate(PAD_BLANK) == {"clean": True, "text": "", "state": "idle", "word": ""}
+    assert untouched(page)
 
 
 # ---- the geometry that turns strokes into lines, without a browser pad or a model

@@ -106,6 +106,15 @@
 .sc-w.wr { animation: ink 1.4s ease-out both; }
 @keyframes ink { 0% { stroke-dashoffset: 420; fill: transparent; } 70% { stroke-dashoffset: 0; fill: transparent; } 100% { stroke-dashoffset: 0; fill: #0b4f9c; } }
 .sc-pad canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+/* the clear button: a small round cross in the pad's top right corner. The button is a 36 px box (the touch target) with the 22 px chip drawn inside it. */
+.sc-clear { position: absolute; top: 0; right: 0; z-index: 2; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; cursor: pointer; border: 0; background: transparent; -webkit-tap-highlight-color: transparent; }
+.sc-clear[hidden] { display: none; }
+@media (pointer: coarse) { .sc-clear { width: 44px; height: 44px; } } /* a finger gets the full 44 px */
+.sc-clear i { position: relative; width: 22px; height: 22px; border-radius: 50%; background: #fffdf6; border: 1.5px solid rgba(11, 79, 156, 0.4); box-sizing: border-box; }
+.sc-clear i::before, .sc-clear i::after { content: ""; position: absolute; left: 50%; top: 50%; width: 9px; height: 1.8px; margin: -0.9px 0 0 -4.5px; border-radius: 1px; background: #0b4f9c; rotate: 45deg; }
+.sc-clear i::after { rotate: -45deg; }
+.sc-clear:hover i { background: #fff; border-color: #0b4f9c; }
+.sc-clear:focus-visible { outline: 2px solid var(--ink-fixed); outline-offset: -4px; border-radius: 8px; }
 .sc-bar { position: absolute; top: 0; bottom: 0; left: 0; width: 30%; pointer-events: none; translate: -100% 0; background: linear-gradient(90deg, transparent, rgba(0, 122, 255, 0.28) 70%, rgba(0, 122, 255, 0.75) 98%, transparent); }
 .sc-bar.go { animation: scan 0.6s ease-in-out; }
 @keyframes scan { from { translate: -100% 0; } to { translate: 340% 0; } }

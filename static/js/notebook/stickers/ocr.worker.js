@@ -4,7 +4,7 @@
 // The model and the library come from public CDNs at the moment someone first uses the pad; nothing is fetched before.
 // The browser's Cache API keeps the weights (transformers.js does this itself), so the second visit starts at once.
 //
-// Messages in:  { type: "load" }   { type: "read", id, rows: [{ width, height, data }] }
+// Messages in:  { type: "load" }   { type: "read", id, rows: [{ width, height, data }] }   { type: "cancel", id }
 // Messages out: { type: "progress", pct }   { type: "ready", device }   { type: "line", id, index, text }
 //               { type: "done", id }   { type: "error", id?, message }
 
@@ -84,9 +84,12 @@ async function readLine(row) {
   return out.generated_text.trim().replace(/\.$/, "").trim();
 }
 
+const called_off = new Set(); // reads the page no longer wants
+
 async function read(id, rows) {
   await load();
   for (let index = 0; index < rows.length; index++) {
+    if (called_off.delete(id)) return; // nobody is waiting for the rest
     let text;
     try {
       text = await readLine(rows[index]);
@@ -99,10 +102,12 @@ async function read(id, rows) {
     }
     say({ type: "line", id, index, text });
   }
+  called_off.delete(id);
   say({ type: "done", id });
 }
 
 addEventListener("message", ({ data }) => {
   if (data.type === "load") load().catch((e) => say({ type: "error", message: String(e?.message ?? e) }));
+  else if (data.type === "cancel") called_off.add(data.id);
   else if (data.type === "read") read(data.id, data.rows).catch((e) => say({ type: "error", id: data.id, message: String(e?.message ?? e) }));
 });

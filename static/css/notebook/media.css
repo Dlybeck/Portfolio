@@ -41,7 +41,7 @@
 .page .slides::-webkit-scrollbar { display: none; }
 .page .slide { scroll-snap-align: start; min-width: 0; }
 .page .slide figure { margin: 0 0 6px; }
-.page .slide time { display: block; font: 500 0.7rem/1.5 var(--font-mono); letter-spacing: 0.06em; color: var(--soft); }
+.page .slide time { display: block; font: 500 0.75rem/1.5 var(--font-mono); letter-spacing: 0.06em; color: var(--soft); }
 .page .slide p { margin: 2px 0 0; font-size: 0.9rem; line-height: 1.45; }
 .page .slides.themes { grid-auto-columns: 62%; }
 html.no-js .page .model-view { display: none; }
@@ -52,25 +52,25 @@ html.no-js .page .slides { display: grid; grid-auto-flow: row; grid-auto-columns
   background: #fff; color: var(--nb-ink); border: var(--edge) solid var(--nb-ink); box-shadow: var(--lift-sm);
 }
 .page .slides-bar button:disabled { opacity: 0.35; box-shadow: none; cursor: default; }
-.page .slides-count { min-width: 5.5em; text-align: center; font: 500 0.72rem/1 var(--font-mono); letter-spacing: 0.06em; color: var(--soft); }
+.page .slides-count { min-width: 5.5em; text-align: center; font: 500 0.75rem/1 var(--font-mono); letter-spacing: 0.06em; color: var(--soft); }
 
 /* ---------- 3D models ---------- */
 .page .model-view { position: relative; aspect-ratio: 1; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: radial-gradient(circle at 50% 60%, #fff 0 40%, #f1ead6 75%); }
 .page model-viewer, .page .model-ph { display: block; width: 100%; height: 100%; --poster-color: transparent; background: transparent; }
 .page .model-toggle {
   position: absolute; right: 6px; bottom: 6px; padding: 5px 10px; border-radius: var(--radius-pill); cursor: pointer;
-  font: 700 0.72rem/1 var(--font-sans); color: var(--ink-fixed); background: var(--hi); border: 1.5px solid var(--ink-fixed);
+  font: 700 0.75rem/1 var(--font-sans); color: var(--ink-fixed); background: var(--hi); border: 1.5px solid var(--ink-fixed);
 }
 .page .model-toggle.is-on { background: #fff; }
 .page .model-text { display: grid; gap: 1px; margin-top: 6px; }
 .page .model-text b { font-size: 0.9rem; line-height: 1.2; }
-.page .model-links { display: flex; flex-wrap: wrap; gap: 2px 10px; font: 600 0.74rem/1.4 var(--font-sans); }
+.page .model-links { display: flex; flex-wrap: wrap; gap: 2px 10px; font: 600 0.75rem/1.4 var(--font-sans); }
 .page .model-links a { color: var(--pen); }
 
 /* ---------- the NBA predictor ---------- */
 .page .predictor { display: grid; gap: 8px; margin: 8px 0 12px; padding: 12px; max-width: 320px; border: 1.5px dashed var(--rule); border-radius: var(--radius-md); }
-.page .predictor-k { margin: 0; font: 500 0.66rem/1 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); }
-.page .predictor label { display: grid; gap: 3px; font: 500 0.7rem/1.2 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); }
+.page .predictor-k { margin: 0; font: 500 0.75rem/1 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); }
+.page .predictor label { display: grid; gap: 3px; font: 500 0.75rem/1.2 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); }
 .page .predictor select { font: 500 0.95rem var(--font-sans); padding: 7px 10px; color: var(--nb-ink); background: rgba(255, 255, 255, 0.7); border: 1px solid var(--line-control); border-radius: 6px; }
 .page .predict-go {
   justify-self: start; min-height: 36px; padding: 6px 16px; cursor: pointer; font: 700 0.9rem/1.2 var(--font-sans);

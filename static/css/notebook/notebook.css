@@ -120,7 +120,7 @@ body {
 .nb--phone .nb-leaf .back { background-image: linear-gradient(90deg, #d6cdb6, #fbf7ec 45%, #e4dccb); }
 .nb-leaf.is-riffle .face { box-shadow: 0 0 0 1px rgba(20, 28, 43, 0.06); }
 
-.nb-pn { position: absolute; bottom: 14px; font: 500 0.72rem/1 var(--font-mono); letter-spacing: 0.08em; color: rgba(20, 28, 43, 0.65); z-index: 7; pointer-events: none; }
+.nb-pn { position: absolute; bottom: 14px; font: 500 0.75rem/1 var(--font-mono); letter-spacing: 0.08em; color: rgba(20, 28, 43, 0.65); z-index: 7; pointer-events: none; }
 .nb-pn.rgt { right: 48px; }
 .nb-pn.lft { left: 26px; }
 .nb--phone .nb-pn.lft { display: none; }
@@ -224,3 +224,10 @@ body {
 /* Phone: the tab strip overlaps the paper's right edge, so the scroller stops 10px short of it. The page's own scroll bar
    then sits on the paper, never over a tab; the padding keeps the text exactly where it was. */
 .nb--phone .nb-in { right: 10px; padding-right: 34px; }
+
+/* A portrait tablet gets the one-page book (below 900px wide and not landscape), and that page is big: 16px words look small on it.
+   Everything on the notebook is sized in rem, so raising the root size lifts body text to 18px and the headings and labels with it.
+   Phones (under 700px) and every desktop and landscape layout keep the normal size. */
+@media (min-width: 700px) and (max-width: 899px) and (orientation: portrait) {
+  html { font-size: 112.5%; }
+}

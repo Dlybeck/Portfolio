@@ -1,4 +1,4 @@
-"""The cover: nine live stickers on a kraft notebook, 5 by 8 on every screen."""
+"""The cover: eight live stickers on a kraft notebook, 5 by 8 on every screen."""
 
 from __future__ import annotations
 
@@ -15,7 +15,6 @@ LABELS = [
     "now AI tools at Denali. Tap for an earlier one.",
     "Stamp of a mountain trail. Tap to go for a hike.",
     "3D printer. Tap to print again.",
-    "A raccoon at a keyboard. Tap to say hi.",
     "your sticker here. Tap to draw one or add a picture.",
     "Tennis ball. Tap to bounce it, or throw it.",
 ]
@@ -40,16 +39,16 @@ def still_closed(page) -> bool:
 
 
 @pytest.mark.parametrize("viewport", [PHONE, DESKTOP], ids=["phone", "desktop"])
-def test_the_cover_has_its_nine_stickers_and_no_errors(browser_page, viewport) -> None:
+def test_the_cover_has_its_eight_stickers_and_no_errors(browser_page, viewport) -> None:
     page, _, problems, _ = cover(browser_page, viewport)
 
     stickers = page.locator(".cover-front > .wd")
-    assert stickers.count() == 9
-    labels = [stickers.nth(i).get_attribute("aria-label") for i in range(9) if stickers.nth(i).get_attribute("aria-label")]
+    assert stickers.count() == 8
+    labels = [stickers.nth(i).get_attribute("aria-label") for i in range(8) if stickers.nth(i).get_attribute("aria-label")]
     for label in LABELS:
         assert label in labels
     assert page.locator(".cover-front .wd-scan canvas").count() == 1
-    for i in range(9):
+    for i in range(8):
         el = stickers.nth(i)
         assert el.evaluate("n => n.getBoundingClientRect().width") > 20
     assert problems == []
@@ -72,7 +71,7 @@ def test_every_sticker_fits_on_the_cover(browser_page, viewport) -> None:
     page, *_ = cover(browser_page, viewport)
 
     front = page.locator(".cover-front").bounding_box()
-    for i in range(9):
+    for i in range(8):
         box = page.locator(".cover-front > .wd").nth(i).bounding_box()
         assert box["x"] >= front["x"] - 2 and box["x"] + box["width"] <= front["x"] + front["width"] + 2, (i, box)
         assert box["y"] >= front["y"] - 2 and box["y"] + box["height"] <= front["y"] + front["height"] + 2, (i, box)
@@ -117,14 +116,11 @@ def test_the_trail_stamp_ends_in_a_sunset(browser_page) -> None:
     assert "dusk" not in page.locator(".wd-hike").get_attribute("class")
 
 
-def test_the_printer_prints_the_logo_and_the_raccoon_says_hi(browser_page) -> None:
+def test_the_printer_prints_the_logo(browser_page) -> None:
     page, *_ = cover(browser_page)
     page.wait_for_function("document.querySelector('.p12a').classList.contains('done')", timeout=6000)
     page.locator(".p12a").click()
     assert "go" in page.locator(".p12a").get_attribute("class")
-
-    page.locator(".wd-pal").click()
-    page.wait_for_function("document.querySelector('.pal-say').textContent.length > 0", timeout=3000)
 
 
 def test_the_scan_pad_types_a_word_and_scans_a_doodle(browser_page) -> None:

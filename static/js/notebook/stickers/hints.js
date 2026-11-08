@@ -8,7 +8,7 @@ import { reducedMotion } from "./common.js";
 /** [selector, how long its hint plays in ms], in the order they take turns. */
 export const HINTED = [
   [".wd-name", 1100], [".wd-ball", 700], [".wd-now", 500], [".wd-p12", 1500], [".wd-hike", 1300],
-  [".wd-pal-raccoon", 1000], [".wd-puzzle", 900], [".wd-mine", 800],
+  [".wd-puzzle", 900], [".wd-mine", 800],
 ];
 const FIRST_MS = 3200;
 const EVERY_MS = [4000, 6000]; // between hints

@@ -1,4 +1,4 @@
-// The nine stickers on the cover, in the order they are stuck on (later ones sit on top).
+// The eight stickers on the cover, in the order they are stuck on (later ones sit on top).
 
 import { keepEventsHere } from "./common.js";
 import { ball } from "./ball.js";
@@ -8,11 +8,10 @@ import { name } from "./name.js";
 import { now } from "./now.js";
 import { printer } from "./printer.js";
 import { puzzle } from "./puzzle.js";
-import { raccoon } from "./raccoon.js";
 import { scan } from "./scan.js";
 import { startHints } from "./hints.js";
 
-const SET = [name, now, hike, scan, puzzle, printer, raccoon, blankSticker, ball];
+const SET = [name, now, hike, scan, puzzle, printer, blankSticker, ball];
 
 /** The HTML of every sticker. */
 export const stickersHtml = () => SET.map((s) => s.html()).join("");

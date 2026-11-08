@@ -118,25 +118,30 @@ export const scan = {
     // offsetX and offsetY are in the canvas's own (untilted, unscaled) pixels: the sticker sits turned on the cover
     const at = (e) => [e.offsetX, e.offsetY];
 
-    // ---- the reader
-    let loading = null; // the model's load, once started
-    let modelReady = false;
+    // ---- the reader (ocr.ready says whether the worker is up with the model; it goes false again if the worker dies)
     let active = 0; // reads asked for and not yet finished
 
+    /** Start (or join) the load. Progress shows while the card is waiting on it; once ready, a card that only had the loading note goes back to waiting. */
     function warm() {
-      loading ??= ocr.load((pct) => {
-        if (modelReady || !alive() || (card.dataset.state !== "ink" && card.dataset.state !== "load")) return;
+      return ocr.load((pct) => {
+        if (ocr.ready || !alive() || (card.dataset.state !== "ink" && card.dataset.state !== "load")) return;
         const starting = pct >= 99; // every byte is here; the model is being set up
-        message(starting ? "Starting reader…" : `Loading reader ${pct}%`, starting ? undefined : pct);
+        message(starting ? "Starting reader\u2026" : `Loading reader ${pct}%`, starting ? undefined : pct);
         setState("load");
-      }).then(
-        () => {
-          modelReady = true;
-          if (!active && alive() && card.dataset.state === "load") { blank(); setState("ink"); } // it was loading in the background while they wrote
-        },
-        (error) => { loading = null; throw error; },
-      );
-      return loading;
+      }).then(() => {
+        if (!active && alive() && card.dataset.state === "load") { blank(); setState("ink"); } // it was loading in the background while they wrote
+      });
+    }
+    /** The background load a first stroke starts. If it fails while nothing is waiting on it, say so now (with retry) rather than sit on a stale percentage. */
+    function warmInBackground() {
+      warm().catch((error) => {
+        if (active || !alive() || card.dataset.state !== "load") return; // a read in flight reports its own failure
+        console.warn("ScribbleScan pad:", error);
+        const text = navigator.onLine === false ? "Offline. Check your connection" : "Couldn\u2019t load the reader";
+        setState("error");
+        message(text);
+        say(text);
+      });
     }
 
     const rowKey = (r) => `${r.strokes.length}:${r.strokes.reduce((n, s) => n + s.length, 0)}`;
@@ -156,7 +161,7 @@ export const scan = {
       active++;
       let stage = "load";
       try {
-        if (!modelReady) {
+        if (!ocr.ready) {
           setState("load");
           message("Loading reader 0%", 0);
           say("Loading the reader");
@@ -213,7 +218,8 @@ export const scan = {
     let guardUntil = 0;
     const swallow = (e) => {
       if (!alive()) { document.removeEventListener(e.type, swallow, true); return; }
-      if (performance.now() < guardUntil) { e.stopPropagation(); e.preventDefault(); }
+      // only the click aimed at the canvas or something around it (what a drag that ended elsewhere sends); a press on the pad's own button, or on another sticker, is a real one
+      if (performance.now() < guardUntil && e.target.contains(canvas)) { e.stopPropagation(); e.preventDefault(); }
     };
     document.addEventListener("click", swallow, true);
     document.addEventListener("dblclick", swallow, true);
@@ -259,7 +265,7 @@ export const scan = {
       const state = card.dataset.state;
       if (state === "read") { blank(); setState("ink"); } // the answer being worked out is for writing that is about to change
       else if (state !== "load") setState("ink");
-      if (!modelReady) warm().catch(() => {}); // the first stroke starts the download; a failure shows when a read is asked for
+      if (!ocr.ready) warmInBackground(); // the first stroke starts the download
       try { canvas.setPointerCapture(e.pointerId); } catch { /* not capturable */ }
     });
     canvas.addEventListener("pointermove", (e) => {
@@ -274,10 +280,7 @@ export const scan = {
       pen.push(p);
     });
 
-    go.addEventListener("click", () => {
-      if (card.dataset.state === "error") { loading = null; modelReady = false; }
-      read();
-    });
+    go.addEventListener("click", () => read());
 
     setState("idle");
     demo();

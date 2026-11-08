@@ -68,6 +68,9 @@ function start() {
 }
 
 export const ocr = {
+  /** The worker is up and the model is loaded. False again if the worker has been thrown away. */
+  get ready() { return Boolean(session?.done); },
+
   /**
    * Begin loading the model (if it has not begun) and report progress, 0 to 99, as it downloads.
    * Resolves when the reader is ready to read; rejects if it could not load.

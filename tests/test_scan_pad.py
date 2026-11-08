@@ -114,8 +114,13 @@ def test_strokes_on_the_pad_never_open_the_cover_with_a_mouse(browser_page) -> N
         stroke_mouse(page, points)
         page.wait_for_timeout(250)
         assert untouched(page), f"a stroke ending at {points[-1]} moved the book"
-    page.mouse.wheel(260, 0)  # a trackpad's sideways scroll over the pad
+    # a trackpad's sideways scroll over the pad (not just anywhere): the pad must claim it, so the page and Safari's swipe-back never see it
+    page.evaluate("window.__wheel = []; document.addEventListener('wheel', () => window.__wheel.push(1), { passive: true })")
+    page.mouse.move(*screen(geo, 0.5, 0.5))
+    page.mouse.wheel(260, 0)
     page.wait_for_timeout(200)
+    assert page.evaluate("window.__wheel") == []  # it never got past the pad
+    assert page.evaluate("!document.querySelector('.wd-scan canvas').dispatchEvent(new WheelEvent('wheel', { deltaX: 260, bubbles: true, cancelable: true }))")  # and the pad cancelled it
     assert untouched(page)
 
 
@@ -189,7 +194,7 @@ def test_the_pad_shows_progress_then_reads_each_written_row(browser_page) -> Non
 
 def test_a_failed_load_says_so_and_retry_works(browser_page) -> None:
     page, base = browser_page
-    calls = serve(page, BROKEN_READER, BROKEN_READER, READER)  # the load behind the first stroke fails, and so does the read's own try
+    calls = serve(page, BROKEN_READER, READER)  # the load a first stroke starts fails; the retry's fresh worker works
     open_cover(page, base, DESKTOP)
     geo = pad_geometry(page)
     stroke_mouse(page, [screen(geo, 0.1, 0.3), screen(geo, 0.6, 0.35)])
@@ -199,7 +204,7 @@ def test_a_failed_load_says_so_and_retry_works(browser_page) -> None:
     assert retry.is_visible() and retry.text_content() == "retry"
     retry.click()
     page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)
-    assert len(calls) == 3  # each broken worker was thrown away and a fresh one started
+    assert len(calls) == 2  # the broken worker was thrown away and a fresh one started
     assert untouched(page)
 
 
@@ -209,8 +214,14 @@ def test_the_scan_button_reads_without_waiting(browser_page) -> None:
     open_cover(page, base, DESKTOP)
     geo = pad_geometry(page)
     stroke_mouse(page, [screen(geo, 0.1, 0.3), screen(geo, 0.6, 0.35)])
-    page.locator(".wd-scan .sc-go").click()
-    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'read' || document.querySelector('.wd-scan').dataset.state === 'done'", timeout=8000)
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'ink'", timeout=8000)  # the reader is up; the pad waits
+    page.wait_for_timeout(1800)  # let the first stroke's own wait run out and its result clear
+    page.wait_for_function("['ink', 'done', 'idle'].includes(document.querySelector('.wd-scan').dataset.state)", timeout=15000)
+    page.evaluate("document.querySelector('.wd-scan .sc-go').addEventListener('click', () => { window.__pressed = (window.__pressed || 0) + 1; })")
+    stroke_mouse(page, [screen(geo, 0.1, 0.3), screen(geo, 0.6, 0.35)])
+    page.locator(".wd-scan .sc-go").click()  # straight after the stroke, inside the moment the pad guards against a drag's click
+    assert page.evaluate("window.__pressed") == 1  # the press was not swallowed
+    page.wait_for_function("document.querySelector('.wd-scan').dataset.state === 'read'", timeout=1000)  # and it read at once, well before the 1.5 s wait
     assert untouched(page)
 
 

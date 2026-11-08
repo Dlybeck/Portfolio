@@ -93,6 +93,7 @@ async function read(id, rows) {
     } catch (error) {
       if (device !== "webgpu") throw error;
       device = "wasm"; // it loaded on the GPU but would not run: redo this on WebAssembly
+      try { await reader.dispose?.(); } catch { /* already gone */ } // free the GPU's share first
       reader = await build(device);
       text = await readLine(rows[index]);
     }

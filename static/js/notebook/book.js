@@ -1,7 +1,7 @@
 // The book: puts the server-written pages onto one page (phone) or a two-page spread (desktop)
 // and turns them. Several leaves can be in the air at once, so a fast wheel riffles through the book.
 
-import { insideCover } from "./inside.js";
+import { insideCover } from "./inside.js?v=2";
 import { el, reducedMotion, tuck } from "./motion.js";
 
 const TURN_MS = 720;

@@ -58,7 +58,7 @@ def test_opening_and_closing_share_one_ease_in_out_curve_and_duration() -> None:
 
 @pytest.mark.browser
 @pytest.mark.parametrize("address", ["/#contents", "/#about"])
-def test_the_first_and_last_spreads_have_bare_inside_covers(browser_page, address) -> None:
+def test_the_first_and_last_spreads_have_inside_covers_laid_out_by_layout_json(browser_page, address) -> None:
     page, base = browser_page
     page.set_viewport_size(DESKTOP)
     page.goto(base + address)
@@ -67,12 +67,12 @@ def test_the_first_and_last_spreads_have_bare_inside_covers(browser_page, addres
     assert page.locator("#notebook").get_attribute("data-page") == "toc"
     assert page.locator(".nb-page.r .toc").count() == 1
     assert page.locator(".nb-page.l .toc").count() == 0
-    assert page.locator(".cover-inside--front > *").count() == 0  # bare, ready for stickers
+    assert page.locator(".cover-inside--front > .wd-slot").count() == 1  # layout.json puts the name tag here
     assert page.locator(".cover-inside--front").evaluate("n => getComputedStyle(n).containerType") == "size"
     assert page.evaluate("location.hash") == "#contents"
 
     page.goto(base + "/#say-hi")
     page.wait_for_selector(".nb-page.r .cover-inside--back")
     page.wait_for_selector(".nb-page.l .contact")  # lands when the turning page does
-    assert page.locator(".cover-inside--back > *").count() == 0
+    assert page.locator(".cover-inside--back > *").count() == 0  # nothing laid out for the back yet
     assert page.locator(".nb-page.r .toc").count() == 0

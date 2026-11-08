@@ -3,7 +3,7 @@
 
 import { el, reducedMotion, tuck } from "./motion.js";
 import { createSwing, easeFrom } from "./swing.js?v=3";
-import { stickersHtml, wireStickers } from "./stickers/index.js?v=2";
+import { stickersHtml, wireStickers } from "./stickers/index.js?v=3";
 
 // One timing for the whole opening: the cover swinging on its spine and the book sliding to its open spot.
 // It is defined once, in notebook.css, as --nb-open-ms and --nb-open-ease; the cover reads the same values.
@@ -36,6 +36,7 @@ export function createCover({ root, book, phone, onTap }) {
     const inside = el("div", "nb-in");
     inside.append(...[...left.childNodes].map((n) => n.cloneNode(true)));
     const page = el("div", "cover-page");
+    page.inert = true; // only a picture of the page: nothing on it can be reached while it is a copy
     page.append(inside);
     return page;
   }
@@ -43,7 +44,7 @@ export function createCover({ root, book, phone, onTap }) {
   function build({ swingShut }) {
     leaf = el("div", "nb-leaf cover");
     const front = el("div", "face front cover-front");
-    front.innerHTML = `<i class="cover-stitch"></i>${stickersHtml()}<span class="cover-label">David Lybeck</span><i class="cover-band"></i><button type="button" class="cover-open">open</button>`;
+    front.innerHTML = `<i class="cover-stitch"></i>${stickersHtml("front")}<span class="cover-label">David Lybeck</span><i class="cover-band"></i><button type="button" class="cover-open">open</button>`;
     const back = el("div", "face back");
     // on desktop the cover's inside is the left page, so it lands on the left as the book opens
     if (!phone) back.append(backFace());

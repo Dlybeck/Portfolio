@@ -11,24 +11,30 @@ export const ball = {
   wire(el, { alive, cover }) {
     let x = 0; let y = 0; let vx = 0; let vy = 0; let spin = 0; let rot = 0;
     let raf = 0; let last = 0; let drag = null; let homed = false;
-    const size = () => el.offsetWidth;
+    const slot = el.closest(".wd-slot"); // the layout turns and scales the ball through its slot until it is free
+    const homeTurn = parseFloat(slot?.style.rotate) || 0;
+    const scale = parseFloat(slot?.style.scale) || 1;
+    const size = () => el.offsetWidth * scale; // its size on the cover, as the visitor sees it
+    const grow = () => (el.offsetWidth * (scale - 1)) / 2; // a scaled box grows about its centre, so its layout box sits this far inside
     const width = () => cover.clientWidth;
     const height = () => cover.clientHeight;
 
     const put = () => {
-      el.style.translate = `${x}px ${y}px`;
+      el.style.translate = `${x + grow()}px ${y + grow()}px`;
       el.style.rotate = `${rot}deg`;
       const sheen = el.querySelector(":scope > .wd-mt");
       if (sheen) sheen.style.rotate = `${-rot}deg`; // the highlight stays put while the ball turns
     };
-    // from CSS position to a free ball that moves by translate
+    // from its place in the layout to a free ball that moves by translate (x and y are the corner of the ball as seen)
     const free = () => {
       if (homed) return;
       const r = el.getBoundingClientRect();
       const c = cover.getBoundingClientRect();
-      x = r.left - c.left - cover.clientLeft;
-      y = r.top - c.top - cover.clientTop;
-      Object.assign(el.style, { left: "0", top: "0", right: "auto", bottom: "auto" });
+      x = r.left + r.width / 2 - size() / 2 - c.left - cover.clientLeft; // from its centre: turning does not move that
+      y = r.top + r.height / 2 - size() / 2 - c.top - cover.clientTop;
+      rot = homeTurn; // carry on from the turn the layout gave it
+      if (slot) Object.assign(slot.style, { left: "0", top: "0", rotate: "none", scale: "none" });
+      el.style.setProperty("--slot-scale", scale);
       el.classList.add("free");
       homed = true;
       put();
@@ -72,6 +78,8 @@ export const ball = {
       spin = (Math.random() < 0.5 ? -1 : 1) * (800 + Math.random() * 900);
       run();
     };
+
+    el.querySelector(":scope > .wd-mt")?.style.setProperty("rotate", `${-homeTurn}deg`); // the highlight stays put from the start
 
     // a cover that gets smaller (turning the phone) must not leave the ball outside it
     new ResizeObserver(() => {

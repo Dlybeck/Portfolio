@@ -29,12 +29,13 @@ def test_the_page_has_landmarks_and_one_h1(browser_page) -> None:
 
 def test_sticker_labels_start_with_the_words_you_can_see(browser_page) -> None:
     # speech-input users say what they see (WCAG 2.5.3, label in name)
-    page = open_notebook(browser_page, "/")
-
-    pairs = page.locator(".cover-front > .wd[role=button]").evaluate_all(
-        """els => els.map(e => [(e.getAttribute('aria-label') || '').toLowerCase(),
-             (e.innerText || '').replace(/\\s+/g, ' ').trim().toLowerCase()])"""
-    )
+    pairs = []
+    for route in ("/", "/#contents"):  # the cover, then the name tag inside it
+        page = open_notebook(browser_page, route, {"width": 1280, "height": 800})
+        pairs += page.locator(".cover-front .wd[role=button], .cover-inside .wd[role=button]").evaluate_all(
+            """els => els.map(e => [(e.getAttribute('aria-label') || '').toLowerCase(),
+                 (e.innerText || '').replace(/\\s+/g, ' ').trim().toLowerCase()])"""
+        )
     checked = 0
     for label, seen in pairs:
         if seen:

@@ -1,7 +1,8 @@
-"""The cover: eight live stickers on a kraft notebook, 5 by 8 on every screen."""
+"""The cover: eight live stickers on a kraft notebook, 5 by 8 on every screen (the name tag sits inside the cover on desktop)."""
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -10,8 +11,9 @@ ROOT = Path(__file__).resolve().parent.parent
 PHONE = {"width": 390, "height": 844}
 DESKTOP = {"width": 1280, "height": 800}
 
+NAME_LABEL = "HELLO my name is David. Tap to write it in another hand."
 LABELS = [
-    "HELLO my name is David. Tap to write it in another hand.",
+    "Cow sticker, drawn by David. Tap to watch it get drawn again.",
     "now AI tools at Denali. Tap for an earlier one.",
     "Stamp of a mountain trail. Tap to go for a hike.",
     "3D printer. Tap to print again.",
@@ -34,6 +36,21 @@ def cover(browser_page, viewport=PHONE, **context):
     return page, base, problems, requests
 
 
+def inside(browser_page, **context):
+    """The first desktop spread, where the name tag lives: on the inside front cover, left of the contents."""
+    page, base = browser_page
+    page.set_viewport_size(DESKTOP)
+    problems: list[str] = []
+    requests: list[str] = []
+    page.on("pageerror", lambda e: problems.append(str(e)))
+    page.on("console", lambda m: problems.append(m.text) if m.type == "error" else None)
+    page.on("request", lambda r: requests.append(r.url))
+    page.goto(base + "/#contents")
+    page.wait_for_selector(".nb-page.l .cover-inside--front .wd-name")
+    page.wait_for_timeout(300)
+    return page, base, problems, requests
+
+
 def still_closed(page) -> bool:
     return "is-closed" in page.locator("#notebook").get_attribute("class")
 
@@ -42,16 +59,32 @@ def still_closed(page) -> bool:
 def test_the_cover_has_its_eight_stickers_and_no_errors(browser_page, viewport) -> None:
     page, _, problems, _ = cover(browser_page, viewport)
 
-    stickers = page.locator(".cover-front > .wd")
+    stickers = page.locator(".cover-front > .wd-slot > .wd")
     assert stickers.count() == 8
     labels = [stickers.nth(i).get_attribute("aria-label") for i in range(8) if stickers.nth(i).get_attribute("aria-label")]
     for label in LABELS:
         assert label in labels
     assert page.locator(".cover-front .wd-scan canvas").count() == 1
+    assert page.locator(".cover-front .wd-name").count() == 0  # the name tag is inside the cover now
     for i in range(8):
         el = stickers.nth(i)
         assert el.evaluate("n => n.getBoundingClientRect().width") > 20
     assert problems == []
+
+
+def test_the_stickers_sit_where_layout_json_puts_them(browser_page) -> None:
+    layout = json.loads((ROOT / "static/js/notebook/stickers/layout.json").read_text())
+    for face, selector, visit in [("front", ".cover-front", cover), ("inside", ".nb-page.l .cover-inside--front", inside)]:
+        page, *_ = visit(browser_page, DESKTOP) if visit is cover else visit(browser_page)
+        box = page.locator(selector).evaluate("n => [n.clientWidth, n.clientHeight]")
+        slots = page.locator(f"{selector} > .wd-slot")
+        assert slots.count() == len(layout[face])
+        for i, entry in enumerate(layout[face]):  # array order is paint order
+            slot = slots.nth(i)
+            assert slot.get_attribute("data-sticker") == entry["id"]
+            left, top, z = slot.evaluate("n => [n.offsetLeft, n.offsetTop, getComputedStyle(n).zIndex]")
+            assert abs(left / box[0] * 100 - entry["x"]) < 0.5 and abs(top / box[1] * 100 - entry["y"]) < 0.5, entry
+            assert int(z) == i + 1
 
 
 @pytest.mark.parametrize("viewport", [PHONE, DESKTOP], ids=["phone", "desktop"])
@@ -72,13 +105,13 @@ def test_every_sticker_fits_on_the_cover(browser_page, viewport) -> None:
 
     front = page.locator(".cover-front").bounding_box()
     for i in range(8):
-        box = page.locator(".cover-front > .wd").nth(i).bounding_box()
+        box = page.locator(".cover-front > .wd-slot > .wd").nth(i).bounding_box()
         assert box["x"] >= front["x"] - 2 and box["x"] + box["width"] <= front["x"] + front["width"] + 2, (i, box)
         assert box["y"] >= front["y"] - 2 and box["y"] + box["height"] <= front["y"] + front["height"] + 2, (i, box)
 
 
 def test_the_name_tag_writes_the_name_in_five_hands(browser_page) -> None:
-    page, _, problems, requests = cover(browser_page)
+    page, _, problems, requests = inside(browser_page)
     tag = page.locator(".wd-name")
     families = []
     for _ in range(6):
@@ -87,7 +120,7 @@ def test_the_name_tag_writes_the_name_in_five_hands(browser_page) -> None:
         page.wait_for_timeout(1300)
     assert families[:5] == ["Caveat", "Permanent Marker", "Homemade Apple", "Gochi Hand", "Nothing You Could Do"]
     assert families[5] == "Caveat"  # and round again
-    assert still_closed(page)  # tapping a sticker never opens the cover
+    assert page.locator("#notebook").get_attribute("data-page") == "toc"  # tapping the tag never turns the page
     for family in families[:5]:
         weight = 700 if family == "Caveat" else 400
         assert page.evaluate(f"document.fonts.check('{weight} 2rem \"{family}\"')"), family
@@ -158,7 +191,8 @@ def test_the_ball_bounces_without_opening_the_cover(browser_page) -> None:
     assert still_closed(page)
     page.wait_for_timeout(2500)  # it settles on the cover's floor
     box, front = ball.bounding_box(), page.locator(".cover-front").bounding_box()
-    assert box["y"] + box["height"] <= front["y"] + front["height"] + 3
+    foot = box["y"] + box["height"] / 2 + ball.evaluate("n => n.offsetWidth") / 2  # its round edge: the turning square's corners are not the ball
+    assert foot <= front["y"] + front["height"] + 3
 
 
 def test_the_ball_can_be_thrown(browser_page) -> None:
@@ -166,25 +200,31 @@ def test_the_ball_can_be_thrown(browser_page) -> None:
     box = page.locator(".wd-ball").bounding_box()
     page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
     page.mouse.down()
-    page.mouse.move(box["x"] - 120, box["y"] + 40, steps=5)
+    page.mouse.move(box["x"] + 120, box["y"] - 40, steps=5)
     page.mouse.up()
-    page.wait_for_timeout(120)  # right after the throw, before it can bounce back off the cover's left edge
+    page.wait_for_timeout(120)  # right after the throw, before it can bounce back off the cover's right edge
 
-    assert page.locator(".wd-ball").bounding_box()["x"] < box["x"] - 40
+    assert page.locator(".wd-ball").bounding_box()["x"] > box["x"] + 40
     assert still_closed(page)
 
 
 def test_stickers_work_from_the_keyboard(browser_page) -> None:
     page, *_ = cover(browser_page)
+    page.locator(".wd-now").focus()
+    page.keyboard.press("Space")
+    assert "ScribbleScan LLC" in page.locator(".wd-now").inner_text()
+
+
+def test_the_name_tag_on_the_inside_cover_works_from_the_keyboard(browser_page) -> None:
+    page, *_ = inside(browser_page)
+    assert page.locator(".cover-inside--front").get_attribute("aria-hidden") is None  # it has something to press now
     page.locator(".wd-name").focus()
     page.keyboard.press("Enter")
     page.wait_for_timeout(1300)
 
     assert page.locator(".wd-name").get_attribute("data-hand") == "1"
-    assert still_closed(page)
-    page.locator(".wd-now").focus()
-    page.keyboard.press("Space")
-    assert "ScribbleScan LLC" in page.locator(".wd-now").inner_text()
+    assert page.locator("#notebook").get_attribute("data-page") == "toc"
+    assert page.locator(".nb-leaf.cover .wd-name").count() == 0
 
 
 def test_empty_cover_and_the_open_button_still_open_the_book(browser_page) -> None:
@@ -239,10 +279,10 @@ def test_the_sticker_maker_can_be_used_from_the_keyboard(browser_page) -> None:
 
 
 def test_the_name_tag_shows_a_focus_ring(browser_page) -> None:
-    page, *_ = cover(browser_page, DESKTOP)
-    page.keyboard.press("Tab")
-    page.keyboard.press("Tab")  # the logo, then the first sticker on the cover
+    page, *_ = inside(browser_page)
+    page.keyboard.press("Shift")  # keyboard in use, so a focus ring shows
     tag = page.locator(".wd-name")
+    tag.focus()
     assert tag.evaluate("n => n === document.activeElement")
     assert tag.evaluate("n => getComputedStyle(n).outlineStyle") == "solid"
     assert tag.evaluate("n => getComputedStyle(n).maskImage") == "none"  # the cut corner is on the face inside
@@ -297,13 +337,16 @@ def test_reduced_motion_calms_the_stickers(browser_page) -> None:
     page.emulate_media(reduced_motion="reduce")
     page, base, problems, _ = cover(browser_page)
 
-    page.locator(".wd-name").click()
-    assert page.locator(".wd-name").get_attribute("data-hand") == "1"  # changes at once, no wipe
     assert page.locator(".wd-sh").first.evaluate("n => getComputedStyle(n).animationName") == "none"
     page.locator(".wd-hike").click()
     assert "dusk" in page.locator(".wd-hike").get_attribute("class")
     page.locator(".wd-ball").click()
     assert "hop" in page.locator(".wd-ball").get_attribute("class")
+    assert problems == []
+
+    page, _, problems, _ = inside(browser_page)
+    page.locator(".wd-name").click()
+    assert page.locator(".wd-name").get_attribute("data-hand") == "1"  # changes at once, no wipe
     assert problems == []
 
 

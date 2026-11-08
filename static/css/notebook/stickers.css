@@ -6,14 +6,20 @@
   --navy: #24364f; --teal: #3f7f7a; --maroon: #8a2433;
 }
 
+/* ---------- the slot: where layout.json puts a sticker ---------- */
+/* x and y (left and top, in cqw and cqh of the face), r (rotate) and s (scale) are set on the slot, in layout.json order,
+   which is also the paint order. The sticker inside keeps its size and turns and scales about its own centre. */
+.wd-slot { position: absolute; width: max-content; }
+.cover-inside .wd-slot { pointer-events: auto; } /* the inside cover itself lets touches through to the page */
+
 /* ---------- every sticker: a die-cut vinyl with a white edge and a sheen ---------- */
 .cover-front .wd, .cover-inside .wd {
-  position: absolute; color: var(--ink-fixed); cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: none;
+  position: relative; color: var(--ink-fixed); cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: none;
   -webkit-tap-highlight-color: transparent; transition: scale var(--duration-press) var(--ease-out);
   filter: drop-shadow(1.6px 0 0 #fff) drop-shadow(-1.6px 0 0 #fff) drop-shadow(0 1.6px 0 #fff) drop-shadow(0 -1.6px 0 #fff) drop-shadow(0 5px 5px rgba(0, 0, 0, 0.45));
 }
-.cover-front .wd:active { scale: 0.97; }
-.cover-front .wd:focus-visible { outline: 3px solid var(--ink-fixed); outline-offset: 4px; }
+.cover-front .wd:active, .cover-inside .wd:active { scale: 0.97; }
+.cover-front .wd:focus-visible, .cover-inside .wd:focus-visible { outline: 3px solid var(--ink-fixed); outline-offset: 4px; }
 .wd-sh { display: none; } /* the old pale overlay: a rectangle, so it painted a box round die-cut shapes */
 /* The matte sheen: a picture per sticker that already carries the sticker's own alpha (scripts/build_sticker_sheen.py),
    so it can never paint outside the shape and costs nothing to draw. The blank sticker holds any shape, so it has none. */
@@ -26,6 +32,7 @@
 .wd-puzzle .wd-mt { background-image: url(/static/img/notebook/sheen/puzzle.png); inset: -2px; }
 .wd-p12 .wd-mt { background-image: url(/static/img/notebook/sheen/p12.png); inset: 0; }
 .wd-ball .wd-mt { background-image: url(/static/img/notebook/sheen/ball.png); inset: -3px; }
+.wd-cow .wd-mt { background-image: url(/static/img/notebook/sheen/cow.png); inset: 0; }
 /* sheen:end */
 .wd-blank:not(.has):not(.styled) { filter: none; }
 .wd-blank .wd-mt { display: none; }
@@ -35,7 +42,7 @@
 }
 
 /* ---------- name tag ---------- */
-.wd-name { left: 12cqw; top: 3cqh; width: 44cqw; rotate: -4deg; z-index: 2; }
+.wd-name { width: 44cqw; }
 /* the cut corner is a mask on the inner face, so the focus ring on the sticker itself is not clipped */
 .wd-name .tag { display: block; overflow: hidden; text-align: center; padding-bottom: 1.6cqh; background: #fff; border: 2px solid #fff; border-radius: 10px 10px 2px 10px;
   -webkit-mask: linear-gradient(to top left, transparent 14px, #000 14.5px); mask: linear-gradient(to top left, transparent 14px, #000 14.5px); }
@@ -60,7 +67,7 @@
 
 /* ---------- the "now" pill ---------- */
 .wd-now {
-  left: 13cqw; top: 26cqh; rotate: -2deg; z-index: 3; display: flex; align-items: center; gap: 1.6cqw; white-space: nowrap;
+  display: flex; align-items: center; gap: 1.6cqw; white-space: nowrap;
   padding: 1.6cqw 3cqw; background: var(--sticker-sky); border: 2px solid #fff; border-radius: 999px; outline: 2px solid var(--ink-fixed); outline-offset: -5px;
   font: 700 clamp(0.5rem, 3.3cqw, 0.82rem) / 1 var(--font-sans);
 }
@@ -72,7 +79,7 @@
 @keyframes flip { from { transform: rotateX(80deg); } }
 
 /* ---------- the trail stamp ---------- */
-.wd-hike { right: 10cqw; top: 7cqh; width: 36cqw; rotate: 5deg; z-index: 1; padding: 6px; border-radius: 0; background: radial-gradient(circle, transparent 2.3px, #fff 2.6px) -3.5px -3.5px / 7px 7px; }
+.wd-hike { width: 36cqw; padding: 6px; border-radius: 0; background: radial-gradient(circle, transparent 2.3px, #fff 2.6px) -3.5px -3.5px / 7px 7px; }
 .wd-hike svg { display: block; width: 100%; height: auto; aspect-ratio: 120 / 72; }
 .m-sky { fill: #f4d27a; transition: fill 0.9s; }
 .m-sun { fill: #fff6d8; transform-box: fill-box; transition: transform 0.9s cubic-bezier(0.45, 0.05, 0.25, 1), fill 0.9s; }
@@ -92,7 +99,7 @@
 .wd-hike.dusk .m-mead { fill: #6b5a63; }
 
 /* ---------- the ScribbleScan pad ---------- */
-.wd-scan { left: 11cqw; top: 38.5cqh; width: 58cqw; rotate: -2deg; z-index: 2; background: #fff; border: 2px solid #fff; border-radius: 12px; overflow: hidden; cursor: crosshair; }
+.wd-scan { width: 58cqw; background: #fff; border: 2px solid #fff; border-radius: 12px; overflow: hidden; cursor: crosshair; }
 .sc-pad { position: relative; height: 13cqh; overflow: hidden; background-color: #fffdf6; background-image: linear-gradient(transparent calc(100% - 1px), rgba(11, 79, 156, 0.18) 0); background-size: 100% 25%; }
 .sc-pad svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .sc-w { font: 700 46px var(--font-hand); fill: transparent; stroke: #0b4f9c; stroke-width: 1.4; stroke-dasharray: 420; stroke-dashoffset: 0; }
@@ -111,7 +118,7 @@
 @keyframes caret { 50% { opacity: 0; } }
 
 /* ---------- the sliding puzzle ---------- */
-.wd-puzzle { right: 10cqw; top: 60cqh; rotate: 6deg; z-index: 3; padding: 5px; background: #fff; border: 2px solid #fff; border-radius: 10px; cursor: default; }
+.wd-puzzle { padding: 5px; background: #fff; border: 2px solid #fff; border-radius: 10px; cursor: default; }
 .pz { position: relative; width: 23cqw; aspect-ratio: 1; overflow: hidden; border-radius: 6px; background: #1b2436; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5); }
 .pz-t {
   position: absolute; left: 0; top: 0; width: 33.34%; height: 33.34%; padding: 0; cursor: pointer; border: 1.5px solid #1b2436; border-radius: 5px;
@@ -123,7 +130,7 @@
 .wd-puzzle.solved .pz-k { color: #1a7f37; }
 
 /* ---------- the 3D printer ---------- */
-.wd-p12 { left: 12cqw; top: 62cqh; width: 23cqw; rotate: -5deg; padding: 1.4cqw; background: #fff; border-radius: 12px; }
+.wd-p12 { width: 23cqw; padding: 1.4cqw; background: #fff; border-radius: 12px; }
 .p12-m { position: relative; aspect-ratio: 1 / 1.08; container-type: inline-size; }
 .p12-top { position: absolute; left: 12%; right: 12%; top: 20%; height: 3.5%; background: #2b313d; border-radius: 2px; }
 .p12-rl, .p12-rr { position: absolute; top: 20%; bottom: 16%; width: 3.5%; background: #2b313d; border-radius: 2px; }
@@ -143,9 +150,10 @@
 @keyframes gantry { from { top: 79%; } to { top: 31%; } }
 @keyframes nozzle { from { translate: -160% 0; } to { translate: 160% 0; } }
 
-/* ---------- "your sticker here" ---------- */
+/* ---------- Your sticker ---------- */
+
 .wd-round { display: grid; place-items: center; width: 19cqw; aspect-ratio: 1; border-radius: 50%; border: 3px solid #fff; }
-.wd-blank { left: 41cqw; top: 70cqh; background: transparent; border: 2.5px dashed rgba(40, 28, 10, 0.55); color: var(--ink-fixed); text-align: center; overflow: hidden; font: 700 clamp(0.6rem, 3.4cqw, 0.82rem) / 1 var(--font-hand); }
+.wd-blank { background: transparent; border: 2.5px dashed rgba(40, 28, 10, 0.55); color: var(--ink-fixed); text-align: center; overflow: hidden; font: 700 clamp(0.6rem, 3.4cqw, 0.82rem) / 1 var(--font-hand); }
 .wd-mine .mn-shape { position: absolute; inset: 0; display: grid; place-items: center; }
 .wd-mine .mn-img { position: absolute; inset: 0; display: none; border-radius: 50%; background: center / cover no-repeat; }
 .wd-mine.has { border: 3px solid #fff; background: #fff; }
@@ -157,25 +165,50 @@
 .wd-mine.styled .mn-img { border-radius: 0; }
 .wd-mine.styled .mn-t { color: var(--ink-fixed); } /* dark ink on every paper colour: 8:1 or better */
 /* the shapes a custom sticker can take, as masks (a sticker, the maker's preview and the picker's little icons all share them) */
-[data-shape="circle"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50'/%3E%3C/svg%3E"); }
+[data-shape="circle"], [data-shape="star"], [data-shape="heart"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50'/%3E%3C/svg%3E"); } /* star and heart were retired; any left over show as a circle */
 [data-shape="rounded"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='26'/%3E%3C/svg%3E"); }
-[data-shape="star"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,1 62,35 98,36 69,57 80,92 50,71 20,92 31,57 2,36 38,35'/%3E%3C/svg%3E"); }
-[data-shape="heart"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 94C20 70 3 52 3 31 3 16 14 6 28 6 38 6 46 12 50 21 54 12 62 6 72 6 86 6 97 16 97 31 97 52 80 70 50 94Z'/%3E%3C/svg%3E"); }
-
+[data-shape="square"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='4'/%3E%3C/svg%3E"); }
+[data-shape="pentagon"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,2 98,37 80,96 20,96 2,37'/%3E%3C/svg%3E"); }
+[data-shape="hexagon"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='25,5 75,5 99,50 75,95 25,95 1,50'/%3E%3C/svg%3E"); }
+[data-shape="triangle"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,4 98,94 2,94'/%3E%3C/svg%3E"); }
+[data-shape="diamond"] { --shape-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,1 99,50 50,99 1,50'/%3E%3C/svg%3E"); }
 
 /* ---------- the tennis ball ---------- */
 .wd-ball {
-  left: 74cqw; top: 47cqh; width: 14cqw; z-index: 5; aspect-ratio: 1; overflow: hidden; border-radius: 50%; cursor: grab; touch-action: none;
+  width: 14cqw; aspect-ratio: 1; overflow: hidden; border-radius: 50%; cursor: grab; touch-action: none;
   background: #d7ea4f; border: 3px solid #fff;
 }
 .wd-ball::before, .wd-ball::after { content: ""; position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2.5px solid #fff; top: -10%; }
 .wd-ball::before { left: -66%; }
 .wd-ball::after { left: 56%; }
-.wd-ball.held { cursor: grabbing; scale: 1.06; }
+.wd-ball.free { scale: var(--slot-scale, 1); } /* ball.js frees it from its slot, which carried the layout's scale */
+.wd-ball.held { cursor: grabbing; scale: calc(1.06 * var(--slot-scale, 1)); }
 .wd-ball.hop { animation: hop 0.5s var(--ease-out); }
 @keyframes hop { 40% { transform: translateY(-14px); } }
 
+/* ---------- Spotty Pal ---------- */
+
+.wd-cow { width: 33cqw; aspect-ratio: 138 / 100.9; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.wd-cow svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.wd-cow:focus-visible { outline: 2px solid #0062cc; outline-offset: 4px; border-radius: 10px; }
+.wd-cow .dr-l { stroke-dasharray: 1 2; stroke-dashoffset: 0; }
+.wd-cow .dr-fig, .wd-cow .dr-part { transform-box: fill-box; transform-origin: 50% 100%; }
+
+/* tap: each line inks in again in turn, the colours follow, then a little bounce. The ground stays put. */
+.wd-cow.go .dr-l { animation: cow-ink 0.22s cubic-bezier(0.45, 0.1, 0.35, 1) calc(var(--i) * 0.9s / var(--n)) both; }
+.wd-cow.go .dr-fills, .wd-cow.go .dr-blobs, .wd-cow.go .dr-details { animation: cow-fill 0.25s ease-out 0.95s both; }
+.wd-cow.go .dr-fig { animation: cow-bounce 0.5s var(--ease-out, cubic-bezier(0.2, 0.7, 0.2, 1)) 1.2s both; }
+@keyframes cow-ink { 0% { stroke-dashoffset: 1; opacity: 0; } 4% { opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 1; } }
+@keyframes cow-fill { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cow-bounce { 0% { transform: none; } 30% { transform: translateY(-6%) scale(0.98, 1.03); } 58% { transform: translateY(0) scale(1.04, 0.95); } 78% { transform: scale(0.99, 1.01); } 100% { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .wd-cow.go .dr-l, .wd-cow.go .dr-fills, .wd-cow.go .dr-blobs, .wd-cow.go .dr-details { animation: none; } .wd-cow.go .dr-fig { animation: cow-calm 0.4s ease-out both; } }
+
+/* calm path: a soft fade back in, no drawing or moving */
+.wd-cow.calm .dr-fig { animation: cow-calm 0.4s ease-out both; }
+@keyframes cow-calm { from { opacity: 0.55; } to { opacity: 1; } }
+
 /* ---------- the sticker maker (a dialog) ---------- */
+
 .maker { width: min(92vw, 380px); padding: 0; color: var(--ink); background: var(--surface); border: var(--edge) solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--lift); }
 .maker::backdrop { background: var(--scrim); }
 .maker-in { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
@@ -189,7 +222,7 @@
 .maker-pens button { width: 28px; height: 28px; padding: 0; border-radius: 50%; cursor: pointer; background: var(--c); border: 2px solid var(--surface); box-shadow: 0 0 0 1.5px var(--line-control); }
 .maker-pens button[aria-pressed="true"] { box-shadow: 0 0 0 2.5px var(--ink); }
 .maker-look { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 16px; }
-.maker-opts { display: flex; gap: 6px; }
+.maker-opts { display: flex; flex-wrap: wrap; gap: 6px; }
 .maker-opts button { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; cursor: pointer; background: var(--surface); color: var(--ink); border: 2px solid var(--line-control); border-radius: 10px; }
 .maker-opts .maker-swatch { background: var(--c); border-color: var(--surface); border-radius: 50%; box-shadow: 0 0 0 1.5px var(--line-control); }
 .maker-shape::before { content: ""; display: block; width: 20px; height: 20px; background: currentColor; -webkit-mask: var(--shape-mask) center / 100% 100% no-repeat; mask: var(--shape-mask) center / 100% 100% no-repeat; }
@@ -202,11 +235,11 @@
 .maker button:focus-visible, .maker label:focus-within { outline: 2.5px solid var(--action); outline-offset: 2px; }
 
 /* browsers without container queries get the plain kraft cover and its open button */
-@supports not (container-type: size) { .cover-front .wd { display: none; } }
+@supports not (container-type: size) { .cover-front .wd-slot, .cover-inside .wd-slot { display: none; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .cover-front .wd, .pz-t { transition: none !important; }
-  .cover-front .wd *, .cover-front .wd, .wd-sh { animation: none !important; }
+  .cover-front .wd, .cover-inside .wd, .pz-t { transition: none !important; }
+  .cover-front .wd *, .cover-front .wd, .cover-inside .wd *, .cover-inside .wd, .wd-sh { animation: none !important; }
 }
 
 /* ---------- the hint: a quiet preview of each sticker's own tap animation, smaller and shorter (hints.js adds .hint) ---------- */

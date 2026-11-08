@@ -1,13 +1,13 @@
 /* The nine vinyl stickers on the cover. Sizes and places are in cqw/cqh, percentages of the cover itself,
    so the whole arrangement scales with it. The cover is always a 5 by 8 notebook. */
 
-.cover-front {
+.cover-front, .cover-inside {
   --sticker-lemon: #fff5b8; --sticker-sky: #dcecff; --sticker-note: var(--paper-note);
   --navy: #24364f; --teal: #3f7f7a; --maroon: #8a2433;
 }
 
 /* ---------- every sticker: a die-cut vinyl with a white edge and a sheen ---------- */
-.cover-front .wd {
+.cover-front .wd, .cover-inside .wd {
   position: absolute; color: var(--ink-fixed); cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: none;
   -webkit-tap-highlight-color: transparent; transition: scale var(--duration-press) var(--ease-out);
   filter: drop-shadow(1.6px 0 0 #fff) drop-shadow(-1.6px 0 0 #fff) drop-shadow(0 1.6px 0 #fff) drop-shadow(0 -1.6px 0 #fff) drop-shadow(0 5px 5px rgba(0, 0, 0, 0.45));

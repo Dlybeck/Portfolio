@@ -5,9 +5,7 @@ import { el, reducedMotion, tuck } from "./motion.js";
 import { stickersHtml, wireStickers } from "./stickers/index.js";
 
 // One timing for the whole opening: the cover swinging on its spine and the book sliding to its open spot.
-// The same two values are set on the page as --nb-open-ms and --nb-open-ease, which the book's slide uses.
-const OPEN_MS = 800;
-const SWING = "cubic-bezier(0.22, 0.7, 0.25, 1)";
+// It is defined once, in notebook.css, as --nb-open-ms and --nb-open-ease; the cover reads the same values.
 const FADE_MS = 260; // with reduced motion the cover fades instead of swinging
 
 /**
@@ -22,8 +20,9 @@ export function createCover({ root, book, phone, onTap }) {
   let timer = 0;
   let moving = 0;
   let closed = false;
-  root.style.setProperty("--nb-open-ms", `${OPEN_MS}ms`);
-  root.style.setProperty("--nb-open-ease", SWING);
+  const css = getComputedStyle(root);
+  const OPEN_MS = parseFloat(css.getPropertyValue("--nb-open-ms")) || 800;
+  const SWING = css.getPropertyValue("--nb-open-ease").trim() || "cubic-bezier(0.65, 0, 0.35, 1)";
   // While the cover is shut, what lies under it must not be reachable by keyboard or screen reader.
   const covered = () => book.querySelectorAll(":scope > .nb-page, :scope > .nb-ear");
   const setCovered = (on) => covered().forEach((n) => { n.inert = on; });

@@ -1,6 +1,7 @@
 // The book: puts the server-written pages onto one page (phone) or a two-page spread (desktop)
 // and turns them. Several leaves can be in the air at once, so a fast wheel riffles through the book.
 
+import { insideCover } from "./inside.js";
 import { el, reducedMotion, tuck } from "./motion.js";
 
 const TURN_MS = 720;
@@ -82,9 +83,14 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
     if (phone) return [wrap(sectionsOf(id))];
     const info = data.pages[id];
     if (info.layout === "pair") return [wrap(sectionsOf(id)), wrap(sectionsOf(info.pair))];
+    // like a real notebook: the first page sits alone on the right of the inside front cover (the contents rest on
+    // the cover as a card), and the last page sits alone on the left of the inside back cover
+    if (info.layout === "front") return [insideCover("front", wrap(sectionsOf(info.pair))), wrap(sectionsOf(id))];
+    if (info.layout === "back") return [wrap(sectionsOf(id)), insideCover("back")];
     if (info.layout === "split") {
       const parts = sectionsOf(id);
-      return [wrap(parts.slice(0, 1)), wrap(parts.slice(1))];
+      const at = info.split ?? 1;
+      return [wrap(parts.slice(0, at)), wrap(parts.slice(at))];
     }
     // "list": the section's list of stories on the left, this story on the right
     return [wrap(sectionsOf(info.section), { cur: id }), wrap(sectionsOf(id))];
@@ -122,8 +128,11 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
     root.dataset.page = id;
     root.dispatchEvent(new CustomEvent("nb:view", { detail: id }));
     const title = data.pages[id].title;
-    inL.setAttribute("aria-label", phone ? title : `${title}, left page`);
-    inR?.setAttribute("aria-label", `${title}, right page`);
+    const layout = data.pages[id].layout;
+    inL.setAttribute("aria-label", phone ? title : layout === "front" ? "Contents, inside front cover" : `${title}, left page`);
+    inR?.setAttribute("aria-label", layout === "back" ? "Inside back cover" : `${title}, right page`);
+    root.classList.toggle("is-first-spread", !phone && layout === "front");
+    root.classList.toggle("is-last-spread", !phone && layout === "back");
     root.classList.toggle("is-turned", i > 0);
     prev.disabled = i <= 0;
     next.disabled = i >= total - 1;

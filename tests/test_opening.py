@@ -158,3 +158,16 @@ def test_phone_opening_still_swings_over_the_first_page_without_a_second_flip(br
     # the book does not move on a phone, and the cover keeps its size
     assert len({translate_x(x["book"]) for x in s}) == 1
     assert len({(x["leaf"]["w"], x["leaf"]["h"]) for x in s if x["leaf"]}) == 1
+
+
+def test_a_finger_tap_on_the_open_button_opens_the_cover_on_a_phone(new_page, live_server_url) -> None:
+    """The wheel's invisible grab circle once reached over the button: a real touch landed on the dial, not the button."""
+    for size in ({"width": 360, "height": 740}, {"width": 375, "height": 667}, PHONE, {"width": 430, "height": 932}):
+        page = new_page(viewport=size, is_mobile=True, has_touch=True)
+        for fx, fy in ((0.5, 0.5), (0.5, 0.85), (0.15, 0.5)):  # the middle, the lower edge (nearest the wheel), the left
+            page.goto(live_server_url + "/")
+            page.wait_for_selector("#notebook.nb--phone.is-closed")
+            page.wait_for_timeout(900)
+            box = page.locator(".cover-open").bounding_box()
+            page.touchscreen.tap(box["x"] + box["width"] * fx, box["y"] + box["height"] * fy)
+            page.wait_for_function("!document.getElementById('notebook').classList.contains('is-closed')", timeout=3000)

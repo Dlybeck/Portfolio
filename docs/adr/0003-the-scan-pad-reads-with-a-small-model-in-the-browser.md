@@ -26,9 +26,16 @@ sentence samples per font):
 
 So: 8-bit, the smallest build that reads as well as the biggest.
 
-It reads one line at a time, so the pad's four ruled rows are the lines. Strokes are kept as
-points, grouped by row, and redrawn large in thin dark ink before reading. This matters a
-great deal: the same strokes at on-screen size and thickness read as nonsense.
+It reads one line at a time, and the pad has room for a word (sometimes two), so everything
+written on it is read as one line, however tall it is written and however many ruled lines it
+crosses. Strokes are kept as points, cropped tightly to the ink and redrawn large in thin dark
+ink on white before reading. This matters a great deal: the same strokes at on-screen size and
+thickness read as nonsense. (An earlier version cut the writing into slices at the ruled lines;
+a word written big across them came back as three lines of invented text.)
+
+The answer is shown only if it is believable for the ink: it must contain a letter or digit, be
+at most two words and 24 characters, and be no longer than the ink could hold. Otherwise the pad
+says "Couldn't read that. Try again" rather than show the model's guess.
 
 ## Loading
 

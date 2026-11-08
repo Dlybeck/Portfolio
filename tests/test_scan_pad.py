@@ -12,7 +12,7 @@ import pytest
 DESKTOP = {"width": 1280, "height": 800}
 WORKER = "**/stickers/ocr.worker.js"
 
-# loads in about a second, reporting its progress; reads every row it is given as "line 1", "line 2", ...
+# loads in about a second, reporting its progress; reads what it is given as "line 1", ...
 READER = """
 addEventListener("message", ({ data }) => {
   if (data.type === "load") {
@@ -208,15 +208,15 @@ WATCH = """() => {
 }"""
 
 
-def test_the_pad_shows_progress_then_reads_each_written_row(browser_page) -> None:
+def test_the_pad_shows_progress_then_reads_everything_written_as_one_line(browser_page) -> None:
     page, base = browser_page
     serve(page, READER)
     open_cover(page, base, DESKTOP)
     page.evaluate(WATCH)
     geo = pad_geometry(page)
-    stroke_mouse(page, [screen(geo, 0.1, 0.12), screen(geo, 0.6, 0.15), screen(geo, 0.8, 0.1)])  # row 1
-    stroke_mouse(page, [screen(geo, 0.1, 0.62), screen(geo, 0.6, 0.65), screen(geo, 0.8, 0.6)])  # row 3 (row 2 left empty)
-    page.wait_for_function("window.__seen.some((s) => s[2] === 'line 1\\nline 2')", timeout=10000)
+    stroke_mouse(page, [screen(geo, 0.1, 0.12), screen(geo, 0.6, 0.15), screen(geo, 0.8, 0.1)])  # near the top ruled line
+    stroke_mouse(page, [screen(geo, 0.1, 0.82), screen(geo, 0.6, 0.85), screen(geo, 0.8, 0.8)])  # and near the bottom one: still one word
+    page.wait_for_function("window.__seen.some((s) => s[2] === 'line 1')", timeout=10000)
     seen = page.evaluate("window.__seen")
     states = [s[0] for s in seen]
     fractions = [float(s[1]) for s in seen if s[0] == "load" and s[1]]
@@ -654,25 +654,65 @@ def test_the_scan_button_is_finger_sized_on_a_phone(mobile_browser_page) -> None
     assert page.locator(".wd-scan .sc-go").bounding_box()["height"] >= 44
 
 
-# ---- the geometry that turns strokes into lines, without a browser pad or a model
+# ---- one line, however tall: the whole pad is read once
 
-SPLIT = """async () => {
+# what the reader hears, and sends back, as strings a test can read; JUNK answers with a sentence whatever it is shown
+JUNK = 'addEventListener("message", ({ data }) => { if (data.type === "load") postMessage({ type: "ready" }); else if (data.type === "read") { postMessage({ type: "line", id: data.id, index: 0, text: "3 External links" }); postMessage({ type: "done", id: data.id }); } });'
+
+
+def test_a_word_written_across_several_ruled_lines_is_read_once_as_one_line(browser_page) -> None:
+    page, base = browser_page
+    serve(page, CANCELLABLE_READER)
+    page.add_init_script("window.__stub = []; new BroadcastChannel('stub').onmessage = (e) => window.__stub.push(e.data)")
+    open_cover(page, base, DESKTOP)
+    geo = pad_geometry(page)
+    # a tall letter from the top ruled line to the bottom one, and two lower ones beside it: "test" written big
+    stroke_mouse(page, [screen(geo, 0.2, 0.05), screen(geo, 0.2, 0.9)])
+    stroke_mouse(page, [screen(geo, 0.1, 0.3), screen(geo, 0.32, 0.3)])
+    stroke_mouse(page, [screen(geo, 0.4, 0.6), screen(geo, 0.5, 0.45), screen(geo, 0.6, 0.6), screen(geo, 0.7, 0.8)])
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)
+    reads = [m for m in page.evaluate("window.__stub") if m.startswith("read:")]
+    assert len(reads) == 1 and reads[0].endswith(":1")  # one read of one image, not a slice per row
+    assert untouched(page)
+
+
+def test_an_answer_that_could_not_come_from_that_ink_is_not_shown(browser_page) -> None:
+    page, base = browser_page
+    serve(page, JUNK)
+    open_cover(page, base, DESKTOP)
+    stroke_mouse(page, [screen(pad_geometry(page), 0.3, 0.4), screen(pad_geometry(page), 0.42, 0.45)])  # a short mark
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent.startsWith('Couldn')", timeout=10000)
+    assert page.locator(".wd-scan .sc-t").inner_text() == "Couldn’t read that. Try again"
+    assert page.locator(".wd-scan").get_attribute("data-state") == "done"  # a plain note, not the error look with a retry
+    assert not page.locator(".wd-scan .sc-go").is_visible()
+
+
+# ---- the geometry that turns strokes into a line, without a browser pad or a model
+
+LINE = """async () => {
   const ink = await import('/static/js/notebook/stickers/ink.js');
-  const H = 120; // four rows of 30
-  const line = (y, x0 = 10, x1 = 80) => [[x0, y], [(x0 + x1) / 2, y + 3], [x1, y]];
-  const rows = ink.splitRows([line(8), line(70), line(75, 20, 90), [[5, 100], [6, 100]]], H); // rows 1 and 3, and a stray touch in row 4
-  const raster = ink.rasterRow([line(8)], 30);
+  const wave = (y0, x0, x1) => [[x0, y0], [(x0 + x1) / 2, y0 + 3], [x1, y0]];
+  const tall = [wave(5, 20, 60), [[30, 2], [30, 100]], wave(90, 100, 180)]; // one word: crosses every ruled line
+  const one = ink.inkLine(tall);
+  const raster = ink.rasterLine(tall, 31);
   const px = (i) => raster.data.slice(i * 4, i * 4 + 3);
   const dark = Array.from({ length: raster.width * raster.height }, (_, i) => px(i)).filter(([r, g, b]) => r + g + b < 200).length;
-  return { rows: rows.map((r) => [r.row, r.strokes.length]), width: raster.width, height: raster.height, corner: [...px(0)], dark, rowOfLow: ink.rowOf(line(118), H), rowOfSpill: ink.rowOf([[0, 28], [1, 38]], H) };
+  const b = (said, w, h) => ink.believable(said, { width: w, height: h }, 31);
+  return {
+    one: [Math.round(one.width), Math.round(one.height), one.strokes.length], stray: ink.inkLine([[[5, 100], [6, 100]]]), none: ink.inkLine([]),
+    corner: [...px(0)], dark, aspect: raster.width >= raster.height,
+    ok: [b('test', 160, 98), b(' hello   world ', 230, 25), b('dog', 80, 90)],
+    junk: [b('3 External links', 30, 12), b('a b c d e f', 230, 25), b('???', 100, 25), b('', 100, 25), b('x'.repeat(40), 900, 25), b('one two three', 300, 25)],
+  };
 }"""
 
 
-def test_strokes_are_split_by_ruled_row_and_redrawn_for_the_model(browser_page) -> None:
+def test_all_the_ink_is_one_line_and_only_believable_answers_survive(browser_page) -> None:
     page, base = browser_page
     page.goto(base + "/")
-    result = page.evaluate(SPLIT)
-    assert result["rows"] == [[0, 1], [2, 2]]  # empty rows and the stray touch are skipped
-    assert result["rowOfLow"] == 3 and result["rowOfSpill"] == 1  # a stroke belongs to the row its middle is in
-    assert result["corner"] == [255, 255, 255]  # dark ink on white, whatever colour it was on the pad
-    assert result["dark"] > 100 and result["width"] >= result["height"]
+    r = page.evaluate(LINE)
+    assert r["one"] == [160, 98, 3]  # all of it, however tall: one line
+    assert r["stray"] is None and r["none"] is None  # a stray touch is nothing
+    assert r["corner"] == [255, 255, 255] and r["dark"] > 100 and r["aspect"]  # dark ink on clean white, only the ink
+    assert r["ok"] == ["test", "hello world", "dog"]
+    assert r["junk"] == ["", "", "", "", "", ""]  # a sentence from a few marks, too many words, no letters, nothing, too long

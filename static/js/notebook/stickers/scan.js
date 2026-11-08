@@ -1,13 +1,14 @@
 // The scan pad. It writes a word, scans it and types it out; write on it yourself and it reads what you wrote.
 //
-// Reading is real: the strokes are kept, split by the pad's ruled rows, and each row goes to a small handwriting model
+// Reading is real: the strokes are kept, and everything on the pad is read as one line (it is a word, sometimes two, written
+// as big as the writer likes) by a small handwriting model
 // that runs in a worker (ocr.js). The model (about 70 MB) is fetched in the background once the page is idle (unless the
 // visitor's device or link says not to), or when someone first writes on the pad or presses "scan"; the browser keeps it
 // after that. Until it is needed the pad just plays its little word demo.
 
 import { reducedMotion } from "./common.js";
 import { ocr, preload } from "./ocr.js";
-import { ROWS, rasterRow, splitRows } from "./ink.js";
+import { ROWS, believable, inkLine, rasterLine } from "./ink.js";
 
 const WORDS = ["hello", "notes", "ideas", "hi there"];
 const PAUSE_MS = 1500; // after the pen lifts, wait this long for more writing before reading it
@@ -108,7 +109,7 @@ export const scan = {
     let penId = -1;
     let epoch = 0; // bumped whenever the pad is wiped, so a late answer for old writing is dropped
     let version = 0; // bumped on every new stroke, so an answer for writing that has since grown is not shown as final
-    const results = new Map(); // ruled row -> { key, text }
+    let result = null; // { key, text } for the writing as it was last read ('' text: nothing believable)
     let readTimer = 0;
     let clearTimer = 0;
 
@@ -161,7 +162,8 @@ export const scan = {
       });
     }
 
-    const rowKey = (r) => `${r.strokes.length}:${r.strokes.reduce((n, s) => n + s.length, 0)}`;
+    // the same writing while it has the same strokes, points and size
+    const sig = (r) => `${r.strokes.length}:${r.strokes.reduce((n, s) => n + s.length, 0)}:${Math.round(r.width)}x${Math.round(r.height)}`;
 
     async function read() {
       clearTimeout(readTimer);
@@ -169,9 +171,9 @@ export const scan = {
       const mine = epoch;
       const seen = version;
       if (ocr.off) { showOff(); return; }
-      let rows;
-      try { rows = splitRows(strokes, fitH); } catch { rows = []; }
-      if (!rows.length) {
+      let line = null;
+      try { line = inkLine(strokes); } catch { /* too much to measure: treat as nothing */ }
+      if (!line) {
         message("Nothing to read yet");
         setState("done");
         clearTimer = setTimeout(() => alive() && mine === epoch && wipe(), 3000);
@@ -192,16 +194,17 @@ export const scan = {
         message("Reading…");
         say("Reading");
         const pitch = fitH / ROWS;
-        const todo = rows.filter((r) => results.get(r.row)?.key !== rowKey(r)); // rows already read and unchanged are kept
-        const keys = todo.map(rowKey);
-        const lines = todo.length ? await ocr.read(todo.map((r) => rasterRow(r.strokes, pitch))) : [];
-        if (mine !== epoch || !alive()) return;
-        todo.forEach((r, i) => results.set(r.row, { key: keys[i], text: lines[i] }));
+        const key = sig(line);
+        if (result?.key !== key) { // (writing already read and unchanged is not read again)
+          const [said] = await ocr.read([rasterLine(line.strokes, pitch)]);
+          if (mine !== epoch || !alive()) return;
+          result = { key, text: believable(said, line, pitch) }; // "" when the answer is not believable for this ink
+        }
         if (seen !== version) return; // more was written meanwhile; the read that follows it shows the answer
-        const text = rows.map((r) => results.get(r.row)?.text).filter(Boolean).join("\n");
+        const text = result.text;
         setState("done");
         if (text) { progress.style.removeProperty("--p"); sweep(() => type(text)); }
-        else { message("Couldn’t read that"); say("Couldn’t read that"); }
+        else { message("Couldn’t read that. Try again"); say("Couldn’t read that. Try again"); }
         clearTimer = setTimeout(() => alive() && mine === epoch && wipe(), LINGER_MS + text.length * 60);
       } catch (error) {
         if (mine !== epoch || !alive() || ocr.off) return; // (switching off shows its own note)
@@ -239,7 +242,7 @@ export const scan = {
       ocr.cancel(); // and the reader stops spending time on it
       strokes = [];
       pen = null;
-      results.clear();
+      result = null;
       ink.clearRect(0, 0, canvas.width, canvas.height);
       card.classList.remove("typing");
       word.classList.remove("wr");

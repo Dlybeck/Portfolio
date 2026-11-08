@@ -199,7 +199,7 @@ export const scan = {
         message(text);
         say(text);
       } finally {
-        active--;
+        if (mine === epoch) active--; // (a clear has already zeroed the count)
       }
     }
 
@@ -223,6 +223,7 @@ export const scan = {
       clearTimeout(clearTimer);
       clear(); // the demo's and the typing's timers
       epoch++; // an answer still on its way for the old writing is dropped when it lands
+      active = 0; // and the reads asked for are forgotten (their own bookkeeping, below, no longer counts)
       ocr.cancel(); // and the reader stops spending time on it
       strokes = [];
       pen = null;

@@ -109,6 +109,7 @@
 /* the clear button: a small round cross in the pad's top right corner. The button is a 36 px box (the touch target) with the 22 px chip drawn inside it. */
 .sc-clear { position: absolute; top: 0; right: 0; z-index: 2; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; cursor: pointer; border: 0; background: transparent; -webkit-tap-highlight-color: transparent; }
 .sc-clear[hidden] { display: none; }
+@media (pointer: coarse) { .sc-clear { width: 44px; height: 44px; } } /* a finger gets the full 44 px */
 .sc-clear i { position: relative; width: 22px; height: 22px; border-radius: 50%; background: #fffdf6; border: 1.5px solid rgba(11, 79, 156, 0.4); box-sizing: border-box; }
 .sc-clear i::before, .sc-clear i::after { content: ""; position: absolute; left: 50%; top: 50%; width: 9px; height: 1.8px; margin: -0.9px 0 0 -4.5px; border-radius: 1px; background: #0b4f9c; rotate: 45deg; }
 .sc-clear i::after { rotate: -45deg; }

@@ -64,13 +64,11 @@ def check(shots):
         if s["coverEdge"] is None:  # the leaf is gone at the end of an opening: the board is the whole book
             continue
         under = s["coverEdge"] - s["spine"]
-        # the clip also opens up to the board's 12px rim as the cover lands, so the board's hard shadow is not cut off at its edge
-        slack = 12 * min(1, max(0, -under / s["half"]))
-        edge = s["boardEdge"] + slack
+        edge = s["boardEdge"]
         if under >= 0:
             assert abs(edge - s["spine"]) <= 1.0, s  # shut side: flush at the spine, under the cover
         else:
-            assert abs(edge - s["coverEdge"]) <= 1.5, (edge, s)
+            assert abs(edge - s["coverEdge"]) <= 1.0, (edge, s)
 
 
 @pytest.fixture

@@ -53,3 +53,4 @@
 .cover-inside--back { box-shadow: inset 22px 0 18px -14px rgba(0, 0, 0, 0.38), inset 0 0 40px rgba(60, 40, 10, 0.18); }
 .nb-in:has(> .page > .cover-inside) { -webkit-mask-image: none; mask-image: none; overflow: hidden; } /* no fade at the foot of a cover */
 .nb.is-first-spread .nb-pn.lft, .nb.is-last-spread .nb-pn.rgt { visibility: hidden; } /* nothing to number on a cover */
+.nb.is-first-spread .nb-ear.prev, .nb.is-last-spread .nb-ear.next, .nb.is-last-spread .nb-hint-flip { visibility: hidden; } /* and no page corner (or "flip" hint, there being no page to flip to) on a bare cover, even in the moment a turn is still landing */

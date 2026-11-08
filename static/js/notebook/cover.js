@@ -2,7 +2,7 @@
 // when you spin the wheel past page 1.
 
 import { el, reducedMotion, tuck } from "./motion.js";
-import { createSwing, easeFrom } from "./swing.js?v=2";
+import { createSwing, easeFrom } from "./swing.js?v=3";
 import { stickersHtml, wireStickers } from "./stickers/index.js";
 
 // One timing for the whole opening: the cover swinging on its spine and the book sliding to its open spot.

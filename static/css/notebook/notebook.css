@@ -120,20 +120,27 @@ body {
 .nb--phone .nb-leaf .back { background-image: linear-gradient(90deg, #d6cdb6, #fbf7ec 45%, #e4dccb); }
 .nb-leaf.is-riffle .face { box-shadow: 0 0 0 1px rgba(20, 28, 43, 0.06); }
 
-.nb-pn { position: absolute; bottom: 14px; font: 500 0.75rem/1 var(--font-mono); letter-spacing: 0.08em; color: rgba(20, 28, 43, 0.65); z-index: 7; pointer-events: none; }
-.nb-pn.rgt { right: 48px; }
-.nb-pn.lft { left: 26px; }
-.nb--phone .nb-pn.lft { display: none; }
+/* A page's folio and corner fold belong to the page. The live ones (.nb-pn, .nb-ear) sit on the book; a turning leaf carries its own copies
+   (.face-pn, .face-ear, drawn the same) on each face, so they turn with the page and the landed page matches the leaf's last frame. */
+.nb-pn, .face-pn { position: absolute; bottom: 14px; font: 500 0.75rem/1 var(--font-mono); letter-spacing: 0.08em; color: rgba(20, 28, 43, 0.65); z-index: 7; pointer-events: none; }
+.nb-pn.rgt, .face-pn.rgt { right: 48px; }
+.nb-pn.lft, .face-pn.lft { left: 26px; }
+.nb--phone .nb-pn.lft, .nb--phone .face-pn.lft { display: none; }
 
-.nb-ear { /* a folded page corner you can tap to turn */
+.nb-ear, .face-ear { /* a folded page corner you can tap to turn */
   position: absolute; bottom: 0; width: 48px; height: 48px; border: 0; padding: 0; cursor: pointer; z-index: 7; background: none;
 }
-.nb-ear::before {
+.nb-ear::before, .face-ear::before {
   content: ""; position: absolute; inset: 0; clip-path: polygon(100% 0, 100% 100%, 0 100%);
   background: linear-gradient(135deg, transparent 50%, var(--nb-edge) 50%, var(--nb-edge) calc(50% + 1.5px), color-mix(in srgb, var(--paper-note) 86%, #141c2b) calc(50% + 1.5px));
 }
-.nb-ear.next { right: 0; }
-.nb-ear.prev { left: 0; transform: scaleX(-1); }
+.nb-ear.next, .face-ear.next { right: 0; }
+.nb-ear.prev, .face-ear.prev { left: 0; transform: scaleX(-1); }
+.face-ear { display: block; pointer-events: none; cursor: default; }
+/* a face has a border, which insets what is positioned in it; the live ones sit on the book, so pull the copies out by the border to match */
+.face-pn, .face-ear { margin-bottom: calc(var(--edge) * -1); }
+.face-pn.lft, .face-ear.prev { margin-left: calc(var(--edge) * -1); }
+.face-pn.rgt, .face-ear.next { margin-right: calc(var(--edge) * -1); }
 .nb-ear[disabled] { display: none; }
 .nb-hint-flip { position: absolute; right: 52px; bottom: 40px; rotate: -6deg; color: var(--nb-pen); pointer-events: none; z-index: 7; font: 700 1.25rem/1 var(--font-hand); transition: opacity 0.4s; }
 
@@ -164,6 +171,9 @@ body {
   .nb--desktop.is-closed .nb-back { clip-path: inset(calc(var(--nb-rim) * -1) calc(var(--nb-rim) * -1) calc(var(--nb-rim) * -1) 50%); } /* shut: only the cover's half, flush at the spine */
   .nb--desktop .nb-page.l { right: 50%; border-radius: 3px 0 0 3px; border-right-color: rgba(20, 28, 43, 0.25); }
   .nb--desktop .nb-page.r { left: 50%; border-radius: 0 3px 3px 0; border-left: 0; }
+  /* a turning leaf's faces are the same pages: a right page has no left border (so its text keeps the same width and wraps the same way once it lands) */
+  .nb--desktop .nb-leaf:not(.cover) .face.r-face { border-left: 0; border-radius: 0 3px 3px 0; }
+  .nb--desktop .nb-leaf:not(.cover) .face:not(.r-face) { border-radius: 3px 0 0 3px; border-right-color: rgba(20, 28, 43, 0.25); }
   /* the left page does not exist while the book is shut or the cover is still swinging: the cover's back face IS the
      left page, and lands exactly where it is, so there is no second flip or fade at the end */
   .nb--desktop.is-closed .nb-page.l, .nb--desktop.is-closed .nb-gutter,
@@ -190,8 +200,8 @@ body {
   .nb--desktop .nb-in { padding: 34px 40px 52px 44px; }
   /* the right page keeps room for its folio and corner fold, but gives words the width back as the book shrinks (88px at full size, ~50px at 1024 wide) */
   .nb--desktop .nb-page.r .nb-in, .nb--desktop .nb-leaf .r-face .nb-in { padding: 34px max(48px, min(88px, calc(var(--bw) * 0.13 - 38px))) 52px 42px; }
-  .nb--desktop .nb-pn.lft { left: 46px; }
-  .nb--desktop .nb-pn.rgt { right: 90px; }
+  .nb--desktop .nb-pn.lft, .nb--desktop .face-pn.lft { left: 46px; }
+  .nb--desktop .nb-pn.rgt, .nb--desktop .face-pn.rgt { right: 90px; }
   .nb--desktop .nb-hint-flip { right: 98px; }
 }
 
@@ -210,7 +220,7 @@ body {
   }
   .nb--desktop .nb-in { padding: 18px 22px 40px 28px; }
   .nb--desktop .nb-page.r .nb-in, .nb--desktop .nb-leaf .r-face .nb-in { padding: 18px 40px 40px 24px; }
-  .nb--desktop .nb-pn.rgt { right: 44px; }
+  .nb--desktop .nb-pn.rgt, .nb--desktop .face-pn.rgt { right: 44px; }
   .nb--desktop .nb-hint-flip { right: 52px; bottom: 30px; font-size: 1rem; }
 }
 

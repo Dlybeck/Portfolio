@@ -36,7 +36,7 @@ def test_every_route_returns_the_whole_notebook(client: TestClient, route: str) 
 def test_pages_are_server_rendered_with_their_words(client: TestClient) -> None:
     html = client.get("/jobs").text
 
-    assert "This notebook is my portfolio: things I've built, where I've worked and studied, and what I do for fun." in html
+    assert "Innovation AI Developer" in html
     assert "From coaching tennis to building AI tools." in html
     assert "ScribbleScan LLC" in html
 
@@ -44,7 +44,7 @@ def test_pages_are_server_rendered_with_their_words(client: TestClient) -> None:
 def test_the_page_order_matches_the_notebook(client: TestClient) -> None:
     data = nb_data(client.get("/").text)
 
-    assert len(data["phone"]) == 14
+    assert len(data["phone"]) == 13
     assert len(data["desktop"]) == 11
     assert set(data["desktop"]) <= set(data["phone"])
     for route in data["routes"].values():
@@ -131,7 +131,7 @@ def test_the_cover_opens_and_the_address_follows(browser_page) -> None:
     page.wait_for_timeout(1100)
 
     assert "is-closed" not in page.locator("#notebook").get_attribute("class")
-    assert page.locator("#notebook").get_attribute("data-page") == "me"
+    assert page.locator("#notebook").get_attribute("data-page") == "toc"
     assert page.locator(".nb-leaf.cover").count() == 0
 
 
@@ -155,9 +155,9 @@ def test_contents_link_on_desktop_opens_the_first_spread(browser_page) -> None:
     page.set_viewport_size(DESKTOP)
     problems = open_route(page, base, "/#contents")
 
-    assert page.locator("#notebook").get_attribute("data-page") == "me"
+    assert page.locator("#notebook").get_attribute("data-page") == "toc"
     assert page.locator(".nb-pn.rgt").inner_text() == "p.1"
-    assert page.locator(".nb-page.l .toc").count() == 1  # resting on the inside front cover
+    assert page.locator(".nb-page.r .toc").count() == 1  # alone on the right, the inside front cover on the left
     assert problems == []
 
 
@@ -181,7 +181,7 @@ def test_the_covered_pages_are_not_reachable_until_the_cover_opens(browser_page)
     page.locator(".cover-open").click()
     page.wait_for_timeout(1100)
     assert page.locator(".nb-page").evaluate("n => n.inert") is False
-    assert page.evaluate("location.hash") == "#about"
+    assert page.evaluate("location.hash") == "#contents"
 
 
 @pytest.mark.parametrize("viewport", [PHONE, DESKTOP, {"width": 844, "height": 390}], ids=lambda v: f"{v['width']}x{v['height']}")
@@ -256,10 +256,10 @@ def test_the_wheel_turns_pages_with_the_keyboard(browser_page) -> None:
     page.locator(".wheel-dial").focus()
     page.keyboard.press("ArrowRight")  # open the cover
     page.wait_for_timeout(1300)
-    page.keyboard.press("ArrowRight")  # page 2, the contents
+    page.keyboard.press("ArrowRight")  # page 2 (page 1 is the contents)
     page.wait_for_timeout(1300)
 
-    assert page.locator("#notebook").get_attribute("data-page") == "toc"
+    assert page.locator("#notebook").get_attribute("data-page") == "projects"
     page.keyboard.press("ArrowLeft")
     page.keyboard.press("ArrowLeft")  # back past page 1: the book closes
     page.wait_for_timeout(1600)

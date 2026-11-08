@@ -6,7 +6,7 @@ import pytest
 
 PHONE = {"width": 390, "height": 844}
 DESKTOP = {"width": 1280, "height": 800}
-SECTIONS = ["About", "Projects", "Work", "School", "Hobbies", "Say hi"]
+SECTIONS = ["Contents", "Projects", "Work", "School", "Hobbies", "Say hi"]
 SIZES = [{"width": 1024, "height": 700}, DESKTOP, {"width": 1920, "height": 1080}, {"width": 1100, "height": 1000}, {"width": 844, "height": 390}]
 
 

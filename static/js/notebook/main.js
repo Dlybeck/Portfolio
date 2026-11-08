@@ -17,8 +17,11 @@ const wide = window.matchMedia("(min-width: 900px), (orientation: landscape) and
 function targetFor({ pathname, hash }) {
   const route = data.routes[pathname.replace(/(.)\/$/, "$1")];
   if (route) return route;
-  const found = Object.entries(data.pages).find(([, page]) => page.hash && page.hash === hash.slice(1));
-  return found ? { page: found[0], anchor: null } : null;
+  const name = hash.slice(1);
+  const found = Object.entries(data.pages).find(([, page]) => page.hash && page.hash === name);
+  if (found) return { page: found[0], anchor: null };
+  const old = data.hashAliases[name]; // an address from before the intro page went
+  return old ? { page: old, anchor: null } : null;
 }
 
 /** The address a page lives at. Pages without a route of their own use a hash on "/". */
@@ -64,7 +67,7 @@ function mount(initial) {
   }
   function closeCover({ push = true, fromWheel = false } = {}) {
     if (cover.closed) return;
-    book.show("me");
+    book.show(book.order[0]);
     cover.close({ animate: true });
     if (!fromWheel) wheel.sync("cover");
     if (push) history.pushState({ page: null }, "", "/");
@@ -88,7 +91,7 @@ function mount(initial) {
     wheel.set(book.current);
     if (here() !== addressOf(book.current)) history.replaceState({ page: book.current }, "", addressOf(book.current));
   } else {
-    book.show("me");
+    book.show(book.order[0]);
     cover.close();
     wheel.set("cover");
   }

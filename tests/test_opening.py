@@ -82,7 +82,7 @@ def test_desktop_opening_is_one_swing_on_the_spine_with_the_book_sliding_at_the_
     assert page.locator(".nb-tabs").is_visible()
 
 
-def test_the_opening_takes_under_a_second_with_an_ease_out(browser_page) -> None:
+def test_the_opening_takes_under_a_second_with_an_ease_in_out(browser_page) -> None:
     page = start(browser_page, "/", DESKTOP)
     page.evaluate(WATCH)
     page.locator(".cover-open").click(no_wait_after=True)
@@ -91,14 +91,15 @@ def test_the_opening_takes_under_a_second_with_an_ease_out(browser_page) -> None
     opening = [x for x in s if x["opening"]]
     span = opening[-1]["t"] - opening[0]["t"]
     assert 650 <= span <= 950, span
-    angles = []
+    angles = []  # (time, degrees)
     for x in opening:
         if x["leaf"] and "matrix3d" in x["leaf"]["transform"]:
             import math
-            angles.append(math.degrees(math.acos(max(-1, min(1, float(x["leaf"]["transform"].strip("matrix3d()").split(",")[0]))))))
-    # ease-out: most of the turning happens early (past 90 degrees within the first half of the time)
-    halfway = angles[len(angles) // 2]
-    assert halfway > 110, halfway
+            angles.append((x["t"], math.degrees(math.acos(max(-1, min(1, float(x["leaf"]["transform"].strip("matrix3d()").split(",")[0])))))))
+    # ease-in-out: symmetric, so the cover is about half way round (90 degrees) half way through the time
+    middle = opening[0]["t"] + span / 2
+    halfway = min(angles, key=lambda a: abs(a[0] - middle))[1]
+    assert 60 < halfway < 120, halfway
 
 
 def test_desktop_closing_is_the_same_move_in_reverse(browser_page) -> None:
@@ -153,7 +154,7 @@ def test_phone_opening_still_swings_over_the_first_page_without_a_second_flip(br
 
     assert len([x for x in s if x["leaf"]]) >= 8
     assert not s[-1]["leaf"] and not s[-1]["closed"]
-    assert page.locator("#notebook").get_attribute("data-page") == "me"
+    assert page.locator("#notebook").get_attribute("data-page") == "toc"
     # the book does not move on a phone, and the cover keeps its size
     assert len({translate_x(x["book"]) for x in s}) == 1
     assert len({(x["leaf"]["w"], x["leaf"]["h"]) for x in s if x["leaf"]}) == 1

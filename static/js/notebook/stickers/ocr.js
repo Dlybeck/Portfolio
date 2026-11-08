@@ -25,8 +25,11 @@ const JANK_FRAMES = 5; // this many stutters within the window: the page is stru
 const FREEZE_MS = 800; // one frame this late: the page froze
 const LONG_TASK_MS = 1200; // long tasks (50 ms or more each) adding up to this much of the window: the main thread is swamped
 
+const TOO_WEAK_GB = 1; // a device with this much memory or less cannot hold the model beside the page: reading is simply off there
+
 let off = false;
 try { off = sessionStorage.getItem(OFF_KEY) === "1"; } catch { /* storage blocked: it just will not be remembered */ }
+if (navigator.deviceMemory !== undefined && navigator.deviceMemory <= TOO_WEAK_GB) off = true; // (not remembered: the number does not change)
 const offWatchers = new Map(); // callback -> is it still wanted?
 let watching = null;
 
@@ -183,7 +186,7 @@ export function preload(isPhone = () => false) {
   preloadAsked = true;
   if (isPhone() || !worthPreloading()) return;
   const go = () => setTimeout(() => {
-    const start = () => { if (!isPhone() && !off) ocr.load().catch(() => {}); };
+    const start = () => { if (!isPhone() && !off && worthPreloading()) ocr.load().catch(() => {}); }; // the link can change while it waits: ask again
     const idle = () => {
       if ("requestIdleCallback" in window) requestIdleCallback(start, { timeout: IDLE_MS });
       else setTimeout(start, 500); // Safari has no idle callback

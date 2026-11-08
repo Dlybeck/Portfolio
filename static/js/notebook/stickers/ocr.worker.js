@@ -1,17 +1,19 @@
 // The pad's reader, in its own thread so the page never waits on it.
 // It reads one line of handwriting at a time with TrOCR (small, handwriting) through transformers.js.
 //
-// The model and the library come from public CDNs at the moment someone first uses the pad; nothing is fetched before.
-// The browser's Cache API keeps the weights (transformers.js does this itself), so the second visit starts at once.
+// The model and the library come from public CDNs: in the background once the page is idle (see preload() in ocr.js), or
+// when someone first uses the pad if that was skipped. The browser's Cache API keeps the weights (transformers.js does
+// this itself), so the second visit downloads nothing. It runs on WebAssembly: that is the path measured on real lines
+// (see ADR 0003); the 8-bit weights have not been measured on a real GPU, so WebGPU is not used.
 //
 // Messages in:  { type: "load" }   { type: "read", id, rows: [{ width, height, data }] }   { type: "cancel", id }
-// Messages out: { type: "progress", pct }   { type: "ready", device }   { type: "line", id, index, text }
+// Messages out: { type: "progress", pct }   { type: "ready" }   { type: "line", id, index, text }
 //               { type: "done", id }   { type: "error", id?, message }
 
 const LIBRARY = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2/dist/transformers.min.js"; // exact version, ONNX Runtime bundled
 const MODEL = "Xenova/trocr-small-handwritten"; // MIT licence, trained on IAM handwriting lines
 const REVISION = "02bea33ca09a70e2e2d91140a7e6e1a729606a5b"; // the exact files, not whatever the branch holds later
-const DTYPE = "q8"; // 8-bit weights: about 65 MB, and no worse than the 250 MB full-precision files on a test set of written lines
+const DTYPE = "q8"; // 8-bit weights: about 70 MB in all, and no worse than the 250 MB full-precision files on a test set of written lines
 
 // What a first load downloads, so the bar can be a true fraction of the whole before every file has said its size.
 const EXPECTED = { "encoder_model_quantized.onnx": 23.1e6, "decoder_model_merged_quantized.onnx": 40.6e6, "tokenizer.json": 1.1e6 };
@@ -19,19 +21,9 @@ const EXPECTED_TOTAL = Object.values(EXPECTED).reduce((a, b) => a + b, 0);
 
 let lib = null;
 let reader = null;
-let device = "wasm";
 let loading = null;
 
 const say = (message) => postMessage(message);
-
-/** WebGPU only on a real graphics adapter: a software one is far slower than plain WebAssembly. */
-async function pickDevice() {
-  try {
-    const adapter = await navigator.gpu?.requestAdapter();
-    if (adapter && !(adapter.isFallbackAdapter || adapter.info?.isFallbackAdapter)) return "webgpu";
-  } catch { /* no WebGPU */ }
-  return "wasm";
-}
 
 function makeProgress() {
   const files = new Map();
@@ -49,24 +41,16 @@ function makeProgress() {
   };
 }
 
-async function build(where) {
-  const { pipeline } = lib;
-  return pipeline("image-to-text", MODEL, { revision: REVISION, dtype: DTYPE, device: where, progress_callback: makeProgress() });
+function build() {
+  return lib.pipeline("image-to-text", MODEL, { revision: REVISION, dtype: DTYPE, device: "wasm", progress_callback: makeProgress() });
 }
 
 function load() {
   loading ??= (async () => {
     lib = await import(LIBRARY);
     lib.env.allowLocalModels = false;
-    device = await pickDevice();
-    try {
-      reader = await build(device);
-    } catch (error) {
-      if (device === "wasm") throw error;
-      device = "wasm"; // WebGPU would not start: the plain WebAssembly path always can
-      reader = await build(device);
-    }
-    say({ type: "ready", device });
+    reader = await build();
+    say({ type: "ready" });
   })();
   loading.catch(() => { loading = null; });
   return loading;
@@ -90,17 +74,7 @@ async function read(id, rows) {
   await load();
   for (let index = 0; index < rows.length; index++) {
     if (called_off.delete(id)) return; // nobody is waiting for the rest
-    let text;
-    try {
-      text = await readLine(rows[index]);
-    } catch (error) {
-      if (device !== "webgpu") throw error;
-      device = "wasm"; // it loaded on the GPU but would not run: redo this on WebAssembly
-      try { await reader.dispose?.(); } catch { /* already gone */ } // free the GPU's share first
-      reader = await build(device);
-      text = await readLine(rows[index]);
-    }
-    say({ type: "line", id, index, text });
+    say({ type: "line", id, index, text: await readLine(rows[index]) });
   }
   called_off.delete(id);
   say({ type: "done", id });

@@ -156,16 +156,10 @@ def test_the_printer_prints_the_logo(browser_page) -> None:
     assert "go" in page.locator(".p12a").get_attribute("class")
 
 
-def test_the_scan_pad_types_a_word_and_scans_a_doodle(browser_page) -> None:
+def test_the_scan_pad_types_a_word_on_its_own(browser_page) -> None:
+    """Idle, the pad plays its word demo. What it does with a visitor's writing is in test_scan_pad.py."""
     page, *_ = cover(browser_page)
     page.wait_for_function("document.querySelector('.sc-t').textContent.length > 0", timeout=6000)
-
-    box = page.locator(".sc-pad canvas").bounding_box()
-    page.mouse.move(box["x"] + 20, box["y"] + 20)
-    page.mouse.down()
-    page.mouse.move(box["x"] + 120, box["y"] + 40, steps=6)
-    page.mouse.up()
-    page.wait_for_function("document.querySelector('.sc-t').textContent === '1 doodle, saved'", timeout=6000)
     assert still_closed(page)
 
 

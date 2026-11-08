@@ -14,16 +14,16 @@
 }
 .cover-front .wd:active { scale: 0.97; }
 .cover-front .wd:focus-visible { outline: 3px solid var(--ink-fixed); outline-offset: 4px; }
-.wd-sh {
-  position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 6; mix-blend-mode: screen;
-  background: linear-gradient(118deg, transparent 34%, rgba(255, 255, 255, 0.42) 46%, rgba(255, 255, 255, 0.12) 53%, transparent 61%);
+.wd-sh { /* a matte vinyl: a broad, faint, soft-edged sheen, no hard highlight or streak */
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 6; mix-blend-mode: soft-light;
+  background: radial-gradient(ellipse 90% 70% at 30% 20%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05) 55%, transparent 80%) 0 0 / 130% 130%;
 }
 .wd-hike .wd-sh { inset: 6px; }
-.wd-ball .wd-sh { background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.6) 0 9%, transparent 30%); }
+.wd-ball .wd-sh { background: radial-gradient(circle at 36% 32%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04) 60%, transparent 85%); }
 .wd-blank:not(.has):not(.styled) { filter: none; }
 .wd-blank:not(.has) .wd-sh { display: none; }
-.wd:hover .wd-sh { animation: gloss 0.9s ease-out; }
-@keyframes gloss { from { background-position: -120px 0; } to { background-position: 0 0; } }
+.wd:hover .wd-sh { animation: sheen 1.2s ease-out; }
+@keyframes sheen { from { background-position: 40% 30%; } to { background-position: 0 0; } }
 .wd-curl { /* the name tag's lifted corner */
   position: absolute; right: 0; bottom: 0; width: 20px; height: 20px; pointer-events: none; z-index: 7; border-top-left-radius: 6px;
   background: linear-gradient(to top left, transparent 50%, rgba(0, 0, 0, 0.28) 50%, #c9ccd3 56%, #f4f5f7 80%, #fff);
@@ -161,7 +161,7 @@
 /* ---------- the tennis ball ---------- */
 .wd-ball {
   left: 74cqw; top: 47cqh; width: 14cqw; z-index: 5; aspect-ratio: 1; overflow: hidden; border-radius: 50%; cursor: grab; touch-action: none;
-  background: #d7ea4f radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.55), transparent 34%); border: 3px solid #fff;
+  background: #d7ea4f; border: 3px solid #fff;
 }
 .wd-ball::before, .wd-ball::after { content: ""; position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2.5px solid #fff; top: -10%; }
 .wd-ball::before { left: -66%; }

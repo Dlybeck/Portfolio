@@ -1,0 +1,63 @@
+/* The cover: a kraft worn notebook with a cloth spine, an elastic band and a label.
+   The vinyl stickers come in step 3; the cover is a leaf like any other, so it swings open on its spine. */
+
+/* The front cover is the same board as .nb-back, the same size and offset (the pages sit a rim inside it), so there is one cover and no
+   second brown layer behind it. It hinges on its left edge, which is the spine on desktop. */
+.nb-leaf.cover { z-index: 65; left: 0; right: calc(var(--nb-rim) * -1); bottom: calc(var(--nb-rim) * -1); transform-origin: left center; cursor: pointer; display: block; }
+@media (min-width: 900px), (orientation: landscape) and (min-width: 640px) { .nb--desktop .nb-leaf.cover { left: 50%; top: calc(var(--nb-rim) * -1); } }
+.nb-leaf.cover .face { background-image: none; }
+.nb-leaf.cover .cover-front {
+  container-type: size; border: var(--edge) solid var(--ink-fixed); border-radius: 3px var(--nb-board-r) var(--nb-board-r) 3px; overflow: hidden; color: var(--ink-fixed);
+  background-color: var(--nb-kraft);
+  background-image: radial-gradient(rgba(60, 40, 10, 0.14) 1px, transparent 1.3px), radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1.3px);
+  background-size: 6px 6px, 9px 9px; background-position: 0 0, 3px 4px;
+  box-shadow: inset 26px 0 0 rgba(0, 0, 0, 0.3), inset 27px 0 0 rgba(255, 255, 255, 0.1);
+}
+.nb-leaf.cover .cover-front::after { /* scuffed corners and fine grain */
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1; border-radius: inherit;
+  background: radial-gradient(60px 60px at 100% 0, rgba(255, 255, 255, 0.16), transparent 70%), radial-gradient(60px 60px at 100% 100%, rgba(255, 255, 255, 0.14), transparent 70%),
+    radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1.4px) 0 0 / 7px 9px;
+}
+.cover-stitch { position: absolute; inset: 9px 9px 9px 34px; border: 1.5px dashed rgba(60, 40, 10, 0.35); border-radius: 3px 6px 6px 3px; pointer-events: none; }
+.cover-band {
+  position: absolute; right: 4.5cqw; top: -2px; bottom: -2px; width: 9px; z-index: 7; pointer-events: none;
+  background: var(--nb-spine); border-left: 1px solid #000; border-right: 1px solid #000; box-shadow: 2px 0 0 rgba(0, 0, 0, 0.2);
+}
+.cover-label {
+  position: absolute; left: 14cqw; bottom: 4.5cqh; padding: 7px 12px 6px; background: #f3ead6; color: #3a3226; z-index: 2;
+  border: 1px solid rgba(58, 50, 38, 0.35); border-radius: 3px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+  font: 600 0.75rem / 1 var(--font-mono); letter-spacing: 0.18em; text-transform: uppercase;
+}
+.cover-label::after { content: "notes"; display: block; margin-top: 4px; font: 700 clamp(0.9rem, 4.6cqw, 1.15rem) / 1 var(--font-hand); letter-spacing: 0; text-transform: none; color: #6b5b45; }
+.cover-open {
+  position: absolute; right: 14cqw; bottom: 3cqh; z-index: 6; border: 0; padding: 4px 6px; background: none; cursor: pointer; opacity: 0.9; rotate: -6deg;
+  font: 700 clamp(1.1rem, 6cqw, 1.6rem) / 1 var(--font-hand); color: var(--ink-fixed);
+}
+.cover-open::after { content: " \2192"; }
+.cover-open:focus-visible { outline: 2px solid var(--ink-fixed); outline-offset: 2px; border-radius: 6px; }
+.nb-leaf.cover .face.back { background-color: var(--nb-paper); }
+/* WebKit can paint a face's back through its front even with backface-visibility: hidden (the shut cover then shows its kraft inside,
+   or plain paper, over the front). While the cover lies shut and still, its back face is never seen, so take it out of painting
+   outright instead of relying on culling. Opening and closing set .is-opening, so the swing keeps its backface behaviour.
+   Scoped to WebKit (it alone knows -webkit-hyphens), so other engines render exactly as before. */
+@supports (-webkit-hyphens: none) {
+  .nb.is-closed:not(.is-opening) .nb-leaf.cover .face.back { visibility: hidden; }
+}
+
+/* ---------- the inside of the covers (desktop: the first and last spread) ----------
+   The inside front cover is the left page of the first spread, and the inside back cover is the right page of the
+   last. Each is `.cover-inside` with `--front` or `--back`: it fills its page, and `container-type: size` makes
+   what sits on it placeable in cqw and cqh. The page, and the cover's own back face as it swings, turn kraft
+   with the same grain as the outside, with a shadow where the board meets the spine. */
+.nb--desktop .nb-page:has(.cover-inside), .nb--desktop .cover-page:has(.cover-inside) { background: var(--nb-kraft); }
+.cover-inside {
+  position: absolute; inset: 0; container-type: size; overflow: hidden; pointer-events: none;
+  background-color: var(--nb-kraft);
+  background-image: radial-gradient(rgba(60, 40, 10, 0.14) 1px, transparent 1.3px), radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1.3px);
+  background-size: 6px 6px, 9px 9px; background-position: 0 0, 3px 4px;
+}
+.cover-inside--front { box-shadow: inset -22px 0 18px -14px rgba(0, 0, 0, 0.38), inset 0 0 40px rgba(60, 40, 10, 0.18); }
+.cover-inside--back { box-shadow: inset 22px 0 18px -14px rgba(0, 0, 0, 0.38), inset 0 0 40px rgba(60, 40, 10, 0.18); }
+.nb-in:has(> .page > .cover-inside) { -webkit-mask-image: none; mask-image: none; overflow: hidden; } /* no fade at the foot of a cover */
+.nb.is-first-spread .nb-pn.lft, .nb.is-last-spread .nb-pn.rgt { visibility: hidden; } /* nothing to number on a cover */
+.nb.is-first-spread .nb-ear.prev, .nb.is-last-spread .nb-ear.next, .nb.is-last-spread .nb-hint-flip { visibility: hidden; } /* and no page corner (or "flip" hint, there being no page to flip to) on a bare cover, even in the moment a turn is still landing */

@@ -1,0 +1,10 @@
+{% from "notebook/_ui.html" import head, picture %}
+<article class="page" id="page-gaming" data-page="gaming" aria-label="Gaming">
+  <section>
+    {{ head("Shorter games", "Gaming", "Check out some of my favorite video games! I'll race you in Mario Kart Wii.") }}
+    <p>When I have free time, video games are another thing I enjoy. I tend to like shorter games, so over the past few years I've cycled through a lot of them. Here's a list of games I've really enjoyed:</p>
+    <ul class="covers">
+      {% for game in content.GAMES %}<li>{{ picture("games/" ~ game.id | lower ~ ".webp", game.name ~ " cover art") }}</li>{% endfor %}
+    </ul>
+  </section>
+</article>

@@ -66,7 +66,7 @@ def test_home_publishes_the_confirmed_professional_identity(
     assert head.meta["og:title"] == PRIMARY_TITLE
     assert head.meta["og:description"] == PRIMARY_DESCRIPTION
     assert head.meta["og:url"] == f"{SITE_URL}/"
-    assert head.meta["og:image"] == f"{SITE_URL}/static/images/social/home-board.webp"
+    assert head.meta["og:image"] == f"{SITE_URL}/static/img/social/home-notebook.webp"
     assert head.meta["og:image:width"] == "1200"
     assert head.meta["og:image:height"] == "630"
     assert head.meta["twitter:card"] == "summary_large_image"
@@ -105,14 +105,9 @@ def test_every_public_destination_has_specific_canonical_social_metadata(
     assert head.meta["twitter:description"] == document.description
 
 
-def test_internal_documents_are_noindex_and_canonicalize_to_public_destinations(
-    client: TestClient,
-) -> None:
-    response = client.get("/_documents/projects/programs")
-    head = parsed_head(response.text)
-
-    assert head.meta["robots"] == "noindex, nofollow"
-    assert head.links["canonical"] == f"{SITE_URL}/projects/programs"
+def test_retired_internal_routes_are_gone(client: TestClient) -> None:
+    assert client.get("/_documents/projects/programs").status_code == 404
+    assert client.get("/_theme-packs/original.json").status_code == 404
 
 
 def test_metadata_excludes_private_and_historical_promotional_claims(
@@ -137,7 +132,7 @@ def test_metadata_excludes_private_and_historical_promotional_claims(
 
 
 def test_social_preview_is_a_public_wide_webp(client: TestClient) -> None:
-    response = client.get("/static/images/social/home-board.webp")
+    response = client.get("/static/img/social/home-notebook.webp")
 
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/webp"

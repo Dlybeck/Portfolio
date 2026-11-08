@@ -1,59 +1,42 @@
-# SamDavidWeb
+# Portfolio (davidlybeck.com)
 
-## 1. Run locally with uvicorn
+FastAPI + Jinja + hand-written JS and CSS. No build step. See `AGENTS.md` for the working rules,
+`CONTEXT.md` for the words we use, and `docs/adr/` for why it is built this way.
 
-### Run ```main.py```
-
-## 2. Run locally with docker
-
-### To build (if not already build):
+## Run it
 
 ```
-docker build -t myapp .
+pip install -r requirements.txt
+python main.py            # http://localhost:8080
 ```
 
-### To run:
+or with Docker:
+
 ```
-docker run -p 8080:8080 myapp
-```
-
-### Then go to http://localhost:8080
-
-## 3. Adding a new tile
-
-To add a new tile to the interactive map:
-
-1. Open `static/scripts/tileData.js` and add your tile title to the `window.tilesData` object, specifying an array of connected tile titles:
-
-```js
-"New Tile Title": ["ConnectedTile1", "ConnectedTile2"]
+docker build -t portfolio .
+docker run -p 8080:8080 portfolio
 ```
 
-2. Still in `static/scripts/tileData.js`, add a corresponding entry to the `window.tileInfo` object with position and HTML content:
+## Test it
 
-```js
-"New Tile Title": [
-    [xCoordinate, yCoordinate],
-    `
-    Your HTML content here.
-    `
-]
+```
+pip install -r requirements-dev.txt
+playwright install chromium
+pytest                       # everything, 6 parallel workers (about 1.5 minutes)
+pytest -m "not browser" -n0  # quick: no browser, a few seconds
 ```
 
-3. Save and reload the page. The new tile will be automatically generated.
+Browser tests share one Chromium per worker and get a fresh context each.
 
-4. Create a matching HTML page for the tile under `templates/pages`, extending the base template. For example:
+## Where things are
 
-```html
-<!-- templates/pages/your_route.html -->
-{% extends "shared/page.html" %}
+- `core/portfolio.py`: the public routes, and which notebook page each opens
+- `core/notebook.py`: the pages, their order on a phone and on desktop
+- `templates/notebook/`: the page and the words on every notebook page
+- `static/js/notebook/`: the book (page turns), the wheel and the cover
+- `static/css/notebook/` and `static/dlybeck/`: styles and the dlybeck design system files
+- `core/delivery.py`: compression and caching rules for static files
+- `scripts/build_notebook_images.py`: makes the phone-sized pictures in `static/img` from the originals in `static/images`
+- `scripts/build_social_image.py`: makes the link-preview picture from the running site
 
-{% block content %}
-Your HTML content here.
-{% endblock %}
-```
-
-5. For a tile that opens a document, add a `PortfolioDocument` entry to
-   `core/portfolio.py`. That registry owns the public route, internal template,
-   Board title, search title, and search description. Hub-only tiles do not
-   need a document entry.
+Pushing to `main` deploys the live site (Cloud Build to Cloud Run).

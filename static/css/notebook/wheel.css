@@ -1,0 +1,68 @@
+/* The side wheel: one notch per page. On a phone it sits low, half off the screen; on desktop it sits at the left. */
+
+.wheel {
+  position: absolute; left: 50%; bottom: -148px; width: 240px; height: 240px; margin-left: -120px; z-index: 12;
+}
+/* The drop shadow is drawn here, on the wrapper, not on the dial: the dial rotates, and a shadow on it would swing around with it.
+   This circle stays put, sits under the dial (it comes first), and so the shadow stays down and to the right at every angle. */
+.wheel::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; box-shadow: var(--lift); pointer-events: none;
+}
+.wheel-dial {
+  position: absolute; inset: 0; border-radius: 50%; background: var(--brand); border: var(--edge) solid var(--ink-fixed);
+  touch-action: none; cursor: grab; will-change: rotate;
+}
+.wheel-dial.is-dragging { cursor: grabbing; }
+/* On a phone only the top 92px of the dial shows, so it was hard to grab. An invisible larger circle on the same centre
+   counts as the dial for touches (it also lies under the dots), so the wheel can be grabbed from a much wider area above
+   and beside what is drawn. Beyond it, the page scrolls and its taps work as usual. */
+.wheel-dial::before {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 380px; height: 380px; margin: -190px 0 0 -190px; border-radius: 50%;
+}
+.wheel-pointer {
+  position: absolute; left: 50%; top: -12px; margin-left: -8px; width: 16px; height: 12px; z-index: 13;
+  background: var(--ink-fixed); clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+.wheel-tick {
+  position: absolute; left: 50%; top: 50%; width: 11px; height: 2px; margin: -1px 0 0 -5.5px; border-radius: 1px; pointer-events: none;
+  background: rgba(255, 255, 255, 0.62); transform: rotate(var(--a)) translateX(var(--tr));
+}
+.wheel-dot { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+.wheel-dot .wheel-hit {
+  position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; border: 0; padding: 0; background: none; cursor: pointer; display: grid; place-items: center;
+}
+.wheel-dot i {
+  display: block; width: 13px; height: 13px; border-radius: 50%; background: var(--dot); border: 1.5px solid var(--ink-fixed);
+  transition: transform var(--duration-press) var(--ease-out);
+}
+.wheel-dot .is-current i { transform: scale(1.45); box-shadow: 0 0 0 2.5px #fff; }
+.wheel-dot.is-cover i { --dot: var(--nb-kraft); border-radius: 3px; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35); }
+.wheel-dot.is-cover .is-current i { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35), 0 0 0 2.5px #fff; }
+.wheel-name {
+  position: absolute; left: 0; right: 0; top: 34px; z-index: 2; text-align: center; color: #fff; pointer-events: none;
+  font: 800 1.2rem/1 var(--font-sans); letter-spacing: -0.01em; text-shadow: 0 1px 0 rgba(0, 28, 77, 0.45);
+}
+/* the page number sits on a darker chip so small white text keeps 4.5:1 on the brand blue */
+.wheel-name small { display: block; width: fit-content; margin: 5px auto 0; padding: 3px 7px; border-radius: 999px; background: rgba(0, 28, 77, 0.55); font: 500 0.75rem/1 var(--font-mono); letter-spacing: 0.08em; }
+
+.wheel-name small:empty { display: none; }
+
+/* a very short window has no room for it: the book and the tabs come down close to the wheel, so keep the drawn size there */
+@media (max-height: 480px) { .wheel-dial::before { content: none; } }
+
+@media (min-width: 900px), (orientation: landscape) and (min-width: 640px) {
+  .wheel-dial::before { content: none; } /* the desktop wheel is big and fully drawn */
+  .wheel { left: -180px; bottom: auto; top: calc(50% - 26px); margin: -220px 0 0; width: 440px; height: 440px; }
+  .wheel-pointer { left: auto; right: -14px; top: 50%; margin: -8px 0 0; width: 12px; height: 16px; clip-path: polygon(100% 0, 100% 100%, 0 50%); }
+  .wheel-name { left: auto; right: 58px; top: 50%; margin-top: -18px; text-align: right; font-size: 1.3rem; }
+  .wheel-name small { margin-left: auto; margin-right: 0; }
+}
+
+/* A short landscape window: the same wheel at about half size, tucked against the left edge, clear of the logo and the book. */
+@media (orientation: landscape) and (max-height: 520px) and (min-width: 640px) {
+  .wheel { left: -300px; top: calc(50% + 16px); margin-top: -220px; scale: 0.55; transform-origin: right center; }
+  .wheel-name { right: 70px; font-size: 1.7rem; }
+  .wheel-name small { font-size: 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) { .wheel-dot i { transition: none; } }

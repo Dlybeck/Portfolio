@@ -1,4 +1,4 @@
-"""Authoritative mapping between Destination Links, Documents, and Board Sections."""
+"""Public routes: each one opens the notebook at one page."""
 
 from __future__ import annotations
 
@@ -8,118 +8,83 @@ from dataclasses import dataclass
 @dataclass(frozen=True, slots=True)
 class PortfolioDocument:
     route: str
-    board_title: str
+    page: str  # id of the notebook page this route opens (see core/notebook.py)
     page_title: str
-    template: str
     description: str
-
-    def destination_state(self) -> dict[str, str]:
-        return {"route": self.route, "title": self.board_title}
+    anchor: str | None = None  # a part of that page to scroll to or slide to
 
 
 DOCUMENTS = (
     PortfolioDocument(
-        "/jobs", "Work Experience", "Work Experience", "pages/jobs.html",
+        "/jobs", "work", "Work Experience",
         "Explore David Lybeck's professional history, including his Innovation AI Developer role at Denali Advanced Integration since August 2025.",
     ),
     PortfolioDocument(
-        "/education/college", "College", "College", "pages/education/college.html",
+        "/education/college", "school", "College",
         "Explore David Lybeck's computer science degree, mathematics minor, coursework, tennis, and campus activities at the University of Puget Sound.",
     ),
     PortfolioDocument(
-        "/education/early_education", "Early Education", "Early Education",
-        "pages/education/early_education.html",
+        "/education/early_education", "school", "Early Education",
         "Visit the schools and early education history that preceded David Lybeck's computer science work and personal projects.",
+        anchor="early-education",
     ),
     PortfolioDocument(
-        "/education/agile_report", "College", "Agile Management Report",
-        "pages/education/agile_report.html",
+        "/education/agile_report", "school", "Agile Management Report",
         "Read David Lybeck's 2024 report exploring agile management strategies, benefits, and limitations.",
+        anchor="agile-report",
     ),
     PortfolioDocument(
-        "/hobbies/tennis", "Tennis", "Tennis", "pages/hobbies/tennis.html",
+        "/hobbies/tennis", "tennis", "Tennis",
         "Explore David Lybeck's lifelong interest in competitive tennis, from school teams to current player profiles.",
     ),
     PortfolioDocument(
-        "/hobbies/gaming", "Gaming", "Gaming", "pages/hobbies/gaming.html",
+        "/hobbies/gaming", "gaming", "Gaming",
         "Browse a personal collection of video games David Lybeck has especially enjoyed playing.",
     ),
     PortfolioDocument(
-        "/hobbies/3d_printing/puzzles", "Puzzles", "Puzzles",
-        "pages/hobbies/3d_printing/puzzles.html",
+        "/hobbies/3d_printing/puzzles", "printing", "Puzzles",
         "Explore interactive models of puzzle boxes designed and 3D printed by David Lybeck.",
+        anchor="puzzles",
     ),
     PortfolioDocument(
-        "/hobbies/3d_printing/other_models", "Other Models", "Other Models",
-        "pages/hobbies/3d_printing/other_models.html",
+        "/hobbies/3d_printing/other_models", "printing", "Other Models",
         "Explore interactive models of phone cases, organizers, and other objects designed by David Lybeck for 3D printing.",
+        anchor="other-models",
     ),
     PortfolioDocument(
-        "/projects/programs", "Programs", "Programs", "pages/projects/programs.html",
-        "Explore current software projects, earlier experiments, and selected coursework built by David Lybeck.",
+        "/projects/programs", "programs", "Programs",
+        "Explore software experiments and selected coursework built by David Lybeck.",
     ),
     PortfolioDocument(
-        "/projects/nba_predictions", "Programs", "NBA Predictions",
-        "pages/projects/nba_predictions.html",
+        "/projects/nba_predictions", "nba", "NBA Predictions",
         "Try an NBA game prediction demo built from a custom basketball statistics dataset and a neural network model.",
     ),
     PortfolioDocument(
-        "/projects/websites/digital_planner", "Digital Planner", "Digital Planner",
-        "pages/projects/websites/digital_planner.html",
-        "Explore a collaborative digital planner project combining calendars and task management in one interface.",
-    ),
-    PortfolioDocument(
-        "/projects/websites/scribblescan", "ScribbleScan", "ScribbleScan",
-        "pages/projects/websites/scribblescan.html",
+        "/projects/websites/scribblescan", "scribblescan", "ScribbleScan",
         "Explore the preserved ScribbleScan demo and development history of David Lybeck's handwriting digitization project.",
     ),
     PortfolioDocument(
-        "/projects/websites/this_website", "This website", "This Website",
-        "pages/projects/websites/this_website.html",
+        "/projects/websites/this_website", "site", "This Website",
         "Explore how David Lybeck hand-built this interactive portfolio and how its unusual navigation evolved.",
     ),
     PortfolioDocument(
-        "/projects/websites/this_website/v1", "This website", "This Website v1",
-        "pages/projects/websites/this_website/v1.html",
+        "/projects/websites/this_website/v1", "site", "This Website v1",
         "See the first hand-coded generation of DavidLybeck.com evolve from a static layout into an exploratory map.",
+        anchor="v1",
     ),
     PortfolioDocument(
-        "/projects/websites/this_website/v2", "This website", "This Website v2",
-        "pages/projects/websites/this_website/v2.html",
+        "/projects/websites/this_website/v2", "site", "This Website v2",
         "See the second hand-coded generation of DavidLybeck.com turn its map into the portfolio's primary interface.",
+        anchor="v2",
     ),
     PortfolioDocument(
-        "/projects/websites/this_website/v3", "This website", "This Website v3",
-        "pages/projects/websites/this_website/v3.html",
-        "See the current generation of DavidLybeck.com evolve from its paper-and-chalkboard Board into seven visual themes.",
+        "/projects/websites/this_website/v3", "site", "This Website v3",
+        "See the third generation of DavidLybeck.com evolve from handwritten notes on a tabletop into seven visual themes.",
+        anchor="v3",
+    ),
+    PortfolioDocument(
+        "/projects/websites/this_website/v4", "site", "This Website v4",
+        "See the fourth generation of DavidLybeck.com become a notebook with a cover, a side wheel and a page for every story.",
+        anchor="v4",
     ),
 )
-
-DOCUMENTS_BY_ROUTE = {document.route: document for document in DOCUMENTS}
-
-
-def document_for_route(route: str) -> PortfolioDocument | None:
-    normalized = "/" + route.strip("/")
-    return DOCUMENTS_BY_ROUTE.get(normalized)
-
-
-def portfolio_state(
-    initial_document: PortfolioDocument | None = None,
-) -> dict[str, object]:
-    board_routes: dict[str, str] = {}
-    for document in DOCUMENTS:
-        board_routes.setdefault(document.board_title, document.route)
-
-    return {
-        "initialDestination": (
-            initial_document.destination_state() if initial_document else None
-        ),
-        "destinationMap": {
-            document.route: document.board_title for document in DOCUMENTS
-        },
-        "documentTitles": {
-            document.route: document.page_title for document in DOCUMENTS
-        },
-        "boardRoutes": board_routes,
-        "documentPrefix": "/_documents",
-    }

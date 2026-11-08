@@ -1,0 +1,20 @@
+{% from "notebook/_ui.html" import head %}
+{% macro link(item) -%}
+<a href="{{ item.href }}"{% if item.href.startswith("http") or item.href.endswith(".html") %} target="_blank" rel="noopener"{% endif %}>{{ item.name }}</a>
+{%- endmacro %}
+{% macro group(g) %}
+<div><span class="when">{{ g.label }}</span><ul>{% for item in g["items"] %}<li>{% if item.href %}{{ link(item) }}{% else %}{{ item.name }}{% endif %}</li>{% endfor %}</ul></div>
+{% endmacro %}
+<article class="page" id="page-programs" data-page="programs" aria-label="Programs">
+  <section>
+    {{ head("2021 to 2024", "Programs", "Software projects, experiments, and selected coursework.") }}
+    <ul class="picks">{% for p in content.TOP_PICKS %}
+      <li><b>{{ link(p) }}</b>{% for a in p.also or [] %} <span class="pick-also">· {{ link(a) }}</span>{% endfor %} <span class="when">{{ p.meta }}</span><span class="pick-note">{{ p.note }}</span></li>{% endfor %}
+    </ul>
+    <details class="all">
+      <summary>Show all the other programs</summary>
+      <div class="archive">{% for g in content.ARCHIVE %}{{ group(g) }}{% endfor %}</div>
+      <p class="caption">Most link to their code or a demo.</p>
+    </details>
+  </section>
+</article>

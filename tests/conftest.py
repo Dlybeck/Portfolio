@@ -1,5 +1,4 @@
-from collections.abc import Iterator
-from contextlib import contextmanager
+from collections.abc import Callable, Iterator
 import os
 import socket
 import threading
@@ -7,7 +6,7 @@ import time
 
 import pytest
 from fastapi.testclient import TestClient
-from playwright.sync_api import Page, sync_playwright
+from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
 import uvicorn
 
 from main import app
@@ -45,35 +44,55 @@ def live_server_url() -> Iterator[str]:
         thread.join(timeout=5)
 
 
-@contextmanager
-def connected_page(**context_options) -> Iterator[Page]:
+@pytest.fixture(scope="session")
+def browser() -> Iterator[Browser]:
+    """One browser for the whole run (one per xdist worker); tests get fresh contexts."""
     endpoint = os.environ.get("PLAYWRIGHT_WS_ENDPOINT")
     with sync_playwright() as playwright:
-        browser = (
+        shared = (
             playwright.chromium.connect(endpoint)
             if endpoint
             else playwright.chromium.launch(headless=True)
         )
-        context = browser.new_context(**context_options)
-        page = context.new_page()
         try:
-            yield page
+            yield shared
         finally:
+            shared.close()
+
+
+@pytest.fixture
+def new_page(browser: Browser) -> Iterator[Callable[..., Page]]:
+    """Open a page in its own fresh context; every context closes after the test."""
+    contexts: list[BrowserContext] = []
+
+    def make(**context_options) -> Page:
+        context = browser.new_context(**context_options)
+        contexts.append(context)
+        return context.new_page()
+
+    try:
+        yield make
+    finally:
+        for context in contexts:
             context.close()
-            browser.close()
 
 
 @pytest.fixture
-def browser_page(live_server_url: str) -> Iterator[tuple[Page, str]]:
-    with connected_page(viewport={"width": 1440, "height": 900}) as page:
-        yield page, live_server_url
+def browser_page(new_page, live_server_url: str) -> tuple[Page, str]:
+    return new_page(viewport={"width": 1440, "height": 900}), live_server_url
 
 
 @pytest.fixture
-def mobile_browser_page(live_server_url: str) -> Iterator[tuple[Page, str]]:
-    with connected_page(
-        viewport={"width": 390, "height": 844},
-        is_mobile=True,
-        has_touch=True,
-    ) as page:
-        yield page, live_server_url
+def mobile_browser_page(new_page, live_server_url: str) -> tuple[Page, str]:
+    page = new_page(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
+    return page, live_server_url
+
+
+BROWSER_FIXTURES = {"browser", "new_page", "browser_page", "mobile_browser_page"}
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    """Tag every test that drives a real browser, so `-m "not browser"` is the quick run."""
+    for item in items:
+        if BROWSER_FIXTURES & set(getattr(item, "fixturenames", ())):
+            item.add_marker(pytest.mark.browser)

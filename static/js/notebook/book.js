@@ -98,12 +98,17 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
   const numberOf = (id) => order.indexOf(normalize(id)) + 1;
   const sectionTab = (id) => data.sections.find((s) => s.id === data.pages[id].section).tab;
 
+  /** The "p.N" beside each entry of a contents or list page: its width reflows the entry, so a face must have them before it turns. */
+  function numberSlots(scope) {
+    for (const slot of scope.querySelectorAll("[data-pg-for]")) slot.textContent = `p.${numberOf(slot.dataset.pgFor)}`;
+  }
+
   function fill(side, page) {
     const target = side === "L" ? inL : inR;
     stopWatching(target);
     target.replaceChildren(page);
     target.scrollTop = 0;
-    for (const slot of target.querySelectorAll("[data-pg-for]")) slot.textContent = `p.${numberOf(slot.dataset.pgFor)}`;
+    numberSlots(target);
     onFill?.(target);
     settleSoon();
   }
@@ -128,8 +133,17 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
    * air they change when that side's page does (the leaf's start side at once, its landing side when it lands), never early.
    * (A folio or a corner fold that shows up over a bare inside cover before the page has landed was this.)
    */
+  const shown = { L: null, R: null }; // the page whose chrome each side is showing right now
   function sideChrome(side, id) {
-    if (phone) return;
+    shown[side] = id;
+    if (phone) {
+      // one page: its number and which corners it has
+      const i = order.indexOf(id);
+      pnR.textContent = `p.${i + 1} of ${total}`;
+      prev.disabled = i <= 0;
+      next.disabled = i >= total - 1;
+      return;
+    }
     const layout = data.pages[id].layout;
     if (side === "L") {
       root.classList.toggle("is-first-spread", layout === "front");
@@ -150,13 +164,50 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
     inL.setAttribute("aria-label", phone ? title : layout === "front" ? "Inside front cover" : `${title}, left page`);
     inR?.setAttribute("aria-label", layout === "back" ? "Inside back cover" : `${title}, right page`);
     root.classList.toggle("is-turned", i > 0);
-    prev.disabled = i <= 0;
-    next.disabled = i >= total - 1;
-    if (phone) pnR.textContent = `p.${i + 1} of ${total}`;
-    else if (sides) {
+    if (!phone) {
+      prev.disabled = i <= 0;
+      next.disabled = i >= total - 1;
+    }
+    if (sides) {
       sideChrome("L", id);
       sideChrome("R", id);
     }
+  }
+
+  /**
+   * What belongs to a page itself, for the face of a turning leaf: its folio and its corner fold(s). The live ones are on the book;
+   * the leaf carries copies so they turn with the page and nothing pops in once it lands. Mirrors sideChrome().
+   * side is "L" or "R" on desktop; on a phone there is one page ("L") with its folio on the right.
+   */
+  function pageChrome(side, id) {
+    const i = order.indexOf(id);
+    const layout = data.pages[id].layout;
+    const bits = [];
+    const folio = (cls, text) => {
+      const n = el("span", `face-pn ${cls}`, { "aria-hidden": "true" });
+      n.textContent = text;
+      bits.push(n);
+    };
+    const ear = (cls) => bits.push(el("i", `face-ear ${cls}`, { "aria-hidden": "true" }));
+    if (phone) {
+      folio("rgt", `p.${i + 1} of ${total}`);
+      if (i > 0) ear("prev");
+      if (i < total - 1) ear("next");
+    } else if (side === "L" && layout !== "front") {
+      folio("lft", sectionTab(id));
+      ear("prev");
+    } else if (side === "R" && layout !== "back") {
+      folio("rgt", `p.${i + 1}`);
+      if (i < total - 1) ear("next");
+    }
+    return bits;
+  }
+
+  /** How far a page is scrolled, and its swipe rows, so the leaf shows the same part of it. */
+  const scrollOf = (scroller) => ({ top: scroller.scrollTop, rows: [...scroller.querySelectorAll("[data-slides]")].map((r) => r.scrollLeft) });
+  function restoreScroll(wrapper, seen) {
+    wrapper.scrollTo({ top: seen.top, behavior: "instant" });
+    wrapper.querySelectorAll("[data-slides]").forEach((r, n) => r.scrollTo({ left: seen.rows[n] || 0, behavior: "instant" }));
   }
 
   // Fonts and pictures arriving can move the part of the page we scrolled to. For a moment after
@@ -228,10 +279,15 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
 
     const mine = ++seq;
     const [nl, nr] = compose(id);
-    const face = (page) => {
+    // A face of the leaf is a whole page: its content, scrolled where the real page is, and its own folio and corner fold.
+    const placed = [];
+    const dress = (faceEl, page, side, pageId, seen, fresh = false) => {
       const wrapper = el("div", "nb-in");
+      numberSlots(page);
       wrapper.append(page);
-      return wrapper;
+      if (fresh) onFill?.(wrapper); // a page not yet on the book gets its swipe rows and predictor now, not when it lands
+      faceEl.append(wrapper, ...pageChrome(side, pageId));
+      if (seen) placed.push(() => restoreScroll(wrapper, seen));
     };
     const leaf = el("div", "nb-leaf is-flying is-riffle");
     const front = el("div", "face front");
@@ -243,14 +299,17 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
     let angleTo = -180;
     const oldL = lookalike(inL.firstElementChild);
     const oldR = inR && lookalike(inR.firstElementChild);
+    const seenL = scrollOf(inL);
+    const seenR = inR && scrollOf(inR);
+    const was = { ...shown };
 
     if (phone) {
       Object.assign(leaf.style, { left: 0, right: 0, transformOrigin: "left center" });
       if (forward) {
-        front.append(face(oldL));
+        dress(front, oldL, "L", was.L, seenL);
         startSide = "L";
       } else {
-        front.append(face(nl));
+        dress(front, nl, "L", id, null, true);
         landSide = "L";
         angleFrom = -180;
         angleTo = 0;
@@ -258,15 +317,15 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
     } else if (forward) {
       Object.assign(leaf.style, { left: "50%", right: 0, transformOrigin: "left center" });
       front.classList.add("r-face");
-      front.append(face(oldR));
-      back.append(face(nl));
+      dress(front, oldR, "R", was.R, seenR);
+      dress(back, nl, "L", id, null, true);
       startSide = "R";
       landSide = "L";
     } else {
       Object.assign(leaf.style, { left: 0, right: "50%", transformOrigin: "right center" });
-      front.append(face(oldL));
+      dress(front, oldL, "L", was.L, seenL);
       back.classList.add("r-face");
-      back.append(face(nr));
+      dress(back, nr, "R", id, null, true);
       startSide = "L";
       landSide = "R";
       angleTo = 180;
@@ -280,6 +339,7 @@ export function createBook({ root, data, sources, mode, onView, onFill, onSettle
       sideChrome(startSide, id);
     }
     book.append(leaf);
+    for (const place of placed) place();
     inAir += 1;
     leaf.style.transform = `rotateY(${angleFrom}deg)`;
     void leaf.offsetWidth;

@@ -1,7 +1,7 @@
 // Starts the notebook: picks phone or desktop, builds the book, the wheel and the cover,
 // and keeps the address bar in step with the page that is showing.
 
-import { createBook } from "./book.js?v=2";
+import { createBook } from "./book.js?v=3";
 import { createCover } from "./cover.js?v=4";
 import { enhance, settled } from "./media.js";
 import { createTabs } from "./tabs.js";

@@ -27,10 +27,14 @@ class Page:
     summary: str  # one line, used in the contents list
     # How a desktop spread is laid out:
     #   "list":  left = the section's list of stories, right = this story
-    #   "split": left = the first <section> of the page, right = the rest
+    #   "split": left = the first `split` <section>s of the page (one by default), right = the rest
     #   "pair":  left = this page, right = the page named by `pair`
+    #   "front": left = the inside front cover, with the page named by `pair` resting on it as a card;
+    #            right = this page, alone
+    #   "back":  left = this page, right = the inside back cover
     layout: str = "list"
     pair: str | None = None
+    split: int = 1  # for layout "split": how many sections fill the left page
     phone_only: bool = False  # index pages that a desktop spread replaces
     path: str | None = None  # canonical route; None for pages without one
 
@@ -59,7 +63,7 @@ def _page(id: str, section: str, title: str, kicker: str, summary: str, **kw) ->
 
 
 PAGES = (
-    _page("me", "me", "David Lybeck", "Hi, I'm David", "", layout="pair", pair="toc"),
+    _page("me", "me", "David Lybeck", "Hi, I'm David", "", layout="front", pair="toc"),
     _page("toc", "me", "Contents", "", "", phone_only=True),
     _page("projects", "projects", "Projects", "4 entries", "", phone_only=True),
     _page("scribblescan", "projects", "ScribbleScan", "2025 to now",
@@ -73,7 +77,7 @@ PAGES = (
     _page("work", "work", "Work", "Work · 6 entries", "From coaching tennis to building AI tools.",
           layout="split"),
     _page("school", "school", "School", "Class of 2025", "Where I studied and the classes I took.",
-          layout="split"),
+          layout="split", split=2),
     _page("hobbies", "hobbies", "Hobbies", "3 entries", "", phone_only=True),
     _page("printing", "hobbies", "3D printing", "Puzzles and models",
           "Puzzle boxes I designed, with 65,000+ downloads across all my models. I bet you can't solve them."),
@@ -81,7 +85,7 @@ PAGES = (
           "Some of my favorites. I'll race you in Mario Kart Wii."),
     _page("tennis", "hobbies", "Tennis", "Since middle school",
           "I've played for as long as I remember. Let me know if you want to hit."),
-    _page("say", "say", "Say hi", "", "", layout="pair", pair="toc"),
+    _page("say", "say", "Say hi", "", "", layout="back"),
 )
 
 PAGES_BY_ID = {page.id: page for page in PAGES}
@@ -117,6 +121,7 @@ def client_data() -> dict[str, object]:
                 "title": page.title,
                 "layout": page.layout,
                 "pair": page.pair,
+                "split": page.split,
                 "path": page.path,
                 "hash": HASHES.get(page.id),
             }

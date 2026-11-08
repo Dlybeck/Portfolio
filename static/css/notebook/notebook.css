@@ -10,9 +10,11 @@
   --nb-kraft: #b58b55;
   --nb-turn: 720ms;
   --nb-turn-ease: cubic-bezier(0.45, 0.05, 0.25, 1);
-  --nb-wheel-room: 138px;
-  --nb-open-ms: 800ms; /* the book opening and closing: cover.js sets the same values */
-  --nb-open-ease: cubic-bezier(0.22, 0.7, 0.25, 1); /* the part of the screen the wheel takes on a phone */
+  --nb-wheel-room: 138px; /* the part of the screen the wheel takes on a phone */
+  /* The book opening and closing is one move on one curve: the cover's swing, the book's slide, the back board's
+     clip, the tabs and the band all read these two values. cover.js reads them from here too. */
+  --nb-open-ms: 800ms;
+  --nb-open-ease: cubic-bezier(0.65, 0, 0.35, 1); /* ease-in-out */
 }
 
 *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; } /* no blue flash on a tap; keyboard focus keeps its ring below */
@@ -87,7 +89,8 @@ body {
 .nb-band { /* the elastic band round the spine side */
   position: absolute; top: -6px; bottom: -6px; right: 22px; width: 11px; z-index: 70; pointer-events: none;
   background: var(--nb-spine); border: var(--edge) solid var(--ink-fixed); border-radius: 3px;
-  transition: right 0.5s, width 0.5s, opacity 0.5s, top 0.5s, bottom 0.5s;
+  transition: right var(--nb-open-ms) var(--nb-open-ease), width var(--nb-open-ms) var(--nb-open-ease), opacity var(--nb-open-ms) var(--nb-open-ease),
+    top var(--nb-open-ms) var(--nb-open-ease), bottom var(--nb-open-ms) var(--nb-open-ease);
 }
 .nb.is-closed .nb-band { opacity: 0; }
 .nb:not(.is-closed) .nb-band { right: -5px; width: 5px; top: 14%; bottom: 14%; opacity: 0.4; z-index: 2; border-width: 1px; border-radius: 2px; }

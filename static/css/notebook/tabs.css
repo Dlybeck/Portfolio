@@ -26,7 +26,7 @@
 
 /* While the book is shut the tabs stay put, riding on the book, and show only a 6px edge past the cover as if they were
    pages under it (the cover hides the rest, so the words never show). Opening and closing move them with the same
-   0.8s ease-out as the cover, so they come out in step with the swing and tuck back the same way. The shut tabs can
+   shared open curve (--nb-open-ease) as the cover, so they come out in step with the swing and tuck back the same way. The shut tabs can
    be clicked with a mouse; for a keyboard or screen reader they are hidden (tabs.js), since the cover has its own button. */
 .nb--desktop.is-closed .nb-tab, .nb--desktop.is-closed .nb-tab[aria-current] { transform: translateX(-30px); }
 

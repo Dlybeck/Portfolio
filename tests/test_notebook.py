@@ -157,7 +157,7 @@ def test_contents_link_on_desktop_opens_the_first_spread(browser_page) -> None:
 
     assert page.locator("#notebook").get_attribute("data-page") == "me"
     assert page.locator(".nb-pn.rgt").inner_text() == "p.1"
-    assert page.locator(".nb-page.r .toc").count() == 1
+    assert page.locator(".nb-page.l .toc").count() == 1  # resting on the inside front cover
     assert problems == []
 
 

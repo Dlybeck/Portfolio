@@ -93,7 +93,7 @@ def test_every_model_site_link_from_the_old_pages_is_kept(client: TestClient) ->
 def test_the_old_wording_around_the_models_is_kept(client: TestClient) -> None:
     html = client.get("/").text
 
-    assert "45,000+ downloads" in html
+    assert "55,000+ downloads" in html
     assert "The sliding puzzle box" in html and "Private for now" in html
     assert "I bet you can't solve them" in html
 

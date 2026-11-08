@@ -37,7 +37,9 @@ The preload is skipped, and the model loads only when someone writes on the pad,
 - the device looks weak: `deviceMemory` of 2 GB or less, or 4 or fewer logical cores;
 - the browser does not report its link at all (Safari) and the pointer is coarse (a phone or
   tablet that might be on cellular);
-- the cover is not shut when the page loads (a deep link to a page; the pad is not in view).
+- the cover is not shut when the page loads (a deep link to a page; the pad is not in view);
+- the notebook is in its phone layout (`nb--phone`, checked again just before the load starts). A phone may be
+  on mobile data whatever the browser reports, so it never preloads; the reader loads on the first stroke or scan.
 
 Weights come from Hugging Face at a pinned revision, the library and its runtime from jsDelivr
 at exact versions (the runtime is 27 MB uncompressed, too heavy for the repository). The

@@ -331,6 +331,21 @@ def test_a_phone_that_cannot_say_what_link_it_is_on_does_not_preload(mobile_brow
     assert len(calls) == 1
 
 
+def test_a_phone_never_preloads_even_on_a_normal_4g_link_and_loads_on_the_first_stroke(mobile_browser_page) -> None:
+    page, base = mobile_browser_page
+    calls = serve(page, READER)
+    open_cover(page, base, connection=link(effectiveType="4g", saveData=False) + "; " + STRONG)  # looks like fine wifi to the browser
+    assert page.evaluate("document.getElementById('notebook').classList.contains('nb--phone')")
+    page.wait_for_timeout(8000)  # past the settle time and the idle timeout
+    assert calls == []
+    cdp = page.context.new_cdp_session(page)
+    geo = pad_geometry(page)
+    stroke_touch(cdp, [screen(geo, 0.1, 0.3), screen(geo, 0.6, 0.35)])
+    page.wait_for_function("document.querySelector('.wd-scan .sc-t').textContent === 'line 1'", timeout=10000)
+    assert len(calls) == 1
+    assert untouched(page)
+
+
 def test_the_pad_never_calls_itself_by_the_old_name(browser_page) -> None:
     page, base = browser_page
     serve(page, READER)

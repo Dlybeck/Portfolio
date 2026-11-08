@@ -304,6 +304,6 @@ export const scan = {
 
     setState("idle");
     demo();
-    if (card.closest(".nb")?.classList.contains("is-closed")) preload(); // the pad is in view (the cover is shut): get the reader ready quietly
+    if (card.closest(".nb")?.classList.contains("is-closed")) preload(() => Boolean(document.querySelector(".nb--phone"))); // the pad is in view (the cover is shut): get the reader ready quietly, except on a phone
   },
 };

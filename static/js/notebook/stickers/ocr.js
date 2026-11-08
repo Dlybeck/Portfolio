@@ -173,13 +173,16 @@ let preloadAsked = false;
  * Start fetching the model in the background when the page has settled and the browser is idle. It never shows anything:
  * the pad shows progress only once someone touches it, and then joins this load from where it has got to. Safe to call
  * again; only the first call does anything. A failure here is silent, and the pad starts afresh when it is used.
+ * `isPhone()` says whether the notebook is in its phone layout; a phone never preloads (the link may be mobile data
+ * whatever the browser reports), and the reader loads on the first stroke instead. It is asked again when the wait ends,
+ * since the layout can change meanwhile.
  */
-export function preload() {
+export function preload(isPhone = () => false) {
   if (preloadAsked) return;
   preloadAsked = true;
-  if (!worthPreloading()) return;
+  if (isPhone() || !worthPreloading()) return;
   const go = () => setTimeout(() => {
-    const start = () => ocr.load().catch(() => {});
+    const start = () => { if (!isPhone() && !off) ocr.load().catch(() => {}); };
     const idle = () => {
       if ("requestIdleCallback" in window) requestIdleCallback(start, { timeout: IDLE_MS });
       else setTimeout(start, 500); // Safari has no idle callback

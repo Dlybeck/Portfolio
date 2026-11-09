@@ -133,7 +133,7 @@ def test_the_now_pill_walks_back_through_the_years(browser_page) -> None:
     pill = page.locator(".wd-now")
     assert pill.inner_text().lower().replace("\n", " ").endswith("ai tools at denali")
     pill.dispatch_event("click")
-    assert "ScribbleScan LLC" in pill.inner_text()
+    assert pill.inner_text().strip().endswith("ScribbleScan")
     pill.dispatch_event("click")
     pill.dispatch_event("click")
     pill.dispatch_event("click")
@@ -206,7 +206,7 @@ def test_stickers_work_from_the_keyboard(browser_page) -> None:
     page, *_ = cover(browser_page)
     page.locator(".wd-now").focus()
     page.keyboard.press("Space")
-    assert "ScribbleScan LLC" in page.locator(".wd-now").inner_text()
+    assert page.locator(".wd-now").inner_text().strip().endswith("ScribbleScan")
 
 
 def test_the_name_tag_on_the_inside_cover_works_from_the_keyboard(browser_page) -> None:

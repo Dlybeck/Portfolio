@@ -38,7 +38,8 @@ def test_pages_are_server_rendered_with_their_words(client: TestClient) -> None:
 
     assert "Innovation AI Developer" in html
     assert "From coaching tennis to building AI tools." in html
-    assert "ScribbleScan LLC" in html
+    assert "<small>ScribbleScan</small>" in html
+    assert "LLC" not in html
 
 
 def test_the_page_order_matches_the_notebook(client: TestClient) -> None:

@@ -19,7 +19,7 @@ JOBS = [{'logo': 'denali',
  {'logo': 'scribblescan',
   'width': 240,
   'height': 45,
-  'org': 'ScribbleScan LLC',
+  'org': 'ScribbleScan',
   'role': 'Founder and developer',
   'when': 'February 2025 to now',
   'text': 'Designed and built a handwriting-digitization service on my own, preserving images and '

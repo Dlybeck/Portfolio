@@ -29,6 +29,8 @@ so work on a branch and open PRs into `dev`.
 - Use the dlybeck design system (`static/dlybeck/`): tokens for every color, size and
   duration. Light theme only until a dark theme is asked for; keep colors as tokens.
 - No build step, no CDN: fonts, scripts and 3D viewer files are served from `static/`.
+  One scoped exception: the scan pad's reader loads its library and model from CDNs, in the background once the page is
+  idle or on first use (ADR 0003 lists when it is skipped).
 - Hand-written ES modules in `static/js/notebook/`, plain CSS in `static/css/notebook/`.
 - Keyboard operable (wheel, page corners, links), reduced motion respected, text pairs
   at 4.5:1 or better.

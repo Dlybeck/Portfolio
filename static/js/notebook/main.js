@@ -24,6 +24,9 @@ function targetFor({ pathname, hash }) {
   return old ? { page: old, anchor: null } : null;
 }
 
+// The pages one spin of the wheel passes belong together: they share one history entry, so Back undoes the whole spin.
+const SPIN_GAP_MS = 900;
+
 /** The address a page lives at. Pages without a route of their own use a hash on "/". */
 const addressOf = (id) => data.pages[id].path || `/#${data.pages[id].hash}`;
 const here = () => location.pathname + location.hash;
@@ -36,6 +39,8 @@ function mount(initial) {
 
   let book; let wheel; let cover; let tabs = null;
   let spinning = false; // the wheel is turning the pages, so it must not be re-aimed
+  let replaying = false; // Back or Forward is showing the page of an entry that is already in the history
+  let lastSpinEntry = -Infinity; // when the wheel last wrote a history entry
   const hooks = {
     page: (id, duration) => {
       spinning = true;
@@ -52,7 +57,13 @@ function mount(initial) {
     root, data, sources, mode: phone ? "phone" : "desktop", onFill: enhance, onSettled: settled,
     onView: (id) => {
       if (!spinning) wheel?.sync(id);
-      if (!cover.closed && here() !== addressOf(id)) history.replaceState({ page: id }, "", addressOf(id));
+      if (cover.closed || here() === addressOf(id)) return;
+      // Turning a page is a step in the history, so Back undoes it (a link, the contents and the cover already add theirs).
+      // Showing an entry Back or Forward landed on only tidies its address, and the rest of a wheel spin joins the spin's entry.
+      const sameSpin = spinning && performance.now() - lastSpinEntry < SPIN_GAP_MS;
+      if (replaying || sameSpin) history.replaceState({ page: id }, "", addressOf(id));
+      else history.pushState({ page: id }, "", addressOf(id));
+      if (spinning) lastSpinEntry = performance.now();
     },
   });
   wheel = createWheel({ root, data, order: book.order, phone, hooks });
@@ -77,11 +88,16 @@ function mount(initial) {
   function go(id, anchor, { push = true } = {}) {
     const page = book.normalize(id);
     if (push && here() !== addressOf(page)) history.pushState({ page }, "", addressOf(page));
-    if (cover.closed) {
-      book.show(page, anchor);
-      cover.open();
-    } else {
-      book.turn(page, { anchor });
+    replaying = !push;
+    try {
+      if (cover.closed) {
+        book.show(page, anchor);
+        cover.open();
+      } else {
+        book.turn(page, { anchor });
+      }
+    } finally {
+      replaying = false;
     }
     wheel.sync(page);
   }

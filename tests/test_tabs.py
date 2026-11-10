@@ -72,7 +72,7 @@ def test_a_tab_jumps_to_its_section_the_current_one_follows_and_back_works(brows
 def test_the_current_tab_follows_the_wheel_and_the_corners(browser_page) -> None:
     page = visit(browser_page, "/jobs", DESKTOP)
 
-    page.locator(".nb-ear.next").click()
+    page.locator(".nb-ear.next").click(position={"x": 44, "y": 44})  # on the drawn fold
     page.wait_for_timeout(900)
     assert page.locator('.nb-tab[aria-current="page"]').inner_text() == "School"
     page.locator(".wheel-dial").focus()

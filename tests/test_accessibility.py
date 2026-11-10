@@ -91,7 +91,7 @@ def test_the_whole_book_can_be_driven_by_tab_and_enter(browser_page) -> None:
 def test_with_reduced_motion_a_page_turn_has_no_flying_leaf(browser_page) -> None:
     page = open_notebook(browser_page, "/jobs", PHONE, reduced=True)
 
-    page.locator(".nb-ear.next").click()
+    page.locator(".nb-ear.next").click(position={"x": 44, "y": 44})  # on the drawn fold (the empty half of the corner takes no taps)
     assert page.locator("#notebook").get_attribute("data-page") == "school"  # at once, no wait
     assert page.locator(".nb-leaf.is-flying").count() == 0
 

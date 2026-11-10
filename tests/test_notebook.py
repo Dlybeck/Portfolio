@@ -232,7 +232,7 @@ def test_the_old_tabs_switch_does_nothing_and_the_address_is_left_alone(browser_
     page.set_viewport_size(DESKTOP)
     page.goto(base + "/jobs?tabs=b")
     page.wait_for_selector("#notebook.nb--desktop")
-    page.locator(".nb-ear.next").click()
+    page.locator(".nb-ear.next").click(position={"x": 44, "y": 44})  # on the drawn fold
     page.wait_for_timeout(900)
     assert page.evaluate("location.pathname") == "/education/college"
     assert "tabs" not in page.evaluate("location.search")

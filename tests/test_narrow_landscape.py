@@ -42,7 +42,7 @@ def test_a_narrow_landscape_phone_gets_a_readable_spread(browser_page, width, he
 
 
 # landscape windows that are tall enough to skip the short-landscape rules but still have two narrow pages (a Surface Duo on its side is 720x540)
-MEDIUM = [(700, 530), (720, 540), (800, 600), (839, 530), (900, 530), (899, 700)]
+MEDIUM = [(700, 530), (720, 540), (800, 600), (839, 530), (900, 530), (899, 700), (900, 611), (939, 700), (959, 700), (960, 561), (1100, 580), (1200, 600), (1280, 600), (1300, 620)]
 BARS = "() => [...document.querySelectorAll('.nb-page.r .bar i')].map((e) => Math.round(e.getBoundingClientRect().width))"
 
 
@@ -60,11 +60,11 @@ def test_a_landscape_window_with_narrow_pages_cuts_nothing_off_and_keeps_its_bar
     page.wait_for_selector("#notebook.nb--desktop")
     page.wait_for_timeout(400)
     bars = page.evaluate(BARS)
-    assert len(bars) == 3 and min(bars) >= 25, bars  # they were 2px stubs, and the values ran past the page edge
+    assert len(bars) == 3 and min(bars) >= 25, bars  # they were 2px stubs (17-41px up to 940px wide), and the values ran past the page edge
 
 
-@pytest.mark.parametrize("width,height", [(900, 611), (939, 700), (1100, 610), (1280, 600), (1366, 768)], ids=lambda v: str(v))
-def test_a_wide_landscape_window_over_560px_tall_keeps_the_three_column_bars(browser_page, width, height) -> None:
+@pytest.mark.parametrize("width,height", [(960, 700), (1100, 650), (1280, 700), (1366, 768)], ids=lambda v: str(v))
+def test_a_wide_landscape_window_over_620px_tall_keeps_the_three_column_bars(browser_page, width, height) -> None:
     """The stacked bars are for pages too narrow for the three columns; a wide window this tall keeps them as they were."""
     page, base = browser_page
     page.set_viewport_size({"width": width, "height": height})

@@ -110,8 +110,8 @@
 
 /* The accuracy bars: their label sits above the bar when the page is narrow. The 96px and 54px columns leave a bar under 40px wide (2px
    in the narrowest) or push the values past the page edge. The spread's pages are that narrow in a landscape window that is short (up
-   to 560px tall) or under 900px wide. Taller windows 900px or more wide keep the old three columns. */
-@media (orientation: landscape) and (max-height: 560px) and (min-width: 560px), (orientation: landscape) and (min-width: 640px) and (max-width: 899px) {
+   to 620px tall: the page is as wide as the book is tall) or under 960px wide (a bar is under 40px wide below either). Taller windows 960px or more wide keep the old three columns. */
+@media (orientation: landscape) and (max-height: 620px) and (min-width: 560px), (orientation: landscape) and (min-width: 640px) and (max-width: 959px) {
   .nb--desktop .page .bar { grid-template-columns: minmax(0, 1fr) 46px; grid-template-areas: "name name" "bar value"; row-gap: 2px; }
   .nb--desktop .page .bar span { grid-area: name; }
   .nb--desktop .page .bar i { grid-area: bar; }

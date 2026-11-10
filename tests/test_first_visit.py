@@ -221,3 +221,12 @@ def test_the_tip_survives_a_resize_across_the_phone_breakpoint(new_page, live_se
     page.set_viewport_size(PHONE)
     page.wait_for_selector(".wheel-tip", timeout=4000)
     assert state(page)["shut"]
+
+
+def test_a_home_link_mid_opening_takes_over_without_adding_an_entry(new_page, live_server_url) -> None:
+    page = visit(new_page, live_server_url, DESKTOP)
+    page.wait_for_timeout(2000)  # mid-spin
+    page.evaluate("(() => { const a = document.createElement('a'); a.dataset.home = ''; a.href = '/'; a.textContent = 'home'; document.getElementById('notebook').append(a); a.click(); })()")
+    page.wait_for_timeout(3000)
+    shown = state(page)
+    assert shown["shut"] and shown["path"] == "/" and shown["writes"] == 0

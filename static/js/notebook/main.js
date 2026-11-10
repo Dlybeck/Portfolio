@@ -100,9 +100,17 @@ function mount(initial) {
     if (push) remember(null, fromWheel ? input : null);
   }
 
+  /** Something other than the visitor's hands (a link, Back, a new address) is navigating: the first-visit spin stops where it is. */
+  function endOpening() {
+    if (!opening) return;
+    wheel.cancelGlide();
+    stopOpening();
+    opening = false;
+  }
+
   /** Show a page (a link, the contents, back and forward): turn to it, opening the cover first if it is shut. */
   function go(id, anchor, { push = true } = {}) {
-    if (opening) { wheel.cancelGlide(); stopOpening(); opening = false; } // a link, Back or a new address takes over from the spin
+    endOpening(); // a link, Back or a new address takes over from the spin
     const page = book.normalize(id);
     if (push && here() !== addressOf(page)) remember(page);
     replaying = !push;
@@ -143,7 +151,11 @@ function mount(initial) {
     },
     showTip: () => tip.show(),
     go,
-    home: (options) => closeCover(options),
+    home: (options) => {
+      const midOpening = opening; // the address is already "/" and the spin wrote no entry: shutting the cover adds none either
+      endOpening();
+      closeCover(midOpening ? { ...options, push: false } : options);
+    },
     focusPage() { (book.book.querySelector(".nb-page.r .nb-in") ?? book.book.querySelector(".nb-page .nb-in"))?.focus({ preventScroll: true }); },
     get isClosed() { return cover.closed; },
     get tipWanted() { return opening || tip.wanted; },

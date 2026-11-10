@@ -6,8 +6,8 @@ import { createCover } from "./cover.js?v=6";
 import { enhance, settled } from "./media.js";
 import { createTabs } from "./tabs.js";
 import { createWheel } from "./wheel.js?v=5";
-import { createWheelTip } from "./wheel-tip.js";
-import { hasSeenOpening, liftCornerOnce, playOpening, rememberOpening } from "./opening.js";
+import { createWheelTip } from "./wheel-tip.js?v=1";
+import { hasSeenOpening, liftCornerOnce, playOpening, rememberOpening } from "./opening.js?v=1";
 import { reducedMotion } from "./motion.js";
 
 const root = document.getElementById("notebook");
@@ -59,7 +59,7 @@ function mount(initial) {
   let spinning = false; // the wheel is turning the pages, so it must not be re-aimed
   let spinInput = null; // the wheel input whose turn is being shown (see wheel.js)
   let opening = false; // the first-visit spin is running: the address stays "/" and it writes nothing to the history
-  let stopOpening = null;
+  let stopOpening = null; // ends the opening silently
   const hooks = {
     page: (id, duration, input) => {
       spinning = true;
@@ -102,6 +102,7 @@ function mount(initial) {
 
   /** Show a page (a link, the contents, back and forward): turn to it, opening the cover first if it is shut. */
   function go(id, anchor, { push = true } = {}) {
+    if (opening) { wheel.cancelGlide(); stopOpening(); opening = false; } // a link, Back or a new address takes over from the spin
     const page = book.normalize(id);
     if (push && here() !== addressOf(page)) remember(page);
     replaying = !push;
@@ -145,7 +146,7 @@ function mount(initial) {
     home: (options) => closeCover(options),
     focusPage() { (book.book.querySelector(".nb-page.r .nb-in") ?? book.book.querySelector(".nb-page .nb-in"))?.focus({ preventScroll: true }); },
     get isClosed() { return cover.closed; },
-    get isOpening() { return opening; },
+    get tipWanted() { return opening || tip.wanted; },
     get page() { return cover.closed || opening ? null : book.current; }, // mid-opening, a rebuild starts again from the cover
     destroy() { stopOpening?.(); tip.hide(); tabs?.destroy(); cover.destroy(); wheel.destroy(); book.destroy(); },
   };
@@ -184,8 +185,8 @@ window.addEventListener("popstate", () => {
 // moving between phone and desktop sizes rebuilds the book at the same page
 wide.addEventListener("change", () => {
   const page = view.page;
-  const midOpening = view.isOpening; // the first-visit spin was cut short by the resize: the cover it lands on still gets its tip
+  const tipWanted = view.tipWanted; // the spin was cut short, or the tip was up: the rebuilt cover still gets it
   view.destroy();
   view = mount(page ? { page, anchor: null } : null);
-  if (midOpening) view.showTip();
+  if (tipWanted) view.showTip();
 });

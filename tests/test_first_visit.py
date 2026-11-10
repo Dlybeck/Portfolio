@@ -190,3 +190,34 @@ def test_resizing_across_the_phone_breakpoint_mid_opening_still_ends_on_the_cove
     page.wait_for_selector(".wheel-tip", timeout=4000)
     shown = state(page)
     assert shown["shut"] and shown["path"] == "/"
+
+
+def test_a_new_address_mid_opening_takes_over_and_the_page_matches_it(new_page, live_server_url) -> None:
+    page = visit(new_page, live_server_url, DESKTOP)
+    page.wait_for_timeout(2000)  # mid-spin
+    page.evaluate("location.hash = '#hobbies'")
+    page.wait_for_timeout(5000)
+    shown = state(page)
+    other = new_page(viewport=DESKTOP)  # what that address shows to anyone loading it
+    other.goto(live_server_url + "/#hobbies")
+    other.wait_for_selector("#notebook.nb--desktop")
+    other.wait_for_timeout(1200)
+    assert not shown["shut"] and shown["page"] == state(other)["page"] and shown["tip"] is None
+    assert page.evaluate("location.pathname + location.hash") == other.evaluate("location.pathname + location.hash")  # the address is that page's
+
+
+def test_a_modifier_key_or_shortcut_does_not_end_the_opening(new_page, live_server_url) -> None:
+    page = visit(new_page, live_server_url, DESKTOP)
+    page.wait_for_timeout(2000)
+    page.keyboard.press("Shift")
+    page.keyboard.press("Control+l")
+    page.wait_for_selector(".wheel-tip", timeout=9000)
+    assert state(page)["shut"]  # it ran on to the cover
+
+
+def test_the_tip_survives_a_resize_across_the_phone_breakpoint(new_page, live_server_url) -> None:
+    page = visit(new_page, live_server_url, DESKTOP)
+    page.wait_for_selector(".wheel-tip", timeout=9000)
+    page.set_viewport_size(PHONE)
+    page.wait_for_selector(".wheel-tip", timeout=4000)
+    assert state(page)["shut"]

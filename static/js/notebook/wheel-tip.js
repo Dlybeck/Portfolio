@@ -12,10 +12,12 @@ export function createWheelTip(root, { delay = 500 } = {}) {
   const wheel = root.querySelector(".wheel");
   let tip = null;
   let timer = 0;
+  let wanted = false; // asked for and not yet put away: it survives the book being rebuilt
   const gestures = ["pointerdown", "wheel", "keydown"];
   const classes = new MutationObserver(() => { if (!root.classList.contains("is-closed")) hide(); });
 
   function hide() {
+    wanted = false;
     clearTimeout(timer);
     classes.disconnect();
     for (const type of gestures) wheel?.removeEventListener(type, hide, true);
@@ -28,9 +30,11 @@ export function createWheelTip(root, { delay = 500 } = {}) {
 
   return {
     hide,
+    get wanted() { return wanted; },
     /** Show it after a short pause, and only while the cover is shut. */
     show() {
       if (!wheel || tip) return;
+      wanted = true;
       timer = setTimeout(() => {
         if (!root.classList.contains("is-closed")) return;
         tip = document.createElement("div");

@@ -134,7 +134,6 @@ body {
   content: ""; position: absolute; inset: 0; clip-path: polygon(100% 0, 100% 100%, 0 100%); transform-origin: 100% 100%;
   background: linear-gradient(135deg, transparent 50%, var(--nb-edge) 50%, var(--nb-edge) calc(50% + 2px), color-mix(in srgb, var(--paper-note) 78%, #141c2b) calc(50% + 2px));
 }
-.nb-ear::before { filter: drop-shadow(-1px -1px 1.5px rgba(20, 28, 43, 0.28)); }
 /* On a first visit, once the cover has opened, the next-page corner lifts a little, once (opening.js adds .nb--lift) */
 .nb--lift .nb-ear.next::before { animation: ear-lift 1.3s ease-in-out 0.5s 1; }
 @keyframes ear-lift { 40% { transform: scale(1.2); } }

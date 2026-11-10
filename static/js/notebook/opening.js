@@ -7,6 +7,7 @@ const SEEN = "nb-opening-seen";
 const PAUSE_MS = 900; // the last page sits still first, so the visitor sees an open notebook
 const SPIN_MS = 2600; // how long the spin takes, whatever the number of pages
 const SETTLE_MS = 900; // the cover finishing its swing before the tooltip appears
+const MODIFIERS = ["Shift", "Control", "Alt", "Meta", "AltGraph", "CapsLock"];
 const TAKEOVER = ["pointerdown", "wheel", "keydown", "touchstart"];
 
 export function hasSeenOpening() {
@@ -17,7 +18,7 @@ export function rememberOpening() {
 }
 
 /**
- * Run the spin. Returns a function that stops it for good (used when the book is rebuilt).
+ * Run the spin. Returns `stop()`, which ends it silently (the book is rebuilt, or another navigation took over).
  * @param {{ wheel: { glideTo(id: string, ms: number, done: (arrived: boolean) => void): void, cancelGlide(): void },
  *           tip: { show(): void }, finish: () => void }} o
  */
@@ -34,7 +35,12 @@ export function playOpening({ wheel, tip, finish }) {
     if (showTip) tip.show(); // (it only appears if the cover is shut by then)
   };
   // a visitor who has taken over by touching the wheel itself needs no tip about it
-  const take = (e) => { wheel.cancelGlide(); end(!e.target?.closest?.(".wheel")); };
+  const take = (e) => {
+    // a bare modifier or a browser shortcut (Shift, Cmd+L, Ctrl+T) is not a deliberate touch of the book
+    if (e.type === "keydown" && (e.ctrlKey || e.metaKey || e.altKey || MODIFIERS.includes(e.key))) return;
+    wheel.cancelGlide();
+    end(!e.target?.closest?.(".wheel"));
+  };
   for (const type of TAKEOVER) addEventListener(type, take, { capture: true, passive: true });
 
   function start() {

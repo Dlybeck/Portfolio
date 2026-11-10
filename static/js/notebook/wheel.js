@@ -66,6 +66,7 @@ export function createWheel({ root, data, order, phone, hooks }) {
   let lastWheelAt = -Infinity;
   const aimedBy = new Map(); // notch -> the key press that aimed the wheel at it, so each press's page is its own input
   let samples = [];
+  let glide = null; // the opening: the wheel carries itself to a notch over a set time, flipping the pages it passes
 
   function render() {
     dial.style.rotate = `${-pos * step}deg`;
@@ -107,7 +108,13 @@ export function createWheel({ root, data, order, phone, hooks }) {
   function frame(t) {
     const dt = Math.min(0.05, (t - lastFrame) / 1000 || 0.016);
     lastFrame = t;
-    if (drag) {
+    if (glide) {
+      glide.elapsed += dt * 1000; // counted from the clamped frame time, so a tab that was hidden does not jump to the end
+      const u = clamp(glide.elapsed / glide.ms, 0, 1);
+      pos = glide.from + (glide.to - glide.from) * ((1 - Math.cos(Math.PI * u)) / 2);
+      speed = ((glide.to - glide.from) * (Math.PI / 2) * Math.sin(Math.PI * u)) / (glide.ms / 1000); // the flips quicken and ease with it
+      if (u >= 1) { const { done } = glide; pos = glide.to; speed = 0; target = null; quiet = false; glide = null; done?.(true); }
+    } else if (drag) {
       // the position follows the finger
     } else if (target !== null) {
       if (reducedMotion()) { pos = target; speed = 0; } else {
@@ -123,10 +130,11 @@ export function createWheel({ root, data, order, phone, hooks }) {
     }
     render();
     flipTo();
-    raf = drag || target !== null || Math.abs(speed) > 0.01 ? requestAnimationFrame(frame) : 0;
+    raf = glide || drag || target !== null || Math.abs(speed) > 0.01 ? requestAnimationFrame(frame) : 0;
   }
   const kick = () => { if (!raf) { lastFrame = performance.now(); raf = requestAnimationFrame(frame); } };
   const take = () => {
+    if (glide) { const { done } = glide; glide = null; target = nearest(pos); speed = 0; done?.(false); } // the visitor takes the wheel from the opening
     if (!quiet) return;
     quiet = false;
     shown = hooks.isClosed() ? COVER : Math.max(0, order.indexOf(hooks.current()));
@@ -230,6 +238,17 @@ export function createWheel({ root, data, order, phone, hooks }) {
       speed = 0;
       kick();
     },
+    /** Spin to a page (or "cover") over `ms`, flipping every page on the way. `done(true)` when it arrives, `done(false)` if the visitor takes over first. */
+    glideTo(id, ms, done) {
+      const to = id === "cover" ? COVER : order.indexOf(id);
+      if (to < COVER) return;
+      quiet = false;
+      target = null;
+      glide = { from: pos, to, ms, elapsed: 0, done };
+      kick();
+    },
+    /** Hand the wheel back (the opening stops where it is). */
+    cancelGlide() { if (glide) take(); },
     /** Put the wheel on a notch with no glide. */
     set(id) {
       aimedBy.clear();

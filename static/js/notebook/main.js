@@ -5,7 +5,10 @@ import { createBook } from "./book.js?v=4";
 import { createCover } from "./cover.js?v=6";
 import { enhance, settled } from "./media.js";
 import { createTabs } from "./tabs.js";
-import { createWheel } from "./wheel.js?v=4";
+import { createWheel } from "./wheel.js?v=5";
+import { createWheelTip } from "./wheel-tip.js";
+import { hasSeenOpening, liftCornerOnce, playOpening, rememberOpening } from "./opening.js";
+import { reducedMotion } from "./motion.js";
 
 const root = document.getElementById("notebook");
 const data = JSON.parse(document.getElementById("nb-data").textContent);
@@ -55,6 +58,8 @@ function mount(initial) {
   let book; let wheel; let cover; let tabs = null;
   let spinning = false; // the wheel is turning the pages, so it must not be re-aimed
   let spinInput = null; // the wheel input whose turn is being shown (see wheel.js)
+  let opening = false; // the first-visit spin is running: the address stays "/" and it writes nothing to the history
+  let stopOpening = null;
   const hooks = {
     page: (id, duration, input) => {
       spinning = true;
@@ -63,7 +68,7 @@ function mount(initial) {
       spinning = false;
     },
     open: (input) => openCover({ fromWheel: true, input }),
-    close: (input) => closeCover({ fromWheel: true, input }),
+    close: (input) => closeCover({ fromWheel: true, input, push: !opening }),
     isClosed: () => cover.closed,
     current: () => book.current,
   };
@@ -72,11 +77,12 @@ function mount(initial) {
     root, data, sources, mode: phone ? "phone" : "desktop", onFill: enhance, onSettled: settled,
     onView: (id) => {
       if (!spinning) wheel?.sync(id);
-      if (cover.closed || here() === addressOf(id)) return; // (a link or tab already wrote its entry in go())
+      if (opening || cover.closed || here() === addressOf(id)) return; // (a link or tab already wrote its entry in go(); the opening writes none)
       remember(id, spinning ? spinInput : null);
     },
   });
   wheel = createWheel({ root, data, order: book.order, phone, hooks });
+  const tip = createWheelTip(root);
   cover = createCover({ root, book: book.book, phone, onTap: () => openCover() });
   tabs = createTabs({ root, book: book.book, data, addressOf }); // a phone gets slim tabs too
 
@@ -115,7 +121,7 @@ function mount(initial) {
   if (initial) {
     book.show(initial.page, initial.anchor);
     wheel.set(book.current);
-    if (here() !== addressOf(book.current)) history.replaceState({ page: book.current }, "", addressOf(book.current));
+    if (!initial.opening && here() !== addressOf(book.current)) history.replaceState({ page: book.current }, "", addressOf(book.current));
   } else {
     book.show(book.order[0]);
     cover.close();
@@ -123,16 +129,38 @@ function mount(initial) {
   }
 
   return {
+    /** First visit: spin the book from its last page back to the cover (see opening.js). The address is "/" the whole time. */
+    playOpening() {
+      opening = true;
+      stopOpening = playOpening({
+        wheel, tip,
+        finish() {
+          opening = false;
+          if (!cover.closed && here() !== addressOf(book.current)) history.replaceState({ page: book.current }, "", addressOf(book.current)); // the visitor took over on a page
+        },
+      });
+    },
+    showTip: () => tip.show(),
     go,
     home: (options) => closeCover(options),
     focusPage() { (book.book.querySelector(".nb-page.r .nb-in") ?? book.book.querySelector(".nb-page .nb-in"))?.focus({ preventScroll: true }); },
     get isClosed() { return cover.closed; },
-    get page() { return cover.closed ? null : book.current; },
-    destroy() { tabs?.destroy(); cover.destroy(); wheel.destroy(); book.destroy(); },
+    get page() { return cover.closed || opening ? null : book.current; }, // mid-opening, a rebuild starts again from the cover
+    destroy() { stopOpening?.(); tip.hide(); tabs?.destroy(); cover.destroy(); wheel.destroy(); book.destroy(); },
   };
 }
 
-let view = mount(targetFor(location));
+// A first visit to plain "/" (not a page address, not ?intro=0) gets the opening; ?intro=1 plays it again.
+const introParam = new URLSearchParams(location.search).get("intro");
+const firstVisit = !targetFor(location) && introParam !== "0" && (introParam === "1" || !hasSeenOpening());
+const spin = firstVisit && !reducedMotion();
+let view = mount(spin ? { page: data[wide.matches ? "desktop" : "phone"].at(-1), anchor: null, opening: true } : targetFor(location));
+if (firstVisit) {
+  rememberOpening();
+  liftCornerOnce(root);
+  if (spin) view.playOpening();
+  else view.showTip(); // reduced motion: no spin, just the tooltip on the cover
+}
 
 root.addEventListener("click", (e) => {
   const link = e.target.closest("[data-open], [data-home]");

@@ -128,12 +128,17 @@ body {
 .nb--phone .nb-pn.lft, .nb--phone .face-pn.lft { display: none; }
 
 .nb-ear, .face-ear { /* a folded page corner you can tap to turn */
-  position: absolute; bottom: 0; width: 48px; height: 48px; border: 0; padding: 0; cursor: pointer; z-index: 7; background: none;
+  position: absolute; bottom: 0; width: 56px; height: 56px; border: 0; padding: 0; cursor: pointer; z-index: 7; background: none;
 }
-.nb-ear::before, .face-ear::before {
-  content: ""; position: absolute; inset: 0; clip-path: polygon(100% 0, 100% 100%, 0 100%);
-  background: linear-gradient(135deg, transparent 50%, var(--nb-edge) 50%, var(--nb-edge) calc(50% + 1.5px), color-mix(in srgb, var(--paper-note) 86%, #141c2b) calc(50% + 1.5px));
+.nb-ear::before, .face-ear::before { /* a touch larger and darker than it was, so the fold reads as something you can lift */
+  content: ""; position: absolute; inset: 0; clip-path: polygon(100% 0, 100% 100%, 0 100%); transform-origin: 100% 100%;
+  background: linear-gradient(135deg, transparent 50%, var(--nb-edge) 50%, var(--nb-edge) calc(50% + 2px), color-mix(in srgb, var(--paper-note) 78%, #141c2b) calc(50% + 2px));
 }
+.nb-ear::before { filter: drop-shadow(-1px -1px 1.5px rgba(20, 28, 43, 0.28)); }
+/* On a first visit, once the cover has opened, the next-page corner lifts a little, once (opening.js adds .nb--lift) */
+.nb--lift .nb-ear.next::before { animation: ear-lift 1.3s ease-in-out 0.5s 1; }
+@keyframes ear-lift { 40% { transform: scale(1.2); } }
+@media (prefers-reduced-motion: reduce) { .nb--lift .nb-ear.next::before { animation: none; } }
 .nb-ear.next, .face-ear.next { right: 0; }
 .nb-ear.prev, .face-ear.prev { left: 0; transform: scaleX(-1); }
 .face-ear { display: block; pointer-events: none; cursor: default; }

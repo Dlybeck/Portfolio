@@ -1,0 +1,74 @@
+// A first visit to "/" opens the notebook on its last page, spins the wheel back through every page and swings the
+// cover shut, then a tooltip points at the wheel. It plays once per visitor (remembered in localStorage), never for a
+// deep link, and not at all with reduced motion (the cover just shows the tooltip). A touch, scroll or key takes over
+// at once. The address stays "/" throughout and the spin adds nothing to the history.
+
+const SEEN = "nb-opening-seen";
+const PAUSE_MS = 900; // the last page sits still first, so the visitor sees an open notebook
+const SPIN_MS = 2600; // how long the spin takes, whatever the number of pages
+const SETTLE_MS = 900; // the cover finishing its swing before the tooltip appears
+const TAKEOVER = ["pointerdown", "wheel", "keydown", "touchstart"];
+
+export function hasSeenOpening() {
+  try { return localStorage.getItem(SEEN) === "1"; } catch { return false; } // storage can be blocked: then it plays every time
+}
+export function rememberOpening() {
+  try { localStorage.setItem(SEEN, "1"); } catch { /* blocked */ }
+}
+
+/**
+ * Run the spin. Returns a function that stops it for good (used when the book is rebuilt).
+ * @param {{ wheel: { glideTo(id: string, ms: number, done: (arrived: boolean) => void): void, cancelGlide(): void },
+ *           tip: { show(): void }, finish: () => void }} o
+ */
+export function playOpening({ wheel, tip, finish }) {
+  let over = false;
+  let timer = 0;
+  const end = (arrived) => {
+    if (over) return;
+    over = true;
+    clearTimeout(timer);
+    for (const type of TAKEOVER) removeEventListener(type, take, true);
+    document.removeEventListener("visibilitychange", start);
+    finish();
+    if (arrived) tip.show();
+  };
+  const take = () => { wheel.cancelGlide(); end(false); };
+  for (const type of TAKEOVER) addEventListener(type, take, { capture: true, passive: true });
+
+  function start() {
+    if (over) return;
+    if (document.hidden) { document.addEventListener("visibilitychange", start, { once: true }); return; } // wait until it can be seen
+    timer = setTimeout(() => {
+      wheel.glideTo("cover", SPIN_MS, (arrived) => {
+        if (!arrived) return end(false);
+        timer = setTimeout(() => end(true), SETTLE_MS);
+      });
+    }, PAUSE_MS);
+  }
+  start();
+  return () => { over = true; clearTimeout(timer); for (const type of TAKEOVER) removeEventListener(type, take, true); document.removeEventListener("visibilitychange", start); };
+}
+
+/**
+ * Once, on a first visit: the first time the cover has opened and settled, the next-page corner lifts a little and
+ * settles (CSS .nb--lift). It says the corner is there without becoming a second tooltip.
+ */
+export function liftCornerOnce(root) {
+  let sawShut = false;
+  const watch = new MutationObserver(() => {
+    const shut = root.classList.contains("is-closed");
+    if (shut) sawShut = true;
+    if (!sawShut || shut || root.classList.contains("is-opening")) return;
+    watch.disconnect();
+    root.classList.add("nb--lift");
+    const done = (e) => {
+      if (e.animationName !== "ear-lift") return;
+      root.classList.remove("nb--lift");
+      root.removeEventListener("animationend", done, true);
+    };
+    root.addEventListener("animationend", done, true);
+  });
+  watch.observe(root, { attributes: true, attributeFilter: ["class"] });
+  sawShut = root.classList.contains("is-closed");
+}

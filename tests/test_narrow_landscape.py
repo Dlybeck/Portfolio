@@ -63,6 +63,18 @@ def test_a_landscape_window_with_narrow_pages_cuts_nothing_off_and_keeps_its_bar
     assert len(bars) == 3 and min(bars) >= 25, bars  # they were 2px stubs, and the values ran past the page edge
 
 
+@pytest.mark.parametrize("width,height", [(900, 611), (939, 700), (1100, 610), (1280, 600), (1366, 768)], ids=lambda v: str(v))
+def test_a_wide_landscape_window_over_560px_tall_keeps_the_three_column_bars(browser_page, width, height) -> None:
+    """The stacked bars are for pages too narrow for the three columns; a wide window this tall keeps them as they were."""
+    page, base = browser_page
+    page.set_viewport_size({"width": width, "height": height})
+    page.goto(base + "/projects/websites/scribblescan")
+    page.wait_for_selector("#notebook.nb--desktop")
+    page.wait_for_timeout(400)
+    columns = page.evaluate("getComputedStyle(document.querySelector('.nb-page.r .bar')).gridTemplateColumns.split(' ').length")
+    assert columns == 3
+
+
 def test_a_portrait_phone_keeps_the_one_page_book(browser_page) -> None:
     """The portrait phone layout does not change: a window that is taller than wide, however short, stays the one-page book."""
     page, base = browser_page

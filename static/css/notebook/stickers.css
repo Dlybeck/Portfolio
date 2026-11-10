@@ -72,10 +72,13 @@
   font: 700 clamp(0.5rem, 3.3cqw, 0.82rem) / 1 var(--font-sans);
 }
 .wd-now b { font: 500 0.66rem / 1 var(--font-mono); letter-spacing: 0.04em; text-transform: uppercase; }
-.wd-now .dot { width: 8px; height: 8px; border-radius: 50%; background: #8b93a1; flex: none; }
-.wd-now.live .dot { background: #1fbf5a; box-shadow: 0 0 0 0 rgba(31, 191, 90, 0.6); animation: pulse 1.6s infinite; }
+.wd-now .dot { position: relative; width: 8px; height: 8px; border-radius: 50%; background: #8b93a1; flex: none; }
+/* The live dot's ring is a disc behind the dot that grows and fades (transform and opacity run on the compositor;
+   the box-shadow it replaces repainted the whole filtered sticker on every frame). */
+.wd-now.live .dot { background: #1fbf5a; }
+.wd-now.live .dot::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 50%; background: #1fbf5a; opacity: 0.6; animation: pulse 1.6s infinite; }
 .wd-now.flip { animation: flip 0.36s var(--ease-out); }
-@keyframes pulse { 70% { box-shadow: 0 0 0 7px rgba(31, 191, 90, 0); } 100% { box-shadow: 0 0 0 0 rgba(31, 191, 90, 0); } }
+@keyframes pulse { 0% { transform: scale(1); opacity: 0.6; } 70% { transform: scale(2.75); opacity: 0; } 100% { transform: scale(1); opacity: 0; } } /* 8px dot + 7px ring = 2.75x */
 @keyframes flip { from { transform: rotateX(80deg); } }
 
 /* ---------- the trail stamp ---------- */
@@ -167,7 +170,7 @@
 .p12a.go .p12-g { animation: gantry 3.2s steps(16, end) both; }
 .p12a.go .p12-n { animation: nozzle 0.35s ease-in-out infinite alternate; }
 @keyframes print { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0 0 0 0); } }
-@keyframes gantry { from { top: 79%; } to { top: 31%; } }
+@keyframes gantry { from { translate: 0 51.84cqw; } } /* it rises from 79% to 31% of the machine's height: 48% of 1.08 x its width (aspect-ratio 1 / 1.08 on .p12-m); translate stays off the layout */
 @keyframes nozzle { from { translate: -160% 0; } to { translate: 160% 0; } }
 
 /* ---------- Your sticker ---------- */

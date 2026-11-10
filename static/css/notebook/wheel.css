@@ -53,7 +53,7 @@
    belongs to it (a finger lands on the button's centre but the touch goes to the dial). The drawn wheel is still grabbable. */
 .nb--phone.is-closed .wheel-dial::before { content: none; }
 
-@media (min-width: 900px), (orientation: landscape) and (min-width: 640px) {
+@media (min-width: 900px), (orientation: landscape) and (min-width: 640px), (orientation: landscape) and (max-height: 520px) and (min-width: 560px) {
   .wheel-dial::before { content: none; } /* the desktop wheel is big and fully drawn */
   .wheel { left: -180px; bottom: auto; top: calc(50% - 26px); margin: -220px 0 0; width: 440px; height: 440px; }
   .wheel-pointer { left: auto; right: -14px; top: 50%; margin: -8px 0 0; width: 12px; height: 16px; clip-path: polygon(100% 0, 100% 100%, 0 50%); }
@@ -62,10 +62,33 @@
 }
 
 /* A short landscape window: the same wheel at about half size, tucked against the left edge, clear of the logo and the book. */
-@media (orientation: landscape) and (max-height: 520px) and (min-width: 640px) {
+@media (orientation: landscape) and (max-height: 520px) and (min-width: 560px) {
   .wheel { left: -300px; top: calc(50% + 16px); margin-top: -220px; scale: 0.55; transform-origin: right center; }
   .wheel-name { right: 70px; font-size: 1.7rem; }
   .wheel-name small { font-size: 1rem; }
 }
 
 @media (prefers-reduced-motion: reduce) { .wheel-dot i { transition: none; } }
+
+/* The wheel's tooltip (wheel-tip.js): above the wheel on a phone, to the right of its pointer on desktop. It lives inside .wheel, so it follows it. */
+.wheel-tip {
+  position: absolute; z-index: 14; left: 50%; bottom: calc(100% + 16px); translate: -50% 0; rotate: -2deg; pointer-events: none; white-space: nowrap;
+  padding: 7px 14px 8px; border: var(--edge) solid var(--ink-fixed); border-radius: 12px; background: var(--paper-note); color: var(--ink-fixed);
+  font: 700 1.2rem/1 var(--font-hand); box-shadow: var(--lift); scale: var(--tip-scale, 1); animation: tip-in 0.5s ease-out both, tip-bob-y 1.6s ease-in-out 0.5s infinite;
+}
+.wheel-tip::after { /* the arrow: a square turned to a point */
+  content: ""; position: absolute; width: 12px; height: 12px; left: calc(50% - 7px); bottom: -8px; rotate: 45deg;
+  background: inherit; border: inherit; border-width: 0 var(--edge) var(--edge) 0;
+}
+.wheel-tip.is-gone { animation: tip-out 0.35s ease-in both; }
+@media (min-width: 900px), (orientation: landscape) and (min-width: 640px), (orientation: landscape) and (max-height: 520px) and (min-width: 560px) {
+  .wheel-tip { left: calc(100% + 26px); top: calc(50% - 74px); bottom: auto; translate: 0 0; animation: tip-in 0.5s ease-out both, tip-bob-x 1.6s ease-in-out 0.5s infinite; }
+  .wheel-tip::after { left: -8px; bottom: auto; top: calc(50% - 7px); border-width: 0 0 var(--edge) var(--edge); }
+}
+@keyframes tip-in { from { opacity: 0; scale: calc(var(--tip-scale, 1) * 0.9); } }
+@keyframes tip-out { to { opacity: 0; scale: calc(var(--tip-scale, 1) * 0.95); } }
+@keyframes tip-bob-y { 50% { transform: translateY(6px); } }
+@keyframes tip-bob-x { 50% { transform: translateX(-7px); } }
+/* In a short landscape window the whole wheel is drawn at 0.55; the tip, which lives in it, is drawn back to full size from its left edge */
+@media (orientation: landscape) and (max-height: 520px) and (min-width: 560px) { .wheel-tip { --tip-scale: 1.82; transform-origin: left center; } }
+@media (prefers-reduced-motion: reduce) { .wheel-tip, .wheel-tip.is-gone { animation: none; } }

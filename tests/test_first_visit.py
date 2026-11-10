@@ -273,3 +273,10 @@ def test_a_press_on_a_link_that_becomes_a_drag_takes_over(new_page, live_server_
     page.mouse.up()
     page.wait_for_timeout(4500)
     assert not state(page)["shut"]
+
+
+def test_touching_the_wheel_before_the_tip_appears_cancels_it(new_page, live_server_url) -> None:
+    page = visit(new_page, live_server_url, DESKTOP, reduced_motion="reduce")
+    page.mouse.click(120, 424)  # on the wheel, within the half second before the tip would show
+    page.wait_for_timeout(1500)
+    assert state(page)["tip"] is None

@@ -10,6 +10,7 @@ const PAUSE_MS = 900; // the last page sits still first, so the visitor sees an 
 const SPIN_MS = 2600; // how long the spin takes, whatever the number of pages
 const SETTLE_MS = 900; // the cover finishing its swing before the tooltip appears
 const MODIFIERS = ["Shift", "Control", "Alt", "Meta", "AltGraph", "CapsLock"];
+const CLICK_MS = 80; // how long a link press is given to become a click
 const DRAG_PX = 12; // a press on a link that moves further than this is a swipe, not a click
 const TAKEOVER = ["pointerdown", "wheel", "keydown", "touchstart"];
 
@@ -38,17 +39,28 @@ export function playOpening({ wheel, tip, finish }) {
     finish();
     if (showTip) tip.show(); // (it only appears if the cover is shut by then)
   };
+  // A press on a link is deferred to the link's click. If it becomes a drag or a scroll the visitor has taken over; if it ends
+  // and no click followed (the link was swapped out under the press by a flip), it was an ordinary press and takes over too.
   let drag = null;
   const watchDrag = (e) => {
     const at = e.touches?.[0] ?? e;
     drag = { x: at.clientX, y: at.clientY };
     addEventListener("pointermove", moved, { capture: true, passive: true });
-    addEventListener("pointerup", unwatch, { capture: true, once: true });
-    addEventListener("pointercancel", unwatch, { capture: true, once: true });
+    addEventListener("pointerup", released, { capture: true });
+    addEventListener("pointercancel", cancelled, { capture: true });
   };
-  const unwatch = () => { drag = null; removeEventListener("pointermove", moved, true); };
-  const moved = (e) => {
-    if (drag && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > DRAG_PX) { unwatch(); take(e); } // the press became a swipe
+  const unwatch = () => {
+    drag = null;
+    removeEventListener("pointermove", moved, true);
+    removeEventListener("pointerup", released, true);
+    removeEventListener("pointercancel", cancelled, true);
+  };
+  const takeOver = (e) => { unwatch(); wheel.cancelGlide(); end(!e.target?.closest?.(".wheel")); };
+  const moved = (e) => { if (drag && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > DRAG_PX) takeOver(e); };
+  const cancelled = (e) => takeOver(e); // the browser took the press for a scroll
+  const released = (e) => {
+    unwatch();
+    setTimeout(() => { if (!over) takeOver(e); }, CLICK_MS); // a link's click (go() / home()) would have ended the opening by now
   };
   // a visitor who has taken over by touching the wheel itself needs no tip about it
   const take = (e) => {

@@ -35,15 +35,16 @@ export function createWheelTip(root, { delay = 500 } = {}) {
     show() {
       if (!wheel || tip) return;
       wanted = true;
+      // a touch of the wheel before the bubble appears cancels it too, so these are listening from now
+      classes.observe(root, { attributes: true, attributeFilter: ["class"] });
+      for (const type of gestures) wheel.addEventListener(type, hide, { capture: true, passive: true });
       timer = setTimeout(() => {
-        if (!root.classList.contains("is-closed")) { wanted = false; return; } // the cover opened first: the visitor has moved on
+        if (!root.classList.contains("is-closed")) { hide(); return; } // the cover opened first: the visitor has moved on
         tip = document.createElement("div");
         tip.className = "wheel-tip";
         tip.setAttribute("aria-hidden", "true"); // the wheel is already labelled "Turn the pages"
         tip.textContent = WORDS;
         wheel.append(tip);
-        classes.observe(root, { attributes: true, attributeFilter: ["class"] });
-        for (const type of gestures) wheel.addEventListener(type, hide, { capture: true, passive: true });
       }, delay);
     },
   };

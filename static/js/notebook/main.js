@@ -5,7 +5,7 @@ import { createBook } from "./book.js?v=4";
 import { createCover } from "./cover.js?v=6";
 import { enhance, settled } from "./media.js";
 import { createTabs } from "./tabs.js";
-import { createWheel } from "./wheel.js?v=4";
+import { createWheel } from "./wheel.js?v=3";
 
 const root = document.getElementById("notebook");
 const data = JSON.parse(document.getElementById("nb-data").textContent);
@@ -29,48 +29,20 @@ const addressOf = (id) => data.pages[id].path || `/#${data.pages[id].hash}`;
 const here = () => location.pathname + location.hash;
 
 // ---------- the history ----------
-// A turn is a step, so Back undoes it. A link, the contents and a corner, swipe or key turn write their entry at once. The turns one
-// wheel input makes (a spin through several pages, a drag, opening the cover and then turning) are held and written as one entry when
-// the wheel comes to rest, and only if it ended somewhere other than where it began: a scroll forward and back again was no step at all.
-// While turns are held the address still shows where the input began; Back, a link or a layout switch settles or drops them first.
-const HELD_BACKSTOP_MS = 2000; // the wheel says when it rests (hooks.rest); this only guards against it never saying so
+// A turn is a step, so Back undoes it: every turn writes its entry at once (a link, the contents, the cover, a corner, a swipe, a key).
+// The turns one wheel input makes (a spin through several pages, a drag, opening the cover and then turning) share one entry, so a
+// fast spin does not bury the history; wheel.js numbers each input. One continuous scroll that goes forward and then back to where it
+// began leaves that start page on the history twice. Back or Forward ends the input, and showing the page of an entry they landed on
+// only tidies that entry's address, so Forward keeps working.
 let replaying = false; // Back or Forward is showing the page of an entry that is already in the history
-let held = null; // { input, from, page, timer }: what a wheel input has turned to so far
+let lastInput = null; // the wheel input that wrote the entry on top; null when anything else did
 
-function flushHistory() {
-  if (!held) return;
-  const { from, page, timer } = held;
-  clearTimeout(timer);
-  held = null;
-  const address = page ? addressOf(page) : "/";
-  if (address !== from) history.pushState({ page }, "", address);
-}
-
-function dropHeld() {
-  clearTimeout(held?.timer);
-  held = null;
-}
-
-/** Write what is showing (a page, or null for the shut cover) into the history. `input` numbers the wheel input that turned it. */
 function remember(page, input = null) {
+  const state = { page };
   const address = page ? addressOf(page) : "/";
-  if (replaying) { // an entry Back or Forward landed on: only tidy its address, so Forward keeps working
-    dropHeld();
-    history.replaceState({ page }, "", address);
-    return;
-  }
-  if (input === null) {
-    flushHistory();
-    if (here() !== address) history.pushState({ page }, "", address);
-    return;
-  }
-  if (held?.input !== input) {
-    flushHistory();
-    held = { input, from: here(), page, timer: 0 };
-  }
-  held.page = page;
-  clearTimeout(held.timer);
-  held.timer = setTimeout(flushHistory, HELD_BACKSTOP_MS);
+  if (replaying || (input !== null && input === lastInput)) history.replaceState(state, "", address);
+  else history.pushState(state, "", address);
+  lastInput = replaying ? null : input;
 }
 
 function mount(initial) {
@@ -91,7 +63,6 @@ function mount(initial) {
     },
     open: (input) => openCover({ fromWheel: true, input }),
     close: (input) => closeCover({ fromWheel: true, input }),
-    rest: flushHistory,
     isClosed: () => cover.closed,
     current: () => book.current,
   };
@@ -100,7 +71,7 @@ function mount(initial) {
     root, data, sources, mode: phone ? "phone" : "desktop", onFill: enhance, onSettled: settled,
     onView: (id) => {
       if (!spinning) wheel?.sync(id);
-      if (cover.closed || (!held && here() === addressOf(id))) return; // (a link or tab already wrote its entry in go())
+      if (cover.closed || here() === addressOf(id)) return; // (a link or tab already wrote its entry in go())
       remember(id, spinning ? spinInput : null);
     },
   });
@@ -125,7 +96,6 @@ function mount(initial) {
   /** Show a page (a link, the contents, back and forward): turn to it, opening the cover first if it is shut. */
   function go(id, anchor, { push = true } = {}) {
     const page = book.normalize(id);
-    if (push) flushHistory();
     if (push && here() !== addressOf(page)) remember(page);
     replaying = !push;
     try {
@@ -157,7 +127,7 @@ function mount(initial) {
     focusPage() { (book.book.querySelector(".nb-page.r .nb-in") ?? book.book.querySelector(".nb-page .nb-in"))?.focus({ preventScroll: true }); },
     get isClosed() { return cover.closed; },
     get page() { return cover.closed ? null : book.current; },
-    destroy() { flushHistory(); tabs?.destroy(); cover.destroy(); wheel.destroy(); book.destroy(); },
+    destroy() { tabs?.destroy(); cover.destroy(); wheel.destroy(); book.destroy(); },
   };
 }
 
@@ -175,7 +145,7 @@ root.addEventListener("click", (e) => {
 });
 
 window.addEventListener("popstate", () => {
-  dropHeld(); // the visitor moved through the history: what a wheel input had not yet written is no longer theirs to write
+  lastInput = null; // Back or Forward ends a wheel input: its next turn starts an entry of its own
   const target = targetFor(location);
   if (target) view.go(target.page, target.anchor, { push: false });
   else if (!view.isClosed) view.home({ push: false });

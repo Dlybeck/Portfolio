@@ -204,17 +204,8 @@ def test_one_wheel_spin_from_the_shut_cover_is_one_history_step(browser_page) ->
     assert "is-closed" in page.locator("#notebook").get_attribute("class")
 
 
-THERE_AND_BACK = """async () => {
-  const dial = document.querySelector('.wheel-dial');
-  for (const sign of [1, -1]) for (let i = 0; i < 8; i++) {
-    dial.dispatchEvent(new WheelEvent('wheel', { deltaY: sign * 40, deltaMode: 0, bubbles: true, cancelable: true }));
-    await new Promise((done) => setTimeout(done, 16));
-  }
-}"""
-
-
-def test_a_scroll_that_goes_forward_and_back_in_one_go_leaves_no_extra_entry(browser_page) -> None:
-    """One continuous scroll that ends on the page it began on was no step: Back must not meet a copy of that page."""
+def test_a_scroll_after_back_starts_its_own_entry_instead_of_overwriting_the_one_back_landed_on(browser_page) -> None:
+    """Back ends a wheel input: turns the same scroll makes afterwards must not replace the entry Back just landed on."""
     page, base = browser_page
     first = open_at(page, base, DESKTOP)
     corner(page)
@@ -222,13 +213,25 @@ def test_a_scroll_that_goes_forward_and_back_in_one_go_leaves_no_extra_entry(bro
     second = shown(page)
     assert second != first
 
-    page.evaluate(THERE_AND_BACK)
+    page.evaluate(
+        """async () => {
+          const dial = document.querySelector('.wheel-dial');
+          const scroll = async (n) => { for (let i = 0; i < n; i++) {
+            dial.dispatchEvent(new WheelEvent('wheel', { deltaY: 40, deltaMode: 0, bubbles: true, cancelable: true }));
+            await new Promise((done) => setTimeout(done, 16)); } };
+          await scroll(8);
+          history.back(); // Back is pressed in the middle of one scroll; the scroll carries on
+          await new Promise((done) => setTimeout(done, 80));
+          await scroll(8);
+        }"""
+    )
     page.wait_for_timeout(2500)
-    assert shown(page) == second  # it came back to where it started
+    landed = shown(page)
+    assert "left the notebook" not in landed
 
-    page.go_back()
+    page.go_back()  # the entry Back landed on is still there to go back to, not overwritten by the scroll that carried on
     page.wait_for_timeout(1000)
-    assert shown(page) == first  # one Back undoes the corner turn; the scroll left nothing in between
+    assert shown(page) == second  # (written over, it would have skipped this page and gone to `first`)
 
 
 SPIN_THEN_BACK = """async () => {

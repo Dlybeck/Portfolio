@@ -10,6 +10,7 @@ from fastapi.templating import Jinja2Templates
 
 from core import notebook, notebook_content
 from core.images import img_size
+from core.preload import notebook_scripts
 from core.discovery import PERSON_SCHEMA, SITE_URL, metadata_for
 from core.portfolio import DOCUMENTS, PortfolioDocument
 
@@ -19,8 +20,11 @@ portfolio_router = APIRouter()
 
 
 def render_notebook(request: Request, document: PortfolioDocument | None = None):
+    modules, data_files = notebook_scripts()
     context = {
         "metadata": metadata_for(document),
+        "preload_modules": modules,
+        "preload_data": data_files,
         "person_schema": PERSON_SCHEMA,
         "nb": notebook,
         "content": notebook_content,

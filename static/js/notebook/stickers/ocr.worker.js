@@ -36,7 +36,9 @@ function makeProgress() {
     for (const [l, t] of files.values()) { loaded += l; total += t; }
     const seen = [...files.keys()].map((f) => f.split("/").pop());
     for (const [name, size] of Object.entries(EXPECTED)) if (!seen.includes(name)) total += size; // files still to come
-    top = Math.max(top, Math.min(99, Math.floor((loaded / Math.max(total, EXPECTED_TOTAL * 0.9)) * 100))); // never backwards, never "done" early
+    const pct = Math.max(top, Math.min(99, Math.floor((loaded / Math.max(total, EXPECTED_TOTAL * 0.9)) * 100))); // never backwards, never "done" early
+    if (pct === top) return; // the download reports every few kilobytes, the page only shows whole percents: tell it when that changes
+    top = pct;
     say({ type: "progress", pct: top });
   };
 }

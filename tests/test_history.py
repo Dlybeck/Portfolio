@@ -202,3 +202,46 @@ def test_one_wheel_spin_from_the_shut_cover_is_one_history_step(browser_page) ->
     page.go_back()
     page.wait_for_timeout(1500)
     assert "is-closed" in page.locator("#notebook").get_attribute("class")
+
+
+NUDGE = """async (deltas) => {
+  const dial = document.querySelector('.wheel-dial');
+  for (const d of deltas) {
+    dial.dispatchEvent(new WheelEvent('wheel', { deltaY: d, deltaMode: 0, bubbles: true, cancelable: true }));
+    await new Promise((done) => setTimeout(done, 120));
+  }
+}"""
+
+
+def test_a_scroll_that_goes_forward_and_back_in_one_go_leaves_no_extra_entry(browser_page) -> None:
+    """With reduced motion each 70px of scroll is one notch, so +80 then -80 within a pause is one input that ends where it began."""
+    page, base = browser_page
+    page.emulate_media(reduced_motion="reduce")
+    first = open_at(page, base, DESKTOP)
+    corner(page)
+    page.wait_for_timeout(800)
+    second = shown(page)
+    assert second != first
+
+    page.evaluate(NUDGE, [80, -80])
+    page.wait_for_timeout(800)
+    assert shown(page) == second  # it came back to where it started
+
+    page.go_back()
+    page.wait_for_timeout(800)
+    assert shown(page) == first  # one Back undoes the corner turn; the scroll left nothing in between
+
+
+def test_two_quick_dial_key_presses_are_two_history_steps(browser_page) -> None:
+    page, base = browser_page
+    first = open_at(page, base, DESKTOP)
+    page.locator(".wheel-dial").focus()
+    page.keyboard.press("ArrowRight")
+    page.wait_for_timeout(60)  # the second press comes before the first page has flipped
+    page.keyboard.press("ArrowRight")
+    page.wait_for_timeout(2300)
+    assert order_index(page) - order_index_of(page, first) == 2
+
+    page.go_back()
+    page.wait_for_timeout(1300)
+    assert order_index(page) - order_index_of(page, first) == 1  # one press undone, not both

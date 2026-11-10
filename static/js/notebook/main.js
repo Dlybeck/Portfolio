@@ -5,7 +5,7 @@ import { createBook } from "./book.js?v=4";
 import { createCover } from "./cover.js?v=6";
 import { enhance, settled } from "./media.js";
 import { createTabs } from "./tabs.js";
-import { createWheel } from "./wheel.js?v=2";
+import { createWheel } from "./wheel.js?v=3";
 
 const root = document.getElementById("notebook");
 const data = JSON.parse(document.getElementById("nb-data").textContent);
@@ -39,17 +39,29 @@ function mount(initial) {
   let replaying = false; // Back or Forward is showing the page of an entry that is already in the history
   let spinInput = null; // the wheel input whose turn is being shown (see wheel.js), so its turns can share a history entry
   let lastInput = null; // the wheel input that wrote the history entry on top; null when anything else did
+  let inputFrom = ""; // the address that entry was added after: where that input began
 
   /**
    * Write what is showing (a page, or null for the shut cover) into the history. A turn is a step, so Back undoes it; the turns
    * one wheel input makes (a spin through several pages, or opening the cover and then turning) share one entry. Showing the
-   * page of an entry Back or Forward landed on only tidies that entry's address, which keeps Forward working.
+   * page of an entry Back or Forward landed on only tidies that entry's address, which keeps Forward working. An input that
+   * ends where it began (a scroll forward and back again) was no step at all, so its entry is taken off again.
    */
   function remember(page, input = null) {
     const state = { page };
     const address = page ? addressOf(page) : "/";
-    if (replaying || (input !== null && input === lastInput)) history.replaceState(state, "", address);
-    else history.pushState(state, "", address);
+    const joins = !replaying && input !== null && input === lastInput;
+    if (joins && address === inputFrom) {
+      lastInput = null;
+      skipPopstate += 1; // the page showing is already right; Back's popstate only needs to not turn anything
+      history.back();
+      return;
+    }
+    if (replaying || joins) history.replaceState(state, "", address);
+    else {
+      inputFrom = here();
+      history.pushState(state, "", address);
+    }
     lastInput = replaying ? null : input;
   }
   const hooks = {
@@ -129,6 +141,8 @@ function mount(initial) {
   };
 }
 
+let skipPopstate = 0; // Back presses the notebook made itself (see remember()), which have no page to show
+
 let view = mount(targetFor(location));
 
 root.addEventListener("click", (e) => {
@@ -143,6 +157,7 @@ root.addEventListener("click", (e) => {
 });
 
 window.addEventListener("popstate", () => {
+  if (skipPopstate > 0) { skipPopstate -= 1; return; }
   const target = targetFor(location);
   if (target) view.go(target.page, target.anchor, { push: false });
   else if (!view.isClosed) view.home({ push: false });

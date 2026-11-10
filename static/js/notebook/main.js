@@ -5,13 +5,13 @@ import { createBook } from "./book.js?v=4";
 import { createCover } from "./cover.js?v=6";
 import { enhance, settled } from "./media.js";
 import { createTabs } from "./tabs.js";
-import { createWheel } from "./wheel.js";
+import { createWheel } from "./wheel.js?v=4";
 
 const root = document.getElementById("notebook");
 const data = JSON.parse(document.getElementById("nb-data").textContent);
 const sourceNode = document.getElementById("nb-sources");
 const sources = new Map([...sourceNode.querySelectorAll(":scope > article")].map((a) => [a.dataset.page, a]));
-const wide = window.matchMedia("(min-width: 900px), (orientation: landscape) and (min-width: 640px)");
+const wide = window.matchMedia("(min-width: 900px), (orientation: landscape) and (min-width: 640px), (orientation: landscape) and (max-height: 520px) and (min-width: 560px)");
 
 /** Where an address points: a page and maybe a part of it, or null for the closed cover. */
 function targetFor({ pathname, hash }) {
@@ -28,7 +28,25 @@ function targetFor({ pathname, hash }) {
 const addressOf = (id) => data.pages[id].path || `/#${data.pages[id].hash}`;
 const here = () => location.pathname + location.hash;
 
+// ---------- the history ----------
+// A turn is a step, so Back undoes it: every turn writes its entry at once (a link, the contents, the cover, a corner, a swipe, a key).
+// The turns one wheel input makes (a spin through several pages, a drag, opening the cover and then turning) share one entry, so a
+// fast spin does not bury the history; wheel.js numbers each input. One continuous scroll that goes forward and then back to where it
+// began leaves that start page on the history twice. Back or Forward ends the input, and showing the page of an entry they landed on
+// only tidies that entry's address, so Forward keeps working.
+let replaying = false; // Back or Forward is showing the page of an entry that is already in the history
+let lastInput = null; // the wheel input that wrote the entry on top; null when anything else did
+
+function remember(page, input = null) {
+  const state = { page };
+  const address = page ? addressOf(page) : "/";
+  if (replaying || (input !== null && input === lastInput)) history.replaceState(state, "", address);
+  else history.pushState(state, "", address);
+  lastInput = replaying ? null : input;
+}
+
 function mount(initial) {
+  lastInput = null; // a new wheel numbers its inputs from the start again, so an input of the old one must not match
   const phone = !wide.matches;
   root.classList.remove("nb--phone", "nb--desktop", "is-closed", "is-turned");
   root.classList.add(phone ? "nb--phone" : "nb--desktop");
@@ -36,14 +54,16 @@ function mount(initial) {
 
   let book; let wheel; let cover; let tabs = null;
   let spinning = false; // the wheel is turning the pages, so it must not be re-aimed
+  let spinInput = null; // the wheel input whose turn is being shown (see wheel.js)
   const hooks = {
-    page: (id, duration) => {
+    page: (id, duration, input) => {
       spinning = true;
+      spinInput = input;
       book.turn(id, { duration });
       spinning = false;
     },
-    open: () => openCover({ fromWheel: true }),
-    close: () => closeCover({ fromWheel: true }),
+    open: (input) => openCover({ fromWheel: true, input }),
+    close: (input) => closeCover({ fromWheel: true, input }),
     isClosed: () => cover.closed,
     current: () => book.current,
   };
@@ -52,36 +72,42 @@ function mount(initial) {
     root, data, sources, mode: phone ? "phone" : "desktop", onFill: enhance, onSettled: settled,
     onView: (id) => {
       if (!spinning) wheel?.sync(id);
-      if (!cover.closed && here() !== addressOf(id)) history.replaceState({ page: id }, "", addressOf(id));
+      if (cover.closed || here() === addressOf(id)) return; // (a link or tab already wrote its entry in go())
+      remember(id, spinning ? spinInput : null);
     },
   });
   wheel = createWheel({ root, data, order: book.order, phone, hooks });
   cover = createCover({ root, book: book.book, phone, onTap: () => openCover() });
   tabs = createTabs({ root, book: book.book, data, addressOf }); // a phone gets slim tabs too
 
-  function openCover({ fromWheel = false } = {}) {
+  function openCover({ fromWheel = false, input = null } = {}) {
     if (!cover.closed) return;
     cover.open();
     if (!fromWheel) wheel.sync(book.current);
-    if (here() !== addressOf(book.current)) history.pushState({ page: book.current }, "", addressOf(book.current));
+    if (here() !== addressOf(book.current)) remember(book.current, fromWheel ? input : null);
   }
-  function closeCover({ push = true, fromWheel = false } = {}) {
+  function closeCover({ push = true, fromWheel = false, input = null } = {}) {
     if (cover.closed) return;
     book.show(book.order[0]);
     cover.close({ animate: true });
     if (!fromWheel) wheel.sync("cover");
-    if (push) history.pushState({ page: null }, "", "/");
+    if (push) remember(null, fromWheel ? input : null);
   }
 
   /** Show a page (a link, the contents, back and forward): turn to it, opening the cover first if it is shut. */
   function go(id, anchor, { push = true } = {}) {
     const page = book.normalize(id);
-    if (push && here() !== addressOf(page)) history.pushState({ page }, "", addressOf(page));
-    if (cover.closed) {
-      book.show(page, anchor);
-      cover.open();
-    } else {
-      book.turn(page, { anchor });
+    if (push && here() !== addressOf(page)) remember(page);
+    replaying = !push;
+    try {
+      if (cover.closed) {
+        book.show(page, anchor);
+        cover.open();
+      } else {
+        book.turn(page, { anchor });
+      }
+    } finally {
+      replaying = false;
     }
     wheel.sync(page);
   }
@@ -120,6 +146,7 @@ root.addEventListener("click", (e) => {
 });
 
 window.addEventListener("popstate", () => {
+  lastInput = null; // Back or Forward ends a wheel input: its next turn starts an entry of its own
   const target = targetFor(location);
   if (target) view.go(target.page, target.anchor, { push: false });
   else if (!view.isClosed) view.home({ push: false });

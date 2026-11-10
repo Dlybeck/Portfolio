@@ -97,6 +97,7 @@ export function createWheel({ root, data, order, phone, hooks }) {
     while (shown !== i) {
       shown += dir;
       const by = aimedBy.get(shown) ?? input;
+      aimedBy.delete(shown); // one press, one page
       if (shown < 0) { hooks.close(by); continue; }
       if (shown === 0 && dir > 0 && hooks.isClosed()) { hooks.open(by); continue; }
       hooks.page(order[shown], duration, by);
@@ -220,6 +221,7 @@ export function createWheel({ root, data, order, phone, hooks }) {
   return {
     /** Something else turned the page (a corner, a swipe, a link): glide the wheel there without flipping again. */
     sync(id) {
+      aimedBy.clear(); // something else turned the page: no key press is still aiming the wheel
       const i = id === "cover" ? COVER : order.indexOf(id);
       if (i < COVER) return;
       quiet = true;
@@ -230,6 +232,7 @@ export function createWheel({ root, data, order, phone, hooks }) {
     },
     /** Put the wheel on a notch with no glide. */
     set(id) {
+      aimedBy.clear();
       const i = id === "cover" ? COVER : order.indexOf(id);
       pos = i;
       shown = i;

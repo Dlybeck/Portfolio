@@ -79,7 +79,7 @@ html.no-js .page .slides { display: grid; grid-auto-flow: row; grid-auto-columns
 .page .predict-go:disabled { opacity: 0.5; box-shadow: none; }
 .page .predict-result { margin: 0; font-size: 0.9rem; line-height: 1.4; min-height: 2.8em; }
 
-@media (min-width: 900px), (orientation: landscape) and (min-width: 640px), (orientation: landscape) and (max-height: 520px) and (min-width: 480px) {
+@media (min-width: 900px), (orientation: landscape) and (min-width: 640px), (orientation: landscape) and (max-height: 520px) and (min-width: 560px) {
   .page .covers { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .page .slides { grid-auto-columns: 78%; }
   .page .slides.models { grid-auto-columns: 62%; }

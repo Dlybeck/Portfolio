@@ -4,7 +4,7 @@
 /* The front cover is the same board as .nb-back, the same size and offset (the pages sit a rim inside it), so there is one cover and no
    second brown layer behind it. It hinges on its left edge, which is the spine on desktop. */
 .nb-leaf.cover { z-index: 65; left: 0; right: calc(var(--nb-rim) * -1); bottom: calc(var(--nb-rim) * -1); transform-origin: left center; cursor: pointer; display: block; }
-@media (min-width: 900px), (orientation: landscape) and (min-width: 640px), (orientation: landscape) and (max-height: 520px) and (min-width: 480px) { .nb--desktop .nb-leaf.cover { left: 50%; top: calc(var(--nb-rim) * -1); } }
+@media (min-width: 900px), (orientation: landscape) and (min-width: 640px), (orientation: landscape) and (max-height: 520px) and (min-width: 560px) { .nb--desktop .nb-leaf.cover { left: 50%; top: calc(var(--nb-rim) * -1); } }
 .nb-leaf.cover .face { background-image: none; }
 .nb-leaf.cover .cover-front {
   container-type: size; border: var(--edge) solid var(--ink-fixed); border-radius: 3px var(--nb-board-r) var(--nb-board-r) 3px; overflow: hidden; color: var(--ink-fixed);

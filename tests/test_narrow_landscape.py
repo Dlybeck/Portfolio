@@ -1,11 +1,13 @@
-"""A phone on its side that is narrower than 640px (an iPhone SE is 568x320) gets the short-landscape spread, not a stamp-sized one-page book."""
+"""A phone on its side that is 560 to 639px wide (an iPhone SE is 568x320) gets the short-landscape spread, not a stamp-sized one-page book."""
 
 from __future__ import annotations
 
 import pytest
 
 # widths just under the old 640px boundary, at the heights phones have on their side
-SIZES = [(568, 320), (600, 360), (639, 360), (480, 320)]
+SIZES = [(560, 320), (568, 320), (600, 360), (639, 360), (639, 320)]
+ROUTES = ["/projects/websites/scribblescan", "/jobs", "/education/college", "/hobbies/tennis", "/projects/programs", "/#say-hi"]
+CUT_OFF = "() => [...document.querySelectorAll('.nb-in')].filter(e => e.scrollWidth > e.clientWidth + 1).map(e => e.scrollWidth - e.clientWidth)"
 
 METRICS = """() => {
   const box = (s) => { const n = document.querySelector(s); const r = n && n.getBoundingClientRect(); return r && { x: r.left, y: r.top, w: r.width, h: r.height }; };
@@ -31,6 +33,12 @@ def test_a_narrow_landscape_phone_gets_a_readable_spread(browser_page, width, he
     assert m["book"]["x"] >= m["wheel"]["x"] + m["wheel"]["w"] * 0.5, m  # beside the wheel, not under it
     assert m["prev"] and m["next"], m  # both page corners can be tapped (they covered each other on a 70px page)
     assert m["hscroll"] <= 0, m
+
+    for route in ROUTES:  # and nothing is cut off at a page's edge (the accuracy bars on ScribbleScan were)
+        page.goto(base + route)
+        page.wait_for_selector("#notebook.nb--desktop")
+        page.wait_for_timeout(400)
+        assert page.evaluate(CUT_OFF) == [], route
 
 
 def test_a_portrait_phone_keeps_the_one_page_book(browser_page) -> None:

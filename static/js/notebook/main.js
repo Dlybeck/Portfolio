@@ -5,13 +5,13 @@ import { createBook } from "./book.js?v=4";
 import { createCover } from "./cover.js?v=6";
 import { enhance, settled } from "./media.js";
 import { createTabs } from "./tabs.js";
-import { createWheel } from "./wheel.js?v=3";
+import { createWheel } from "./wheel.js?v=4";
 
 const root = document.getElementById("notebook");
 const data = JSON.parse(document.getElementById("nb-data").textContent);
 const sourceNode = document.getElementById("nb-sources");
 const sources = new Map([...sourceNode.querySelectorAll(":scope > article")].map((a) => [a.dataset.page, a]));
-const wide = window.matchMedia("(min-width: 900px), (orientation: landscape) and (min-width: 640px), (orientation: landscape) and (max-height: 520px) and (min-width: 480px)");
+const wide = window.matchMedia("(min-width: 900px), (orientation: landscape) and (min-width: 640px), (orientation: landscape) and (max-height: 520px) and (min-width: 560px)");
 
 /** Where an address points: a page and maybe a part of it, or null for the closed cover. */
 function targetFor({ pathname, hash }) {

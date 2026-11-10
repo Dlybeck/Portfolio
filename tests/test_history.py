@@ -291,6 +291,29 @@ def test_back_pressed_in_the_middle_of_a_spin_never_loses_the_history(browser_pa
     assert order_index(page) <= order_index_of(page, cornered)
 
 
+def test_a_key_press_while_the_wheel_glides_after_back_is_one_history_step(browser_page) -> None:
+    """Notches earlier key presses aimed at must not be remembered: the wheel glides through them after Back and one press would write several entries."""
+    page, base = browser_page
+    first = open_at(page, base, DESKTOP)
+    page.locator(".wheel-dial").focus()
+    for _ in range(2):
+        page.keyboard.press("ArrowRight")
+        page.wait_for_timeout(1000)
+    assert order_index(page) - order_index_of(page, first) == 2
+
+    page.evaluate("history.go(-2)")  # back to where it began; the wheel starts gliding there
+    page.wait_for_timeout(120)
+    page.keyboard.press("ArrowLeft")
+    page.wait_for_timeout(2300)
+    landed = shown(page)
+    assert order_index(page) == order_index_of(page, first) - 1
+
+    page.go_back()
+    page.wait_for_timeout(1000)
+    assert shown(page) != landed
+    assert order_index_of(page, shown(page)) - order_index_of(page, first) <= 0  # at or before the page it began on, not on one of the pages it had visited ahead of it
+
+
 def test_two_quick_dial_key_presses_are_two_history_steps(browser_page) -> None:
     page, base = browser_page
     first = open_at(page, base, DESKTOP)

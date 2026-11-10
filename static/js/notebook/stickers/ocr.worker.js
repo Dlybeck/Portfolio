@@ -24,10 +24,12 @@ let reader = null;
 let loading = null;
 
 const say = (message) => postMessage(message);
+const HEARTBEAT_MS = 5000; // a progress message at least this often while bytes arrive (the page's 90 s silence watchdog)
 
 function makeProgress() {
   const files = new Map();
   let top = 0;
+  let lastSaid = -Infinity;
   return (p) => {
     if (p.status !== "progress" || !p.total) return;
     files.set(p.file, [p.loaded, p.total]);
@@ -37,8 +39,12 @@ function makeProgress() {
     const seen = [...files.keys()].map((f) => f.split("/").pop());
     for (const [name, size] of Object.entries(EXPECTED)) if (!seen.includes(name)) total += size; // files still to come
     const pct = Math.max(top, Math.min(99, Math.floor((loaded / Math.max(total, EXPECTED_TOTAL * 0.9)) * 100))); // never backwards, never "done" early
-    if (pct === top) return; // the download reports every few kilobytes, the page only shows whole percents: tell it when that changes
+    // The download reports every few kilobytes but the page only shows whole percents: tell it when that changes. On a very slow
+    // link a percent takes a while, and the page's watchdog treats silence as a stuck worker, so say so at least every few seconds.
+    const now = performance.now();
+    if (pct === top && now - lastSaid < HEARTBEAT_MS) return;
     top = pct;
+    lastSaid = now;
     say({ type: "progress", pct: top });
   };
 }

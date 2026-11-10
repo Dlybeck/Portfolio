@@ -164,13 +164,14 @@ function mount(initial) {
   };
 }
 
-// A first visit to plain "/" (not a page address, not ?intro=0) gets the opening; ?intro=1 plays it again.
+// A first visit to plain "/" (not a page address, not ?intro=0) gets the opening; ?intro=1 plays it again. Any first load is remembered.
 const introParam = new URLSearchParams(location.search).get("intro");
-const firstVisit = !targetFor(location) && introParam !== "0" && (introParam === "1" || !hasSeenOpening());
+const seenBefore = hasSeenOpening();
+const firstVisit = !targetFor(location) && introParam !== "0" && (introParam === "1" || !seenBefore);
 const spin = firstVisit && !reducedMotion();
 let view = mount(spin ? { page: data[wide.matches ? "desktop" : "phone"].at(-1), anchor: null, opening: true } : targetFor(location));
+if (!seenBefore) rememberOpening(); // any first load counts (a deep link or ?intro=0 too), so the opening does not turn up later on "/"
 if (firstVisit) {
-  rememberOpening();
   liftCornerOnce(root);
   if (spin) view.playOpening();
   else view.showTip(); // reduced motion: no spin, just the tooltip on the cover

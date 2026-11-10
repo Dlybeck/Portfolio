@@ -84,19 +84,27 @@ def test_a_returning_visitor_gets_the_plain_cover(new_page, live_server_url, vie
     assert not state(page)["shut"]
 
 
-def test_intro_zero_skips_it_and_does_not_remember(new_page, live_server_url) -> None:
+def test_intro_zero_skips_it_and_the_visit_still_counts(new_page, live_server_url) -> None:
     page = visit(new_page, live_server_url, DESKTOP, "/?intro=0")
     page.wait_for_timeout(800)
-    assert state(page)["shut"] and page.evaluate(SEEN) is None
+    assert state(page)["shut"] and page.evaluate(SEEN) == "1"
+    page.goto(live_server_url + "/")  # ...so the plain address later is the plain cover, not the opening
+    page.wait_for_selector("#notebook.is-closed")
+    page.wait_for_timeout(1200)
+    assert state(page)["shut"] and state(page)["tip"] is None
 
 
 @pytest.mark.parametrize("viewport", VIEWPORTS)
-def test_a_deep_link_shows_its_page_with_no_opening_and_is_not_remembered(new_page, live_server_url, viewport) -> None:
+def test_a_deep_link_shows_its_page_with_no_opening_and_the_visit_still_counts(new_page, live_server_url, viewport) -> None:
     page = visit(new_page, live_server_url, viewport, "/jobs")
     page.wait_for_timeout(1500)
     shown = state(page)
     assert not shown["shut"] and shown["page"] == "work" and shown["tip"] is None
-    assert page.evaluate(SEEN) is None
+    assert page.evaluate(SEEN) == "1"
+    page.goto(live_server_url + "/")  # the plain address afterwards: no opening for someone who has already been here
+    page.wait_for_selector("#notebook.is-closed")
+    page.wait_for_timeout(1200)
+    assert state(page)["shut"] and state(page)["tip"] is None
 
 
 @pytest.mark.parametrize("viewport", VIEWPORTS)

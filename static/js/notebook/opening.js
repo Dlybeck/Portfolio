@@ -3,11 +3,14 @@
 // deep link, and not at all with reduced motion (the cover just shows the tooltip). A touch, scroll or key takes over
 // at once. The address stays "/" throughout and the spin adds nothing to the history.
 
+import { reducedMotion } from "./motion.js";
+
 const SEEN = "nb-opening-seen";
 const PAUSE_MS = 900; // the last page sits still first, so the visitor sees an open notebook
 const SPIN_MS = 2600; // how long the spin takes, whatever the number of pages
 const SETTLE_MS = 900; // the cover finishing its swing before the tooltip appears
 const MODIFIERS = ["Shift", "Control", "Alt", "Meta", "AltGraph", "CapsLock"];
+const DRAG_PX = 12; // a press on a link that moves further than this is a swipe, not a click
 const TAKEOVER = ["pointerdown", "wheel", "keydown", "touchstart"];
 
 export function hasSeenOpening() {
@@ -30,16 +33,32 @@ export function playOpening({ wheel, tip, finish }) {
     over = true;
     clearTimeout(timer);
     for (const type of TAKEOVER) removeEventListener(type, take, true);
+    unwatch();
     document.removeEventListener("visibilitychange", start);
     finish();
     if (showTip) tip.show(); // (it only appears if the cover is shut by then)
+  };
+  let drag = null;
+  const watchDrag = (e) => {
+    const at = e.touches?.[0] ?? e;
+    drag = { x: at.clientX, y: at.clientY };
+    addEventListener("pointermove", moved, { capture: true, passive: true });
+    addEventListener("pointerup", unwatch, { capture: true, once: true });
+    addEventListener("pointercancel", unwatch, { capture: true, once: true });
+  };
+  const unwatch = () => { drag = null; removeEventListener("pointermove", moved, true); };
+  const moved = (e) => {
+    if (drag && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > DRAG_PX) { unwatch(); take(e); } // the press became a swipe
   };
   // a visitor who has taken over by touching the wheel itself needs no tip about it
   const take = (e) => {
     // a bare modifier or a browser shortcut (Shift, Cmd+L, Ctrl+T) is not a deliberate touch of the book
     if (e.type === "keydown" && (e.ctrlKey || e.metaKey || e.altKey || MODIFIERS.includes(e.key))) return;
-    // pressing a link is the link's own navigation: its click (go() or home() in main.js) ends the opening and writes the one entry
-    if (e.type !== "wheel" && e.target?.closest?.("[data-open], [data-home]")) return;
+    // Pressing a link is the link's own navigation: its click (go() or home() in main.js) ends the opening and writes the one
+    // entry. Only Enter and Space activate a focused link; any other key, or a press that turns into a drag, is the visitor's.
+    const link = e.target?.closest?.("[data-open], [data-home]");
+    if (link && e.type === "keydown" && (e.key === "Enter" || e.key === " ")) return;
+    if (link && (e.type === "pointerdown" || e.type === "touchstart")) { watchDrag(e); return; }
     wheel.cancelGlide();
     end(!e.target?.closest?.(".wheel"));
   };
@@ -56,7 +75,7 @@ export function playOpening({ wheel, tip, finish }) {
     }, PAUSE_MS);
   }
   start();
-  return () => { over = true; clearTimeout(timer); for (const type of TAKEOVER) removeEventListener(type, take, true); document.removeEventListener("visibilitychange", start); };
+  return () => { over = true; clearTimeout(timer); unwatch(); for (const type of TAKEOVER) removeEventListener(type, take, true); document.removeEventListener("visibilitychange", start); };
 }
 
 /**
@@ -64,6 +83,7 @@ export function playOpening({ wheel, tip, finish }) {
  * settles (CSS .nb--lift). It says the corner is there without becoming a second tooltip.
  */
 export function liftCornerOnce(root) {
+  if (reducedMotion()) return; // the corner does not move with reduced motion, so there is nothing to wait for
   let sawShut = false;
   const watch = new MutationObserver(() => {
     const shut = root.classList.contains("is-closed");

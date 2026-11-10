@@ -251,3 +251,25 @@ def test_pressing_a_page_link_mid_opening_goes_there_with_one_entry(new_page, li
     shown = state(page)
     assert not shown["shut"] and shown["page"] == "tennis"
     assert page.evaluate("history.length") == 3  # the "/" it began on, and the page it went to
+
+
+def test_a_key_other_than_enter_takes_over_even_from_a_focused_link(new_page, live_server_url) -> None:
+    page = visit(new_page, live_server_url, DESKTOP)
+    page.wait_for_timeout(2000)
+    page.evaluate(LINK, {"name": "data-open", "value": "tennis"})
+    page.focus("#notebook > a[data-open]")
+    page.keyboard.press("ArrowDown")
+    page.wait_for_timeout(4500)
+    assert not state(page)["shut"]  # the spin stopped under the keyboard visitor
+
+
+def test_a_press_on_a_link_that_becomes_a_drag_takes_over(new_page, live_server_url) -> None:
+    page = visit(new_page, live_server_url, DESKTOP)
+    page.wait_for_timeout(2000)
+    page.evaluate(LINK, {"name": "data-open", "value": "tennis"})
+    page.mouse.move(30, 130)
+    page.mouse.down()
+    page.mouse.move(120, 130, steps=5)
+    page.mouse.up()
+    page.wait_for_timeout(4500)
+    assert not state(page)["shut"]

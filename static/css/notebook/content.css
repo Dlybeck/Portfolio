@@ -108,16 +108,23 @@
   .page :where(div, li, a, span, b, small, p, h1, h2, h3, h4, figcaption, dd, dt) { min-width: 0; overflow-wrap: anywhere; }
 }
 
-/* A short landscape window has two narrow pages: smaller type, and long words may break rather than run past the edge. */
-@media (orientation: landscape) and (max-height: 520px) and (min-width: 560px) {
+/* The accuracy bars: their label sits above the bar when the page is narrow. The 96px and 54px columns leave a bar under 40px wide (2px
+   in the narrowest) or push the values past the page edge. The spread's pages are that narrow in a landscape window that is short (up
+   to 610px tall) or under 940px wide. */
+@media (orientation: landscape) and (max-height: 610px) and (min-width: 560px), (orientation: landscape) and (min-width: 640px) and (max-width: 939px) {
+  .nb--desktop .page .bar { grid-template-columns: minmax(0, 1fr) 46px; grid-template-areas: "name name" "bar value"; row-gap: 2px; }
+  .nb--desktop .page .bar span { grid-area: name; }
+  .nb--desktop .page .bar i { grid-area: bar; }
+  .nb--desktop .page .bar b { grid-area: value; }
+}
+
+/* A short landscape window has two narrow pages, and so does a landscape window 700 to 839px wide at any height (a Surface Duo on its
+   side is 720x540): smaller type, and long words may break rather than run past the edge. */
+@media (orientation: landscape) and (max-height: 520px) and (min-width: 560px), (orientation: landscape) and (min-width: 700px) and (max-width: 839px) {
   .nb--desktop .page { font-size: 0.9rem; }
   .nb--desktop .page h2 { font-size: 1.2rem; }
   .nb--desktop .page h2.name { font-size: 1.4rem; }
   .nb--desktop .page :where(div, li, a, span, b, small, p, h1, h2, h3, h4, figcaption, dd, dt) { min-width: 0; overflow-wrap: break-word; }
-  .nb--desktop .page .bar { grid-template-columns: minmax(0, 1fr) 46px; grid-template-areas: "name name" "bar value"; row-gap: 2px; } /* the label sits above its bar: the 96px + 54px columns are wider than the page */
-  .nb--desktop .page .bar span { grid-area: name; }
-  .nb--desktop .page .bar i { grid-area: bar; }
-  .nb--desktop .page .bar b { grid-area: value; }
   .nb--desktop .page .job { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .nb--desktop .page .job-mark { width: 52px; height: 52px; }
   .nb--desktop .page .job b { font-size: 0.95rem; }

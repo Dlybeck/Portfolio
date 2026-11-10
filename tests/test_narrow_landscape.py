@@ -41,6 +41,28 @@ def test_a_narrow_landscape_phone_gets_a_readable_spread(browser_page, width, he
         assert page.evaluate(CUT_OFF) == [], route
 
 
+# landscape windows that are tall enough to skip the short-landscape rules but still have two narrow pages (a Surface Duo on its side is 720x540)
+MEDIUM = [(700, 530), (720, 540), (800, 600), (839, 530), (900, 530), (939, 700)]
+BARS = "() => [...document.querySelectorAll('.nb-page.r .bar i')].map((e) => Math.round(e.getBoundingClientRect().width))"
+
+
+@pytest.mark.parametrize("width,height", MEDIUM, ids=lambda v: str(v))
+def test_a_landscape_window_with_narrow_pages_cuts_nothing_off_and_keeps_its_bars(browser_page, width, height) -> None:
+    page, base = browser_page
+    page.set_viewport_size({"width": width, "height": height})
+    for route in ROUTES:
+        page.goto(base + route)
+        page.wait_for_selector("#notebook.nb--desktop")
+        page.wait_for_timeout(400)
+        assert page.evaluate(CUT_OFF) == [], route
+
+    page.goto(base + "/projects/websites/scribblescan")
+    page.wait_for_selector("#notebook.nb--desktop")
+    page.wait_for_timeout(400)
+    bars = page.evaluate(BARS)
+    assert len(bars) == 3 and min(bars) >= 25, bars  # they were 2px stubs, and the values ran past the page edge
+
+
 def test_a_portrait_phone_keeps_the_one_page_book(browser_page) -> None:
     """The portrait phone layout does not change: a window that is taller than wide, however short, stays the one-page book."""
     page, base = browser_page

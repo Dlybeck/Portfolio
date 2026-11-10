@@ -113,7 +113,7 @@ def test_a_wheel_spin_through_several_pages_is_one_history_step(browser_page) ->
 
     page.evaluate(FLICK, {"total": 400, "sign": 1, "n": 60})
     page.wait_for_timeout(2500)
-    assert shown(page) != start
+    assert order_index(page) - order_index_of(page, start) >= 3  # it crossed several pages, so one Back undoing it means they share an entry
 
     page.go_back()
     page.wait_for_timeout(1300)
@@ -139,3 +139,66 @@ def test_going_back_keeps_the_forward_entries(browser_page) -> None:
     page.go_forward()
     page.wait_for_timeout(1000)
     assert shown(page) == last
+
+
+ORDER = """(id) => { const d = JSON.parse(document.getElementById('nb-data').textContent);
+  const order = document.querySelector('.nb--phone') ? d.phone : d.desktop;
+  return order.indexOf(id ?? document.getElementById('notebook').dataset.page); }"""
+
+
+def order_index(page) -> int:
+    return page.evaluate(ORDER, None)
+
+
+def order_index_of(page, page_id: str) -> int:
+    return page.evaluate(ORDER, page_id)
+
+
+def test_a_wheel_spin_started_right_after_a_corner_turn_keeps_that_turns_entry(browser_page) -> None:
+    page, base = browser_page
+    open_at(page, base, DESKTOP)
+    corner(page)
+    page.wait_for_timeout(300)  # well inside any timer a spin might use to join the entry before it
+    cornered = shown(page)
+    page.evaluate(FLICK, {"total": 150, "sign": 1, "n": 40})
+    page.wait_for_timeout(2300)
+    assert shown(page) != cornered
+
+    page.go_back()
+    page.wait_for_timeout(1300)
+    assert shown(page) == cornered
+
+
+def test_each_dial_key_press_is_its_own_history_step(browser_page) -> None:
+    page, base = browser_page
+    first = open_at(page, base, DESKTOP)
+    page.locator(".wheel-dial").focus()
+    seen = [first]
+    for _ in range(3):
+        page.keyboard.press("ArrowRight")
+        page.wait_for_timeout(1000)
+        seen.append(shown(page))
+    assert len(set(seen)) == 4
+
+    for expected in reversed(seen[:-1]):
+        page.go_back()
+        page.wait_for_timeout(1000)
+        assert shown(page) == expected
+
+
+def test_one_wheel_spin_from_the_shut_cover_is_one_history_step(browser_page) -> None:
+    page, base = browser_page
+    page.set_viewport_size(DESKTOP)
+    page.goto(base + "/")
+    page.wait_for_selector("#notebook.nb--desktop")
+    page.wait_for_timeout(900)
+    assert "is-closed" in page.locator("#notebook").get_attribute("class")
+
+    page.evaluate(FLICK, {"total": 260, "sign": 1, "n": 50})
+    page.wait_for_timeout(2800)
+    assert "is-closed" not in page.locator("#notebook").get_attribute("class")
+    assert order_index(page) >= 2  # the spin opened the book and carried on through pages
+
+    page.go_back()
+    page.wait_for_timeout(1500)
+    assert "is-closed" in page.locator("#notebook").get_attribute("class")

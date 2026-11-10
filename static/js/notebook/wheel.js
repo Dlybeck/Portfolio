@@ -20,7 +20,8 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
  * @param {object} o.data  table of contents
  * @param {string[]} o.order  page ids in turning order for this layout
  * @param {boolean} o.phone
- * @param {{ page(id: string, duration: number): void, open(): void, close(): void, isClosed(): boolean, current(): string|null }} o.hooks
+ * @param {{ page(id: string, duration: number, input: number): void, open(input: number): void, close(input: number): void, isClosed(): boolean, current(): string|null }} o.hooks
+ *   `input` numbers what the visitor did: every turn one spin, drag, click or key press makes carries the same number.
  */
 export function createWheel({ root, data, order, phone, hooks }) {
   const count = order.length;
@@ -61,6 +62,8 @@ export function createWheel({ root, data, order, phone, hooks }) {
   let quiet = false; // something else turned the page; glide without flipping again
   let lastInput = 0;
   let scrollAcc = 0;
+  let input = 0; // which visitor input the flips belong to: a spin of the wheel, a drag, a click, one key press
+  let lastWheelAt = -Infinity;
   let samples = [];
 
   function render() {
@@ -92,9 +95,9 @@ export function createWheel({ root, data, order, phone, hooks }) {
     const dir = i > shown ? 1 : -1;
     while (shown !== i) {
       shown += dir;
-      if (shown < 0) { hooks.close(); continue; }
-      if (shown === 0 && dir > 0 && hooks.isClosed()) { hooks.open(); continue; }
-      hooks.page(order[shown], duration);
+      if (shown < 0) { hooks.close(input); continue; }
+      if (shown === 0 && dir > 0 && hooks.isClosed()) { hooks.open(input); continue; }
+      hooks.page(order[shown], duration, input);
     }
   }
 
@@ -130,6 +133,9 @@ export function createWheel({ root, data, order, phone, hooks }) {
   wrap.addEventListener("wheel", (e) => {
     e.preventDefault();
     take();
+    const now = performance.now();
+    if (now - lastWheelAt > 400) input += 1; // a pause ends one spin; the next scroll starts another
+    lastWheelAt = now;
     let d = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
     d *= e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 400 : 1;
     if (reducedMotion()) {
@@ -153,6 +159,7 @@ export function createWheel({ root, data, order, phone, hooks }) {
   dial.addEventListener("pointerdown", (e) => {
     if (e.button) return;
     take();
+    input += 1;
     drag = { angle: angleOf(e), raw: pos, moved: false, target: e.target };
     target = null;
     speed = 0;
@@ -198,6 +205,7 @@ export function createWheel({ root, data, order, phone, hooks }) {
     if (!k) return;
     e.preventDefault();
     take();
+    input += 1;
     target = nearest((target ?? Math.round(pos)) + k);
     speed = 0;
     kick();

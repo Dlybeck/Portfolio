@@ -93,3 +93,13 @@ def test_no_gap_opens_while_the_book_shuts_again(new_page, live_server_url, devi
     page.go_back()  # back to the cover: the book swings shut
     assert page.evaluate(WORST_SPREAD, 2000) < 0.5
     page.wait_for_selector(".nb.is-closed")
+
+
+def test_with_reduced_motion_the_phone_strip_does_not_ease_either(new_page, live_server_url) -> None:
+    page = new_page(**PHONES[1], reduced_motion="reduce")
+    page.goto(live_server_url + "/jobs")
+    page.wait_for_selector("#notebook.nb--phone")
+    page.wait_for_timeout(1500)
+
+    assert page.locator(".nb-tab").first.evaluate("n => getComputedStyle(n, '::before').transitionDuration") in ("0s", "0.0s")
+    assert page.locator(".nb-tab").first.evaluate("n => getComputedStyle(n).transitionDuration") in ("0s", "0.0s")

@@ -44,8 +44,8 @@
 }
 .nb--phone .nb-tab::before {
   content: ""; position: absolute; z-index: -1; inset: 0 0 0 10px; background: var(--tab); border: var(--edge) solid var(--nb-edge); border-left: 0; border-radius: 0 6px 6px 0;
+  transition: left var(--duration-press) var(--ease-out);
 }
-.nb--phone .nb-tab::before { transition: left var(--duration-press) var(--ease-out); }
 .nb--phone.is-opening .nb-tab::before { transition: left var(--nb-open-ms, 800ms) var(--nb-open-ease, ease-out); }
 .nb--phone .nb-tab[aria-current]::before { box-shadow: var(--lift-sm); }
 .nb--phone .nb-tab { transform: translateX(-3px); }
@@ -53,7 +53,7 @@
 .nb--phone:not(.is-closed) .nb-tab[aria-current]::before { left: 7px; }
 .nb--phone.is-closed .nb-tab, .nb--phone.is-closed .nb-tab[aria-current] { transform: translateX(-6px); color: transparent; } /* a 6px edge past the cover board, no words */
 
-@media (prefers-reduced-motion: reduce) { .nb-tab { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .nb-tab, .nb--phone .nb-tab::before, .nb--phone.is-opening .nb-tab::before { transition: none; } }
 
 /* A short landscape window (a phone on its side) has no room for 12px words in the tab column: there they scale down with it. */
 @media (orientation: landscape) and (max-height: 520px) and (min-width: 640px) {

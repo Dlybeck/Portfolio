@@ -223,10 +223,31 @@ def test_the_tip_survives_a_resize_across_the_phone_breakpoint(new_page, live_se
     assert state(page)["shut"]
 
 
-def test_a_home_link_mid_opening_takes_over_without_adding_an_entry(new_page, live_server_url) -> None:
+LINK = """(attribute) => {
+  const a = document.createElement('a');
+  a.setAttribute(attribute.name, attribute.value); a.href = '/'; a.textContent = 'link';
+  a.style.cssText = 'position: fixed; left: 20px; top: 120px; z-index: 99; padding: 12px; background: white';
+  document.getElementById('notebook').append(a);
+}"""
+
+
+def test_pressing_the_home_link_mid_opening_takes_over_and_adds_no_entry(new_page, live_server_url) -> None:
     page = visit(new_page, live_server_url, DESKTOP)
     page.wait_for_timeout(2000)  # mid-spin
-    page.evaluate("(() => { const a = document.createElement('a'); a.dataset.home = ''; a.href = '/'; a.textContent = 'home'; document.getElementById('notebook').append(a); a.click(); })()")
+    page.evaluate(LINK, {"name": "data-home", "value": ""})
+    page.mouse.click(30, 130)  # a real press, so pointerdown comes before the click
     page.wait_for_timeout(3000)
     shown = state(page)
     assert shown["shut"] and shown["path"] == "/" and shown["writes"] == 0
+    assert page.evaluate("history.length") == 2
+
+
+def test_pressing_a_page_link_mid_opening_goes_there_with_one_entry(new_page, live_server_url) -> None:
+    page = visit(new_page, live_server_url, DESKTOP)
+    page.wait_for_timeout(2000)
+    page.evaluate(LINK, {"name": "data-open", "value": "tennis"})
+    page.mouse.click(30, 130)
+    page.wait_for_timeout(3000)
+    shown = state(page)
+    assert not shown["shut"] and shown["page"] == "tennis"
+    assert page.evaluate("history.length") == 3  # the "/" it began on, and the page it went to

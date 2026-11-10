@@ -38,6 +38,8 @@ export function playOpening({ wheel, tip, finish }) {
   const take = (e) => {
     // a bare modifier or a browser shortcut (Shift, Cmd+L, Ctrl+T) is not a deliberate touch of the book
     if (e.type === "keydown" && (e.ctrlKey || e.metaKey || e.altKey || MODIFIERS.includes(e.key))) return;
+    // pressing a link is the link's own navigation: its click (go() or home() in main.js) ends the opening and writes the one entry
+    if (e.type !== "wheel" && e.target?.closest?.("[data-open], [data-home]")) return;
     wheel.cancelGlide();
     end(!e.target?.closest?.(".wheel"));
   };

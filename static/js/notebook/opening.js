@@ -24,16 +24,17 @@ export function rememberOpening() {
 export function playOpening({ wheel, tip, finish }) {
   let over = false;
   let timer = 0;
-  const end = (arrived) => {
+  const end = (showTip) => {
     if (over) return;
     over = true;
     clearTimeout(timer);
     for (const type of TAKEOVER) removeEventListener(type, take, true);
     document.removeEventListener("visibilitychange", start);
     finish();
-    if (arrived) tip.show();
+    if (showTip) tip.show(); // (it only appears if the cover is shut by then)
   };
-  const take = () => { wheel.cancelGlide(); end(false); };
+  // a visitor who has taken over by touching the wheel itself needs no tip about it
+  const take = (e) => { wheel.cancelGlide(); end(!e.target?.closest?.(".wheel")); };
   for (const type of TAKEOVER) addEventListener(type, take, { capture: true, passive: true });
 
   function start() {
@@ -41,7 +42,7 @@ export function playOpening({ wheel, tip, finish }) {
     if (document.hidden) { document.addEventListener("visibilitychange", start, { once: true }); return; } // wait until it can be seen
     timer = setTimeout(() => {
       wheel.glideTo("cover", SPIN_MS, (arrived) => {
-        if (!arrived) return end(false);
+        if (!arrived) return; // a takeover: `take` below decides about the tip and ends the opening
         timer = setTimeout(() => end(true), SETTLE_MS);
       });
     }, PAUSE_MS);

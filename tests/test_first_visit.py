@@ -129,7 +129,7 @@ def test_a_wheel_key_or_click_takes_over_at_once(new_page, live_server_url, how)
     after = state(page)
     assert not after["shut"] and after["page"] == stopped_on and after["tip"] is None  # it stayed where the visitor stopped it
     assert after["path"] != "/"  # and the address follows that page
-    assert after["writes"] <= 3
+    assert after["writes"] <= 2  # at most the address of the page it stopped on, and the one turn it settled with
 
 
 def test_a_touch_takes_over_on_a_phone(new_page, live_server_url) -> None:
@@ -170,3 +170,23 @@ def test_a_returning_visitors_corner_does_not_lift(new_page, live_server_url) ->
     page.locator(".cover-open").click()
     page.wait_for_timeout(2500)
     assert not page.evaluate("document.getElementById('notebook').classList.contains('nb--lift')")
+
+
+@pytest.mark.parametrize("viewport", [{"width": 600, "height": 400}, {"width": 700, "height": 400}], ids=["600x400", "700x400"])
+def test_the_tip_is_whole_and_readable_in_a_short_landscape_window(new_page, live_server_url, viewport) -> None:
+    # the wheel is drawn at about half size here; the tip inside it must still be on screen and full size
+    page = visit(new_page, live_server_url, viewport, reduced_motion="reduce")
+    page.wait_for_selector(".wheel-tip")
+    page.wait_for_timeout(300)
+    box = page.locator(".wheel-tip").bounding_box()
+    assert box["x"] >= 0 and box["x"] + box["width"] <= viewport["width"] and box["y"] >= 0
+    assert box["height"] >= 30 and box["width"] >= 150
+
+
+def test_resizing_across_the_phone_breakpoint_mid_opening_still_ends_on_the_cover_with_the_tip(new_page, live_server_url) -> None:
+    page = visit(new_page, live_server_url, DESKTOP)
+    page.wait_for_timeout(2000)  # mid-spin
+    page.set_viewport_size(PHONE)
+    page.wait_for_selector(".wheel-tip", timeout=4000)
+    shown = state(page)
+    assert shown["shut"] and shown["path"] == "/"

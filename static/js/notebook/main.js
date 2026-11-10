@@ -145,6 +145,7 @@ function mount(initial) {
     home: (options) => closeCover(options),
     focusPage() { (book.book.querySelector(".nb-page.r .nb-in") ?? book.book.querySelector(".nb-page .nb-in"))?.focus({ preventScroll: true }); },
     get isClosed() { return cover.closed; },
+    get isOpening() { return opening; },
     get page() { return cover.closed || opening ? null : book.current; }, // mid-opening, a rebuild starts again from the cover
     destroy() { stopOpening?.(); tip.hide(); tabs?.destroy(); cover.destroy(); wheel.destroy(); book.destroy(); },
   };
@@ -183,6 +184,8 @@ window.addEventListener("popstate", () => {
 // moving between phone and desktop sizes rebuilds the book at the same page
 wide.addEventListener("change", () => {
   const page = view.page;
+  const midOpening = view.isOpening; // the first-visit spin was cut short by the resize: the cover it lands on still gets its tip
   view.destroy();
   view = mount(page ? { page, anchor: null } : null);
+  if (midOpening) view.showTip();
 });

@@ -17,8 +17,12 @@
     <link rel="stylesheet" href="/static/css/notebook/wheel.css?v=5">
     <link rel="stylesheet" href="/static/css/notebook/cover.css?v=8">
     <link rel="stylesheet" href="/static/css/notebook/tabs.css?v=6">
-    <link rel="stylesheet" href="/static/css/notebook/stickers.css?v=9">
+    <link rel="stylesheet" href="/static/css/notebook/stickers.css?v=10">
     <link rel="preload" href="/static/fonts/schibsted-grotesk-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+    {# The scripts the notebook starts with, named up front so they load side by side instead of one after another (core/preload.py). #}
+    {% for src in preload_modules %}<link rel="modulepreload" href="{{ src }}">
+    {% endfor %}{% for src in preload_data %}<link rel="preload" href="{{ src }}" as="fetch" crossorigin>
+    {% endfor %}
   </head>
   <body>
 

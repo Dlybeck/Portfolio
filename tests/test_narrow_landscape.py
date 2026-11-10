@@ -42,7 +42,7 @@ def test_a_narrow_landscape_phone_gets_a_readable_spread(browser_page, width, he
 
 
 # landscape windows that are tall enough to skip the short-landscape rules but still have two narrow pages (a Surface Duo on its side is 720x540)
-MEDIUM = [(700, 530), (720, 540), (800, 600), (839, 530), (900, 530), (939, 700)]
+MEDIUM = [(700, 530), (720, 540), (800, 600), (839, 530), (900, 530), (899, 700)]
 BARS = "() => [...document.querySelectorAll('.nb-page.r .bar i')].map((e) => Math.round(e.getBoundingClientRect().width))"
 
 

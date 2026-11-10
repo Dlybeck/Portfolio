@@ -204,6 +204,31 @@ def test_one_wheel_spin_from_the_shut_cover_is_one_history_step(browser_page) ->
     assert "is-closed" in page.locator("#notebook").get_attribute("class")
 
 
+def test_turning_the_wheel_after_the_layout_switches_does_not_overwrite_the_previous_entry(browser_page) -> None:
+    """Rotating a phone rebuilds the book with a new wheel that numbers its inputs from 1 again; that must not join the old wheel's entry."""
+    page, base = browser_page
+    first = open_at(page, base, DESKTOP)
+    page.locator(".wheel-dial").focus()
+    page.keyboard.press("ArrowRight")  # the old wheel's first input
+    page.wait_for_timeout(1300)
+    second = shown(page)
+    assert second != first
+
+    page.set_viewport_size(PHONE)  # the book is rebuilt in the phone layout, with a new wheel
+    page.wait_for_selector("#notebook.nb--phone")
+    page.wait_for_timeout(900)
+    assert shown(page) == second
+    page.locator(".wheel-dial").focus()
+    page.keyboard.press("ArrowRight")  # the new wheel's first input
+    page.wait_for_timeout(1300)
+    third = shown(page)
+    assert third != second
+
+    page.go_back()
+    page.wait_for_timeout(1000)
+    assert shown(page) == second  # (written over, Back would have skipped this page)
+
+
 def test_a_scroll_after_back_starts_its_own_entry_instead_of_overwriting_the_one_back_landed_on(browser_page) -> None:
     """Back ends a wheel input: turns the same scroll makes afterwards must not replace the entry Back just landed on."""
     page, base = browser_page

@@ -46,6 +46,7 @@ function remember(page, input = null) {
 }
 
 function mount(initial) {
+  lastInput = null; // a new wheel numbers its inputs from the start again, so an input of the old one must not match
   const phone = !wide.matches;
   root.classList.remove("nb--phone", "nb--desktop", "is-closed", "is-turned");
   root.classList.add(phone ? "nb--phone" : "nb--desktop");

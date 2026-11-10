@@ -7,9 +7,9 @@
   display: grid; place-items: center; box-sizing: border-box; min-width: 0; white-space: nowrap; text-decoration: none; overflow: hidden;
   background: var(--tab); color: var(--ink-fixed); border: var(--edge) solid var(--nb-edge);
   font: 700 0.75rem / 1 var(--font-sans); letter-spacing: 0.01em;
-  transition: transform var(--duration-press) var(--ease-out), filter var(--duration-press) var(--ease-out);
+  transition: transform var(--duration-press) var(--ease-out), width var(--duration-press) var(--ease-out), padding var(--duration-press) var(--ease-out), filter var(--duration-press) var(--ease-out);
 }
-.nb.is-opening .nb-tab { transition: transform var(--nb-open-ms, 800ms) var(--nb-open-ease, ease-out), filter var(--duration-press) var(--ease-out); } /* the long slide only while the book opens or shuts */
+.nb.is-opening .nb-tab { transition: transform var(--nb-open-ms, 800ms) var(--nb-open-ease, ease-out), width var(--nb-open-ms, 800ms) var(--nb-open-ease, ease-out), padding var(--nb-open-ms, 800ms) var(--nb-open-ease, ease-out), filter var(--duration-press) var(--ease-out); } /* the long slide only while the book opens or shuts */
 .nb-tab:hover { filter: brightness(1.05); }
 .nb-tab[aria-current] { font-weight: 800; box-shadow: var(--lift-sm); }
 .nb.is-closed .nb-tab { filter: none; }
@@ -22,7 +22,10 @@
   writing-mode: vertical-rl; width: 28px; flex: 1 1 0; min-height: 0; max-height: 96px; padding: 2px 0; border-left: 0; border-radius: 0 8px 8px 0;
   transform: translateX(0); font-size: clamp(12px, calc(((var(--tabs-h) - 15px) / 6 - 4px) / 4.9), 12.8px); letter-spacing: 0;
 }
-.nb--desktop .nb-tab[aria-current] { transform: translateX(12px); } /* the open section's tab slides out, ending 40px from the book, inside the 40px kept free */
+/* The open section's tab is pulled out 12px, ending 40px from the book, inside the 40px kept free. It grows 12px on its book side instead of
+   sliding, so its edge stays on the page edge where every resting tab starts and no gap opens behind it (the width and padding ease
+   with the same curve as the slide, so it holds mid-move too). The words end up where the slide would have put them. */
+.nb--desktop:not(.is-closed) .nb-tab[aria-current] { width: 40px; padding-left: 12px; }
 
 /* While the book is shut the tabs stay put, riding on the book, and show only a 6px edge past the cover as if they were
    pages under it (the cover hides the rest, so the words never show). Opening and closing move them with the same
@@ -41,13 +44,16 @@
 }
 .nb--phone .nb-tab::before {
   content: ""; position: absolute; z-index: -1; inset: 0 0 0 10px; background: var(--tab); border: var(--edge) solid var(--nb-edge); border-left: 0; border-radius: 0 6px 6px 0;
+  transition: left var(--duration-press) var(--ease-out);
 }
+.nb--phone.is-opening .nb-tab::before { transition: left var(--nb-open-ms, 800ms) var(--nb-open-ease, ease-out); }
 .nb--phone .nb-tab[aria-current]::before { box-shadow: var(--lift-sm); }
 .nb--phone .nb-tab { transform: translateX(-3px); }
-.nb--phone .nb-tab[aria-current] { transform: translateX(0); }
+.nb--phone .nb-tab[aria-current] { transform: translateX(0); } /* pulled out 3px, but the strip grows 3px back to where a resting strip starts, so no gap opens behind it */
+.nb--phone:not(.is-closed) .nb-tab[aria-current]::before { left: 7px; }
 .nb--phone.is-closed .nb-tab, .nb--phone.is-closed .nb-tab[aria-current] { transform: translateX(-6px); color: transparent; } /* a 6px edge past the cover board, no words */
 
-@media (prefers-reduced-motion: reduce) { .nb-tab { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .nb-tab, .nb--phone .nb-tab::before, .nb--phone.is-opening .nb-tab::before { transition: none; } }
 
 /* A short landscape window (a phone on its side) has no room for 12px words in the tab column: there they scale down with it. */
 @media (orientation: landscape) and (max-height: 520px) and (min-width: 480px) {

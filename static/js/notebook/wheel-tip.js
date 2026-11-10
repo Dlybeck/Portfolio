@@ -36,7 +36,7 @@ export function createWheelTip(root, { delay = 500 } = {}) {
       if (!wheel || tip) return;
       wanted = true;
       timer = setTimeout(() => {
-        if (!root.classList.contains("is-closed")) return;
+        if (!root.classList.contains("is-closed")) { wanted = false; return; } // the cover opened first: the visitor has moved on
         tip = document.createElement("div");
         tip.className = "wheel-tip";
         tip.setAttribute("aria-hidden", "true"); // the wheel is already labelled "Turn the pages"

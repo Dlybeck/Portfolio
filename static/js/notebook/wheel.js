@@ -20,7 +20,7 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
  * @param {object} o.data  table of contents
  * @param {string[]} o.order  page ids in turning order for this layout
  * @param {boolean} o.phone
- * @param {{ page(id: string, duration: number, input: number): void, open(input: number): void, close(input: number): void, isClosed(): boolean, current(): string|null }} o.hooks
+ * @param {{ page(id: string, duration: number, input: number): void, open(input: number): void, close(input: number): void, rest?(): void, isClosed(): boolean, current(): string|null }} o.hooks
  *   `input` numbers what the visitor did: every turn one spin, drag, click or key press makes carries the same number.
  */
 export function createWheel({ root, data, order, phone, hooks }) {
@@ -123,6 +123,7 @@ export function createWheel({ root, data, order, phone, hooks }) {
     render();
     flipTo();
     raf = drag || target !== null || Math.abs(speed) > 0.01 ? requestAnimationFrame(frame) : 0;
+    if (!raf) hooks.rest?.(); // the wheel has come to rest: whatever it turned is done
   }
   const kick = () => { if (!raf) { lastFrame = performance.now(); raf = requestAnimationFrame(frame); } };
   const take = () => {

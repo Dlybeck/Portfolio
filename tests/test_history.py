@@ -204,32 +204,63 @@ def test_one_wheel_spin_from_the_shut_cover_is_one_history_step(browser_page) ->
     assert "is-closed" in page.locator("#notebook").get_attribute("class")
 
 
-NUDGE = """async (deltas) => {
+THERE_AND_BACK = """async () => {
   const dial = document.querySelector('.wheel-dial');
-  for (const d of deltas) {
-    dial.dispatchEvent(new WheelEvent('wheel', { deltaY: d, deltaMode: 0, bubbles: true, cancelable: true }));
-    await new Promise((done) => setTimeout(done, 120));
+  for (const sign of [1, -1]) for (let i = 0; i < 8; i++) {
+    dial.dispatchEvent(new WheelEvent('wheel', { deltaY: sign * 40, deltaMode: 0, bubbles: true, cancelable: true }));
+    await new Promise((done) => setTimeout(done, 16));
   }
 }"""
 
 
 def test_a_scroll_that_goes_forward_and_back_in_one_go_leaves_no_extra_entry(browser_page) -> None:
-    """With reduced motion each 70px of scroll is one notch, so +80 then -80 within a pause is one input that ends where it began."""
+    """One continuous scroll that ends on the page it began on was no step: Back must not meet a copy of that page."""
     page, base = browser_page
-    page.emulate_media(reduced_motion="reduce")
     first = open_at(page, base, DESKTOP)
     corner(page)
-    page.wait_for_timeout(800)
+    page.wait_for_timeout(900)
     second = shown(page)
     assert second != first
 
-    page.evaluate(NUDGE, [80, -80])
-    page.wait_for_timeout(800)
+    page.evaluate(THERE_AND_BACK)
+    page.wait_for_timeout(2500)
     assert shown(page) == second  # it came back to where it started
 
     page.go_back()
-    page.wait_for_timeout(800)
+    page.wait_for_timeout(1000)
     assert shown(page) == first  # one Back undoes the corner turn; the scroll left nothing in between
+
+
+SPIN_THEN_BACK = """async () => {
+  const dial = document.querySelector('.wheel-dial');
+  const scroll = async (n) => { for (let i = 0; i < n; i++) {
+    dial.dispatchEvent(new WheelEvent('wheel', { deltaY: 14, deltaMode: 0, bubbles: true, cancelable: true }));
+    await new Promise((done) => setTimeout(done, 16)); } };
+  await scroll(25);
+  history.back(); // Back pressed while the trackpad's momentum is still scrolling
+  await new Promise((done) => setTimeout(done, 60));
+  await scroll(25); // the same spin carries on (no pause long enough to end it)
+}"""
+
+
+def test_back_pressed_in_the_middle_of_a_spin_never_loses_the_history(browser_page) -> None:
+    page, base = browser_page
+    first = open_at(page, base, DESKTOP)
+    corner(page)
+    page.wait_for_timeout(900)
+    cornered = shown(page)
+    assert cornered != first
+
+    page.evaluate(SPIN_THEN_BACK)
+    page.wait_for_timeout(2500)
+    assert "left the notebook" not in shown(page)
+
+    # A guard, not a proof of the fix: whatever the timing, the spin that carries on after the Back leaves the history intact, so
+    # one more Back still lands on a page of the notebook at or before the one the corner reached.
+    page.go_back()
+    page.wait_for_timeout(1000)
+    assert "left the notebook" not in shown(page)
+    assert order_index(page) <= order_index_of(page, cornered)
 
 
 def test_two_quick_dial_key_presses_are_two_history_steps(browser_page) -> None:

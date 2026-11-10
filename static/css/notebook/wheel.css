@@ -53,7 +53,7 @@
    belongs to it (a finger lands on the button's centre but the touch goes to the dial). The drawn wheel is still grabbable. */
 .nb--phone.is-closed .wheel-dial::before { content: none; }
 
-@media (min-width: 900px), (orientation: landscape) and (min-width: 640px) {
+@media (min-width: 900px), (orientation: landscape) and (min-width: 640px), (orientation: landscape) and (max-height: 520px) and (min-width: 480px) {
   .wheel-dial::before { content: none; } /* the desktop wheel is big and fully drawn */
   .wheel { left: -180px; bottom: auto; top: calc(50% - 26px); margin: -220px 0 0; width: 440px; height: 440px; }
   .wheel-pointer { left: auto; right: -14px; top: 50%; margin: -8px 0 0; width: 12px; height: 16px; clip-path: polygon(100% 0, 100% 100%, 0 50%); }
@@ -62,7 +62,7 @@
 }
 
 /* A short landscape window: the same wheel at about half size, tucked against the left edge, clear of the logo and the book. */
-@media (orientation: landscape) and (max-height: 520px) and (min-width: 640px) {
+@media (orientation: landscape) and (max-height: 520px) and (min-width: 480px) {
   .wheel { left: -300px; top: calc(50% + 16px); margin-top: -220px; scale: 0.55; transform-origin: right center; }
   .wheel-name { right: 70px; font-size: 1.7rem; }
   .wheel-name small { font-size: 1rem; }

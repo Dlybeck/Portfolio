@@ -50,6 +50,6 @@
 @media (prefers-reduced-motion: reduce) { .nb-tab { transition: none; } }
 
 /* A short landscape window (a phone on its side) has no room for 12px words in the tab column: there they scale down with it. */
-@media (orientation: landscape) and (max-height: 520px) and (min-width: 640px) {
+@media (orientation: landscape) and (max-height: 520px) and (min-width: 480px) {
   .nb--desktop .nb-tab { font-size: clamp(9px, calc(((var(--tabs-h) - 15px) / 6 - 4px) / 4.9), 12.8px); }
 }

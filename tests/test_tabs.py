@@ -134,7 +134,7 @@ def test_the_tabs_ride_with_the_book_and_slide_out_in_step_with_the_cover_swing(
       const t0 = performance.now();
       const tick = () => {
         const tab = document.querySelector('.nb-tab'), book = document.querySelector('.nb-book');
-        window.__s.push({ t: performance.now() - t0, tab: tab.getBoundingClientRect().left, book: book.getBoundingClientRect().left,
+        window.__s.push({ t: performance.now() - t0, tab: tab.getBoundingClientRect().right, /* the far edge: the current tab grows out rather than sliding, so only this edge travels */ book: book.getBoundingClientRect().left,
                           opacity: getComputedStyle(document.querySelector('.nb-tabs')).opacity, shown: getComputedStyle(document.querySelector('.nb-tabs')).display });
         if (performance.now() - t0 < 1400) requestAnimationFrame(tick);
       };

@@ -1,0 +1,90 @@
+{% from "notebook/_desk.html" import desk_log, desk_card, desk_pill %}
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Desk board options</title>
+  <link rel="stylesheet" href="/static/dlybeck/tokens.css?v=1">
+  <link rel="stylesheet" href="/static/css/notebook/fonts.css?v=1">
+  <link rel="stylesheet" href="/static/css/notebook/notebook.css?v=8">
+  <link rel="stylesheet" href="/static/css/notebook/content.css?v=4">
+  <link rel="stylesheet" href="/static/css/notebook/desk.css?v=1">
+  <style>
+    /* Preview frame only. */
+    body { padding: 28px 24px 64px; }
+    .pv-head { max-width: 1320px; margin: 0 auto 24px; }
+    .pv-head h1 { margin: 0 0 6px; font: 800 1.6rem/1.1 var(--font-sans); letter-spacing: -0.02em; }
+    .pv-head p { margin: 0; max-width: 70ch; color: var(--ink-2); }
+    .pv { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 24px; row-gap: 18px; align-items: start; }
+    .pv-opt { display: contents; }
+    .pv-about { grid-row: 1; align-self: stretch; padding: 16px 18px; background: var(--surface); border: var(--edge) solid var(--line); border-radius: var(--radius-md); }
+    .pv-about h2 { margin: 0 0 8px; font: 800 1.12rem/1.2 var(--font-sans); }
+    .pv-about p { margin: 0 0 6px; font-size: 0.9rem; line-height: 1.45; }
+    .pv-about b { font: 500 0.7rem/1.4 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); display: block; }
+    .pv-about .pv-go { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 10px; font-size: 0.85rem; }
+    .pv-about a { color: var(--link); }
+    .pv-cell { margin: 0; }
+    .pv-cell figcaption { margin: 0 0 6px; font: 500 0.7rem/1.4 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+    /* swatches: the surface each option sits on in the notebook */
+    .pv-paper {
+      padding: 22px 24px 20px 30px; border: var(--edge) solid var(--nb-edge); border-radius: 3px; background-color: var(--nb-paper);
+      background-image: linear-gradient(90deg, transparent 11px, rgba(200, 64, 52, 0.42) 11px, rgba(200, 64, 52, 0.42) 12.5px, transparent 12.5px),
+        repeating-linear-gradient(transparent 0 25px, rgba(60, 104, 170, 0.2) 25px 26px);
+      background-size: 100% 100%, 100% 26px; background-position: 0 0, 0 14px;
+    }
+    .pv-kraft {
+      display: grid; place-items: center; padding: 28px 20px; border: var(--edge) solid var(--ink-fixed); border-radius: 3px;
+      background-color: var(--nb-kraft);
+      background-image: radial-gradient(rgba(60, 40, 10, 0.14) 1px, transparent 1.3px), radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1.3px);
+      background-size: 6px 6px, 9px 9px; background-position: 0 0, 3px 4px;
+    }
+    .pv-cover { container-type: inline-size; min-height: 120px; }
+    .pv-cover .wd-desk { rotate: -2deg; }
+    .pv-cover-lines { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 2px; font-size: 0.82rem; color: var(--ink); }
+    .pv-cover-lines li::before { content: "tap → "; font: 500 0.7rem var(--font-mono); color: var(--ink-2); }
+    @media (max-width: 900px) {
+      body { padding: 20px 16px 48px; }
+      .pv { grid-template-columns: minmax(0, 1fr); }
+      .pv-opt { display: grid; gap: 14px; margin-bottom: 28px; }
+      .pv-about, .pv-cell { grid-row: auto !important; grid-column: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="pv-head">
+    <h1>Desk board: three options</h1>
+    <p>Branch preview, not linked from the site. Each column is one option in each state, with made-up counts. “In the notebook” opens the real notebook with that option placed where it would live.</p>
+  </header>
+  <main class="pv">
+    {% for opt in options %}{% set col = loop.index %}
+    <section class="pv-opt">
+      <div class="pv-about" style="grid-column: {{ col }}">
+        <h2>{{ opt.name }}</h2>
+        <p><b>Where</b>{{ opt.where }}</p>
+        <p><b>What</b>{{ opt.what }}</p>
+        <p class="pv-go">In the notebook:
+          {% for key, label in states %}<a href="/preview/desk-board/{{ opt.id }}?state={{ key }}">{{ label | lower }}</a>{% endfor %}
+          {% if live %}<a href="/preview/desk-board/{{ opt.id }}?state=live">live</a>{% endif %}
+        </p>
+      </div>
+      {% for key, label in states %}{% set view = views[key] %}
+      <figure class="pv-cell" style="grid-column: {{ col }}; grid-row: {{ loop.index + 1 }}">
+        <figcaption>{{ label }}</figcaption>
+        {% if opt.id == "a" %}
+        <div class="pv-paper page">{{ desk_log(view) }}</div>
+        {% elif opt.id == "b" %}
+        <div class="pv-kraft">{{ desk_card(view) }}</div>
+        {% else %}
+        <div class="pv-kraft pv-cover">{{ desk_pill(view) }}</div>
+        {% if view.sentences | length > 1 %}<ul class="pv-cover-lines">{% for line in view.sentences[1:] %}<li>{{ line }}</li>{% endfor %}</ul>{% endif %}
+        {% endif %}
+      </figure>
+      {% endfor %}
+    </section>
+    {% endfor %}
+  </main>
+  {% if live %}<p class="pv-head" style="margin-top:24px">Live from Desk now: {{ live.headline }}. {{ live.note }}</p>{% endif %}
+</body>
+</html>

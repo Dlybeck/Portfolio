@@ -16,6 +16,11 @@ logger = logging.getLogger(__name__)
 
 def include_router(app):
     app.include_router(portfolio_router)
+    # The desk board's option preview: a dev-only page, never set on the live service.
+    if os.environ.get("DESK_BOARD_PREVIEW") == "1":
+        from apis.route_desk_preview import desk_preview_router
+
+        app.include_router(desk_preview_router)
 
 
 def configure_static(app):

@@ -1,0 +1,49 @@
+{# The desk board: a few anonymous counts from Desk, in three possible treatments.
+   Each takes a View from core/desk_board.describe(). The words are written here by the server;
+   nothing in a page ever names Desk's address, and the data holds no names to show. #}
+
+{% set DESK_ABOUT = "Counted live by the tool I use to keep track of my AI coding chats. Numbers only, never names." %}
+
+{# A. "At my desk": a few lines written on the Say hi page, in the page's own type. #}
+{% macro desk_log(view) -%}
+<section class="desk desk-log desk--{{ view.mood }}{% if view.stale %} is-stale{% endif %}" aria-label="At my desk">
+  <h3>At my desk</h3>
+  <p class="desk-now"><i class="desk-dot" aria-hidden="true"></i><b>{{ view.headline }}</b></p>
+  {% if view.facts %}
+  <dl class="desk-rows">
+    {% for f in view.facts if f.key != view.mood %}<div><dt>{{ f.label }}</dt><dd>{{ f.value }}</dd></div>{% endfor %}
+  </dl>
+  {% endif %}
+  <p class="desk-note">{{ view.note }} {{ DESK_ABOUT }}</p>
+</section>
+{%- endmacro %}
+
+{# B. A card on the inside of the back cover: three counts, then four short lines. #}
+{% macro desk_card(view) -%}
+<div class="desk desk-card desk--{{ view.mood }}{% if view.stale %} is-stale{% endif %}" role="group" aria-label="At my desk">
+  <p class="desk-hand">at my desk</p>
+  <p class="desk-now"><i class="desk-dot" aria-hidden="true"></i><b>{{ view.state }}</b></p>
+  {% if view.facts %}
+  <p class="desk-k">AI chats</p>
+  <ul class="desk-counts">
+    {% for key, word in (("working", "working"), ("waiting", "waiting on me"), ("idle", "resting")) %}{% set f = view.fact(key) %}
+    <li><b>{{ f.count if f else "–" }}</b><span>{{ word }}</span></li>
+    {% endfor %}
+  </ul>
+  <dl class="desk-rows">
+    {% for key in ("active", "focus", "gpu", "last") %}{% set f = view.fact(key) %}{% if f %}<div><dt>{{ f.label }}</dt><dd>{{ f.value }}</dd></div>{% endif %}{% endfor %}
+  </dl>
+  {% else %}
+  <p class="desk-empty">{{ view.headline }}. {{ view.note }}</p>
+  {% endif %}
+  <p class="desk-note">{% if view.facts %}{{ view.note }} {% endif %}{{ DESK_ABOUT }}</p>
+</div>
+{%- endmacro %}
+
+{# C. A vinyl pill on the cover, a sibling of the "now" pill: one line at a time, tap for the next. #}
+{% macro desk_pill(view) -%}
+<div class="wd wd-desk desk--{{ view.mood }}{% if view.stale %} is-stale{% endif %}" role="button" tabindex="0"
+     aria-label="{{ view.sentences[0] }}. Tap for more." data-lines="{{ view.sentences | tojson | forceescape }}">
+  <i class="dot" aria-hidden="true"></i><b>{{ "live" if view.mood != "offline" else "away" }}</b><span>{{ view.sentences[0] }}</span>
+</div>
+{%- endmacro %}

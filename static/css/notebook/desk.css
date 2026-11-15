@@ -1,0 +1,67 @@
+/* The desk board (templates/notebook/_desk.html): a few anonymous counts from David's desk.
+   Three treatments are drawn here while one is chosen; the two not picked go when it ships. */
+
+/* ---------- shared: the status dot ---------- */
+.desk { --desk-dot: #8b93a1; }
+.desk--working { --desk-dot: #1fbf5a; }
+.desk--waiting { --desk-dot: #e39a1c; }
+.desk--resting { --desk-dot: #8b93a1; }
+.desk-dot { display: inline-block; flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--desk-dot); border: 1.5px solid var(--ink-fixed); }
+.desk--offline .desk-dot { background: transparent; border-style: dashed; }
+.desk--working .desk-dot { box-shadow: 0 0 0 0 rgba(31, 191, 90, 0.6); animation: desk-pulse 1.6s infinite; }
+@keyframes desk-pulse { 70% { box-shadow: 0 0 0 7px rgba(31, 191, 90, 0); } 100% { box-shadow: 0 0 0 0 rgba(31, 191, 90, 0); } }
+@media (prefers-reduced-motion: reduce) { .desk--working .desk-dot, .wd-desk.desk--working .dot { animation: none; } }
+
+/* label / value rows, used by A and B */
+.desk-rows { display: grid; margin: 0; }
+.desk-rows div { display: grid; grid-template-columns: 9.5em minmax(0, 1fr); gap: 10px; align-items: baseline; padding: 6px 0; border-top: 1px solid var(--rule, rgba(20, 28, 43, 0.16)); }
+.desk-rows dt { font: 500 0.72rem/1.5 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--soft, #4a5568); }
+.desk-rows dd { margin: 0; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+.desk-now { display: flex; align-items: center; gap: 9px; margin: 0 0 8px; }
+.desk-note { margin: 10px 0 0; font-size: 0.8rem; line-height: 1.45; color: var(--soft, #4a5568); }
+.is-stale .desk-rows dd, .is-stale .desk-counts b { color: var(--soft, #4a5568); }
+
+/* ---------- A: written on the Say hi page ---------- */
+.page .desk-log { max-width: 420px; margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--rule); }
+.page .desk-log h3 { margin-bottom: 10px; }
+.page .desk-log .desk-now { font-size: 1rem; }
+.page .desk-log .desk-note { max-width: 46ch; font-size: 0.8rem; }
+
+/* ---------- B: a card on the inside of the back cover ---------- */
+.desk-card {
+  --rule: rgba(20, 28, 43, 0.16); --soft: #4a5568;
+  width: 100%; max-width: 340px; padding: 16px 18px 14px; color: var(--ink-fixed);
+  background: var(--paper-note); border-radius: 4px; rotate: -1.5deg;
+  filter: drop-shadow(1.6px 0 0 #fff) drop-shadow(-1.6px 0 0 #fff) drop-shadow(0 1.6px 0 #fff) drop-shadow(0 -1.6px 0 #fff) drop-shadow(0 5px 5px rgba(0, 0, 0, 0.35));
+}
+.desk-card .desk-hand { margin: 0 0 2px; font: 700 1.55rem/1 var(--font-hand); color: var(--nb-pen, #0b4f9c); }
+.desk-card .desk-now { margin-bottom: 12px; font-size: 0.95rem; }
+.desk-card .desk-k { margin: 0 0 4px; font: 500 0.7rem/1.4 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); }
+.desk-counts { container-type: inline-size; list-style: none; margin: 0 0 12px; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1.5px solid var(--ink-fixed); border-radius: 4px; background: #fff; }
+.desk-counts li { display: grid; gap: 3px; padding: 8px 8px 9px 10px; min-width: 0; }
+.desk-counts li + li { border-left: 1px dashed var(--rule); }
+.desk-counts b { font: 800 1.7rem/1 var(--font-sans); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.desk-counts span { font-size: clamp(0.6rem, 3.7cqi, 0.76rem); line-height: 1.2; white-space: nowrap; color: var(--soft); } /* one line each, so the three boxes match */
+.desk-card .desk-rows div { grid-template-columns: 7.6em minmax(0, 1fr); padding: 5px 0; }
+.desk-card .desk-rows dd { font-size: 0.86rem; }
+.desk-card .desk-empty { margin: 4px 0 0; padding: 12px; font-size: 0.9rem; border: 1.5px dashed var(--rule); border-radius: 4px; }
+.desk-card .desk-note { font-size: 0.74rem; }
+
+/* ---------- C: a vinyl pill on the cover, a sibling of the "now" pill ---------- */
+.wd-desk {
+  display: flex; align-items: center; gap: 1.6cqw; white-space: nowrap; width: max-content;
+  padding: 1.6cqw 3cqw; background: #e3f6e9; border: 2px solid #fff; border-radius: 999px; outline: 2px solid var(--ink-fixed); outline-offset: -5px;
+  font: 700 clamp(0.5rem, 3.3cqw, 0.82rem) / 1 var(--font-sans); color: var(--ink-fixed); cursor: pointer;
+  filter: drop-shadow(1.6px 0 0 #fff) drop-shadow(-1.6px 0 0 #fff) drop-shadow(0 1.6px 0 #fff) drop-shadow(0 -1.6px 0 #fff) drop-shadow(0 5px 5px rgba(0, 0, 0, 0.45));
+}
+.wd-desk.desk--waiting { background: #fff1d6; }
+.wd-desk.desk--resting { background: #eceef2; }
+.wd-desk.desk--offline { background: #eceef2; }
+.wd-desk b { font: 500 0.66rem / 1 var(--font-mono); letter-spacing: 0.04em; text-transform: uppercase; }
+.wd-desk .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--desk-dot, #8b93a1); flex: none; }
+.wd-desk.desk--working .dot { background: #1fbf5a; animation: desk-pulse 1.6s infinite; }
+.wd-desk.desk--waiting .dot { background: #e39a1c; }
+.wd-desk.desk--offline .dot { background: transparent; border: 1.5px dashed #5b6474; }
+.wd-desk.flip { animation: desk-flip 0.36s var(--ease-out); }
+.wd-desk:focus-visible { outline: 3px solid var(--ink-fixed); outline-offset: 4px; }
+@keyframes desk-flip { from { transform: rotateX(80deg); } }

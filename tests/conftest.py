@@ -65,8 +65,12 @@ def new_page(browser: Browser) -> Iterator[Callable[..., Page]]:
     """Open a page in its own fresh context; every context closes after the test."""
     contexts: list[BrowserContext] = []
 
-    def make(**context_options) -> Page:
+    def make(first_visit: bool = False, **context_options) -> Page:
         context = browser.new_context(**context_options)
+        if not first_visit:
+            # A visitor who has seen the first-visit opening (nb-opening-seen) gets the plain shut cover at "/", which is what
+            # nearly every test wants; the opening's own tests ask for `first_visit=True`.
+            context.add_init_script("try { localStorage.setItem('nb-opening-seen', '1'); } catch (e) {}")
         contexts.append(context)
         return context.new_page()
 

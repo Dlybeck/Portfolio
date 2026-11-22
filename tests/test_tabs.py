@@ -129,12 +129,13 @@ def test_the_shut_tabs_are_hidden_from_keyboards_and_screen_readers_but_a_mouse_
 
 def test_the_tabs_ride_with_the_book_and_slide_out_in_step_with_the_cover_swing(browser_page) -> None:
     page = visit(browser_page, "/", DESKTOP)
+    # `tab` below is the far (right) edge: the current tab grows out rather than sliding, so only that edge travels.
     page.evaluate("""() => {
       window.__s = [];
       const t0 = performance.now();
       const tick = () => {
         const tab = document.querySelector('.nb-tab'), book = document.querySelector('.nb-book');
-        window.__s.push({ t: performance.now() - t0, tab: tab.getBoundingClientRect().left, book: book.getBoundingClientRect().left,
+        window.__s.push({ t: performance.now() - t0, tab: tab.getBoundingClientRect().right, book: book.getBoundingClientRect().left,
                           opacity: getComputedStyle(document.querySelector('.nb-tabs')).opacity, shown: getComputedStyle(document.querySelector('.nb-tabs')).display });
         if (performance.now() - t0 < 1400) requestAnimationFrame(tick);
       };
